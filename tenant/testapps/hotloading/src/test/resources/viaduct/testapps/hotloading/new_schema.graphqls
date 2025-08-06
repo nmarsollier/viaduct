@@ -1,0 +1,47 @@
+extend type Query @scope(to: ["publicScope"]) {
+  field1: Object1 @resolver
+  nullableField: String @resolver
+  fieldToBeUpdated: Int @resolver
+  fieldWithArgs(arg1: String, arg2: String): String @resolver
+  fieldWithInput(input: TestInput): String! @resolver
+  fieldWithInput2(input: TestInput): String @resolver
+  node(id: String!): TestNode1! @resolver
+  nodeReference(id: String!): TestNode1! @resolver
+}
+
+type Object1 @scope(to: ["publicScope"]) {
+  value1: String!
+  value2: Object2! @resolver
+  fieldToBeAddedResolver: String @resolver
+  fieldAdded: Int
+  fieldToDropAtResolver: String
+}
+
+type Object2 @scope(to: ["publicScope"]) {
+  strField: String
+  nonNullStrField: String!
+  enumField: TestEnum
+}
+
+enum TestEnum @scope(to: ["publicScope"]) {
+  VALUE1
+}
+
+input TestInput @scope(to: ["publicScope"]) {
+  strField: String
+  intField: Int
+}
+
+extend type Object1 @scope(to: ["publicScope"]) {
+  fieldAnotherModule: String
+}
+
+interface Node @scope(to: ["publicScope"]) {
+  id: ID!
+}
+
+type TestNode1 implements Node @resolver @scope(to: ["publicScope"]) {
+  id: ID!
+  key: String!
+  value: String
+}

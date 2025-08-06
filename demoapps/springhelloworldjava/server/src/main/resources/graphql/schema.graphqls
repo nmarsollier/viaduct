@@ -1,0 +1,5 @@
+# This an stub query is needed by graphiql, otherwise it will not boot up
+# It is replaced by the actual queries in the generated schema
+type Query {
+  stub: String
+}

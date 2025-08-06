@@ -1,0 +1,209 @@
+@file:Suppress("unused", "ClassName")
+
+package viaduct.tenant.runtime.execution.scopes
+
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import viaduct.api.Resolver
+import viaduct.graphql.test.assertEquals
+import viaduct.tenant.runtime.execution.scopes.resolverbases.QueryResolvers
+import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
+
+class ScopesFeatureAppTest : FeatureAppTestBase() {
+    override var sdl =
+        """
+     | #START_SCHEMA
+     | directive @resolver on FIELD_DEFINITION | OBJECT
+     | directive @backingData(class: String!) on FIELD_DEFINITION
+     |   type Query @scope(to: ["*"]) {
+     |     _: String @deprecated
+     |   }
+     |   type Mutation @scope(to: ["*"]) {
+     |     _: String @deprecated
+     |   }
+     |   type Subscription @scope(to: ["*"]) {
+     |     _: String @deprecated
+     |   }
+     |   directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+     |   type TestScope1Object @scope(to: ["SCOPE1"]) {
+     |       strValue: String!
+     |   }
+     |   type TestScope2Object @scope(to: ["SCOPE2"]) {
+     |     strValue: String!
+     |   }
+     |
+     |   extend type Query @scope(to: ["SCOPE1"]) {
+     |     scope1Value: TestScope1Object @resolver
+     |   }
+     |
+     |   extend type Query @scope(to: ["SCOPE2"]) {
+     |     scope2Value: TestScope2Object @resolver
+     |   }
+     | #END_SCHEMA
+        """.trimMargin()
+
+    @Resolver
+    class Scope1ValueResolver : QueryResolvers.Scope1Value() {
+        override suspend fun resolve(ctx: Context): TestScope1Object {
+            return TestScope1Object.Builder(ctx)
+                .strValue("scope 1 value")
+                .build()
+        }
+    }
+
+    @Resolver
+    class Scope2ValueResolver : QueryResolvers.Scope2Value() {
+        override suspend fun resolve(ctx: Context): TestScope2Object {
+            return TestScope2Object.Builder(ctx)
+                .strValue("scope 2 value")
+                .build()
+        }
+    }
+
+    @Nested
+    @DisplayName("Scopes 1 tests")
+    inner class Scopes1Test {
+        private val scopeId = "SCHEMA_ID_1"
+        private val scopes = setOf("SCOPE1")
+
+        @BeforeEach
+        fun setup() {
+            withSchemaRegistryBuilder {
+                registerScopedSchema(scopeId, scopes)
+            }
+        }
+
+        @Test
+        fun `Resolve query with SCOPE1 fields against SCHEMA_ID_1 schema succeeds`() {
+            execute(
+                query = """
+                query {
+                    scope1Value {
+                        strValue
+                    }
+                }
+                """.trimIndent(),
+                scopeId = scopeId
+            ).assertEquals {
+                "data" to {
+                    "scope1Value" to {
+                        "strValue" to "scope 1 value"
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun `Resolve fails to run query with SCOPE2 fields against SCHEMA_ID_1 schema`() {
+            execute(
+                query = """
+                query {
+                    scope2Value {
+                        strValue
+                    }
+                }
+                """.trimIndent(),
+                scopeId = scopeId
+            ).assertEquals {
+                "errors" to arrayOf(
+                    {
+                        "message" to "Validation error (FieldUndefined@[scope2Value]) : Field 'scope2Value' in type 'Query' is undefined"
+                        "locations" to arrayOf(
+                            {
+                                "line" to 2
+                                "column" to 5
+                            }
+                        )
+                        "extensions" to {
+                            "classification" to "ValidationError"
+                        }
+                    }
+                )
+                "data" to null
+            }
+        }
+
+        @Test
+        fun `Resolve query with SCOPE2 fields fails as SCHEMA_ID_2 is not registered`() {
+            execute(
+                query = """
+                query {
+                    scope2Value {
+                        strValue
+                    }
+                }
+                """.trimIndent(),
+                scopeId = "SCHEMA_ID_2"
+            ).assertEquals {
+                "errors" to arrayOf(
+                    {
+                        "message" to "Schema not found for schemaId=SCHEMA_ID_2"
+                        "locations" to emptyList<String>()
+                        "extensions" to {
+                            "classification" to "DataFetchingException"
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Scopes 2 tests")
+    inner class Scopes2Test {
+        private val scopeId1 = "SCHEMA_ID_1"
+        private val scopeId2 = "SCHEMA_ID_2"
+        private val scopes1 = setOf("SCOPE1")
+        private val scopes2 = setOf("SCOPE2")
+
+        @BeforeEach
+        fun setup() {
+            withSchemaRegistryBuilder {
+                registerScopedSchema(scopeId1, scopes1)
+                registerScopedSchema(scopeId2, scopes2)
+            }
+        }
+
+        @Test
+        fun `Resolve SCOPE1 fields against SCHEMA_ID_1 schema succeeds`() {
+            execute(
+                query = """
+                query {
+                    scope1Value {
+                        strValue
+                    }
+                },
+                """.trimIndent(),
+                scopeId = "SCHEMA_ID_1",
+            ).assertEquals {
+                "data" to {
+                    "scope1Value" to {
+                        "strValue" to "scope 1 value"
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun `Resolve SCOPE2 fields against SCHEMA_ID_2 schema succeeds`() {
+            execute(
+                query = """
+                query {
+                    scope2Value {
+                        strValue
+                    }
+                }
+                """.trimIndent(),
+                scopeId = "SCHEMA_ID_2",
+            ).assertEquals {
+                "data" to {
+                    "scope2Value" to {
+                        "strValue" to "scope 2 value"
+                    }
+                }
+            }
+        }
+    }
+}

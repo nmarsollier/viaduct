@@ -1,0 +1,22 @@
+schema {
+  query: RootQuery
+}
+
+type AType {
+  foo: String
+  someOtherTypeField: SomeOtherType
+}
+
+"this type will be completely filtered out for all scopes except \"some-other-scope\""
+type BType {
+  someOtherTypeField: SomeOtherType
+}
+
+type RootQuery {
+  aType: AType
+  bType: BType
+}
+
+type SomeOtherType {
+  bar: String
+}

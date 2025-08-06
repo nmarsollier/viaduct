@@ -1,0 +1,597 @@
+@file:Suppress("ForbiddenImport")
+
+package viaduct.engine.api.mocks
+
+import graphql.execution.AsyncExecutionStrategy
+import graphql.execution.ExecutionStrategy
+import graphql.execution.SimpleDataFetcherExceptionHandler
+import graphql.execution.instrumentation.ChainedInstrumentation
+import graphql.execution.instrumentation.Instrumentation
+import graphql.schema.GraphQLCompositeType
+import graphql.schema.GraphQLList
+import graphql.schema.GraphQLNonNull
+import graphql.schema.GraphQLObjectType
+import graphql.schema.GraphQLOutputType
+import graphql.schema.GraphQLSchema
+import graphql.schema.idl.RuntimeWiring
+import graphql.schema.idl.SchemaGenerator
+import graphql.schema.idl.SchemaParser
+import kotlinx.coroutines.runBlocking
+import viaduct.dataloader.mocks.MockNextTickDispatcher
+import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerExecutorFactory
+import viaduct.engine.api.CheckerResult
+import viaduct.engine.api.CheckerResultContext
+import viaduct.engine.api.Coordinate
+import viaduct.engine.api.EngineExecutionContext
+import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.FieldResolverDispatcher
+import viaduct.engine.api.FieldResolverDispatcherRegistry
+import viaduct.engine.api.FieldResolverExecutor
+import viaduct.engine.api.NodeResolverDispatcher
+import viaduct.engine.api.NodeResolverExecutor
+import viaduct.engine.api.RawSelectionSet
+import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.api.RequiredSelectionSetRegistry
+import viaduct.engine.api.TenantAPIBootstrapper
+import viaduct.engine.api.TenantModuleBootstrapper
+import viaduct.engine.api.VariablesResolver
+import viaduct.engine.api.ViaductSchema
+import viaduct.engine.api.coroutines.CoroutineInterop
+import viaduct.engine.api.select.SelectionsParser
+import viaduct.engine.runtime.DispatcherRegistry
+import viaduct.engine.runtime.execution.DefaultCoroutineInterop
+import viaduct.engine.runtime.mocks.ContextMocks
+
+typealias CheckerFn = suspend (arguments: Map<String, Any?>, objectDataMap: Map<String, EngineObjectData>) -> Unit
+typealias NodeBatchResolverFn = suspend (selectors: List<NodeResolverExecutor.Selector>, context: EngineExecutionContext) -> Map<NodeResolverExecutor.Selector, Result<EngineObjectData>>
+typealias NodeUnbatchedResolverFn = (id: String, selections: RawSelectionSet?, context: EngineExecutionContext) -> EngineObjectData
+typealias FieldUnbatchedResolverFn = suspend (
+    arguments: Map<String, Any?>,
+    objectValue: EngineObjectData,
+    queryValue: EngineObjectData,
+    selections: RawSelectionSet?,
+    context: EngineExecutionContext
+) -> Any?
+typealias VariablesResolverFn = suspend (ctx: VariablesResolver.ResolveCtx) -> Map<String, Any?>
+
+fun mkCoroutineInterop(): CoroutineInterop = DefaultCoroutineInterop
+
+fun mkExecutionStrategy(): ExecutionStrategy = AsyncExecutionStrategy(SimpleDataFetcherExceptionHandler())
+
+fun mkInstrumentation(): Instrumentation = ChainedInstrumentation(listOf<Instrumentation>())
+
+fun mkRSS(
+    typeName: String,
+    selectionString: String,
+    variableProviders: List<VariablesResolver> = emptyList()
+) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders)
+
+class MockRequiredSelectionSetRegistry private constructor(
+    val entries: List<Entry> = emptyList()
+) : RequiredSelectionSetRegistry {
+    data class Entry(val coord: Coordinate, val selectionsType: String, val selectionsString: String, val variableProviders: List<VariablesResolver>)
+
+    /** merge this registry with the provided registry */
+    operator fun plus(other: MockRequiredSelectionSetRegistry): MockRequiredSelectionSetRegistry = MockRequiredSelectionSetRegistry(other.entries + entries)
+
+    companion object {
+        val empty: MockRequiredSelectionSetRegistry = MockRequiredSelectionSetRegistry()
+
+        /**
+         * Create a MockRequiredSelectionSetRegistry for a table of entries that do not use variables.
+         *
+         * This method be used to compactly initialize a registry.
+         *
+         * Example:
+         * ```
+         *   MockRequiredSelectionSetRegistry.mk(
+         *     "Type" to "foo" to "requiredSelection",
+         *     "Type" to "bar" to "requiredSelection"
+         *   )
+         * ```
+         */
+        fun mk(vararg entries: Pair<Coordinate, String>): MockRequiredSelectionSetRegistry =
+            MockRequiredSelectionSetRegistry(
+                entries.map {
+                    Entry(it.first, it.first.first, it.second, emptyList())
+                }
+            )
+
+        /**
+         * Create a MockRequiredSelectionSetRegistry for a table of entries that use variables.
+         * Selection strings will be interpreted to be object selections on the coordinate's type.
+         *
+         * Example:
+         * ```
+         *   MockRequiredSelectionSetRegistry.mk(
+         *     "Type" to "foo" to "requiredSelection" to variablesResolver,
+         *     "Type" to "bar" to "requiredSelection" to variablesResolver
+         *   )
+         * ```
+         */
+        @JvmName("mkWithVariables1")
+        fun mk(vararg entries: Pair<Pair<Coordinate, String>, VariablesResolver>): MockRequiredSelectionSetRegistry =
+            MockRequiredSelectionSetRegistry(
+                entries.map {
+                    Entry(
+                        coord = it.first.first,
+                        selectionsType = it.first.first.first,
+                        selectionsString = it.first.second,
+                        variableProviders = listOf(it.second)
+                    )
+                }
+            )
+
+        /**
+         * Create a MockRequiredSelectionSetRegistry for a table of entries that use variables.
+         * Selection strings will be interpreted to be object selections on the coordinate's type.
+         *
+         * Example:
+         * ```
+         *   MockRequiredSelectionSetRegistry.mk(
+         *     "Type" to "foo" to "requiredSelection" to variablesResolvers,
+         *     "Type" to "bar" to "requiredSelection" to variablesResolvers
+         *   )
+         * ```
+         */
+        @JvmName("mkWithVariables2")
+        fun mk(vararg entries: Pair<Pair<Coordinate, String>, List<VariablesResolver>>): MockRequiredSelectionSetRegistry =
+            entries.fold(empty) { acc, e ->
+                acc + mkForSelectedType(e.first.first.first, e)
+            }
+
+        /**
+         * Create a MockRequiredSelectionSetRegistry for a table of entries, where all selectionStrings are
+         * selections on the provided [typeName]
+         *
+         * Example:
+         * ```
+         *   MockRequiredSelectionSetRegistry.mkForType(
+         *     "Query",
+         *     "Type" to "foo" to "fieldOnQuery"
+         *   )
+         * ```
+         */
+        fun mkForSelectedType(
+            typeName: String,
+            vararg entries: Pair<Coordinate, String>
+        ): MockRequiredSelectionSetRegistry =
+            MockRequiredSelectionSetRegistry(
+                entries.map {
+                    Entry(it.first, selectionsType = typeName, it.second, variableProviders = emptyList())
+                }
+            )
+
+        /**
+         * Create a MockRequiredSelectionSetRegistry for a table of entries, where all selectionStrings are
+         * selections on the provided [typeName]
+         *
+         * Example:
+         * ```
+         *   MockRequiredSelectionSetRegistry.mkForType(
+         *     "Query",
+         *     "Type" to "foo" to "fieldOnQuery" to variablesResolvers,
+         *   )
+         * ```
+         */
+        @JvmName("mkForTypeWithVariables")
+        fun mkForSelectedType(
+            typeName: String,
+            vararg entries: Pair<Pair<Coordinate, String>, List<VariablesResolver>>
+        ): MockRequiredSelectionSetRegistry =
+            MockRequiredSelectionSetRegistry(
+                entries.map {
+                    Entry(it.first.first, selectionsType = typeName, it.first.second, variableProviders = it.second)
+                }
+            )
+    }
+
+    /**
+     * Final override the original getRequiredSelectionSets method and expose a new one without
+     * `executeAccessChecksInModstrat` as it is not relevant for the mock implementation.
+     */
+    final override fun getRequiredSelectionSets(
+        typeName: String,
+        fieldName: String,
+        executeAccessChecksInModstrat: Boolean
+    ): List<RequiredSelectionSet> = getRequiredSelectionSets(typeName, fieldName)
+
+    fun getRequiredSelectionSets(
+        typeName: String,
+        fieldName: String
+    ): List<RequiredSelectionSet> =
+        entries
+            .filter { it.coord == (typeName to fieldName) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
+}
+
+class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolverFn) : VariablesResolver {
+    override val variableNames: Set<String> = names.toSet()
+
+    override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = resolveFn(ctx)
+}
+
+fun mkSchema(sdl: String): GraphQLSchema {
+    val tdr = SchemaParser().parse(sdl)
+    return SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING)
+}
+
+object MockSchema {
+    val minimal: GraphQLSchema = mkSchema("type Query { empty: Int }")
+
+    fun mk(sdl: String) = mkSchema(sdl)
+}
+
+fun mkDispatcherRegistry(
+    fieldResolverExecutors: Map<Coordinate, FieldResolverExecutor> = emptyMap(),
+    nodeResolverExecutors: Map<String, NodeResolverExecutor> = emptyMap(),
+    checkerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
+    nodeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
+): DispatcherRegistry {
+    return DispatcherRegistry(
+        fieldResolverDispatchers = fieldResolverExecutors.map { (k, v) -> k to MockFieldResolverDispatcher(v) }.toMap(),
+        nodeResolverDispatchers = nodeResolverExecutors.map { (k, v) -> k to MockNodeResolverDispatcher(v) }.toMap(),
+        checkerExecutors = checkerExecutors,
+        nodeCheckerExecutors = nodeCheckerExecutors
+    )
+}
+
+class MockFieldResolverDispatcherRegistry(vararg val bindings: Pair<Coordinate, FieldResolverDispatcher>) : FieldResolverDispatcherRegistry {
+    private val bindingsMap = bindings.toMap()
+
+    override fun getFieldResolverDispatcher(
+        typeName: String,
+        fieldName: String
+    ): FieldResolverDispatcher? = bindingsMap[typeName to fieldName]
+}
+
+class MockUnbatchedFieldResolverExecutor(
+    override val objectSelectionSet: RequiredSelectionSet? = null,
+    override val querySelectionSet: RequiredSelectionSet? = null,
+    override val metadata: Map<String, String> = emptyMap(),
+    val resolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null },
+) : FieldResolverExecutor {
+    override suspend fun resolve(
+        arguments: Map<String, Any?>,
+        objectValue: EngineObjectData,
+        queryValue: EngineObjectData,
+        selections: RawSelectionSet?,
+        context: EngineExecutionContext
+    ): Any? = resolveFn(arguments, objectValue, queryValue, selections, context)
+
+    companion object {
+        /** a [FieldResolverExecutor] implementation that always returns `null` */
+        val Null: MockUnbatchedFieldResolverExecutor = MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> null }
+    }
+}
+
+class MockFieldResolverDispatcher(
+    val resolver: FieldResolverExecutor = MockUnbatchedFieldResolverExecutor.Null,
+) : FieldResolverDispatcher {
+    override val objectSelectionSet: RequiredSelectionSet? = resolver.objectSelectionSet
+    override val querySelectionSet: RequiredSelectionSet? = resolver.querySelectionSet
+    override val hasRequiredSelectionSets: Boolean = true
+
+    override suspend fun resolve(
+        arguments: Map<String, Any?>,
+        objectValue: EngineObjectData,
+        queryValue: EngineObjectData,
+        selections: RawSelectionSet?,
+        context: EngineExecutionContext
+    ): Any? = resolver.resolve(arguments, objectValue, queryValue, selections, context)
+}
+
+fun FieldResolverExecutor.invoke(
+    fullSchema: GraphQLSchema,
+    coord: Coordinate,
+    arguments: Map<String, Any?> = emptyMap(),
+    objectValue: Map<String, Any?> = emptyMap(),
+    queryValue: Map<String, Any?> = emptyMap(),
+    selections: RawSelectionSet? = null,
+    context: EngineExecutionContext = ContextMocks(fullSchema).engineExecutionContext,
+) = runBlocking(MockNextTickDispatcher()) {
+    resolve(
+        arguments,
+        MockEngineObjectData(fullSchema.getObjectType(coord.first), objectValue),
+        MockEngineObjectData(fullSchema.queryType, queryValue),
+        selections,
+        context,
+    )
+}
+
+fun CheckerExecutor.invoke(
+    fullSchema: GraphQLSchema,
+    coord: Coordinate,
+    arguments: Map<String, Any?> = emptyMap(),
+    objectDataMap: Map<String, Map<String, Any?>> = emptyMap(),
+    context: EngineExecutionContext = ContextMocks(fullSchema).engineExecutionContext,
+) = runBlocking(MockNextTickDispatcher()) {
+    val objectType = fullSchema.getObjectType(coord.first)!!
+    val objectMap = objectDataMap.mapValues { (_, it) -> MockEngineObjectData(objectType, it) }
+    execute(arguments, objectMap, context)
+}
+
+class MockCheckerErrorResult(override val error: Exception) : CheckerResult.Error {
+    override fun isErrorForResolver(ctx: CheckerResultContext): Boolean {
+        return true
+    }
+
+    override fun combine(fieldResult: CheckerResult.Error): CheckerResult.Error {
+        return fieldResult
+    }
+}
+
+class MockCheckerExecutor(
+    override val requiredSelectionSets: Map<String, RequiredSelectionSet?> = emptyMap(),
+    val executeFn: CheckerFn = { _, _ -> }
+) : CheckerExecutor {
+    override suspend fun execute(
+        arguments: Map<String, Any?>,
+        objectDataMap: Map<String, EngineObjectData>,
+        context: EngineExecutionContext
+    ): CheckerResult {
+        try {
+            executeFn(arguments, objectDataMap)
+        } catch (e: Exception) {
+            return MockCheckerErrorResult(e)
+        }
+        return CheckerResult.Success
+    }
+}
+
+class MockNodeUnbatchedResolverExecutor(
+    override val typeName: String = "MockNode",
+    val unbatchedResolveFn: NodeUnbatchedResolverFn = { _, _, _ -> throw NotImplementedError() }
+) : NodeResolverExecutor {
+    override val isBatching: Boolean = false
+
+    override suspend fun batchResolve(
+        selectors: List<NodeResolverExecutor.Selector>,
+        context: EngineExecutionContext
+    ): Map<NodeResolverExecutor.Selector, Result<EngineObjectData>> {
+        return selectors.associateWith { selector ->
+            try {
+                Result.success(unbatchedResolveFn(selector.id, selector.selections, context))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+}
+
+class MockNodeBatchResolverExecutor(
+    override val typeName: String,
+    val batchResolveFn: NodeBatchResolverFn = { _, _ -> throw NotImplementedError() }
+) : NodeResolverExecutor {
+    override val isBatching: Boolean = true
+
+    override suspend fun batchResolve(
+        selectors: List<NodeResolverExecutor.Selector>,
+        context: EngineExecutionContext
+    ): Map<NodeResolverExecutor.Selector, Result<EngineObjectData>> = batchResolveFn(selectors, context)
+}
+
+class MockNodeResolverDispatcher(
+    val unbatchedExecutor: NodeResolverExecutor = MockNodeUnbatchedResolverExecutor(),
+) : NodeResolverDispatcher {
+    override suspend fun resolve(
+        id: String,
+        selections: RawSelectionSet,
+        context: EngineExecutionContext
+    ): EngineObjectData =
+        NodeResolverExecutor.Selector(id, selections).let { sel ->
+            unbatchedExecutor.batchResolve(listOf(sel), context)[sel]!!.getOrThrow()
+        }
+}
+
+class MockTenantAPIBootstrapper(
+    val tenantModuleBootstrappers: List<TenantModuleBootstrapper> = emptyList()
+) : TenantAPIBootstrapper {
+    override suspend fun tenantModuleBootstrappers(): Iterable<TenantModuleBootstrapper> = tenantModuleBootstrappers
+}
+
+class MockTenantModuleBootstrapper(
+    val schema: GraphQLSchema,
+    val fieldResolverExecutors: Iterable<Pair<Coordinate, FieldResolverExecutor>> = emptyList(),
+    val nodeResolverExecutors: Iterable<Pair<String, NodeResolverExecutor>> = emptyList(),
+    val checkerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
+    val typeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
+) : TenantModuleBootstrapper {
+    val vschema = ViaductSchema(schema)
+
+    override fun fieldResolverExecutors(schema: ViaductSchema): Iterable<Pair<Coordinate, FieldResolverExecutor>> = fieldResolverExecutors
+
+    override fun nodeResolverExecutors(): Iterable<Pair<String, NodeResolverExecutor>> = nodeResolverExecutors
+
+    fun resolverAt(coord: Coordinate) = fieldResolverExecutors(vschema).first { it.first == coord }.second
+
+    fun checkerAt(coord: Coordinate) = checkerExecutors[coord]
+
+    companion object {
+        operator fun invoke(
+            schemaSDL: String,
+            block: MockTenantModuleBootstrapperDSL<Unit>.() -> Unit
+        ) = invoke(mkSchema(schemaSDL), block)
+
+        operator fun invoke(
+            schema: GraphQLSchema,
+            block: MockTenantModuleBootstrapperDSL<Unit>.() -> Unit
+        ) = MockTenantModuleBootstrapperDSL<Unit>(schema, Unit).apply { block() }.create()
+    }
+
+    fun resolveField(
+        coord: Coordinate,
+        arguments: Map<String, Any?> = emptyMap(),
+        objectValue: Map<String, Any?> = emptyMap(),
+        queryValue: Map<String, Any?> = emptyMap(),
+        selections: RawSelectionSet? = null,
+        context: EngineExecutionContext = contextMocks.engineExecutionContext,
+    ) = resolverAt(coord)!!.invoke(schema, coord, arguments, objectValue, queryValue, selections, context)
+
+    fun checkField(
+        coord: Coordinate,
+        arguments: Map<String, Any?> = emptyMap(),
+        objectDataMap: Map<String, Map<String, Any?>> = emptyMap(),
+        context: EngineExecutionContext = contextMocks.engineExecutionContext,
+    ) = checkerAt(coord)!!.invoke(schema, coord, arguments, objectDataMap, context)
+
+    fun toDispatcherRegistry(
+        checkerExecutors: Map<Coordinate, CheckerExecutor>? = null,
+        typeCheckerExecutors: Map<String, CheckerExecutor>? = null
+    ): DispatcherRegistry =
+        mkDispatcherRegistry(
+            fieldResolverExecutors.toMap(),
+            nodeResolverExecutors.toMap(),
+            checkerExecutors ?: this.checkerExecutors,
+            typeCheckerExecutors ?: this.typeCheckerExecutors,
+        )
+
+    val contextMocks by lazy {
+        ContextMocks(
+            myFullSchema = schema,
+            myDispatcherRegistry = this.toDispatcherRegistry(),
+        )
+    }
+}
+
+data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectType, val data: Map<String, Any?>) : EngineObjectData {
+    override suspend fun fetch(selection: String): Any? = data[selection]
+
+    companion object {
+        /** recursively wraps [data] into a MockEngineObjectData tree */
+        fun wrap(
+            graphQLObjectType: GraphQLObjectType,
+            data: Map<String, Any?>
+        ): MockEngineObjectData = maybeWrap(graphQLObjectType, data) as MockEngineObjectData
+
+        private fun maybeWrap(
+            type: GraphQLOutputType,
+            value: Any?
+        ): Any? =
+            if (value == null) {
+                null
+            } else {
+                @Suppress("UNCHECKED_CAST")
+                when (type) {
+                    is GraphQLNonNull -> maybeWrap(type.wrappedType as GraphQLOutputType, value)
+                    is GraphQLList -> (value as List<*>).map { maybeWrap(type.wrappedType as GraphQLOutputType, it) }
+                    is GraphQLObjectType ->
+                        MockEngineObjectData(
+                            type,
+                            (value as Map<String, Any?>).mapValues { (fname, value) ->
+                                maybeWrap(type.getFieldDefinition(fname).type, value)
+                            }
+                        )
+                    is GraphQLCompositeType -> throw IllegalArgumentException("don't know how to wrap type $type with value $value")
+                    else -> value
+                }
+            }
+    }
+}
+
+class MockCheckerExecutorFactory(
+    val checkerExecutors: Map<Coordinate, CheckerExecutor>? = null,
+    val typeCheckerExecutors: Map<String, CheckerExecutor>? = null
+) : CheckerExecutorFactory {
+    override fun checkerExecutorForField(
+        typeName: String,
+        fieldName: String
+    ): CheckerExecutor? {
+        return checkerExecutors?.get(Pair(typeName, fieldName))
+    }
+
+    override fun checkerExecutorForType(typeName: String): CheckerExecutor? {
+        return typeCheckerExecutors?.get(typeName)
+    }
+}
+
+object Samples {
+    val testSchema = MockSchema.mk(
+        """
+        type Query {
+            foo: String
+        }
+        interface Node { id: ID! }
+        type TestType {
+            aField: String
+            bIntField: Int
+            parameterizedField(experiment: Boolean): Boolean
+            cField(f1: String, f2: Int): String
+            dField: String
+        }
+        type TestNode implements Node { id: ID! }
+        """.trimIndent()
+    )
+
+    val mockTenantModule = MockTenantModuleBootstrapper(testSchema) {
+        // Add resolver for aField
+        field("TestType" to "aField") {
+            resolver {
+                fn { _, _, _, _, _ -> "aField" }
+            }
+        }
+
+        // Add resolver for bIntField
+        field("TestType" to "bIntField") {
+            resolver {
+                fn { _, _, _, _, _ -> 42 }
+            }
+        }
+
+        // Add resolver for parameterizedField with required selection set
+        field("TestType" to "parameterizedField") {
+            resolver {
+                objectSelections("fragment _ on TestType { aField @include(if: \$experiment) bIntField }") {
+                    variables("experiment") { ctx ->
+                        mapOf("experiment" to (ctx.arguments["experiment"] ?: false))
+                    }
+                }
+                fn { args, _, _, _, _ -> args["experiment"] as? Boolean ?: false }
+            }
+        }
+
+        // Add resolver for cField
+        field("TestType" to "cField") {
+            resolver {
+                fn { _, _, _, _, _ -> "cField" }
+            }
+        }
+
+        // Add resolver for dField with variable provider
+        field("TestType" to "dField") {
+            resolver {
+                objectSelections("fragment _ on TestType { aField @include(if: \$experiment) bIntField }") {
+                    variables("experiment") { ctx ->
+                        mapOf("experiment" to true)
+                    }
+                }
+                fn { _, _, _, _, _ -> "dField" }
+            }
+        }
+
+        // Add node resolver for TestNode
+        node("TestNode") {
+            unbatchedExecutor { id, _, _ ->
+                MockEngineObjectData(
+                    testSchema.getObjectType("TestNode"),
+                    mapOf("id" to id)
+                )
+            }
+        }
+
+        // Add batch node resolver for TestBatchNode
+        node("TestBatchNode") {
+            batchedExecutor { selectors, _ ->
+                selectors.associate { selector ->
+                    selector to Result.success(
+                        MockEngineObjectData(
+                            testSchema.getObjectType("TestNode"),
+                            mapOf("id" to selector.id)
+                        )
+                    )
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,86 @@
+[versions]
+# Project
+project = "0.1.0"
+
+# Libraries
+antlr-st4 = "4.2"
+bytebuddy = "1.14.12"
+caffeine = "2.9.1"
+classgraph = "4.8.108"
+clikt = "3.5.4"
+graphql-java = "24.1"
+graphql-java-extension = "22.0"
+guava = "21.0"
+guice = "6.0.0"
+jackson = "2.9.10"
+javassist = "3.24.1-GA"
+javax-inject = "1"
+jmh = "1.25"
+junit5 = "5.9.1"
+konsist = "0.15.1"
+kotest = "5.8.1"
+kotlin = "1.8.22"
+kotlinx = "1.5.2"
+kotlinx-debug = "1.8.0"
+kotlinx-metadata = "0.7.0"
+mockk-jvm = "1.13.3"
+reflections = "0.10.2"
+slf4j = "2.0.7"
+strikt = "0.35.1"
+
+# Plugins
+ktlintPluginVersion = "13.0.0"
+ktlintVersion = "1.2.1"
+detekt = "1.23.6"
+dependency-analysis = "1.20.0"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ktlintPlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPluginVersion" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
+
+[libraries]
+# Kotlin
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+kotlinx-coroutines-core-jvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinx" }
+kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "kotlinx-debug" }
+kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlinx" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx" }
+kotlinx-metadata-jvm = { module = "org.jetbrains.kotlinx:kotlinx-metadata-jvm", version.ref = "kotlinx-metadata" }
+
+# Other libraries
+antlr-st4 = { module = "org.antlr:ST4", version.ref = "antlr-st4" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
+clikt-jvm = { module = "com.github.ajalt.clikt:clikt-jvm", version.ref = "clikt" }
+graphql-java = { module = "com.graphql-java:graphql-java", version.ref = "graphql-java" }
+graphql-java-extension = { module = "com.graphql-java:graphql-java-extended-scalars", version.ref = "graphql-java-extension" }
+guice = { module = "com.google.inject:guice", version.ref = "guice" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-module = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+javassist = { module = "org.javassist:javassist", version.ref = "javassist" }
+javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inject" }
+net-bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
+reflections = { module = "org.reflections:reflections", version.ref = "reflections" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+
+# Testing
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+guava-testlib = { module = "com.google.guava:guava-testlib", version.ref = "guava" }
+io-mockk-jvm = { module = "io.mockk:mockk-jvm", version.ref = "mockk-jvm" }
+jmh-annotation-processor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh"}
+jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh"}
+junit = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
+kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+kotest-common-jvm = { module = "io.kotest:kotest-common-jvm", version.ref = "kotest" }
+kotest-property-jvm = { module = "io.kotest:kotest-property-jvm", version.ref = "kotest" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+strikt-core = { module = "io.strikt:strikt-core", version.ref = "strikt" }
+strikt-jvm = { module = "io.strikt:strikt-jvm", version.ref = "strikt" }
+
+# Linting
+konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }

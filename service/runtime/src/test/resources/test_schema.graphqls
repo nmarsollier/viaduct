@@ -1,0 +1,9 @@
+directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+
+schema {
+  query: Foo
+}
+
+type Foo @scope(to: ["viaduct-public"]) {
+  field: Int
+}

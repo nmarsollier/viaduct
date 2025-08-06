@@ -1,0 +1,31 @@
+"""
+Determines the schema "scope" of a type or type extension
+"""
+directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+
+schema {
+  query: RootQuery
+}
+
+type RootQuery @scope(to: ["*"]) {
+  aType: AType
+}
+
+type AType @scope(to: ["test-scope:public", "test-scope:data", "test-scope:private", "some-other-scope"]) {
+  foo: String
+}
+
+# only available when we scope to test-scope:data
+extend type AType @scope(to: ["test-scope:data"]) {
+  someDataField: String
+}
+
+# only available when we do test-scope:*
+extend type AType @scope(to: ["test-scope:private"]) {
+  _aPrivateField: String
+}
+
+# This field won't appear when we scope to test-scope:*
+extend type AType @scope(to: ["some-other-scope"]) {
+  someOtherField: String
+}

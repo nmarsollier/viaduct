@@ -1,0 +1,25 @@
+directive @policyCheck(canAccess: Boolean) on FIELD_DEFINITION | OBJECT
+
+extend type Query {
+  canAccessTypeByReference(id: String!): CanAccessPerson! @resolver
+  canNotAccessTypeByReference(id: String!): CanNotAccessPerson! @resolver
+  canNotAccessType: CanNotAccessPerson! @resolver
+  canAccessField: String @resolver @policyCheck(canAccess: true)
+  canNotAccessField: String @resolver @policyCheck(canAccess: false)
+}
+
+interface Node @scope(to: ["SCOPE1"]) {
+  id: ID!
+}
+
+type CanAccessPerson implements Node @resolver @scope(to: ["SCOPE1"]) @policyCheck(canAccess: true) {
+  id: ID!
+  name: String!
+  ssn: String!
+}
+
+type CanNotAccessPerson implements Node @resolver @scope(to: ["SCOPE1"]) @policyCheck(canAccess: false) {
+  id: ID!
+  name: String!
+  ssn: String!
+}

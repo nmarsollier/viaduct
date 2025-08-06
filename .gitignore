@@ -1,0 +1,14 @@
+# gradle
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# idea
+.idea/
+*.iml
+
+# Kotlin specific
+*.kts~
+*.main.kts
+.kotlin
