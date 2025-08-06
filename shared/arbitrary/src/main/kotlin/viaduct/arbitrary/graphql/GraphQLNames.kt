@@ -1,0 +1,153 @@
+package viaduct.arbitrary.graphql
+
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.flatMap
+import io.kotest.property.arbitrary.map
+import io.kotest.property.arbitrary.set
+import io.kotest.property.arbitrary.withEdgecases
+import viaduct.arbitrary.common.Config
+
+/** Bucketed sets of names that can be used in building GraphQL types */
+class GraphQLNames internal constructor(internal val names: Map<TypeType, Set<String>>) {
+    operator fun plus(other: GraphQLNames): GraphQLNames =
+        GraphQLNames(
+            TypeType.values().map { nt ->
+                nt to ((names[nt] ?: emptySet()) + (other.names[nt] ?: emptySet()))
+            }.toMap()
+        )
+
+    val interfaces: Set<String>
+        get() = names[TypeType.Interface] ?: emptySet()
+
+    val objects: Set<String>
+        get() = names[TypeType.Object] ?: emptySet()
+
+    val inputs: Set<String>
+        get() = names[TypeType.Input] ?: emptySet()
+
+    val unions: Set<String>
+        get() = names[TypeType.Union] ?: emptySet()
+
+    val scalars: Set<String>
+        get() = names[TypeType.Scalar] ?: emptySet()
+
+    val enums: Set<String>
+        get() = names[TypeType.Enum] ?: emptySet()
+
+    val directives: Set<String>
+        get() = names[TypeType.Directive] ?: emptySet()
+
+    val allNames: Set<String>
+        get() = names.values.flatten().toSet()
+
+    fun filter(fn: (String) -> Boolean): GraphQLNames =
+        GraphQLNames(
+            names.mapValues { (_, ns) ->
+                ns.filter { fn(it) }.toSet()
+            }
+        )
+
+    override fun equals(other: Any?): Boolean = (other as? GraphQLNames)?.let { it.allNames == allNames } ?: false
+
+    override fun hashCode(): Int = names.hashCode()
+
+    override fun toString(): String = names.toString()
+
+    companion object {
+        val empty: GraphQLNames = GraphQLNames(emptyMap())
+
+        private fun List<String>.prefix(nameType: TypeType): List<String> =
+            this.map {
+                buildString {
+                    append(nameType.name)
+                    append('_')
+                    append(it)
+                }
+            }
+
+        /**
+         * Generate a GraphQLNames from a pool of raw names, like ["Foo", "Bar"]
+         * The returned GraphQLNames will transform the names to include a prefix, like
+         *   ["Object_Foo", "Scalar_Bar"]
+         */
+        fun fromRawNames(
+            names: List<String>,
+            cfg: Config = Config.default
+        ): GraphQLNames {
+            tailrec fun loop(
+                acc: Map<TypeType, Set<String>>,
+                pool: List<String>,
+                typeTypes: List<TypeType>,
+                chunkSize: Int
+            ): GraphQLNames =
+                if (typeTypes.isNotEmpty()) {
+                    val entry =
+                        typeTypes.first().let { tt ->
+                            tt to pool.take(chunkSize).prefix(tt).toSet()
+                        }
+                    loop(
+                        acc = acc + entry,
+                        pool = pool.drop(chunkSize),
+                        typeTypes = typeTypes.drop(1),
+                        chunkSize = chunkSize
+                    )
+                } else {
+                    GraphQLNames(acc)
+                }
+
+            val typeTypes =
+                TypeType.values().let { tts ->
+                    tts.filter {
+                        when (it) {
+                            TypeType.Scalar -> cfg[GenCustomScalars]
+                            else -> true
+                        }
+                    }
+                }
+            return loop(
+                acc = emptyMap(),
+                pool = names,
+                typeTypes = typeTypes.toList(),
+                chunkSize = names.size / typeTypes.size
+            )
+        }
+    }
+}
+
+/**
+ * Generate a [GraphQLNames] from a provided Config
+ * The generated GraphQLNames will have a length close to the value of [SchemaSize]
+ */
+fun Arb.Companion.graphQLNames(cfg: Config = Config.default): Arb<GraphQLNames> =
+    Arb
+        .set(
+            Arb.graphQLName(cfg[TypeNameLength]),
+            cfg[SchemaSize]
+        )
+        .map {
+            GraphQLNames.fromRawNames(it.toList(), cfg)
+        }
+        .withEdgecases(GraphQLNames.empty)
+        .map { names ->
+            if (cfg[IncludeBuiltinScalars]) {
+                names + GraphQLNames(mapOf(TypeType.Scalar to builtinScalars.keys))
+            } else {
+                names
+            }
+        }
+        .map { names ->
+            if (cfg[IncludeBuiltinDirectives]) {
+                names + GraphQLNames(mapOf(TypeType.Directive to builtinDirectives.keys))
+            } else {
+                names
+            }
+        }.map { names ->
+            val extant = cfg[IncludeTypes].names
+            if (extant.isNotEmpty()) {
+                names.filter { !extant.contains(it) }
+            } else {
+                names
+            }
+        }
+
+fun Arb.Companion.graphQLNames(cfg: Arb<Config>): Arb<GraphQLNames> = cfg.flatMap(::graphQLNames)

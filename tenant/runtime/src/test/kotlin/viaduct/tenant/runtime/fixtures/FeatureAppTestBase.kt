@@ -1,0 +1,177 @@
+@file:Suppress("ForbiddenImport")
+
+package viaduct.tenant.runtime.fixtures
+
+import com.google.inject.Guice
+import com.google.inject.Injector
+import graphql.ExecutionResult
+import graphql.schema.GraphQLScalarType
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.BeforeEach
+import viaduct.api.reflect.Type
+import viaduct.service.api.ExecutionInput
+import viaduct.service.api.spi.Flags
+import viaduct.service.api.spi.mocks.MockFlagManager
+import viaduct.service.runtime.SchemaRegistryBuilder
+import viaduct.service.runtime.StandardViaduct
+import viaduct.tenant.runtime.bootstrap.GuiceTenantCodeInjector
+import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
+import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinderFactory
+import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
+import viaduct.tenant.runtime.globalid.GlobalIDImpl
+import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
+
+/**
+ * Base class for testing GraphQL feature applications with Viaduct.
+ *
+ * Usage:
+ * 1. Extend this class in your test
+ * 2. Override the `sdl` property with your GraphQL schema (between #START_SCHEMA and #END_SCHEMA markers)
+ * 3. Override the `customScalar` property with the set of custom scalars defined in the schema
+ * 4. Define your resolver implementations as inner classes annotated with @Resolver
+ * 5. Use the `execute()` method to run queries against your implementation
+ *
+ * Example:
+ * ```kotlin
+ * class MyFeatureAppTest : FeatureAppTestBase() {
+ *     override var sdl = """
+ *         |#START_SCHEMA <- schema start marker needed
+ *         | type Query {
+ *         |    hello: String @resolver
+ *         | }
+ *         |#END_SCHEMA <- schema end marker needed
+ *     """.trimMargin()
+ *
+ *     @Resolver
+ *     class Query_HelloResolver : QueryResolvers.Hello() {
+ *         override suspend fun resolve(ctx: Context) = "Hello, World!"
+ *     }
+ *
+ *     @Test
+ *     fun testHelloQuery() {
+ *         val result = execute("test", "{ hello }")
+ *         // Assert on result
+ *     }
+ * }
+ *```
+ */
+abstract class FeatureAppTestBase {
+    open lateinit var sdl: String
+        protected set
+
+    protected open var customScalars: List<GraphQLScalarType> = emptyList()
+    private val injector: Injector by lazy { Guice.createInjector() }
+    private val guiceTenantCodeInjector by lazy { GuiceTenantCodeInjector(injector) }
+    private val flagManager = MockFlagManager(Flags.useModernExecutionStrategyFlags)
+    private val DEFAULT_SCOPE_ID = "public"
+
+    // GlobalID codec for creating GlobalID strings in tests
+    private val globalIdCodec by lazy {
+        val reflectionLoader = ReflectionLoaderImpl { name: String ->
+            Class.forName("$derivedClassPackagePrefix.$name").kotlin
+        }
+        GlobalIDCodecImpl(reflectionLoader)
+    }
+
+    // package name of the derived class
+    private val derivedClassPackagePrefix: String =
+        this::class.java.`package`?.name ?: throw RuntimeException(
+            "Unable to read package name from subclass ${this::class.simpleName}"
+        )
+
+    // resolver class finder factory for feature test app use case
+    private val tenantResolverClassFinderFactory = ViaductTenantResolverClassFinderFactory(
+        grtPackagePrefix = derivedClassPackagePrefix
+    )
+
+    private val viaductTenantAPIBootstrapperBuilder =
+        ViaductTenantAPIBootstrapper.Builder()
+            .tenantCodeInjector(guiceTenantCodeInjector)
+            .tenantResolverClassFinderFactory(tenantResolverClassFinderFactory)
+            .tenantPackagePrefix(derivedClassPackagePrefix)
+
+    private lateinit var viaductBuilder: StandardViaduct.Builder
+    private lateinit var schemaRegistryBuilder: SchemaRegistryBuilder
+    private lateinit var viaductService: StandardViaduct
+
+    fun withViaductBuilder(builderUpdate: StandardViaduct.Builder.() -> Unit) {
+        viaductBuilder.apply(builderUpdate)
+    }
+
+    fun withSchemaRegistryBuilder(builderUpdate: SchemaRegistryBuilder.() -> Unit) {
+        schemaRegistryBuilder.apply(builderUpdate)
+    }
+
+    @BeforeEach
+    fun initViaductBuilder() {
+        if (!::schemaRegistryBuilder.isInitialized) {
+            schemaRegistryBuilder = SchemaRegistryBuilder()
+                .withFullSchemaFromSdl(sdl, customScalars)
+                .registerFullSchema(DEFAULT_SCOPE_ID)
+        }
+        if (!::viaductBuilder.isInitialized) {
+            viaductBuilder = StandardViaduct.Builder()
+                .withFlagManager(flagManager)
+                .withTenantAPIBootstrapperBuilder(viaductTenantAPIBootstrapperBuilder)
+                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+        }
+    }
+
+    /**
+     * Creates a GlobalID string for the given type and internal ID.
+     * This is a helper method to avoid repeating ctx.globalIDStringFor() calls in tests.
+     * This method can be accessed from resolver classes to generate GlobalIDs outside of Viaduct context.
+     *
+     * @param type The type reflection object (e.g., Foo.Reflection)
+     * @param internalId The internal ID to create a GlobalID for
+     * @return A GlobalID string
+     */
+    fun <T : viaduct.api.types.Object> createGlobalIdString(
+        type: Type<T>,
+        internalId: String
+    ): String {
+        val globalId = GlobalIDImpl(type, internalId)
+        return globalIdCodec.serialize(globalId)
+    }
+
+    /**
+     * Executes a query against the test application.
+     *
+     * @param scopeId The scope ID to use for the query.
+     * @param query The query to execute.
+     * @param variables The variables to use for the query.
+     *
+     * @return The result of the query execution.
+     */
+    protected fun execute(
+        query: String,
+        variables: Map<String, Any?> = mapOf(),
+        scopeId: String = DEFAULT_SCOPE_ID
+    ): ExecutionResult {
+        return runBlocking {
+            tryBuildViaductService()
+            val executionInput = ExecutionInput(
+                query = query,
+                variables = variables,
+                requestContext = object {},
+                schemaId = scopeId
+            )
+            val result = viaductService.executeAsync(executionInput).await()
+            result
+        }
+    }
+
+    /**
+     * Attempts to build the [StandardViaduct] instance if it has not been initialized yet.
+     */
+    protected fun tryBuildViaductService() {
+        if (!::viaductService.isInitialized) {
+            try {
+                viaductService = viaductBuilder.build()
+            } catch (t: Throwable) {
+                throw RuntimeException("Failed to build Viaduct service", t)
+            }
+        }
+    }
+}

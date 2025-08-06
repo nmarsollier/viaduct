@@ -1,0 +1,40 @@
+"""
+Determines the schema "scope" of a type or type extension
+"""
+directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+
+schema {
+  query: RootQuery
+}
+
+type RootQuery @scope(to: ["*"]) {
+  _: String
+  node: Node
+  foo: Foo
+}
+
+type Foo @scope(to: ["*"]) {
+  foo: String
+}
+
+extend type Foo @scope(to: ["test-scope:private"]) {
+  placeListingPresentation: PlaceListingPresentationContainer
+}
+
+interface Node @scope(to: ["test-scope:public", "test-scope:data", "test-scope:private"]) {
+  id: ID!
+}
+
+type PlaceListing implements Node @scope(to: ["test-scope:data", "test-scope:private"]) {
+  id: ID!
+  presentation: PlaceListingPresentationContainer
+}
+
+type PlaceListingPresentationContainer @scope(to: ["test-scope:public", "test-scope:data"]) {
+  foo: String
+  query: RootQuery
+}
+
+extend type PlaceListingPresentationContainer @scope(to: ["test-scope:data"]) {
+  data: PlaceListing
+}

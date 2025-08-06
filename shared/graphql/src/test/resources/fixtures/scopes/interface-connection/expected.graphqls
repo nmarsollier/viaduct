@@ -1,0 +1,28 @@
+schema {
+  query: RootQuery
+}
+
+interface Node {
+  id: ID!
+}
+
+type Foo {
+  foo: String
+}
+
+type PlaceListing implements Node {
+  id: ID!
+  presentation: PlaceListingPresentationContainer
+}
+
+type PlaceListingPresentationContainer {
+  data: PlaceListing
+  foo: String
+  query: RootQuery
+}
+
+type RootQuery {
+  _: String
+  foo: Foo
+  node: Node
+}

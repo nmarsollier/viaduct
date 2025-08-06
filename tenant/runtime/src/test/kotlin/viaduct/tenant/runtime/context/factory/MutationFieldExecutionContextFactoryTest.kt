@@ -1,0 +1,66 @@
+package viaduct.tenant.runtime.context.factory
+
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import viaduct.api.context.FieldExecutionContext
+import viaduct.api.context.MutationFieldExecutionContext
+import viaduct.api.mocks.MockExecutionContext
+import viaduct.api.select.SelectionSet
+import viaduct.tenant.runtime.context.ExecutionContextImpl
+import viaduct.tenant.runtime.context.FieldExecutionContextImpl
+import viaduct.tenant.runtime.internal.NodeReferenceFactoryImpl
+
+@ExperimentalCoroutinesApi
+class MutationFieldExecutionContextFactoryTest {
+    private val args = MockArgs()
+    private val ec = MockExecutionContext(args.internalContext)
+    private val resolverId = "Mutation.mutate"
+    private val mutationSelectionsLoaderFactory = Factory { args: SelectionsLoaderArgs ->
+        args.selectionsLoaderFactory.forMutation(resolverId)
+    }
+    private val fieldExecutionContext = FieldExecutionContextImpl(
+        ExecutionContextImpl(
+            args.internalContext,
+            args.selectionsLoaderFactory.forQuery(resolverId),
+            MockArgs.selectionSetFactory,
+            NodeReferenceFactoryImpl(mockk())
+        ),
+        Mutation.Builder(ec).build(),
+        Query.Builder(ec).build(),
+        Mutation_Mutate_Arguments.Builder(ec).x(42).build(),
+        SelectionSet.NoSelections,
+    )
+    private val fieldFactory = FieldExecutionContextFactory { fieldExecutionContext }
+
+    @Test
+    fun create() {
+        MutationFieldExecutionContextMetaFactory
+            .create(fieldFactory, mutationSelectionsLoaderFactory)
+            .make(args.getFieldArgs())
+    }
+
+    @Test
+    fun `ifMutation -- not mutation`() {
+        val factory = MutationFieldExecutionContextMetaFactory.ifMutation(
+            FieldExecutionContext::class,
+            fieldFactory,
+            mutationSelectionsLoaderFactory
+        )
+        assertTrue(factory === fieldFactory)
+    }
+
+    @Test
+    fun `ifMutation -- is mutation`() {
+        val ctx = MutationFieldExecutionContextMetaFactory
+            .ifMutation(
+                MutationFieldExecutionContext::class,
+                fieldFactory,
+                mutationSelectionsLoaderFactory
+            )
+            .make(args.getFieldArgs())
+        assertInstanceOf(MutationFieldExecutionContext::class.java, ctx)
+    }
+}

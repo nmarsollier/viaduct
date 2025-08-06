@@ -1,0 +1,12 @@
+schema {
+  query: RootQuery
+}
+
+type AType {
+  foo: String
+  someDataField: String
+}
+
+type RootQuery {
+  aType: AType
+}

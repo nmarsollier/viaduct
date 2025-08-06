@@ -1,0 +1,171 @@
+package viaduct.tenant.runtime.featuretests.fixtures
+
+import graphql.schema.GraphQLSchema
+import javax.inject.Provider
+import kotlin.reflect.full.isSubclassOf
+import viaduct.api.FieldValue
+import viaduct.api.VariablesProvider
+import viaduct.api.context.FieldExecutionContext
+import viaduct.api.internal.InternalContext
+import viaduct.api.internal.NodeResolverBase
+import viaduct.api.internal.ObjectBase
+import viaduct.api.internal.ReflectionLoader
+import viaduct.api.internal.ResolverBase
+import viaduct.api.types.Arguments
+import viaduct.api.types.CompositeOutput
+import viaduct.api.types.NodeObject
+import viaduct.api.types.Object
+import viaduct.api.types.Query
+import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerResult
+import viaduct.engine.api.Coordinate
+import viaduct.engine.api.EngineExecutionContext
+import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.ParsedSelections
+import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.api.RequiredSelectionSets
+import viaduct.engine.api.SelectionSetVariable
+import viaduct.engine.api.mocks.MockCheckerErrorResult
+import viaduct.tenant.runtime.bootstrap.RequiredSelectionSetFactory
+import viaduct.tenant.runtime.context.factory.ArgumentsArgs
+import viaduct.tenant.runtime.context.factory.Factory
+import viaduct.tenant.runtime.context.factory.FieldExecutionContextFactory
+import viaduct.tenant.runtime.context.factory.NodeExecutionContextFactory
+import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
+import viaduct.tenant.runtime.internal.VariablesProviderInfo
+
+class ObjectStub(val ctx: InternalContext, val data: EngineObjectData) : ObjectBase(ctx, data), Object {
+    suspend inline fun <reified T> get(
+        fieldName: String,
+        alias: String? = null
+    ): T {
+        // lists are not supported due to type erasure
+        require(!T::class.isSubclassOf(List::class)) {
+            "Lists are not supported by this implementation of get. Use `get(key, baseClass)`"
+        }
+        return get(fieldName, T::class, alias)
+    }
+}
+
+class QueryStub(val ctx: InternalContext, val data: EngineObjectData) : ObjectBase(ctx, data), Query {
+    suspend inline fun <reified T> get(
+        fieldName: String,
+        alias: String? = null
+    ): T {
+        // lists are not supported due to type erasure
+        require(!T::class.isSubclassOf(List::class)) {
+            "Lists are not supported by this implementation of get. Use `get(key, baseClass)`"
+        }
+        return get(fieldName, T::class, alias)
+    }
+}
+
+class ArgumentsStub(
+    val inputData: Map<String, Any?>,
+) : Arguments {
+    /** try to get the argument with the provided name, returning null if no value is found */
+    @Suppress("UNCHECKED_CAST")
+    fun <T> tryGet(argName: String): T? = inputData[argName] as? T
+
+    /** get the argument with the provided name, will throw NullPointerException if no non-null value is found */
+    fun <T> get(argName: String): T = tryGet(argName)!!
+}
+
+class CompositeStub : CompositeOutput
+
+@Suppress("UNUSED_PARAMETER")
+class FieldUnbatchedResolverStub<Ctx : FieldExecutionContext<*, *, *, *>>(
+    val objectSelections: ParsedSelections? = null,
+    val querySelections: ParsedSelections? = null,
+    val resolverFactory: FieldExecutionContextFactory,
+    val argumentsFactory: Factory<ArgumentsArgs, Arguments>,
+    val variables: List<SelectionSetVariable>,
+    val resolveFn: (suspend (ctx: Any) -> Any?),
+    val variablesProvider: VariablesProviderInfo?,
+) : ResolverBase<Any?> {
+    suspend fun resolve(
+        self: Any,
+        ctx: Any
+    ) = resolveFn(ctx)
+
+    val resolver: Provider<FieldUnbatchedResolverStub<Ctx>> = Provider { this }
+
+    fun requiredSelectionSets(
+        coord: Coordinate,
+        schema: GraphQLSchema,
+        reflectionLoader: ReflectionLoader
+    ): RequiredSelectionSets {
+        val factory = RequiredSelectionSetFactory(GlobalIDCodecImpl(reflectionLoader), reflectionLoader)
+        return factory.mkRequiredSelectionSets(
+            variablesProvider = variablesProvider,
+            objectSelections = objectSelections,
+            querySelections = querySelections,
+            argumentsFactory = argumentsFactory,
+            variables = variables,
+        )
+    }
+}
+
+class NodeUnbatchedResolverStub(
+    val resolverFactory: NodeExecutionContextFactory,
+    val resolveFn: (suspend (ctx: Any) -> NodeObject),
+) : NodeResolverBase<NodeObject> {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun resolve(
+        self: Any,
+        ctx: Any
+    ) = resolveFn(ctx)
+
+    val resolver: Provider<NodeResolverBase<*>> = Provider { this }
+}
+
+@Suppress("UNUSED_PARAMETER")
+class NodeBatchResolverStub(
+    val resolverFactory: NodeExecutionContextFactory,
+    val batchResolveFn: (suspend (ctxs: List<Any>) -> List<FieldValue<NodeObject>>),
+) : NodeResolverBase<NodeObject> {
+    suspend fun batchResolve(
+        self: Any,
+        ctxs: List<Any>
+    ) = batchResolveFn(ctxs)
+
+    val resolver: Provider<NodeResolverBase<*>> = Provider { this }
+}
+
+class CheckerExecutorStub(
+    override val requiredSelectionSets: Map<String, RequiredSelectionSet?> = emptyMap(),
+    private val executeFn: suspend (Map<String, Any?>, objectDataMap: Map<String, EngineObjectData>) -> Unit
+) : CheckerExecutor {
+    override suspend fun execute(
+        arguments: Map<String, Any?>,
+        objectDataMap: Map<String, EngineObjectData>,
+        context: EngineExecutionContext
+    ): CheckerResult {
+        try {
+            executeFn(arguments, objectDataMap)
+        } catch (e: Exception) {
+            return MockCheckerErrorResult(e)
+        }
+        return CheckerResult.Success
+    }
+}
+
+fun VariablesProviderInfo.Companion.const(vars: Map<String, Any?>): VariablesProviderInfo = typed<ArgumentsStub>(vars.keys, { vars })
+
+fun VariablesProviderInfo.Companion.untyped(
+    vararg variables: String,
+    fn: suspend (args: ArgumentsStub) -> Map<String, Any?>
+): VariablesProviderInfo = typed(variables.toSet(), fn)
+
+fun <A : Arguments> VariablesProviderInfo.Companion.typed(
+    vararg variables: String,
+    fn: suspend (args: A) -> Map<String, Any?>
+): VariablesProviderInfo = typed(variables.toSet(), fn)
+
+fun <A : Arguments> VariablesProviderInfo.Companion.typed(
+    variables: Set<String>,
+    fn: suspend (args: A) -> Map<String, Any?>
+): VariablesProviderInfo =
+    VariablesProviderInfo(variables.toSet()) {
+        VariablesProvider { args: A -> fn(args) }
+    }

@@ -1,0 +1,244 @@
+package viaduct.engine.runtime
+
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import viaduct.engine.api.mocks.MockEngineObjectData
+import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
+import viaduct.engine.runtime.fixtures.runFeatureTest
+
+@ExperimentalCoroutinesApi
+class BatchNodeResolverTest {
+    companion object {
+        private val schemaSDL = """
+            type Query {
+                baz: Baz
+                bazList: [Baz!]!
+            }
+            interface Node {
+                id: ID!
+            }
+            type Baz implements Node {
+                id: ID!
+                x: Int
+                x2: String
+                anotherBaz: Baz
+            }
+        """.trimIndent()
+    }
+
+    @Test
+    fun `node batch resolver returns value`() {
+        MockTenantModuleBootstrapper(schemaSDL) {
+            field("Query" to "baz") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                    }
+                }
+            }
+            node("Baz") {
+                batchedExecutor { selectors, _ ->
+                    assert(selectors.size == 1) { "Expected exactly 1 ctx" }
+                    selectors.associateWith { selector ->
+                        Result.success(
+                            MockEngineObjectData(
+                                objectType,
+                                mapOf("id" to selector.id, "x" to 20)
+                            )
+                        )
+                    }
+                }
+            }
+        }.runFeatureTest {
+            viaduct.runQuery("{baz {x}}")
+                .assertJson("""{"data": {"baz": {"x": 20}}}""")
+        }
+    }
+
+    @Test
+    fun `node batch resolver batches`() {
+        MockTenantModuleBootstrapper(schemaSDL) {
+            field("Query" to "bazList") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        (1..3).map { i ->
+                            ctx.createNodeEngineObjectData(i.toString(), schema.getObjectType("Baz"))
+                        }
+                    }
+                }
+            }
+            node("Baz") {
+                batchedExecutor { selectors, _ ->
+                    selectors.associateWith { selector ->
+                        Result.success(
+                            MockEngineObjectData(
+                                objectType,
+                                mapOf(
+                                    "id" to selector.id,
+                                    "x" to selectors.size // x is the number of items in the batch, x > 1 indicates successful batching
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+        }.runFeatureTest {
+            viaduct.runQuery("{bazList {id x}}")
+                .assertJson("""{"data": {"bazList": [{"id":"1", "x":3}, {"id":"2", "x":3}, {"id":"3", "x":3}]}}""")
+        }
+    }
+
+    @Test
+    fun `node batch resolver throws`() {
+        MockTenantModuleBootstrapper(schemaSDL) {
+            field("Query" to "bazList") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        (1..3).map { i ->
+                            ctx.createNodeEngineObjectData(i.toString(), schema.getObjectType("Baz"))
+                        }
+                    }
+                }
+            }
+            node("Baz") {
+                batchedExecutor { _, _ ->
+                    throw RuntimeException("baz fail")
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ bazList { x }}")
+            assertEquals(null as Any?, result.getData())
+            assertEquals(3, result.errors.size)
+            result.errors.forEachIndexed { idx, error ->
+                assertEquals(listOf("bazList", idx), error.path)
+                assertTrue(error.message.contains("baz fail"))
+                // TODO(aileen): This is not right, we need to fix this and change this assertion
+                assertEquals("VIADUCT_INTERNAL_ENGINE_EXCEPTION", error.errorType.toString())
+            }
+        }
+    }
+
+    @Test
+    fun `node batch resolver returns partial errors`() {
+        MockTenantModuleBootstrapper(schemaSDL) {
+            field("Query" to "bazList") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        (1..3).map { i ->
+                            ctx.createNodeEngineObjectData(i.toString(), schema.getObjectType("Baz"))
+                        }
+                    }
+                }
+            }
+            node("Baz") {
+                batchedExecutor { selectors, _ ->
+                    selectors.associateWith { selector ->
+                        if (selector.id == "2") {
+                            Result.failure(IllegalArgumentException("Odd idx for ID: ${selector.id}"))
+                        } else {
+                            Result.success(
+                                MockEngineObjectData(
+                                    objectType,
+                                    mapOf("id" to selector.id)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ bazList { id }}")
+            assertEquals(null as Any?, result.getData())
+            assertEquals(1, result.errors.size)
+            val error = result.errors[0]
+            assertEquals(listOf("bazList", 1), error.path)
+            assertTrue(error.message.contains("Odd idx for ID: 2"))
+            // TODO(aileen): This is not right, we need to fix this and change this assertion
+            assertEquals("VIADUCT_INTERNAL_ENGINE_EXCEPTION", error.errorType.toString())
+        }
+    }
+
+    @Test
+    fun `node batch resolver reads from dataloader cache`() {
+        val execCounts = ConcurrentHashMap<String, AtomicInteger>()
+        MockTenantModuleBootstrapper(schemaSDL) {
+            field("Query" to "baz") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                    }
+                }
+            }
+            field("Baz" to "anotherBaz") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                    }
+                }
+            }
+            node("Baz") {
+                batchedExecutor { selectors, _ ->
+                    selectors.associateWith { selector ->
+                        val internalId = selector.id
+                        execCounts.computeIfAbsent(internalId) { AtomicInteger(0) }.incrementAndGet()
+                        Result.success(
+                            MockEngineObjectData(
+                                objectType,
+                                mapOf("id" to selector.id, "x" to 2)
+                            )
+                        )
+                    }
+                }
+            }
+        }.runFeatureTest {
+            viaduct.runQuery("{ baz { x anotherBaz { id x }}}")
+                .assertJson("""{"data": {"baz": {"x":2, "anotherBaz":{"id":"1", "x":2}}}}""")
+        }
+
+        assertEquals(mapOf("1" to 1), execCounts.mapValues { it.value.get() })
+    }
+
+    @Test
+    fun `node batch resolver does not read from dataloader cache`() {
+        val execCounts = ConcurrentHashMap<String, AtomicInteger>()
+        MockTenantModuleBootstrapper(schemaSDL) {
+            field("Query" to "baz") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                    }
+                }
+            }
+            field("Baz" to "anotherBaz") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                    }
+                }
+            }
+            node("Baz") {
+                batchedExecutor { selectors, _ ->
+                    selectors.associateWith { selector ->
+                        val internalId = selector.id
+                        execCounts.computeIfAbsent(internalId) { AtomicInteger(0) }.incrementAndGet()
+                        Result.success(
+                            MockEngineObjectData(
+                                objectType,
+                                mapOf("id" to selector.id, "x" to 2, "x2" to "foo")
+                            )
+                        )
+                    }
+                }
+            }
+        }.runFeatureTest {
+            viaduct.runQuery("{ baz { x anotherBaz { x x2 }}}")
+                .assertJson("""{"data": {"baz": {"x":2, "anotherBaz":{"x":2, "x2":"foo"}}}}""")
+        }
+
+        assertEquals(mapOf("1" to 2), execCounts.mapValues { it.value.get() })
+    }
+}
