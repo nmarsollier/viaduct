@@ -1,0 +1,344 @@
+"""
+Search input demonstrating @oneOf directive for exactly-one-field semantics
+"""
+input PersonSearchInput @oneOf {
+  """
+  Search by person name
+  """
+  byName: String
+  """
+  Search by person ID
+  """
+  byId: ID
+  """
+  Search by birth year
+  """
+  byBirthYear: String
+}
+
+"""
+The root query object
+"""
+type Query @scope(to: ["publicScope"]) {
+  """
+  Search for a person using exactly one search criteria
+  """
+  searchPerson(
+    """
+    Search input - exactly one field must be provided
+    """
+    search: PersonSearchInput!
+  ): Person @resolver
+
+  """
+  All films
+  """
+  allFilms(first: Int, after: String, last: Int, before: String): FilmsConnection
+    @resolver
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllFilmsResolver")
+
+  """
+  All people
+  """
+  allPeople(first: Int, after: String, last: Int, before: String): PeopleConnection
+    @resolver
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllPeopleResolver")
+
+  """
+  All planets
+  """
+  allPlanets(first: Int, after: String, last: Int, before: String): PlanetsConnection
+    @resolver
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllPlanetsResolver")
+
+  """
+  All species
+  """
+  allSpecies(first: Int, after: String, last: Int, before: String): SpeciesConnection
+    @resolver
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllSpeciesResolver")
+
+  """
+  All starships
+  """
+  allStarships(first: Int, after: String, last: Int, before: String): StarshipsConnection
+    @resolver
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllStarshipsResolver")
+
+  """
+  All vehicles
+  """
+  allVehicles(first: Int, after: String, last: Int, before: String): VehiclesConnection
+    @resolver
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllVehiclesResolver")
+
+  """
+  A specific film
+  """
+  film(id: ID, filmID: ID): Film @resolver
+
+  """
+  A specific person
+  """
+  person(id: ID, personID: ID): Person @resolver
+
+  """
+  A specific planet
+  """
+  planet(id: ID @idOf(type: "Planet"), planetID: ID @idOf(type: "Planet")): Planet @resolver
+
+  """
+  A specific species
+  """
+  species(id: ID @idOf(type: "Species"), speciesID: ID @idOf(type: "Species")): Species @resolver
+
+  """
+  A specific starship
+  """
+  starship(id: ID @idOf(type: "Starship"), starshipID: ID @idOf(type: "Starship")): Starship @resolver
+
+  """
+  A specific vehicle
+  """
+  vehicle(id: ID @idOf(type: "Vehicle"), vehicleID: ID @idOf(type: "Vehicle")): Vehicle @resolver
+}
+
+"""
+A connection to a list of items.
+"""
+type FilmsConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [FilmsEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  films: [Film]
+}
+
+"""
+An edge in a connection.
+"""
+type FilmsEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Film
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type PeopleConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [PeopleEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  people: [Person]
+}
+
+"""
+An edge in a connection.
+"""
+type PeopleEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Person
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type PlanetsConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [PlanetsEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  planets: [Planet]
+}
+
+"""
+An edge in a connection.
+"""
+type PlanetsEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Planet
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type SpeciesConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [SpeciesEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  species: [Species]
+}
+
+"""
+An edge in a connection.
+"""
+type SpeciesEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Species
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type StarshipsConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [StarshipsEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  starships: [Starship]
+}
+
+"""
+An edge in a connection.
+"""
+type StarshipsEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Starship
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type VehiclesConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [VehiclesEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  vehicles: [Vehicle]
+}
+
+"""
+An edge in a connection.
+"""
+type VehiclesEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Vehicle
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
