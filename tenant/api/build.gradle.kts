@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm")
     id("viaduct-feature-app")
     `java-test-fixtures`
+    id("kotlin-static-analysis")
 }
 
 dependencies {

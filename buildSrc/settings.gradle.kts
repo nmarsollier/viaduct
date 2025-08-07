@@ -1,7 +1,6 @@
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
-        mavenCentral()
         gradlePluginPortal()
     }
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS

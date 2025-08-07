@@ -1,3 +1,7 @@
+plugins {
+    id("kotlin-static-analysis")
+}
+
 dependencies {
     api(libs.slf4j.api)
 

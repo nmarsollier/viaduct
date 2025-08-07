@@ -1,5 +1,6 @@
 plugins {
     `java-test-fixtures`
+    id("kotlin-static-analysis")
 }
 
 dependencies {

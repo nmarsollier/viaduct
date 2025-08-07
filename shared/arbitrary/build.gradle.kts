@@ -1,3 +1,7 @@
+plugins {
+    id("kotlin-static-analysis")
+}
+
 tasks.withType<Test>().configureEach {
     jvmArgs = listOf("-Xmx4g")
 }

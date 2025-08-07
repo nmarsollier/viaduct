@@ -2,6 +2,7 @@ plugins {
     `java-library`
     `maven-publish`
     `java-test-fixtures`
+    id("kotlin-static-analysis")
 }
 
 dependencies {
