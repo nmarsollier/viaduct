@@ -9,6 +9,7 @@ import javassist.bytecode.InnerClassesAttribute
 import kotlinx.metadata.ClassKind
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.isInner
+import kotlinx.metadata.jvm.JvmMetadataVersion
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.kind
 import viaduct.codegen.utils.DEFAULT_IMPLS
@@ -223,7 +224,7 @@ private fun updateAttributes(
     results.values.forEach { (wrapper, cls) ->
         val kmMetadataAnnotation =
             cls.asCtAnnotation(
-                KotlinClassMetadata.writeClass(wrapper.kmClass)
+                KotlinClassMetadata.Class(wrapper.kmClass, JvmMetadataVersion.LATEST_STABLE_SUPPORTED, 0).write()
             )
         val cp = cls.classFile.constPool
 

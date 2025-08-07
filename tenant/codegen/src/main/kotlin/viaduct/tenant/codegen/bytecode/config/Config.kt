@@ -138,7 +138,7 @@ object cfg {
                 val metadataList = clazz.annotations.filter { it is Metadata } as List<Metadata>
                 if (metadataList.size != 1) throw IllegalStateException("${clazz.simpleName} wrong @Metadata count (${metadataList.size}")
                 val metadata = metadataList.get(0)
-                (KotlinClassMetadata.read(metadata) as KotlinClassMetadata.Class).kmClass
+                (KotlinClassMetadata.readStrict(metadata) as KotlinClassMetadata.Class).kmClass
             }
     }
 

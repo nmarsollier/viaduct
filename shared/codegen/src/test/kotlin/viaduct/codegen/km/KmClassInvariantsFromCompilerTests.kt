@@ -13,7 +13,7 @@ import viaduct.invariants.InvariantChecker
 class KmClassInvariantsFromCompilerTests {
     val KClass<*>.kmClass: KmClass get() {
         val m = this.java.getAnnotation(Metadata::class.java)
-        return (KotlinClassMetadata.read(m) as KotlinClassMetadata.Class).kmClass
+        return (KotlinClassMetadata.readStrict(m) as KotlinClassMetadata.Class).kmClass
     }
 
     fun checkInvariants(
