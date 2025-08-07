@@ -1,0 +1,299 @@
+"""
+A single film.
+"""
+type Film @resolver @scope(to: ["publicScope"]) {
+  """
+  The ID of an object
+  """
+  id: String! @resolver
+
+  """
+  The title of this film.
+  """
+  title: String
+
+  """
+  The episode number of this film.
+  """
+  episodeID: Int
+
+  """
+  The opening paragraphs at the beginning of this film.
+  """
+  openingCrawl: String @resolver
+
+  """
+  The name of the director of this film.
+  """
+  director: String
+
+  """
+  The names of the producers of this film.
+  """
+  producers: [String]
+
+  """
+  The ISO 8601 date format of film release at original creator country.
+  """
+  releaseDate: String
+
+  """
+  The characters that appear in this film.
+  """
+  characterConnection(first: Int, after: String, last: Int, before: String): FilmCharactersConnection
+    @backingData(class: "starwars.film.CharacterConnection")
+
+  """
+  The planets that appear in this film.
+  """
+  planetConnection(first: Int, after: String, last: Int, before: String): FilmPlanetsConnection
+    @backingData(class: "starwars.film.PlanetConnection")
+
+  """
+  The starships that appear in this film.
+  """
+  starshipConnection(first: Int, after: String, last: Int, before: String): FilmStarshipsConnection
+    @backingData(class: "starwars.film.StarshipConnection")
+
+  """
+  The vehicles that appear in this film.
+  """
+  vehicleConnection(first: Int, after: String, last: Int, before: String): FilmVehiclesConnection
+    @backingData(class: "starwars.film.VehicleConnection")
+
+  """
+  The species that appear in this film.
+  """
+  speciesConnection(first: Int, after: String, last: Int, before: String): FilmSpeciesConnection
+    @backingData(class: "starwars.film.SpeciesConnection")
+
+  """
+  The ISO 8601 date format of the time that this resource was created.
+  """
+  created: String
+
+  """
+  The ISO 8601 date format of the time that this resource was edited.
+  """
+  edited: String
+
+  """
+  Display title for the film (demonstrates computed field)
+  """
+  displayTitle: String @resolver
+
+  """
+  Summary with episode, title and director (demonstrates computed field)
+  """
+  summary: String @resolver
+
+  """
+  Production details including cast and crew (demonstrates computed field)
+  """
+  productionDetails: String @resolver
+
+  """
+  Character count summary (demonstrates relationship computation)
+  """
+  characterCountSummary: String @resolver
+}
+
+"""
+A connection to a list of items.
+"""
+type FilmCharactersConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [FilmCharactersEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  characters: [Person]
+}
+
+"""
+An edge in a connection.
+"""
+type FilmCharactersEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Person
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type FilmPlanetsConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [FilmPlanetsEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  planets: [Planet]
+}
+
+"""
+An edge in a connection.
+"""
+type FilmPlanetsEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Planet
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type FilmStarshipsConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [FilmStarshipsEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  starships: [Starship]
+}
+
+"""
+An edge in a connection.
+"""
+type FilmStarshipsEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Starship
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type FilmVehiclesConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [FilmVehiclesEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  vehicles: [Vehicle]
+}
+
+"""
+An edge in a connection.
+"""
+type FilmVehiclesEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Vehicle
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type FilmSpeciesConnection @scope(to: ["publicScope"]) {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [FilmSpeciesEdge]
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination.
+  """
+  totalCount: Int
+
+  """
+  A list of all of the objects returned in the connection.
+  """
+  species: [Species]
+}
+
+"""
+An edge in a connection.
+"""
+type FilmSpeciesEdge @scope(to: ["publicScope"]) {
+  """
+  The item at the end of the edge
+  """
+  node: Species
+
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
