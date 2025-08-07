@@ -37,7 +37,7 @@ class DispatcherRegistryAdditionalTests {
             .create(ViaductSchema(Samples.testSchema))
 
         // Should still have resolvers from working module
-        assertEquals(5, registry.fieldResolverDispatchers.size)
+        assertEquals(6, registry.fieldResolverDispatchers.size)
     }
 
     @Test

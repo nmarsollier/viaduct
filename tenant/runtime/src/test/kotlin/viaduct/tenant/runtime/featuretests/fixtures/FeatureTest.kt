@@ -9,7 +9,6 @@ import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Provides
 import graphql.ExecutionResult
-import graphql.GraphQLError
 import io.mockk.mockk
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -119,23 +118,6 @@ fun ExecutionResult.assertJson(expectedJson: String) {
         throw IllegalArgumentException("Cannot parse expectedJson", e)
     }
     assertEquals(expected, toSpecification())
-}
-
-/**
- * Assert that data matches [expectedDataJson]. [checkErrors] can be used to perform
- * assertions on the errors list.
- */
-fun ExecutionResult.assertData(
-    expectedDataJson: String,
-    checkErrors: (errors: List<GraphQLError>) -> Unit = {}
-) {
-    val expectedData = try {
-        mapper.readValue<Map<String, Any?>>(expectedDataJson)
-    } catch (e: Exception) {
-        throw IllegalArgumentException("Cannot parse expectedDataJson", e)
-    }
-    assertEquals(expectedData, getData())
-    checkErrors(errors)
 }
 
 // configure an ObjectMapper that allows parsing compact JSON

@@ -9,7 +9,7 @@ import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.ViaductSchema
 import viaduct.service.bootapi.TenantAPIBootstrapperActualBuilder
-import viaduct.tenant.runtime.execution.FieldResolverExecutorImpl
+import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
@@ -45,11 +45,11 @@ class FeatureTestTenantModuleBootstrapper(
     override fun fieldResolverExecutors(schema: ViaductSchema): Iterable<Pair<Coordinate, FieldResolverExecutor>> =
         fieldUnbatchedResolverStubs.mapValues { (coord, stub) ->
             val (objectSelectionSet, querySelectionSet) = stub.requiredSelectionSets(coord, schema.schema, reflectionLoader)
-            FieldResolverExecutorImpl(
+            FieldUnbatchedResolverExecutorImpl(
                 objectSelectionSet = objectSelectionSet,
                 querySelectionSet = querySelectionSet,
                 resolver = stub.resolver,
-                resolverResolveFn = stub::resolve,
+                resolveFn = stub::resolve,
                 resolverId = "${coord.first}.${coord.second}",
                 globalIDCodec = globalIDCodec,
                 reflectionLoader = reflectionLoader,

@@ -17,19 +17,21 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.EngineExecutionContext
-import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.EngineObjectDataBuilder
 import viaduct.engine.api.FieldResolverExecutor
+import viaduct.engine.api.FieldResolverExecutor.Selector
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.FromArgumentVariable
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.ParsedSelections
-import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.derived.DerivedFieldQueryMetadata
 import viaduct.engine.api.fragment.Fragment
 import viaduct.engine.api.fragment.FragmentFieldEngineResolutionResult
+import viaduct.engine.api.mocks.FieldUnbatchedResolverFn
 import viaduct.engine.api.mocks.MockCheckerExecutor
+import viaduct.engine.api.mocks.MockFieldUnbatchedResolverExecutor
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
@@ -91,18 +93,28 @@ class ResolverDataFetcherTest {
             .fieldContainer(testTypeObject)
             .build()
         var resolverRan = false
+        val resolverId = testType + "." + testField
+        val objectValue = EngineObjectDataBuilder.from(testTypeObject).put(testField, expectedResult).build()
+        val selector = FieldResolverExecutor.Selector(
+            arguments = emptyMap(),
+            objectValue = objectValue,
+            queryValue = objectValue,
+            selections = null
+        )
         val executor = if (resolveWithException) {
-            MockFieldResolverExecutor(
+            TestFieldUnbatchedResolverExecutor(
                 objectSelectionSet = requiredSelectionSet,
-                resolveFn = { _, _, _, _ -> throw RuntimeException("test MockResolverExecutor") }
+                resolverId = resolverId,
+                unbatchedResolveFn = { _, _, _, _, _ -> throw RuntimeException("test MockResolverExecutor") },
             )
         } else {
-            MockFieldResolverExecutor(
+            TestFieldUnbatchedResolverExecutor(
                 objectSelectionSet = requiredSelectionSet,
-                resolveFn = { _, _, _, _ ->
+                resolverId = resolverId,
+                unbatchedResolveFn = { _, _, _, _, _ ->
                     resolverRan = true
                     expectedResult
-                }
+                },
             )
         }
         val fragmentLoader = MockFragmentLoader(ObjectEngineResultImpl.newForType(testTypeObject))
@@ -158,7 +170,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -179,7 +191,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -200,7 +212,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -221,7 +233,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -252,7 +264,7 @@ class ResolverDataFetcherTest {
                         assertEquals(expectedResult, receivedResult)
 
                         // verify that localContext has dataFetchingEnvironment copied
-                        assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
+                        assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
                     }
                 }
             }
@@ -637,26 +649,22 @@ class ResolverDataFetcherTest {
         }
 }
 
-private class MockFieldResolverExecutor(
+private class TestFieldUnbatchedResolverExecutor(
     override val objectSelectionSet: RequiredSelectionSet? = null,
     override val querySelectionSet: RequiredSelectionSet? = null,
     override val metadata: Map<String, String> = emptyMap(),
-    val resolveFn: (arguments: Map<String, Any?>, objectValue: EngineObjectData, selections: RawSelectionSet?, context: EngineExecutionContext) -> Any? =
-        { _, _, _, _ -> null },
-) : FieldResolverExecutor {
+    override val resolverId: String,
+    override val unbatchedResolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null },
+) : MockFieldUnbatchedResolverExecutor(objectSelectionSet, querySelectionSet, metadata, resolverId, unbatchedResolveFn) {
     var lastReceivedLocalContext: EngineExecutionContextImpl? = null
         private set
 
-    override suspend fun resolve(
-        arguments: Map<String, Any?>,
-        objectValue: EngineObjectData,
-        queryValue: EngineObjectData,
-        selections: RawSelectionSet?,
-        context: EngineExecutionContext,
-    ): Any? {
-        // capture context for a test
+    override suspend fun batchResolve(
+        selectors: List<FieldResolverExecutor.Selector>,
+        context: EngineExecutionContext
+    ): Map<FieldResolverExecutor.Selector, Result<Any?>> {
         lastReceivedLocalContext = context as EngineExecutionContextImpl
-        return resolveFn(arguments, objectValue, selections, context)
+        return super.batchResolve(selectors, context)
     }
 }
 

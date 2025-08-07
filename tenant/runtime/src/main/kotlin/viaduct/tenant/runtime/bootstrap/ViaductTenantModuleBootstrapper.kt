@@ -31,7 +31,8 @@ import viaduct.tenant.runtime.context.factory.NodeResolverContextFactory
 import viaduct.tenant.runtime.context.factory.ObjectFactory
 import viaduct.tenant.runtime.context.factory.ResolverContextFactory
 import viaduct.tenant.runtime.context.factory.SelectionSetFactory as SelectionSetContextFactory
-import viaduct.tenant.runtime.execution.FieldResolverExecutorImpl
+import viaduct.tenant.runtime.execution.FieldBatchResolverExecutorImpl
+import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
@@ -104,21 +105,6 @@ class ViaductTenantModuleBootstrapper(
             val resolverAnnotation = resolverKClass.annotations.firstOrNull { it is Resolver } as? Resolver
                 ?: throw TenantModuleException("Resolver class $resolverKClass does not have a @Resolver annotation")
 
-            // Java classes do not have the `resolve` function since it is suspended,
-            // The implementation should be using a proxy class that hides that complexity
-            // and implements the `resolve` function.
-            // So for java classes, we need to use the `resolve` function from the base class
-            val kFunction = if (resolverClass.isKotlinClass) {
-                resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "resolve" }
-            } else {
-                resolverKClass.memberFunctions.firstOrNull { it.name == "resolve" }
-            } ?: throw TenantModuleException("Resolver class $resolverKClass does not have a 'resolve' function")
-
-            log.info(
-                "- Adding entry for resolver for '$typeName.$fieldName' " +
-                    "to '${resolverKClass.qualifiedName}' via ${resolverClass.classLoader}"
-            )
-
             // validate that the Resolver defines a maximum of one @Variables-annotated class
             resolverClass.declaredClasses
                 .filterNot { it.isSynthetic }
@@ -166,7 +152,14 @@ class ViaductTenantModuleBootstrapper(
                 continue
             }
             val selectionSetContextFactory = SelectionSetContextFactory.forField(fieldDef)
-
+            val (objectSelectionSet, querySelectionSet) = requiredSelectionSetFactory.mkRequiredSelectionSets(
+                schema,
+                tenantCodeInjector,
+                resolverKClass,
+                argumentsFactory,
+                resolverAnnotation,
+                typeName,
+            )
             val resolverContextFactory = ResolverContextFactory.forClass(
                 contextKClass,
                 MutationFieldExecutionContextMetaFactory.ifMutation(
@@ -180,31 +173,66 @@ class ViaductTenantModuleBootstrapper(
                 )
             )
 
-            val (objectSelectionSet, querySelectionSet) = requiredSelectionSetFactory.mkRequiredSelectionSets(
-                schema,
-                tenantCodeInjector,
-                resolverKClass,
-                argumentsFactory,
-                resolverAnnotation,
-                typeName,
-            )
+            // Java classes do not have the `resolve` function since it is suspended,
+            // The implementation should be using a proxy class that hides that complexity
+            // and implements the `resolve` function.
+            // So for java classes, we need to use the `resolve` function from the base class
+            val (resolveFunction, batchResolveFunction) = if (resolverClass.isKotlinClass) {
+                resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "resolve" } to
+                    resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "batchResolve" }
+            } else {
+                resolverKClass.memberFunctions.firstOrNull { it.name == "resolve" } to
+                    resolverKClass.memberFunctions.firstOrNull { it.name == "batchResolve" }
+            }
 
-            val resolverExecutor = FieldResolverExecutorImpl(
-                objectSelectionSet = objectSelectionSet,
-                querySelectionSet = querySelectionSet,
-                resolver = resolverContainerProvider,
-                resolverResolveFn = kFunction,
-                resolverId = formattedResolverId,
-                globalIDCodec = globalIDCodec,
-                reflectionLoader = reflectionLoader,
-                resolverContextFactory = resolverContextFactory,
-            )
-
-            result.put(resolverId, resolverExecutor)?.let { extant ->
-                throw RuntimeException(
-                    "Duplicate resolver for type $typeName and field $fieldName. " +
-                        "Found $extant in class '${resolverKClass.qualifiedName}'."
+            if (resolveFunction == null && batchResolveFunction == null) {
+                throw TenantModuleException("Resolver class $resolverKClass does not have a 'resolve' nor a 'batchResolve' function")
+            }
+            if (resolveFunction != null && batchResolveFunction != null) {
+                throw TenantModuleException("Resolver class $resolverKClass implements both 'resolve' and 'batchResolve', it should only implement one")
+            }
+            if (resolveFunction != null) {
+                log.info(
+                    "- Adding entry for resolver for '$typeName.$fieldName' " +
+                        "to '${resolverKClass.qualifiedName}' via ${resolverClass.classLoader}"
                 )
+                val resolverExecutor = FieldUnbatchedResolverExecutorImpl(
+                    objectSelectionSet = objectSelectionSet,
+                    querySelectionSet = querySelectionSet,
+                    resolver = resolverContainerProvider,
+                    resolveFn = resolveFunction,
+                    resolverId = formattedResolverId,
+                    globalIDCodec = globalIDCodec,
+                    reflectionLoader = reflectionLoader,
+                    resolverContextFactory = resolverContextFactory,
+                )
+                result.put(resolverId, resolverExecutor)?.let { extant ->
+                    throw RuntimeException(
+                        "Duplicate resolver for type $typeName and field $fieldName. " +
+                            "Found $extant in class '${resolverKClass.qualifiedName}'."
+                    )
+                }
+            } else if (batchResolveFunction != null) {
+                log.info(
+                    "- Adding entry for batchResolver for '$typeName.$fieldName' " +
+                        "to '${resolverKClass.qualifiedName}' via ${resolverClass.classLoader}"
+                )
+                val resolverExecutor = FieldBatchResolverExecutorImpl(
+                    objectSelectionSet = objectSelectionSet,
+                    querySelectionSet = querySelectionSet,
+                    resolver = resolverContainerProvider,
+                    batchResolveFn = batchResolveFunction,
+                    resolverId = formattedResolverId,
+                    globalIDCodec = globalIDCodec,
+                    reflectionLoader = reflectionLoader,
+                    resolverContextFactory = resolverContextFactory,
+                )
+                result.put(resolverId, resolverExecutor)?.let { extant ->
+                    throw RuntimeException(
+                        "Duplicate resolver for type $typeName and field $fieldName. " +
+                            "Found $extant in class '${resolverKClass.qualifiedName}'."
+                    )
+                }
             }
         }
         return result.entries.map { it.key to it.value }

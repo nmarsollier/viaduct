@@ -6,8 +6,8 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.api.mocks.MockFieldUnbatchedResolverExecutor
 import viaduct.engine.api.mocks.MockSchema
-import viaduct.engine.api.mocks.MockUnbatchedFieldResolverExecutor
 import viaduct.engine.api.mocks.mkRSS
 
 class ResolverSelectionSetsAreProperlyTypedTest {
@@ -116,9 +116,10 @@ class ResolverSelectionSetsAreProperlyTypedTest {
             """.trimIndent()
         )
 
-        val resolver = MockUnbatchedFieldResolverExecutor(
+        val resolver = MockFieldUnbatchedResolverExecutor(
             objectSelectionSet = objectSelectionSet,
-            querySelectionSet = querySelectionSet
+            querySelectionSet = querySelectionSet,
+            resolverId = typeName + "." + fieldName
         )
 
         val ctx = ResolverExecutorValidationCtx(

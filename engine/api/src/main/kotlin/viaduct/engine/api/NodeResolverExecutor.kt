@@ -23,7 +23,7 @@ interface NodeResolverExecutor {
     val isBatching: Boolean
 
     /**
-     * Executes the tenant-written resolver or node resolver function, and unwraps
+     * Executes the tenant-written resolver or batch resolver function, and unwraps
      * the result into a map of `Result<EngineObjectData>`.
      */
     suspend fun batchResolve(

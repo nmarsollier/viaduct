@@ -1,10 +1,11 @@
-package viaduct.tenant.runtime.execution.batchresolver
+package viaduct.tenant.runtime.execution.batchresolver.errorhandling
 
+import kotlin.collections.get
 import org.junit.jupiter.api.Test
 import viaduct.api.FieldValue
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
-import viaduct.tenant.runtime.execution.batchresolver.resolverbases.QueryResolvers
+import viaduct.tenant.runtime.execution.batchresolver.errorhandling.resolverbases.QueryResolvers
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
 class BatchResolverErrorHandlingFeatureAppTest : FeatureAppTestBase() {
@@ -46,7 +47,7 @@ class BatchResolverErrorHandlingFeatureAppTest : FeatureAppTestBase() {
         override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Foo>> {
             val results = contexts.map { ctx ->
                 val selections = ctx.selections().toString()
-                FieldValue.ofValue(
+                FieldValue.Companion.ofValue(
                     Foo.Builder(ctx)
                         .id(ctx.id)
                         .a(selections)

@@ -28,7 +28,7 @@ import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.ViaductSchema
-import viaduct.tenant.runtime.execution.FieldResolverExecutorImpl
+import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl
 import viaduct.testapps.fixtures.TestTenantPackageFinder
@@ -129,7 +129,7 @@ class ViaductTenantAPIBootstrapperTest {
     @Test
     fun `test successful creation of tenant resolvers`() {
         val resolverExecutorInt = fieldResolverExecutors[Pair("TestType", "bIntField")]
-        assertTrue(resolverExecutorInt is FieldResolverExecutorImpl)
+        assertTrue(resolverExecutorInt is FieldUnbatchedResolverExecutorImpl)
 
         val testNodeResolver = nodeResolverExecutors["TestNode"]
         assertTrue(testNodeResolver is NodeUnbatchedResolverExecutorImpl)
@@ -170,7 +170,7 @@ class ViaductTenantAPIBootstrapperTest {
     fun `ensure the tenant code injector is used for fields`() {
         assertSame(
             tenantCodeInjector.getInstance(AFieldResolver::class.java),
-            (fieldResolverExecutors[Pair("TestType", "aField")] as FieldResolverExecutorImpl)
+            (fieldResolverExecutors[Pair("TestType", "aField")] as FieldUnbatchedResolverExecutorImpl)
                 .resolver.get()
         )
     }
