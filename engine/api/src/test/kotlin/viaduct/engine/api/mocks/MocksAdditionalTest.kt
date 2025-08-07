@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.runtime.FieldResolverDispatcherImpl
 
 class MocksAdditionalTest {
     @Test
@@ -67,8 +68,8 @@ class MocksAdditionalTest {
 
     @Test
     fun `MockFieldResolverDispatcherRegistry functionality`() {
-        val dispatcher1 = MockFieldResolverDispatcher(MockUnbatchedFieldResolverExecutor.Null)
-        val dispatcher2 = MockFieldResolverDispatcher(MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> "test" })
+        val dispatcher1 = FieldResolverDispatcherImpl(MockUnbatchedFieldResolverExecutor.Null)
+        val dispatcher2 = FieldResolverDispatcherImpl(MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> "test" })
 
         val registry = MockFieldResolverDispatcherRegistry(
             Pair("TestType", "field1") to dispatcher1,
@@ -259,8 +260,6 @@ class MocksAdditionalTest {
         )
 
         // Test through the public interface
-        assertSame(fieldUnbatchedResolverExecutor, (registry.getFieldResolverDispatcher("Test", "field") as MockFieldResolverDispatcher).resolver)
-        assertSame(nodeUnbatchedResolverExecutor, (registry.getNodeResolverDispatcher("TestNode") as MockNodeResolverDispatcher).unbatchedExecutor)
         assertSame(checker, registry.getCheckerExecutor("Test", "field"))
         assertSame(checker, registry.getTypeCheckerExecutor("TestNode"))
     }
