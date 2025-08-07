@@ -11,8 +11,6 @@ import kotlinx.metadata.Modality
 import kotlinx.metadata.Visibility
 import kotlinx.metadata.hasAnnotations
 import kotlinx.metadata.hasConstant
-import kotlinx.metadata.hasGetter
-import kotlinx.metadata.hasSetter
 import kotlinx.metadata.isNotDefault
 import kotlinx.metadata.isVar
 import kotlinx.metadata.jvm.JvmFieldSignature
@@ -150,7 +148,6 @@ class KmPropertyBuilder(
                 modality = propertyModality
                 hasAnnotations = fieldAnnotations.isNotEmpty()
                 isVar = isVariable
-                hasGetter = true
                 kind = MemberKind.DECLARATION
                 hasConstant = hasConstantValue
 
@@ -199,7 +196,7 @@ class KmPropertyBuilder(
         //   var foo: String
         //       private set
         val setterFn =
-            if (property.hasSetter && (setterBody != null || setterVisibility != Visibility.PRIVATE)) {
+            if ((property.setter != null) && (setterBody != null || setterVisibility != Visibility.PRIVATE)) {
                 val setterAttributes = property.setter!!
                 KmFunctionWrapper(
                     KmFunction(setterName(name.toString())).apply {

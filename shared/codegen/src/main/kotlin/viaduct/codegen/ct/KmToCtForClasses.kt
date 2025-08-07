@@ -18,6 +18,7 @@ import kotlinx.metadata.Modality
 import kotlinx.metadata.Visibility
 import kotlinx.metadata.declaresDefaultValue
 import kotlinx.metadata.isSecondary
+import kotlinx.metadata.jvm.JvmMetadataVersion
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.kind
 import kotlinx.metadata.modality
@@ -701,7 +702,7 @@ private fun CtGenContext.getOrCreateDefaultImpls(iface: CtClass): CtClass {
     defaultImpls.classFile.addAttribute(
         AnnotationsAttribute(defaultImpls.classFile.constPool, AnnotationsAttribute.visibleTag).also {
             it.addAnnotation(
-                defaultImpls.asCtAnnotation(KotlinClassMetadata.writeSyntheticClass())
+                defaultImpls.asCtAnnotation(KotlinClassMetadata.SyntheticClass(null, JvmMetadataVersion.LATEST_STABLE_SUPPORTED, 0).write())
             )
         }
     )

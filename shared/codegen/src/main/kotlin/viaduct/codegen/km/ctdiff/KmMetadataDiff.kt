@@ -12,9 +12,7 @@ import kotlinx.metadata.declaresDefaultValue
 import kotlinx.metadata.hasAnnotations
 import kotlinx.metadata.hasConstant
 import kotlinx.metadata.hasEnumEntries
-import kotlinx.metadata.hasGetter
 import kotlinx.metadata.hasNonStableParameterNames
-import kotlinx.metadata.hasSetter
 import kotlinx.metadata.isConst
 import kotlinx.metadata.isCrossinline
 import kotlinx.metadata.isData
@@ -274,8 +272,7 @@ class KmMetadataDiff(
                 "MODALITY" to p.modality,
                 "KIND" to p.kind,
                 "IS_VAR" to p.isVar,
-                "HAS_GETTER" to p.hasGetter,
-                "HAS_SETTER" to p.hasSetter,
+                "HAS_SETTER" to (p.setter != null),
                 "IS_CONST" to p.isConst,
                 "IS_LATEINIT" to p.isLateinit,
                 "HAS_CONSTANT" to p.hasConstant,
@@ -316,7 +313,7 @@ class KmMetadataDiff(
 
     companion object {
         private fun parseMetadata(metadata: Metadata): KotlinClassMetadata {
-            return KotlinClassMetadata.read(metadata)
+            return KotlinClassMetadata.readStrict(metadata)
         }
     }
 }

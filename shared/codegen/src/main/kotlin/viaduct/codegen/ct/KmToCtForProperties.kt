@@ -8,7 +8,6 @@ import javassist.bytecode.Bytecode
 import javassist.bytecode.MethodInfo
 import kotlinx.metadata.KmProperty
 import kotlinx.metadata.Visibility
-import kotlinx.metadata.hasGetter
 import kotlinx.metadata.isNullable
 import kotlinx.metadata.isVar
 import kotlinx.metadata.visibility
@@ -62,7 +61,6 @@ private fun CtClass.addPropertyGetter(
     typeCtClass: CtClass
 ) {
     val property = propWrapper.property
-    if (!property.hasGetter) return
 
     val getterWrapper = propWrapper.getter
     if (getterWrapper.body != null) {
