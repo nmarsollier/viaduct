@@ -35,10 +35,6 @@ configure<com.autonomousapps.DependencyAnalysisExtension> {
 }
 
 subprojects {
-    tasks.withType<ProcessResources> {
-        exclude("**/BUILD.bazel") // TODO: this seems useless
-    }
-
     group = groupId
     version = jarVersion
 
