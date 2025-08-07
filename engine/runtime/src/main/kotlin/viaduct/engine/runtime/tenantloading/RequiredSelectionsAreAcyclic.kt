@@ -87,12 +87,12 @@ class RequiredSelectionsAreAcyclic(
     private fun RawSelectionSet.allCoords(): Set<Coordinate> {
         // start with all selections. This will include scalar fields and other selections
         // that do not support sub-selections
-        val selected = selectedFields().toSet()
+        val selected = selections().map { it.typeCondition to it.fieldName }.toSet()
 
         // "traversable" fields support sub-selections. Recurse through each traversable
         // field and extract its coords
-        return traversableFields().fold(selected) { acc, coord ->
-            acc + selectionSetForField(coord.first, coord.second).allCoords()
+        return traversableSelections().fold(selected) { acc, sel ->
+            acc + selectionSetForField(sel.typeCondition, sel.fieldName).allCoords()
         }
     }
 

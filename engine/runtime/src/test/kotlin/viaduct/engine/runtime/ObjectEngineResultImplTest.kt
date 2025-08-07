@@ -963,5 +963,34 @@ class ObjectEngineResultImplTest {
                 assertEquals(42, result.fetch(ObjectEngineResult.Key("x"), RAW_VALUE_SLOT))
             }
         }
+
+        @Test
+        fun `regression -- newFromMap ignores unselected data`() {
+            runBlocking {
+                val schema = mkSchema("type Query { x:Int }")
+
+                val data = mapOf("__typename" to "Query", "x" to 1)
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    data,
+                    mutableListOf(),
+                    emptyList(),
+                    schema,
+                    mkRss("Query", "x", emptyMap(), schema)
+                )
+
+                // Test selected field
+                assertEquals(1, result.fetch(ObjectEngineResult.Key("x"), RAW_VALUE_SLOT))
+
+                // assert that the unselected field was not stored in the OER.
+                // We can do this by trying to compute a value for the key we suspect this would have been populated under
+                var computeRan = false
+                runCatching {
+                    result.computeIfAbsent(ObjectEngineResult.Key("__typename")) { computeRan = true }
+                }
+                assertTrue(computeRan)
+            }
+        }
     }
 }

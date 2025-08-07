@@ -48,7 +48,7 @@ internal fun NodeResolverExecutor.Selector.covers(other: NodeResolverExecutor.Se
     if (other.id != this.id) return false
     // Consider "id" to be part of the selection set if it isn't already
     val selectedFields = mutableSetOf("id").also { fields ->
-        this.selections.selectedFields().forEach { fields.add(it.second) }
+        this.selections.selections().forEach { fields.add(it.fieldName) }
     }
-    return other.selections.selectedFields().all { selectedFields.contains(it.second) }
+    return other.selections.selections().all { selectedFields.contains(it.fieldName) }
 }

@@ -20,8 +20,8 @@ import graphql.schema.GraphQLFieldsContainer
 import graphql.schema.GraphQLImplementingType
 import graphql.schema.GraphQLTypeUtil
 import java.util.Locale
-import viaduct.engine.api.Coordinate
 import viaduct.engine.api.ParsedSelections
+import viaduct.engine.api.RawSelection
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.fragment.Fragment
@@ -84,9 +84,9 @@ data class RawSelectionSetImpl(
 ) : RawSelectionSet {
     override val type: String get() = def.name
 
-    override fun selectedFields(): Iterable<Coordinate> = selections.map { it.typeCondition.name to it.field.name }
+    override fun selections(): List<RawSelection> = selections.map { it.toRawSelection() }
 
-    override fun traversableFields(): List<Coordinate> {
+    override fun traversableSelections(): List<RawSelection> {
         val type = compositeType(type)
         return selections.mapNotNull { sel ->
             // a selection can be reprojected by widening and then narrowing to a different type.
@@ -100,8 +100,7 @@ data class RawSelectionSetImpl(
             if (selectionType !is GraphQLCompositeType) {
                 return@mapNotNull null
             }
-
-            sel.typeCondition.name to sel.field.name
+            sel.toRawSelection()
         }
     }
 
@@ -183,10 +182,10 @@ data class RawSelectionSetImpl(
     override fun resolveSelection(
         type: String,
         selectionName: String
-    ): String =
+    ): RawSelection =
         findSelection(type) { it.resultKey == selectionName }
-            ?.let { fs -> fs.field.name }
-            ?: throw IllegalArgumentException("No field found for selectionName `$selectionName`")
+            ?.let { it.toRawSelection() }
+            ?: throw IllegalArgumentException("No selection found for selectionName `$selectionName`")
 
     /**
      * Return a new RawSelectionSetImpl that incorporates the provided graphql-java
@@ -272,7 +271,8 @@ data class RawSelectionSetImpl(
     ): RawSelectionSetImpl {
         val selectionType = fieldsContainer(type)
         val subselectionType =
-            resolveSelection(type, selectionName).let { fieldName ->
+            resolveSelection(type, selectionName).let { sel ->
+                val fieldName = sel.fieldName
                 val coord = (type to fieldName).gj
                 ctx.schema.schema.getFieldDefinition(coord)?.let {
                     // field type may have NonNull/List wrappers
@@ -459,6 +459,13 @@ data class RawSelectionSetImpl(
         requireNotNull(ctx.fragmentDefinitions[name]) {
             "Missing fragment definition: $name"
         }
+
+    private fun FieldSelection.toRawSelection(): RawSelection =
+        RawSelection(
+            typeCondition = typeCondition.name,
+            fieldName = field.name,
+            selectionName = field.resultKey
+        )
 
     companion object {
         private val emptyGraphQLContext = GraphQLContext.getDefault()

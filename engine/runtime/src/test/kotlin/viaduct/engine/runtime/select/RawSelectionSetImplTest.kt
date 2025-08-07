@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.Coordinate
+import viaduct.engine.api.RawSelection
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.select.SelectionsParser
@@ -1167,35 +1168,47 @@ class RawSelectionSetImplTest {
     }
 
     @Test
-    fun `selectedFields -- simple`() {
+    fun `selections -- simple`() {
         val ss = mk("Node", "id")
-        assertEquals(listOf("Node" to "id"), ss.selectedFields())
+        assertEquals(
+            listOf(RawSelection("Node", "id", "id")),
+            ss.selections()
+        )
     }
 
     @Test
-    fun `selectedFields -- merged`() {
+    fun `selections -- merged`() {
         val ss = mk("Node", "id ... on Node { id }")
-        assertEquals(listOf("Node" to "id", "Node" to "id"), ss.selectedFields())
+        assertEquals(
+            listOf(
+                RawSelection("Node", "id", "id"),
+                RawSelection("Node", "id", "id"),
+            ),
+            ss.selections()
+        )
     }
 
     @Test
-    fun `selectedFields -- aliased`() {
+    fun `selections -- aliased`() {
         val ss = mk("Node", "alias: id")
-        assertEquals(listOf("Node" to "id"), ss.selectedFields())
+        assertEquals(
+            listOf(RawSelection("Node", "id", "alias")),
+            ss.selections()
+        )
     }
 
     @Test
-    fun `selectedFields -- skip and include`() {
+    fun `selections -- skip and include`() {
         mk("Node", "id @skip(if:true)").let {
-            assertEquals(emptyList<Coordinate>(), it.selectedFields())
+            assertEquals(emptyList<RawSelection>(), it.selections())
         }
         mk("Node", "id @include(if:false)").let {
-            assertEquals(emptyList<Coordinate>(), it.selectedFields())
+            assertEquals(emptyList<RawSelection>(), it.selections())
         }
     }
 
     @Test
-    fun `selectedFields -- interface`() {
+    fun `selections -- interface`() {
         val ss = mk(
             "Node",
             """
@@ -1203,11 +1216,17 @@ class RawSelectionSetImplTest {
                 ... on Baz { id }
             """.trimIndent()
         )
-        assertEquals(setOf("Foo" to "int", "Baz" to "id"), ss.selectedFields().toSet())
+        assertEquals(
+            setOf(
+                RawSelection("Foo", "int", "int"),
+                RawSelection("Baz", "id", "id"),
+            ),
+            ss.selections().toSet()
+        )
     }
 
     @Test
-    fun `selectedFields -- abstract and concrete fields`() {
+    fun `selections -- abstract and concrete fields`() {
         val ss = mk(
             "Node",
             """
@@ -1215,11 +1234,17 @@ class RawSelectionSetImplTest {
                 ... on Foo { id }
             """.trimIndent()
         )
-        assertEquals(setOf("Node" to "id", "Foo" to "id"), ss.selectedFields().toSet())
+        assertEquals(
+            setOf(
+                RawSelection("Node", "id", "id"),
+                RawSelection("Foo", "id", "id"),
+            ),
+            ss.selections().toSet()
+        )
     }
 
     @Test
-    fun `traversableFields -- excludes simple scalar fields`() {
+    fun `traversableSelections -- excludes simple scalar fields`() {
         val ss = mk(
             "Query",
             "__typename, x, e",
@@ -1228,11 +1253,11 @@ class RawSelectionSetImplTest {
                 type Query { x:Int, e:E }
             """.trimIndent()
         )
-        assertEquals(emptyList<Coordinate>(), ss.traversableFields())
+        assertEquals(emptyList<Coordinate>(), ss.traversableSelections())
     }
 
     @Test
-    fun `traversableFields -- excludes non-spreadable reprojections`() {
+    fun `traversableSelections -- excludes non-spreadable reprojections`() {
         val ss = mk(
             "Foo",
             """
@@ -1249,11 +1274,11 @@ class RawSelectionSetImplTest {
                 type Query { u:U }
             """.trimIndent()
         )
-        assertEquals(emptyList<Coordinate>(), ss.traversableFields())
+        assertEquals(emptyList<Coordinate>(), ss.traversableSelections())
     }
 
     @Test
-    fun `traversableFields -- includes spreadable reprojections`() {
+    fun `traversableSelections -- includes spreadable reprojections`() {
         val ss = mk(
             "Foo",
             """
@@ -1262,11 +1287,14 @@ class RawSelectionSetImplTest {
                 }
             """.trimIndent()
         )
-        assertEquals(listOf("Foo" to "foo"), ss.traversableFields())
+        assertEquals(
+            listOf(RawSelection("Foo", "foo", "foo")),
+            ss.traversableSelections()
+        )
     }
 
     @Test
-    fun `traversableFields -- includes wrapped composite types`() {
+    fun `traversableSelections -- includes wrapped composite types`() {
         val ss = mk(
             "Query",
             """
@@ -1295,17 +1323,17 @@ class RawSelectionSetImplTest {
         )
         assertEquals(
             setOf(
-                "Query" to "o1",
-                "Query" to "o2",
-                "Query" to "o3",
-                "Query" to "o4"
+                RawSelection("Query", "o1", "o1"),
+                RawSelection("Query", "o2", "o2"),
+                RawSelection("Query", "o3", "o3"),
+                RawSelection("Query", "o4", "o4"),
             ),
-            ss.traversableFields().toSet()
+            ss.traversableSelections().toSet()
         )
     }
 
     @Test
-    fun `traversableFields -- self spreads`() {
+    fun `traversableSelections -- self spreads`() {
         val ss = mk(
             "Foo",
             """
@@ -1314,18 +1342,24 @@ class RawSelectionSetImplTest {
                 }
             """.trimIndent()
         )
-        assertEquals(listOf("Foo" to "foo"), ss.traversableFields())
+        assertEquals(
+            listOf(RawSelection("Foo", "foo", "foo")),
+            ss.traversableSelections()
+        )
     }
 
     @Test
-    fun `traversableFields -- narrowing spreads`() {
+    fun `traversableSelections -- narrowing spreads`() {
         val ss = mk(
             "FooUnion",
             """
                 ... on Foo { foo { id } }
             """.trimIndent()
         )
-        assertEquals(listOf("Foo" to "foo"), ss.traversableFields())
+        assertEquals(
+            listOf(RawSelection("Foo", "foo", "foo")),
+            ss.traversableSelections()
+        )
     }
 
     @Test
@@ -1480,29 +1514,20 @@ class RawSelectionSetImplTest {
     @Test
     fun `resolveSelection -- unaliased`() {
         mk("Query", "x", sdl = "type Query { x: Int }").let {
-            assertEquals("x", it.resolveSelection("Query", "x"))
-            assertEquals("x", it.resolveSelection("Query", "x"))
+            assertEquals(
+                RawSelection("Query", "x", "x"),
+                it.resolveSelection("Query", "x")
+            )
         }
     }
 
     @Test
     fun `resolveSelection -- aliased`() {
         mk("Query", "y:x", sdl = "type Query { x: Int }").let {
-            assertEquals("x", it.resolveSelection("Query", "y"))
-        }
-    }
-
-    @Test
-    fun `resolveSelection -- missing`() {
-        mk("Query", "__typename", sdl = "type Query { x: Int }").let {
-            // valid but unselected field
-            assertThrows<IllegalArgumentException> {
-                it.resolveSelection("Query", "x")
-            }
-            // unselected alias
-            assertThrows<IllegalArgumentException> {
+            assertEquals(
+                RawSelection("Query", "x", "y"),
                 it.resolveSelection("Query", "y")
-            }
+            )
         }
     }
 
@@ -1516,11 +1541,23 @@ class RawSelectionSetImplTest {
 
         mk("Iface", "x, ...on Foo {y, a:x}", sdl = sdl).let {
             // same
-            assertEquals("x", it.resolveSelection("Iface", "x"))
+            assertEquals(
+                RawSelection("Iface", "x", "x"),
+                it.resolveSelection("Iface", "x")
+            )
             // narrower than
-            assertEquals("y", it.resolveSelection("Foo", "y"))
-            assertEquals("x", it.resolveSelection("Foo", "x"))
-            assertEquals("x", it.resolveSelection("Foo", "a"))
+            assertEquals(
+                RawSelection("Foo", "y", "y"),
+                it.resolveSelection("Foo", "y")
+            )
+            assertEquals(
+                RawSelection("Iface", "x", "x"),
+                it.resolveSelection("Foo", "x")
+            )
+            assertEquals(
+                RawSelection("Foo", "x", "a"),
+                it.resolveSelection("Foo", "a")
+            )
         }
     }
 

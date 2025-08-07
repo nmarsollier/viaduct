@@ -2,7 +2,6 @@
 
 package viaduct.engine.runtime
 
-import com.google.common.annotations.VisibleForTesting
 import graphql.schema.GraphQLEnumType
 import graphql.schema.GraphQLInterfaceType
 import graphql.schema.GraphQLList
@@ -12,7 +11,6 @@ import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLTypeUtil
 import graphql.schema.GraphQLUnionType
-import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -223,7 +221,7 @@ class ObjectEngineResultImpl private constructor(
         ): ObjectEngineResultImpl =
             newFromMap(
                 type = type,
-                data = data.rekey(selectionSet, type),
+                data = data.rekey(selectionSet),
                 errors = errors.map { ObjectEngineResult.Key(it.first) to it.second }.toMutableList(),
                 currentPath = currentPath,
                 schema = schema,
@@ -329,7 +327,7 @@ class ObjectEngineResultImpl private constructor(
                     val subSelectionSet = selectionSet.selectionSetForSelection(selectionSet.type, key.alias ?: key.name)
                     newFromMap(
                         unwrappedType,
-                        (value as Map<*, Any?>).rekey(subSelectionSet, unwrappedType),
+                        (value as Map<*, Any?>).rekey(subSelectionSet),
                         errors,
                         currentPath,
                         schema,
@@ -346,7 +344,7 @@ class ObjectEngineResultImpl private constructor(
                     val subSelectionSet = selectionSet.selectionSetForSelection(selectionSet.type, key.alias ?: key.name)
                     newFromMap(
                         concreteType,
-                        valueMap.rekey(subSelectionSet, concreteType),
+                        valueMap.rekey(subSelectionSet),
                         errors,
                         currentPath,
                         schema,
@@ -367,23 +365,26 @@ class ObjectEngineResultImpl private constructor(
          *
          * Note that this rekeys just the top-level keys of the map; nested objects will not be rekeyed.
          */
-        @VisibleForTesting
-        fun Map<*, Any?>.rekey(
-            selectionSet: RawSelectionSet,
-            objectType: GraphQLObjectType
-        ): Map<ObjectEngineResult.Key, Any?> {
-            return mapKeys {
-                when (val key = it.key) {
-                    is ObjectEngineResult.Key -> key
-                    is String -> {
-                        val fieldName = selectionSet.resolveSelection(objectType.name, key)
-                        val args = selectionSet.argumentsOfSelection(objectType.name, key) ?: emptyMap()
-                        ObjectEngineResult.Key(fieldName, alias = key, arguments = args)
-                    }
+        private fun Map<*, Any?>.rekey(selectionSet: RawSelectionSet): Map<ObjectEngineResult.Key, Any?> {
+            if (keys.all { it is ObjectEngineResult.Key }) {
+                @Suppress("UNCHECKED_CAST")
+                return this as Map<ObjectEngineResult.Key, Any?>
+            }
 
-                    else -> throw IllegalArgumentException("Cannot rekey a map with keys of type ${key?.javaClass?.name}")
+            val selectionsByName = selectionSet.selections().associateBy { it.selectionName }
+
+            val map = mutableMapOf<ObjectEngineResult.Key, Any?>()
+            forEach { (key, value) ->
+                val keyString = requireNotNull(key as? String) {
+                    "Cannot rekey a map with keys of type ${key?.javaClass?.name}"
+                }
+                selectionsByName[keyString]?.let { sel ->
+                    val arguments = selectionSet.argumentsOfSelection(sel.typeCondition, sel.selectionName) ?: emptyMap()
+                    val key = ObjectEngineResult.Key(name = sel.fieldName, alias = sel.selectionName, arguments = arguments)
+                    map[key] = value
                 }
             }
+            return map.toMap()
         }
     }
 }

@@ -42,7 +42,7 @@ class RawSelectionSetTest {
         assertNull(ss.argumentsOfSelection(ss.type, "x"))
         assertNull(ss.argumentsOfSelection("Bar", "x"))
 
-        assertTrue(ss.selectedFields().toList().isEmpty())
+        assertTrue(ss.selections().toList().isEmpty())
 
         assertTrue(ss.toSelectionSet().selections.isEmpty())
 
