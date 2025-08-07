@@ -28,7 +28,7 @@ interface ObjectEngineResult {
                 // result name.
                 //
                 // This implies that an OER key without an alias should be equivalent
-                // to the same key with an alias value equal to it's field value.
+                // to the same key with an alias value equal to its field value.
                 Key(
                     name,
                     // remove alias if it matches name

@@ -43,11 +43,10 @@ class ProxyEngineObjectData(
         selection: String,
         selections: RawSelectionSet
     ): ObjectEngineResult.Key {
-        val resolvedKey = selections.resolveSelection(objectEngineResult.graphQLObjectType.name, selection)
-        val alias = selection.takeIf { it != resolvedKey }
-        val args = selections.argumentsOfSelection(objectEngineResult.graphQLObjectType.name, selection)
+        val rawSelection = selections.resolveSelection(objectEngineResult.graphQLObjectType.name, selection)
+        val args = selections.argumentsOfSelection(rawSelection.typeCondition, rawSelection.selectionName)
             ?: emptyMap()
-        return ObjectEngineResult.Key(resolvedKey, alias, args)
+        return ObjectEngineResult.Key(rawSelection.fieldName, rawSelection.selectionName, args)
     }
 
     /** @throws UnsetSelectionException if the field is not in the selection set */
@@ -70,8 +69,8 @@ class ProxyEngineObjectData(
         resultKey: String,
         selections: RawSelectionSet
     ): RawSelectionSet? {
-        val fieldName = selections.resolveSelection(objectEngineResult.graphQLObjectType.name, resultKey)
-        val field = objectEngineResult.graphQLObjectType.getField(fieldName)
+        val rawSelection = selections.resolveSelection(objectEngineResult.graphQLObjectType.name, resultKey)
+        val field = objectEngineResult.graphQLObjectType.getField(rawSelection.fieldName)
         return if (GraphQLTypeUtil.unwrapAll(field.type) is GraphQLCompositeType) {
             selections.selectionSetForSelection(objectEngineResult.graphQLObjectType.name, resultKey)
         } else {

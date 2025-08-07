@@ -6,6 +6,16 @@ import graphql.schema.DataFetchingEnvironment
 import viaduct.engine.api.fragment.Fragment
 
 /**
+ * An untyped selection of a [RawSelectionSet]
+ *
+ * @param typeCondition the type condition of this selection
+ * @param fieldName the name of the GraphQL field selected by this selection
+ * @param selectionName the name of [fieldName] when it was selected. Usually this is the
+ * same value as fieldName, though may be different if fieldName was selected with an alias.
+ */
+data class RawSelection(val typeCondition: String, val fieldName: String, val selectionName: String)
+
+/**
  * RawSelectionSet provides an untyped interface for SelectionSet manipulation. It is intended for direct
  * use by the Viaduct engine or indirect use by tenants via a [SelectionSetImpl].
  *
@@ -21,7 +31,8 @@ interface RawSelectionSet {
     val type: String
 
     /**
-     * Return a collection of the immediate field selections of this RawSelectionSet
+     * Return a list of [RawSelection]s selected in this RawSelectionSet
+     *
      * The selections may include fields that are valid selections but are not defined on the
      * current [type], such as coordinates that require one or more type narrowing/widening steps.
      *
@@ -40,14 +51,14 @@ interface RawSelectionSet {
      *   ... on Bar { y }
      * }
      * ```
-     * This method will return coordinates for `Foo.x`, `FooOrBar.__typename`, and `Bar.y`
+     * This method will return a [RawSelection] for `Foo.x`, `FooOrBar.__typename`, and `Bar.y`
      *
-     * @see traversableFields
+     * @see traversableSelections
      */
-    fun selectedFields(): Iterable<Coordinate>
+    fun selections(): List<RawSelection>
 
     /**
-     * Return the fields immediately selected by this RawSelectionSet that can be traversed
+     * Return the [RawSelection]s immediately selected by this RawSelectionSet that can be traversed
      * using [selectionSetForField].
      *
      * For example, given this schema:
@@ -60,12 +71,12 @@ interface RawSelectionSet {
      * x
      * foo { __typename }
      * ```
-     * This method will return coordinates `Foo.foo`.
+     * This method will return a RawSelection for the `Foo.foo` selection
      *
-     * @see selectedFields
+     * @see selections
      * @see selectionSetForField
      */
-    fun traversableFields(): Iterable<Coordinate>
+    fun traversableSelections(): List<RawSelection>
 
     /**
      * Render this RawSelectionSet into a graphql-java [graphql.language.SelectionSet].
@@ -151,8 +162,7 @@ interface RawSelectionSet {
     ): Boolean
 
     /**
-     * Resolve the provided selection into a field name, or null if the provided
-     * [selectionName] is not selected by this selection set.
+     * Resolve the provided selection into a [RawSelection].
      *
      * @param type a type projection that should be applied to this selection set
      *   before checking for a selection on [selectionName]. The provided [type] may be any
@@ -165,7 +175,7 @@ interface RawSelectionSet {
     fun resolveSelection(
         type: String,
         selectionName: String
-    ): String
+    ): RawSelection
 
     /**
      * Returns true if the provided type is *requested* in this object's selections.
@@ -312,7 +322,7 @@ interface RawSelectionSet {
         override fun resolveSelection(
             type: String,
             selectionName: String
-        ): String = throw IllegalArgumentException("Not selected: $type.$selectionName")
+        ): RawSelection = throw IllegalArgumentException("Not selected: $type.$selectionName")
 
         override fun requestsType(type: String): Boolean = false
 
@@ -337,9 +347,9 @@ interface RawSelectionSet {
             selectionName: String
         ): Map<String, Any?>? = null
 
-        override fun selectedFields(): Iterable<Coordinate> = emptyList()
+        override fun selections(): List<RawSelection> = emptyList()
 
-        override fun traversableFields(): Iterable<Coordinate> = emptyList()
+        override fun traversableSelections(): List<RawSelection> = emptyList()
 
         override fun toSelectionSet(): SelectionSet = SelectionSet(emptyList())
 
