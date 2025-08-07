@@ -163,7 +163,7 @@ class BatchNodeResolverTest {
     }
 
     @Test
-    fun `node batch resolver reads from dataloader cache`() {
+    fun `node resolver reads from dataloader cache`() {
         val execCounts = ConcurrentHashMap<String, AtomicInteger>()
         MockTenantModuleBootstrapper(schemaSDL) {
             field("Query" to "baz") {
@@ -175,7 +175,10 @@ class BatchNodeResolverTest {
             }
             field("Baz" to "anotherBaz") {
                 resolver {
-                    fn { _, _, _, _, ctx ->
+                    objectSelections("x")
+                    fn { _, objectValue, _, _, ctx ->
+                        // Make this wait for the first Baz node resolver to be dispatched
+                        objectValue.fetch("x")
                         ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
                     }
                 }
@@ -215,7 +218,10 @@ class BatchNodeResolverTest {
             }
             field("Baz" to "anotherBaz") {
                 resolver {
-                    fn { _, _, _, _, ctx ->
+                    objectSelections("x")
+                    fn { _, objectValue, _, _, ctx ->
+                        // Make this wait for the first Baz node resolver to be dispatched
+                        objectValue.fetch("x")
                         ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
                     }
                 }

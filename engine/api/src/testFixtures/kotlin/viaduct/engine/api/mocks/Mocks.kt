@@ -28,7 +28,6 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.FieldResolverExecutor
-import viaduct.engine.api.NodeResolverDispatcher
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
@@ -40,6 +39,8 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.DispatcherRegistry
+import viaduct.engine.runtime.FieldResolverDispatcherImpl
+import viaduct.engine.runtime.NodeResolverDispatcherImpl
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.mocks.ContextMocks
 
@@ -230,8 +231,8 @@ fun mkDispatcherRegistry(
     nodeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
 ): DispatcherRegistry {
     return DispatcherRegistry(
-        fieldResolverDispatchers = fieldResolverExecutors.map { (k, v) -> k to MockFieldResolverDispatcher(v) }.toMap(),
-        nodeResolverDispatchers = nodeResolverExecutors.map { (k, v) -> k to MockNodeResolverDispatcher(v) }.toMap(),
+        fieldResolverDispatchers = fieldResolverExecutors.map { (k, v) -> k to FieldResolverDispatcherImpl(v) }.toMap(),
+        nodeResolverDispatchers = nodeResolverExecutors.map { (k, v) -> k to NodeResolverDispatcherImpl(v) }.toMap(),
         checkerExecutors = checkerExecutors,
         nodeCheckerExecutors = nodeCheckerExecutors
     )
@@ -264,22 +265,6 @@ class MockUnbatchedFieldResolverExecutor(
         /** a [FieldResolverExecutor] implementation that always returns `null` */
         val Null: MockUnbatchedFieldResolverExecutor = MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> null }
     }
-}
-
-class MockFieldResolverDispatcher(
-    val resolver: FieldResolverExecutor = MockUnbatchedFieldResolverExecutor.Null,
-) : FieldResolverDispatcher {
-    override val objectSelectionSet: RequiredSelectionSet? = resolver.objectSelectionSet
-    override val querySelectionSet: RequiredSelectionSet? = resolver.querySelectionSet
-    override val hasRequiredSelectionSets: Boolean = true
-
-    override suspend fun resolve(
-        arguments: Map<String, Any?>,
-        objectValue: EngineObjectData,
-        queryValue: EngineObjectData,
-        selections: RawSelectionSet?,
-        context: EngineExecutionContext
-    ): Any? = resolver.resolve(arguments, objectValue, queryValue, selections, context)
 }
 
 fun FieldResolverExecutor.invoke(
@@ -370,19 +355,6 @@ class MockNodeBatchResolverExecutor(
         selectors: List<NodeResolverExecutor.Selector>,
         context: EngineExecutionContext
     ): Map<NodeResolverExecutor.Selector, Result<EngineObjectData>> = batchResolveFn(selectors, context)
-}
-
-class MockNodeResolverDispatcher(
-    val unbatchedExecutor: NodeResolverExecutor = MockNodeUnbatchedResolverExecutor(),
-) : NodeResolverDispatcher {
-    override suspend fun resolve(
-        id: String,
-        selections: RawSelectionSet,
-        context: EngineExecutionContext
-    ): EngineObjectData =
-        NodeResolverExecutor.Selector(id, selections).let { sel ->
-            unbatchedExecutor.batchResolve(listOf(sel), context)[sel]!!.getOrThrow()
-        }
 }
 
 class MockTenantAPIBootstrapper(
