@@ -1,5 +1,6 @@
 plugins {
     id("viaduct-feature-app")
+    id("kotlin-static-analysis")
 }
 
 viaductFeatureApp {

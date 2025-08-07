@@ -5,9 +5,19 @@ pluginManagement {
     includeBuild("plugins")
 }
 
+@Suppress("UnstableApiUsage")
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+}
+
 // TODO: figure out how to remove the build-scan stuff from external repo
 plugins {
+    // Our internal gradle enterprise deployment can't handle a higher version
     id("com.gradle.develocity").version("3.19.2")
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 develocity {

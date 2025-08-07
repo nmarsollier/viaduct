@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-static-analysis")
     id("viaduct-classdiff")
 }
 

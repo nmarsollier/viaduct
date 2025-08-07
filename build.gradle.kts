@@ -1,11 +1,7 @@
 import org.gradle.internal.extensions.core.serviceOf
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
     id("java")
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.ktlintPlugin)
-    alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -15,25 +11,6 @@ group = groupId
 
 val isMavenLocal = gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal", true) }
 val jarVersion = if (isMavenLocal) "${projectVersion.get()}-SNAPSHOT" else projectVersion.get()
-
-val ktlintCliVersion = libs.versions.ktlintVersion
-val junitVersion = libs.versions.junit5
-val junitLib = libs.junit
-val kotlinTestLib = libs.kotlin.test
-
-repositories {
-    mavenCentral()
-}
-
-plugins.withId("org.jetbrains.kotlin.jvm") {
-    configure<KotlinJvmProjectExtension> {
-        jvmToolchain(17)
-    }
-}
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    ignoreFailures.set(true)
-}
 
 configure<com.autonomousapps.DependencyAnalysisExtension> {
     issues {
@@ -59,66 +36,24 @@ configure<com.autonomousapps.DependencyAnalysisExtension> {
 
 subprojects {
     tasks.withType<ProcessResources> {
-        exclude("**/BUILD.bazel")
-    }
-
-    repositories {
-        mavenCentral()
+        exclude("**/BUILD.bazel") // TODO: this seems useless
     }
 
     group = groupId
     version = jarVersion
 
-    plugins.apply("org.jetbrains.kotlin.jvm")
-    plugins.apply("io.gitlab.arturbosch.detekt")
-    plugins.apply("org.jlleitschuh.gradle.ktlint")
-
-    plugins.withId("org.jetbrains.kotlin.jvm") {
-        configure<KotlinJvmProjectExtension> {
-            jvmToolchain(17)
-        }
-
-        dependencies {
-            add("testImplementation", junitLib)
-            add("testImplementation", kotlinTestLib)
-            add("testImplementation", rootProject.libs.konsist)
-            add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
-        }
-    }
+    // TODO: can't directly apply it in all project because the "schema" projects need it too, but some other plugin won't allow adding anything in the build file there ...
+    //  An exception occurred applying plugin request [id: 'viaduct-app']
+    //  > Failed to apply plugin 'viaduct-app'.
+    //   > Project ':schema' must not contain custom configuration in build.gradle.kts. Found: ...
+    plugins.apply("kotlin-project")
 
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
     }
-
-    detekt {
-        source.setFrom("src/main/kotlin", "src/test/kotlin", "src/testFixtures/kotlin")
-        config.setFrom(file("$rootDir/detekt.yml"))
-        ignoreFailures = true
-    }
-
-    ktlint {
-        version.set(ktlintCliVersion) // Specify the ktlint version
-        enableExperimentalRules.set(true) // Optional: Enable experimental rules
-        outputToConsole.set(true) // Optional: Output results to the console
-        ignoreFailures.set(true)
-    }
 }
 
-dependencies {
-    detektPlugins(libs.detekt.formatting)
-    testImplementation(libs.konsist)
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlin.test)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.named<io.gitlab.arturbosch.detekt.Detekt>("detekt") {
-    doFirst {
-        println("ignoreFailures: $ignoreFailures")
-    }
-}
-
-tasks.register("cleanBuildAndPublish") {
+tasks.register("cleanBuildAndPublish") { // TODO: this is full of hacks... why is that?
     outputs.upToDateWhen { false }
     notCompatibleWithConfigurationCache("Uses exec and Gradle subprocesses")
 

@@ -8,17 +8,6 @@ plugins {
 val isMavenLocal = gradle.parent?.startParameter?.taskNames?.any { it.contains("publishToMavenLocal", true) } ?: false
 project.version = libs.versions.project.map { if (isMavenLocal) "$it-SNAPSHOT" else it }.get()
 
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
 // These are the plugins we're publishing externally
 // (viaduct-feature-app is not published: it's for internal testing purposes)
 gradlePlugin {

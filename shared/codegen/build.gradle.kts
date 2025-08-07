@@ -1,3 +1,7 @@
+plugins {
+    id("kotlin-static-analysis")
+}
+
 tasks.test {
     jvmArgs = ((jvmArgs ?: emptyList<String>()) + "--add-opens=java.base/java.lang=ALL-UNNAMED")
 }
