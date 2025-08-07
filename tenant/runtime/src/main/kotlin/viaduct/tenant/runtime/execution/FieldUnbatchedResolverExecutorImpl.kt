@@ -10,6 +10,7 @@ import viaduct.api.internal.ResolverBase
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.FieldResolverExecutor
+import viaduct.engine.api.FieldResolverExecutor.Selector
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.tenant.runtime.context.factory.FieldArgs
@@ -19,18 +20,17 @@ import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
 import viaduct.tenant.runtime.select.SelectionsLoaderImpl
 
 /**
- * Main ResolverExecutor class that is initialized via ResolverRegistry and is used to
- * execute the resolver function for each (typename, fieldname) tuple.
+ * Executes a tenant-written field resolver's batchResolve function.
  *
  * @param resolverId: Uniquely identifies a resolver function, e.g. "User.fullName" identifies
  * the field resolver for the "fullName" field on the "User" type. This is used for observability.
  */
-class FieldResolverExecutorImpl(
+class FieldUnbatchedResolverExecutorImpl(
     override val objectSelectionSet: RequiredSelectionSet?,
     override val querySelectionSet: RequiredSelectionSet?,
     internal val resolver: Provider<out @JvmSuppressWildcards ResolverBase<*>>, // internal for testing
-    private val resolverResolveFn: KFunction<*>,
-    private val resolverId: String,
+    private val resolveFn: KFunction<*>,
+    override val resolverId: String,
     private val globalIDCodec: GlobalIDCodec,
     private val reflectionLoader: ReflectionLoader,
     private val resolverContextFactory: FieldExecutionContextFactory,
@@ -39,7 +39,19 @@ class FieldResolverExecutorImpl(
         "flavor" to "modern",
     )
 
-    override suspend fun resolve(
+    override val isBatching = false
+
+    override suspend fun batchResolve(
+        selectors: List<Selector>,
+        context: EngineExecutionContext
+    ): Map<Selector, Result<Any?>> {
+        // Only handle single selector case because this is an unbatched resolver
+        require(selectors.size == 1) { "Unbatched resolver should only receive single selector, got ${selectors.size}" }
+        val selector = selectors.first()
+        return mapOf(selector to runCatching { resolve(selector.arguments, selector.objectValue, selector.queryValue, selector.selections, context) })
+    }
+
+    private suspend fun resolve(
         arguments: Map<String, Any?>,
         objectValue: EngineObjectData,
         queryValue: EngineObjectData,
@@ -61,7 +73,7 @@ class FieldResolverExecutorImpl(
         )
         val resolver = mkResolver()
         val result = wrapResolveException(resolverId) {
-            resolverResolveFn.callSuspend(resolver, ctx)
+            resolveFn.callSuspend(resolver, ctx)
         }
         return unwrap(result)
     }
@@ -69,11 +81,13 @@ class FieldResolverExecutorImpl(
     // public for testing
     fun mkResolver(): ResolverBase<*> = resolver.get()
 
-    private fun unwrap(result: Any?): Any? {
-        return when (result) {
-            is ObjectBase -> result.unwrap()
-            is List<*> -> result.map { unwrap(it) }
-            else -> result
+    companion object {
+        internal fun unwrap(result: Any?): Any? {
+            return when (result) {
+                is ObjectBase -> result.unwrap()
+                is List<*> -> result.map { unwrap(it) }
+                else -> result
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.types.Arguments
 import viaduct.api.types.CompositeOutput
+import viaduct.graphql.test.assertData
 import viaduct.tenant.runtime.featuretests.fixtures.Baz
 import viaduct.tenant.runtime.featuretests.fixtures.Boo
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestBuilder
@@ -16,7 +17,6 @@ import viaduct.tenant.runtime.featuretests.fixtures.Query
 import viaduct.tenant.runtime.featuretests.fixtures.UntypedFieldContext
 import viaduct.tenant.runtime.featuretests.fixtures.UntypedMutationFieldContext
 import viaduct.tenant.runtime.featuretests.fixtures.UntypedNodeContext
-import viaduct.tenant.runtime.featuretests.fixtures.assertData
 
 @ExperimentalCoroutinesApi
 class AccessCheckerTest {

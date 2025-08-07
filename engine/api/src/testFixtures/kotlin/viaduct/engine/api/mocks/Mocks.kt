@@ -54,6 +54,7 @@ typealias FieldUnbatchedResolverFn = suspend (
     selections: RawSelectionSet?,
     context: EngineExecutionContext
 ) -> Any?
+typealias FieldBatchResolverFn = suspend (selectors: List<FieldResolverExecutor.Selector>, context: EngineExecutionContext) -> Map<FieldResolverExecutor.Selector, Result<Any?>>
 typealias VariablesResolverFn = suspend (ctx: VariablesResolver.ResolveCtx) -> Map<String, Any?>
 
 fun mkCoroutineInterop(): CoroutineInterop = DefaultCoroutineInterop
@@ -247,24 +248,43 @@ class MockFieldResolverDispatcherRegistry(vararg val bindings: Pair<Coordinate, 
     ): FieldResolverDispatcher? = bindingsMap[typeName to fieldName]
 }
 
-class MockUnbatchedFieldResolverExecutor(
+open class MockFieldUnbatchedResolverExecutor(
     override val objectSelectionSet: RequiredSelectionSet? = null,
     override val querySelectionSet: RequiredSelectionSet? = null,
     override val metadata: Map<String, String> = emptyMap(),
-    val resolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null },
+    override val resolverId: String,
+    open val unbatchedResolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null },
 ) : FieldResolverExecutor {
-    override suspend fun resolve(
-        arguments: Map<String, Any?>,
-        objectValue: EngineObjectData,
-        queryValue: EngineObjectData,
-        selections: RawSelectionSet?,
+    override val isBatching: Boolean = false
+
+    override suspend fun batchResolve(
+        selectors: List<FieldResolverExecutor.Selector>,
         context: EngineExecutionContext
-    ): Any? = resolveFn(arguments, objectValue, queryValue, selections, context)
+    ): Map<FieldResolverExecutor.Selector, Result<Any?>> {
+        require(selectors.size == 1) { "Unbatched resolver should only receive single selector, got {}".format(selectors.size) }
+        val selector = selectors.first()
+        return mapOf(selector to runCatching { unbatchedResolveFn(selector.arguments, selector.objectValue, selector.queryValue, selector.selections, context) })
+    }
 
     companion object {
         /** a [FieldResolverExecutor] implementation that always returns `null` */
-        val Null: MockUnbatchedFieldResolverExecutor = MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> null }
+        val Null: MockFieldUnbatchedResolverExecutor = MockFieldUnbatchedResolverExecutor(resolverId = "") { _, _, _, _, _ -> null }
     }
+}
+
+open class MockFieldBatchResolverExecutor(
+    override val objectSelectionSet: RequiredSelectionSet? = null,
+    override val querySelectionSet: RequiredSelectionSet? = null,
+    override val metadata: Map<String, String> = emptyMap(),
+    override val resolverId: String,
+    open val batchResolveFn: FieldBatchResolverFn = { _, _ -> throw NotImplementedError() }
+) : FieldResolverExecutor {
+    override val isBatching: Boolean = true
+
+    override suspend fun batchResolve(
+        selectors: List<FieldResolverExecutor.Selector>,
+        context: EngineExecutionContext
+    ): Map<FieldResolverExecutor.Selector, Result<Any?>> = batchResolveFn(selectors, context)
 }
 
 fun FieldResolverExecutor.invoke(
@@ -276,13 +296,13 @@ fun FieldResolverExecutor.invoke(
     selections: RawSelectionSet? = null,
     context: EngineExecutionContext = ContextMocks(fullSchema).engineExecutionContext,
 ) = runBlocking(MockNextTickDispatcher()) {
-    resolve(
-        arguments,
-        MockEngineObjectData(fullSchema.getObjectType(coord.first), objectValue),
-        MockEngineObjectData(fullSchema.queryType, queryValue),
-        selections,
-        context,
+    val selector = FieldResolverExecutor.Selector(
+        arguments = arguments,
+        objectValue = MockEngineObjectData(fullSchema.getObjectType(coord.first), objectValue),
+        queryValue = MockEngineObjectData(fullSchema.queryType, queryValue),
+        selections = selections,
     )
+    batchResolve(listOf(selector), context).get(selector)?.getOrNull()
 }
 
 fun CheckerExecutor.invoke(
@@ -491,8 +511,10 @@ object Samples {
             parameterizedField(experiment: Boolean): Boolean
             cField(f1: String, f2: Int): String
             dField: String
+            batchField: String
         }
         type TestNode implements Node { id: ID! }
+        type TestBatchNode implements Node { id: ID! }
         """.trimIndent()
     )
 
@@ -542,6 +564,13 @@ object Samples {
             }
         }
 
+        // Add batch resolver for batchField
+        field("TestType" to "batchField") {
+            resolver {
+                fn { _, _ -> mapOf() }
+            }
+        }
+
         // Add node resolver for TestNode
         node("TestNode") {
             unbatchedExecutor { id, _, _ ->
@@ -558,7 +587,7 @@ object Samples {
                 selectors.associate { selector ->
                     selector to Result.success(
                         MockEngineObjectData(
-                            testSchema.getObjectType("TestNode"),
+                            testSchema.getObjectType("TestBatchNode"),
                             mapOf("id" to selector.id)
                         )
                     )

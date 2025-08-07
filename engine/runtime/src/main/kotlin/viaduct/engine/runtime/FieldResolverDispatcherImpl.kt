@@ -33,7 +33,10 @@ class FieldResolverDispatcherImpl(
         selections: RawSelectionSet?,
         context: EngineExecutionContext,
     ): Any? {
-        // TODO: Use a data loader instead of directly calling the resolver executor
-        return resolver.resolve(arguments, objectValue, queryValue, selections, context)
+        context as? EngineExecutionContextImpl ?: throw IllegalArgumentException(
+            "Expected EngineExecutionContextImpl, got ${context::class.qualifiedName}"
+        )
+        val loader = context.fieldDataLoader(resolver)
+        return loader.loadByKey(FieldResolverExecutor.Selector(arguments, objectValue, queryValue, selections)).getOrThrow()
     }
 }

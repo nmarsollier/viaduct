@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.api.context.NodeExecutionContext
+import viaduct.graphql.test.assertData
 import viaduct.tenant.runtime.featuretests.fixtures.Baz
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestBuilder
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestSchemaFixture
 import viaduct.tenant.runtime.featuretests.fixtures.Query
 import viaduct.tenant.runtime.featuretests.fixtures.UntypedFieldContext
-import viaduct.tenant.runtime.featuretests.fixtures.assertData
 import viaduct.tenant.runtime.featuretests.fixtures.assertJson
 
 @ExperimentalCoroutinesApi

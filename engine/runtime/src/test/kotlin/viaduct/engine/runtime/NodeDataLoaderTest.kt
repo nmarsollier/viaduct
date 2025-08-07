@@ -7,7 +7,7 @@ import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 
-class BatchNodeDataLoaderTest {
+class NodeDataLoaderTest {
     private val id1 = "1"
     private val id2 = "2"
     val schema = ViaductSchema(

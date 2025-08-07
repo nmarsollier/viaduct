@@ -5,6 +5,7 @@ import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLObjectType
 import java.util.concurrent.ConcurrentHashMap
 import viaduct.engine.api.EngineExecutionContext
+import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RawSelectionSet
@@ -45,6 +46,7 @@ class EngineExecutionContextFactory(
             rawSelectionsLoaderFactory,
             dispatcherRegistry,
             resolverInstrumentation,
+            ConcurrentHashMap<String, FieldDataLoader>(),
             ConcurrentHashMap<String, NodeDataLoader>(),
             flagManager.isEnabled(Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY),
         )
@@ -57,6 +59,7 @@ class EngineExecutionContextImpl(
     override val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory,
     val dispatcherRegistry: DispatcherRegistry,
     val resolverInstrumentation: Instrumentation,
+    private val fieldDataLoaders: ConcurrentHashMap<String, FieldDataLoader>,
     private val nodeDataLoaders: ConcurrentHashMap<String, NodeDataLoader>,
     val executeAccessChecksInModstrat: Boolean,
     val dataFetchingEnvironment: DataFetchingEnvironment? = null
@@ -69,6 +72,16 @@ class EngineExecutionContextImpl(
     override fun hasModernNodeResolver(typeName: String): Boolean {
         return dispatcherRegistry.getNodeResolverDispatcher(typeName) != null
     }
+
+    /**
+     * Gets the [FieldDataLoader] for the given field coordinate if it already exists, otherwise
+     * creates and returns a new one. The loader is request-scoped since it has the same
+     * lifecycle as the [EngineExecutionContext].
+     */
+    internal fun fieldDataLoader(resolver: FieldResolverExecutor): FieldDataLoader =
+        fieldDataLoaders.computeIfAbsent(resolver.resolverId) {
+            FieldDataLoader(resolver, this)
+        }
 
     /**
      * Gets the [NodeDataLoader] for the given Node type if it already exists, otherwise
@@ -102,6 +115,7 @@ class EngineExecutionContextImpl(
         rawSelectionsLoaderFactory = rawSelectionsLoaderFactory,
         dispatcherRegistry = this.dispatcherRegistry,
         resolverInstrumentation = this.resolverInstrumentation,
+        fieldDataLoaders = this.fieldDataLoaders,
         nodeDataLoaders = this.nodeDataLoaders,
         executeAccessChecksInModstrat = executeAccessCheckInModstrat,
         dataFetchingEnvironment = dataFetchingEnvironment,

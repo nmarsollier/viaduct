@@ -61,13 +61,15 @@ class DispatcherRegistryTest {
         runBlockingTest {
             val dispatcherRegistry = createDispatcherRegistry()
             // We have 5 resolvers: aField, bIntField, parameterizedField, cField, dField
-            assertEquals(5, dispatcherRegistry.get().count())
+            assertEquals(6, dispatcherRegistry.get().count())
 
             val objectType = Samples.testSchema.getObjectType("TestType")
             assertEquals("TestType", objectType.name)
 
             val resolverDispatcher = dispatcherRegistry.getFieldResolverDispatcher("TestType", "aField")
             assertNotNull(resolverDispatcher)
+            val batchResolverDispatcher = dispatcherRegistry.getFieldResolverDispatcher("TestType", "batchField")
+            assertNotNull(batchResolverDispatcher)
             val checkerExecutor = dispatcherRegistry.getCheckerExecutor("TestType", "aField")
             assertNotNull(checkerExecutor)
 

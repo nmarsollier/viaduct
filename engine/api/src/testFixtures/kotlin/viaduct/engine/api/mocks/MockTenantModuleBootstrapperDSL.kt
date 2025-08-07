@@ -156,7 +156,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
         coord: Coordinate,
         value: Any?
     ) {
-        fieldResolverExecutors.putIfMissingOrFail(coord) { MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> value } }
+        fieldResolverExecutors.putIfMissingOrFail(coord) { MockFieldUnbatchedResolverExecutor(resolverId = coord.first + "." + coord.second) { _, _, _, _, _ -> value } }
     }
 
     fun field(
@@ -179,16 +179,17 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
         val queryType: GraphQLObjectType get() = this@MockTenantModuleBootstrapperDSL.queryType
         val objectType: GraphQLObjectType get() = schema.getObjectType(coord.first)!!
         val fieldType: GraphQLOutputType get() = objectType.getFieldDefinition(coord.second)!!.getType()
+        val resolverId: String get() = coord.first + "." + coord.second
 
         fun value(value: Any?) {
             resolverExecutor {
-                MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> value }
+                MockFieldUnbatchedResolverExecutor(resolverId = resolverId) { _, _, _, _, _ -> value }
             }
         }
 
         fun valueFromContext(fn: (EngineExecutionContext) -> Any?) {
             resolverExecutor {
-                MockUnbatchedFieldResolverExecutor { _, _, _, _, ctx -> fn(ctx) }
+                MockFieldUnbatchedResolverExecutor(resolverId = resolverId) { _, _, _, _, ctx -> fn(ctx) }
             }
         }
 
@@ -199,14 +200,37 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
         /**
          * This function will create a [FieldResolverExecutor] from a [FieldUnbatchedResolverFn] lambda.
          * If you have an independant way of creating a [FieldResolverExecutor] use
-         * [resolverExecutor] to insert it directly into the checker registry.
+         * [resolverExecutor] to insert it directly into the resolver registry.
          */
         fun resolver(block: ResolverScope.() -> Unit) {
             resolverExecutor {
                 val r = ResolverScope().apply { block() }
-                val fn = r.resolveFn
-                    ?: throw IllegalArgumentException("resolver block must define a resolver function.")
-                MockUnbatchedFieldResolverExecutor(r.objectSelections?.toRSS(), r.querySelections?.toRSS(), r.metadata, fn)
+                when {
+                    r.unbatchedResolveFn != null && r.batchResolveFn != null -> {
+                        throw IllegalArgumentException("resolver block cannot define both unbatched and batch resolver functions.")
+                    }
+                    r.unbatchedResolveFn != null -> {
+                        MockFieldUnbatchedResolverExecutor(
+                            r.objectSelections?.toRSS(),
+                            r.querySelections?.toRSS(),
+                            r.metadata,
+                            resolverId,
+                            r.unbatchedResolveFn!!
+                        )
+                    }
+                    r.batchResolveFn != null -> {
+                        MockFieldBatchResolverExecutor(
+                            r.objectSelections?.toRSS(),
+                            r.querySelections?.toRSS(),
+                            r.metadata,
+                            resolverId,
+                            r.batchResolveFn!!
+                        )
+                    }
+                    else -> {
+                        throw IllegalArgumentException("resolver block must define either an unbatched or batch resolver function.")
+                    }
+                }
             }
         }
 
@@ -255,7 +279,9 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
             internal var objectSelections: SelectionsScope? = null
             internal var querySelections: SelectionsScope? = null
             internal var metadata: Map<String, String> = emptyMap()
-            internal var resolveFn: FieldUnbatchedResolverFn? = null
+            internal var unbatchedResolveFn: FieldUnbatchedResolverFn? = null
+            internal var batchResolveFn: FieldBatchResolverFn? = null
+            internal var resolverId: String = coord.first + "." + coord.second
 
             // DSL marker hides these -- reintroduce them
             val coord: Coordinate get() = this@FieldScope.coord
@@ -288,7 +314,11 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
             }
 
             fun fn(resolveFn: FieldUnbatchedResolverFn) {
-                this.resolveFn = resolveFn
+                this.unbatchedResolveFn = resolveFn
+            }
+
+            fun fn(resolveFn: FieldBatchResolverFn) {
+                this.batchResolveFn = resolveFn
             }
         }
 

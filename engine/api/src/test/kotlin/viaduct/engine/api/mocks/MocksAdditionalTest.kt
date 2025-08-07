@@ -1,10 +1,12 @@
 package viaduct.engine.api.mocks
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.VariablesResolver
@@ -13,17 +15,30 @@ import viaduct.engine.runtime.FieldResolverDispatcherImpl
 
 class MocksAdditionalTest {
     @Test
-    fun `MockFieldResolverExecutor with selection set`() {
+    fun `MockFieldUnbatchedResolverExecutor with selection set`() {
         val selectionSet = mkRSS("TestType", "aField bIntField")
-        val resolver = MockUnbatchedFieldResolverExecutor(objectSelectionSet = selectionSet)
+        val resolverId = "TestType.field1"
+        val executor = MockFieldUnbatchedResolverExecutor(objectSelectionSet = selectionSet, resolverId = resolverId)
 
-        assertEquals(selectionSet, resolver.objectSelectionSet)
-        assertEquals(emptyMap<String, String>(), resolver.metadata)
+        assertFalse(executor.isBatching)
+        assertEquals(selectionSet, executor.objectSelectionSet)
+        assertEquals(emptyMap<String, String>(), executor.metadata)
+        assertEquals(resolverId, executor.resolverId)
+    }
+
+    @Test
+    fun `MockFieldBatchResolverExecutor with batching`() {
+        val resolverId = "TestType.field1"
+        val executor = MockFieldBatchResolverExecutor(resolverId = resolverId)
+
+        assertTrue(executor.isBatching)
+        assertEquals(emptyMap<String, String>(), executor.metadata)
+        assertEquals(resolverId, executor.resolverId)
     }
 
     @Test
     fun `MockFieldResolverExecutor Null companion object`() {
-        val nullResolver = MockUnbatchedFieldResolverExecutor.Null
+        val nullResolver = MockFieldUnbatchedResolverExecutor.Null
         assertNotNull(nullResolver)
         assertNull(nullResolver.objectSelectionSet)
         assertEquals(emptyMap<String, String>(), nullResolver.metadata)
@@ -68,16 +83,19 @@ class MocksAdditionalTest {
 
     @Test
     fun `MockFieldResolverDispatcherRegistry functionality`() {
-        val dispatcher1 = FieldResolverDispatcherImpl(MockUnbatchedFieldResolverExecutor.Null)
-        val dispatcher2 = FieldResolverDispatcherImpl(MockUnbatchedFieldResolverExecutor { _, _, _, _, _ -> "test" })
+        val dispatcher1 = FieldResolverDispatcherImpl(MockFieldUnbatchedResolverExecutor.Null)
+        val dispatcher2 = FieldResolverDispatcherImpl(MockFieldUnbatchedResolverExecutor(resolverId = "TestType.field2") { _, _, _, _, _ -> "test" })
+        val dispatcher3 = FieldResolverDispatcherImpl(MockFieldBatchResolverExecutor(resolverId = "TestType.field3") { _, _ -> emptyMap() })
 
         val registry = MockFieldResolverDispatcherRegistry(
             Pair("TestType", "field1") to dispatcher1,
-            Pair("TestType", "field2") to dispatcher2
+            Pair("TestType", "field2") to dispatcher2,
+            Pair("TestType", "field3") to dispatcher3
         )
 
         assertSame(dispatcher1, registry.getFieldResolverDispatcher("TestType", "field1"))
         assertSame(dispatcher2, registry.getFieldResolverDispatcher("TestType", "field2"))
+        assertSame(dispatcher3, registry.getFieldResolverDispatcher("TestType", "field3"))
         assertNull(registry.getFieldResolverDispatcher("TestType", "nonExistent"))
     }
 
@@ -206,7 +224,7 @@ class MocksAdditionalTest {
 
         // Verify it has resolvers
         val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
-        assertEquals(5, resolvers.size)
+        assertEquals(6, resolvers.size)
 
         // Verify resolver coordinates
         val coordinates = resolvers.map { it.first }.toSet()
@@ -216,7 +234,8 @@ class MocksAdditionalTest {
                 Coordinate("TestType", "bIntField"),
                 Coordinate("TestType", "parameterizedField"),
                 Coordinate("TestType", "cField"),
-                Coordinate("TestType", "dField")
+                Coordinate("TestType", "dField"),
+                Coordinate("TestType", "batchField")
             ),
             coordinates
         )
@@ -248,13 +267,15 @@ class MocksAdditionalTest {
 
     @Test
     fun `mkDispatcherRegistry helper function structure`() {
-        val fieldUnbatchedResolverExecutor = MockUnbatchedFieldResolverExecutor.Null
+        val fieldUnbatchedResolverExecutor = MockFieldUnbatchedResolverExecutor.Null
+        val fieldBatchResolverExecutor = MockFieldBatchResolverExecutor(resolverId = "Test.fieldBatch")
         val nodeUnbatchedResolverExecutor = MockNodeUnbatchedResolverExecutor()
+        val nodeBatchResolverExecutor = MockNodeBatchResolverExecutor(typeName = "TestNodeBatch")
         val checker = MockCheckerExecutor()
 
         val registry = mkDispatcherRegistry(
-            fieldResolverExecutors = mapOf(Coordinate("Test", "field") to fieldUnbatchedResolverExecutor),
-            nodeResolverExecutors = mapOf("TestNode" to nodeUnbatchedResolverExecutor),
+            fieldResolverExecutors = mapOf(Coordinate("Test", "field") to fieldUnbatchedResolverExecutor, Coordinate("Test", "fieldBatch") to fieldBatchResolverExecutor),
+            nodeResolverExecutors = mapOf("TestNode" to nodeUnbatchedResolverExecutor, "TestNodeBatch" to nodeBatchResolverExecutor),
             checkerExecutors = mapOf(Coordinate("Test", "field") to checker),
             nodeCheckerExecutors = mapOf("TestNode" to checker)
         )

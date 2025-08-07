@@ -54,6 +54,10 @@ import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
  *         // Assert on result
  *     }
  * }
+ *
+ * **Important**: GRTs are created per package namespace. Multiple tests in the same package will
+ * share the same generated classes, which can cause conflicts. To avoid this, place each feature
+ * test app in its own separate package.
  *```
  */
 abstract class FeatureAppTestBase {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import graphql.ExecutionResult
+import graphql.GraphQLError
 import kotlin.test.assertEquals
 
 /**
@@ -23,6 +24,23 @@ fun ExecutionResult.assertJson(expectedJson: String) {
     } catch (e: AssertionError) {
         throw AssertionError("Expected: $expectedJson\nActual: ${mapper.writeValueAsString(toSpecification())}", e)
     }
+}
+
+/**
+ * Assert that data matches [expectedDataJson]. [checkErrors] can be used to perform
+ * assertions on the errors list.
+ */
+fun ExecutionResult.assertData(
+    expectedDataJson: String,
+    checkErrors: (errors: List<GraphQLError>) -> Unit = {}
+) {
+    val expectedData = try {
+        mapper.readValue<Map<String, Any?>>(expectedDataJson)
+    } catch (e: Exception) {
+        throw IllegalArgumentException("Cannot parse expectedDataJson", e)
+    }
+    assertEquals(expectedData, getData())
+    checkErrors(errors)
 }
 
 // configure an ObjectMapper that allows parsing compact JSON
