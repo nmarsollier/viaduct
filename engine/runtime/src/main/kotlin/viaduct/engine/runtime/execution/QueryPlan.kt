@@ -144,6 +144,8 @@ data class QueryPlan(
             queryPlanCache.synchronous().invalidateAll()
         }
 
+        internal val cacheSize: Long get() = queryPlanCache.synchronous().estimatedSize()
+
         /**
          * Builds a [QueryPlan] from a GraphQL [Document].
          *

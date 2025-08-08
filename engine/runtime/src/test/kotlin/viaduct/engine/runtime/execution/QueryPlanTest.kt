@@ -11,8 +11,8 @@ import graphql.language.Node
 import graphql.language.SelectionSet as GJSelectionSet
 import graphql.language.VariableReference
 import graphql.schema.GraphQLObjectType
-import jdk.dynalink.linker.support.Guards.isNotNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
 import strikt.api.expectThat
@@ -27,6 +27,7 @@ import viaduct.arbitrary.graphql.asSchema
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeViaductModernGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.runExecutionTest
 import viaduct.engine.runtime.execution.QueryPlan.CollectedField
 import viaduct.engine.runtime.execution.QueryPlan.Field
@@ -36,6 +37,8 @@ import viaduct.engine.runtime.execution.QueryPlan.Fragments
 import viaduct.engine.runtime.execution.QueryPlan.InlineFragment
 import viaduct.engine.runtime.execution.QueryPlan.Selection
 import viaduct.engine.runtime.execution.QueryPlan.SelectionSet
+import viaduct.service.api.spi.Flags
+import viaduct.service.api.spi.mocks.MockFlagManager
 
 class QueryPlanTest {
     @Test
@@ -202,6 +205,33 @@ class QueryPlanTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun `QueryPlanBuilder -- uses cache by default`() {
+        // sanity
+        QueryPlan.resetCache()
+        assertEquals(0, QueryPlan.cacheSize)
+        runExecutionTest {
+            executeViaductModernGraphQL("type Query {x:Int}", resolvers = emptyMap(), "{__typename}")
+        }
+        assertEquals(1, QueryPlan.cacheSize)
+    }
+
+    @Test
+    fun `QueryPlanBuilder -- bypasses cache when configured`() {
+        // sanity
+        QueryPlan.resetCache()
+        assertEquals(0, QueryPlan.cacheSize)
+        runExecutionTest {
+            executeViaductModernGraphQL(
+                "type Query {x:Int}",
+                resolvers = emptyMap(),
+                "{__typename}",
+                flagManager = MockFlagManager.mk(Flags.DISABLE_QUERY_PLAN_CACHE)
+            )
+        }
+        assertEquals(0, QueryPlan.cacheSize)
     }
 
     private class Fixture(sdl: String, fn: Fixture.() -> Unit) {

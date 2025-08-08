@@ -62,10 +62,16 @@ object ExecutionTestHelpers {
         variables: Map<String, Any?> = emptyMap(),
         typeResolvers: Map<String, TypeResolver> = emptyMap(),
         requiredSelectionSetRegistry: RequiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
-        instrumentations: List<ViaductModernInstrumentation> = emptyList()
+        instrumentations: List<ViaductModernInstrumentation> = emptyList(),
+        flagManager: FlagManager = FlagManager.Companion.DefaultFlagManager
     ): ExecutionResult {
         val schema = createSchema(sdl, resolvers, typeResolvers)
-        val modernGraphQL = createViaductGraphQL(schema, requiredSelectionSetRegistry, instrumentations = instrumentations)
+        val modernGraphQL = createViaductGraphQL(
+            schema,
+            requiredSelectionSetRegistry,
+            instrumentations = instrumentations,
+            flagManager = flagManager
+        )
         return executeQuery(modernGraphQL, query, variables)
     }
 
@@ -121,12 +127,14 @@ object ExecutionTestHelpers {
         gjInstrumentations: List<Instrumentation> = emptyList(),
         fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry = FieldCheckerDispatcherRegistry.Empty,
         typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry = TypeCheckerDispatcherRegistry.Empty,
-        coroutineInterop: CoroutineInterop = DefaultCoroutineInterop
+        coroutineInterop: CoroutineInterop = DefaultCoroutineInterop,
+        flagManager: FlagManager = FlagManager.Companion.DefaultFlagManager
     ): GraphQL {
         val execParamFactory = ExecutionParameters.Factory(
             requiredSelectionSetRegistry,
             fieldCheckerDispatcherRegistry,
-            typeCheckerDispatcherRegistry
+            typeCheckerDispatcherRegistry,
+            flagManager
         )
         val accessCheckRunner = AccessCheckRunner(coroutineInterop)
         return GraphQL.newGraphQL(schema)
