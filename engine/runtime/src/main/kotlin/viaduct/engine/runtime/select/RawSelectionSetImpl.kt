@@ -407,7 +407,10 @@ data class RawSelectionSetImpl(
         (ctx.schema.schema.getType(name) ?: throw IllegalArgumentException("type $name is not defined"))
             as? GraphQLCompositeType ?: throw IllegalArgumentException("Type $name is not a composite type")
 
-    private fun fieldsContainer(name: String): GraphQLFieldsContainer = compositeType(name) as? GraphQLFieldsContainer ?: throw IllegalArgumentException("type $name is not a field container")
+    private fun fieldsContainer(name: String): GraphQLFieldsContainer =
+        requireNotNull(compositeType(name) as? GraphQLFieldsContainer) {
+            "type $name is not a field container"
+        }
 
     private fun fieldDefinition(sel: FieldSelection): GraphQLFieldDefinition {
         val coord = (sel.typeCondition.name to sel.field.name).gj

@@ -2,6 +2,7 @@
 
 package viaduct.engine.runtime
 
+import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLEnumType
 import graphql.schema.GraphQLInterfaceType
 import graphql.schema.GraphQLList
@@ -18,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.RawSelectionSet
+import viaduct.engine.api.gj
 
 /**
  * Thread-safe data structure for memoizing field resolution results during GraphQL query execution.
@@ -221,7 +223,7 @@ class ObjectEngineResultImpl private constructor(
         ): ObjectEngineResultImpl =
             newFromMap(
                 type = type,
-                data = data.rekey(selectionSet),
+                data = data.rekey(type, selectionSet),
                 errors = errors.map { ObjectEngineResult.Key(it.first) to it.second }.toMutableList(),
                 currentPath = currentPath,
                 schema = schema,
@@ -237,47 +239,45 @@ class ObjectEngineResultImpl private constructor(
             schema: GraphQLSchema,
             selectionSet: RawSelectionSet
         ): ObjectEngineResultImpl {
-            val result = ObjectEngineResultImpl.newForType(type)
+            val result = newForType(type)
 
             data.forEach { (key, value) ->
-                // Skip GraphQL meta fields
-                if (!key.name.startsWith("__")) {
-                    val field = type.getField(key.name)
-                    result.computeIfAbsent(key) { slotSetter ->
-                        val rawValue =
-                            if (value == null) {
-                                val pathString = currentPath.joinToString(".")
-                                // Find matching errors for this path
-                                val matchingErrors = errors.filter {
-                                    it.first.name.startsWith(pathString)
-                                }
-
-                                if (matchingErrors.isNotEmpty()) { // Complete with first matching error
-                                    Value.fromThrowable<Nothing>(matchingErrors.first().second).also {
-                                        errors.removeAll(matchingErrors)
-                                    }
-                                } else { // Complete with null value
-                                    Value.fromValue(null)
-                                }
-                            } else {
-                                Value.fromValue(
-                                    convertFieldValue(
-                                        key,
-                                        field.type,
-                                        value,
-                                        errors,
-                                        currentPath + listOf(key.name),
-                                        schema,
-                                        selectionSet
-                                    )
-                                )
+                val field = schema.getFieldDefinition((type.name to key.name).gj)
+                result.computeIfAbsent(key) { slotSetter ->
+                    val rawValue =
+                        if (value == null) {
+                            val pathString = currentPath.joinToString(".")
+                            // Find matching errors for this path
+                            val matchingErrors = errors.filter {
+                                it.first.name.startsWith(pathString)
                             }
 
-                        // This function is actually used for completed values, which we'll
-                        // store in the raw slot
-                        slotSetter.set(RAW_VALUE_SLOT, rawValue)
-                        slotSetter.set(ACCESS_CHECK_SLOT, Value.fromValue(null))
-                    }
+                            if (matchingErrors.isNotEmpty()) { // Complete with first matching error
+                                Value.fromThrowable<Nothing>(matchingErrors.first().second).also {
+                                    errors.removeAll(matchingErrors)
+                                }
+                            } else { // Complete with null value
+                                Value.fromValue(null)
+                            }
+                        } else {
+                            Value.fromValue(
+                                convertFieldValue(
+                                    key,
+                                    type,
+                                    field.type,
+                                    value,
+                                    errors,
+                                    currentPath + listOf(key.name),
+                                    schema,
+                                    selectionSet
+                                )
+                            )
+                        }
+
+                    // This function is actually used for completed values, which we'll
+                    // store in the raw slot
+                    slotSetter.set(RAW_VALUE_SLOT, rawValue)
+                    slotSetter.set(ACCESS_CHECK_SLOT, Value.fromValue(null))
                 }
             }
             return result
@@ -285,6 +285,7 @@ class ObjectEngineResultImpl private constructor(
 
         private fun convertFieldValue(
             key: ObjectEngineResult.Key,
+            parentType: GraphQLOutputType,
             fieldType: GraphQLOutputType,
             value: Any?,
             errors: MutableList<Pair<ObjectEngineResult.Key, Throwable>>,
@@ -294,8 +295,7 @@ class ObjectEngineResultImpl private constructor(
         ): Any? {
             if (value == null) return null
 
-            val unwrappedType = GraphQLTypeUtil.unwrapNonNull(fieldType)
-            return when (unwrappedType) {
+            return when (val unwrappedType = GraphQLTypeUtil.unwrapNonNull(fieldType)) {
                 // null, scalar and enum values pass through directly
                 is GraphQLScalarType,
                 is GraphQLEnumType -> value
@@ -307,6 +307,7 @@ class ObjectEngineResultImpl private constructor(
                         val rawValue = Value.fromValue(
                             convertFieldValue(
                                 key,
+                                parentType,
                                 elementType,
                                 element,
                                 errors,
@@ -324,10 +325,13 @@ class ObjectEngineResultImpl private constructor(
 
                 // Objects become nested ObjectEngineResults
                 is GraphQLObjectType -> {
-                    val subSelectionSet = selectionSet.selectionSetForSelection(selectionSet.type, key.alias ?: key.name)
+                    val subSelectionSet = selectionSet.selectionSetForSelection(
+                        (parentType as GraphQLCompositeType).name,
+                        key.alias ?: key.name
+                    )
                     newFromMap(
                         unwrappedType,
-                        (value as Map<*, Any?>).rekey(subSelectionSet),
+                        (value as Map<*, Any?>).rekey(unwrappedType, subSelectionSet),
                         errors,
                         currentPath,
                         schema,
@@ -341,10 +345,14 @@ class ObjectEngineResultImpl private constructor(
                     val valueMap = value as Map<String, Any?>
                     val typeName = valueMap["__typename"] as String
                     val concreteType = schema.getObjectType(typeName)
-                    val subSelectionSet = selectionSet.selectionSetForSelection(selectionSet.type, key.alias ?: key.name)
+                    val subSelectionSet = selectionSet.selectionSetForSelection(
+                        (parentType as GraphQLCompositeType).name,
+                        key.alias ?: key.name
+                    )
+
                     newFromMap(
                         concreteType,
-                        valueMap.rekey(subSelectionSet),
+                        valueMap.rekey(concreteType, subSelectionSet),
                         errors,
                         currentPath,
                         schema,
@@ -365,7 +373,10 @@ class ObjectEngineResultImpl private constructor(
          *
          * Note that this rekeys just the top-level keys of the map; nested objects will not be rekeyed.
          */
-        private fun Map<*, Any?>.rekey(selectionSet: RawSelectionSet): Map<ObjectEngineResult.Key, Any?> {
+        private fun Map<*, Any?>.rekey(
+            type: GraphQLObjectType,
+            selectionSet: RawSelectionSet
+        ): Map<ObjectEngineResult.Key, Any?> {
             if (keys.all { it is ObjectEngineResult.Key }) {
                 @Suppress("UNCHECKED_CAST")
                 return this as Map<ObjectEngineResult.Key, Any?>
@@ -379,7 +390,7 @@ class ObjectEngineResultImpl private constructor(
                     "Cannot rekey a map with keys of type ${key?.javaClass?.name}"
                 }
                 selectionsByName[keyString]?.let { sel ->
-                    val arguments = selectionSet.argumentsOfSelection(sel.typeCondition, sel.selectionName) ?: emptyMap()
+                    val arguments = selectionSet.argumentsOfSelection(type.name, sel.selectionName) ?: emptyMap()
                     val key = ObjectEngineResult.Key(name = sel.fieldName, alias = sel.selectionName, arguments = arguments)
                     map[key] = value
                 }
