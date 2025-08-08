@@ -8,7 +8,6 @@ import graphql.execution.MergedSelectionSet
 import graphql.execution.NonNullableFieldValidator
 import graphql.execution.ResultPath
 import graphql.schema.GraphQLObjectType
-import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.time.ExperimentalTime
@@ -27,6 +26,8 @@ import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.findLocalContextForType
+import viaduct.service.api.spi.FlagManager
+import viaduct.service.api.spi.Flags
 import viaduct.utils.slf4j.logger
 
 /**
@@ -164,68 +165,68 @@ data class ExecutionParameters(
         )
 
     @Suppress("ktlint:standard:indent")
-    class Factory
-        @Inject
-        constructor(
-            private val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
-            private val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
-            private val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
-        ) {
-            private val log by logger()
+    class Factory(
+        private val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
+        private val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
+        private val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
+        private val flagManager: FlagManager,
+    ) {
+        private val log by logger()
 
-            /**
-             * Constructs [ExecutionParameters] from the execution context and strategy parameters.
-             *
-             * @param executionContext The execution context for the GraphQL query.
-             * @param parameters The execution strategy parameters.
-             * @param rootEngineResult The root object engine result.
-             * @return A new instance of [ExecutionParameters].
-             */
-            @OptIn(ExperimentalTime::class)
-            internal suspend fun fromExecutionStrategyContextAndParameters(
-                executionContext: ExecutionContext,
-                parameters: ExecutionStrategyParameters,
-                rootEngineResult: ObjectEngineResultImpl,
-            ): ExecutionParameters {
-                // TODO: determine if we want nested resolvers to be included in this query plan
+        /**
+         * Constructs [ExecutionParameters] from the execution context and strategy parameters.
+         *
+         * @param executionContext The execution context for the GraphQL query.
+         * @param parameters The execution strategy parameters.
+         * @param rootEngineResult The root object engine result.
+         * @return A new instance of [ExecutionParameters].
+         */
+        @OptIn(ExperimentalTime::class)
+        internal suspend fun fromExecutionStrategyContextAndParameters(
+            executionContext: ExecutionContext,
+            parameters: ExecutionStrategyParameters,
+            rootEngineResult: ObjectEngineResultImpl,
+        ): ExecutionParameters {
+            // TODO: determine if we want nested resolvers to be included in this query plan
 
-                val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+            val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
 
-                val (queryPlan, duration) = measureTimedValue {
-                    QueryPlan.build(
-                        QueryPlan.Parameters(
-                            executionContext.executionInput.query,
-                            ViaductSchema(executionContext.graphQLSchema),
-                            requiredSelectionSetRegistry,
-                            engineExecutionContext.executeAccessChecksInModstrat
-                        ),
-                        executionContext.document,
-                        executionContext.executionInput.operationName
-                            ?.takeIf(String::isNotEmpty)
-                            ?.let(DocumentKey::Operation)
-                    )
-                }
-
-                val rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory
-
-                log.debug("Built QueryPlan in $duration")
-                return ExecutionParameters(
-                    executionContext,
-                    queryPlan,
-                    rootEngineResult,
-                    FieldResolutionResult(rootEngineResult, emptyList(), executionContext.getLocalContext(), emptyMap(), executionContext.getRoot()),
-                    coroutineContext[Job.Key]!!,
-                    coroutineContext,
-                    parameters.executionStepInfo,
-                    requiredSelectionSetRegistry,
-                    queryPlan.selectionSet,
-                    rawSelectionSetFactory,
-                    fieldCheckerDispatcherRegistry,
-                    typeCheckerDispatcherRegistry,
-                    ErrorAccumulator()
+            val (queryPlan, duration) = measureTimedValue {
+                QueryPlan.build(
+                    QueryPlan.Parameters(
+                        executionContext.executionInput.query,
+                        ViaductSchema(executionContext.graphQLSchema),
+                        requiredSelectionSetRegistry,
+                        engineExecutionContext.executeAccessChecksInModstrat,
+                    ),
+                    executionContext.document,
+                    executionContext.executionInput.operationName
+                        ?.takeIf(String::isNotEmpty)
+                        ?.let(DocumentKey::Operation),
+                    useCache = !flagManager.isEnabled(Flags.DISABLE_QUERY_PLAN_CACHE)
                 )
             }
+
+            val rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory
+
+            log.debug("Built QueryPlan in $duration")
+            return ExecutionParameters(
+                executionContext,
+                queryPlan,
+                rootEngineResult,
+                FieldResolutionResult(rootEngineResult, emptyList(), executionContext.getLocalContext(), emptyMap(), executionContext.getRoot()),
+                coroutineContext[Job.Key]!!,
+                coroutineContext,
+                parameters.executionStepInfo,
+                requiredSelectionSetRegistry,
+                queryPlan.selectionSet,
+                rawSelectionSetFactory,
+                fieldCheckerDispatcherRegistry,
+                typeCheckerDispatcherRegistry,
+                ErrorAccumulator()
+            )
         }
+    }
 
     companion object {
         private val emptyMergedSelectionSet = MergedSelectionSet.newMergedSelectionSet().build()

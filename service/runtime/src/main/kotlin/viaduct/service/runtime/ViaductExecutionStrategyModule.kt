@@ -103,6 +103,7 @@ class ViaductExecutionStrategyModule(
         coroutineInterop: CoroutineInterop,
         fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
         typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
+        flagManager: FlagManager,
     ): ViaductExecutionStrategy.Factory {
         return ViaductExecutionStrategy.Factory.Impl(
             dataFetcherExceptionHandler,
@@ -110,6 +111,7 @@ class ViaductExecutionStrategyModule(
                 requiredSelectionSetRegistry,
                 fieldCheckerDispatcherRegistry,
                 typeCheckerDispatcherRegistry,
+                flagManager
             ),
             AccessCheckRunner(coroutineInterop),
             coroutineInterop,
