@@ -105,7 +105,10 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
 
     /**
      * If the cell hasn't previously been written, then call [block] which
-     * is responsible for setting all the slots of the cell.
+     * is responsible for setting all the slots of the cell. If [block] fails
+     * (e.g. it threw an exception, did not set all slots, or set a slot more
+     * than once), then all slots will have an exceptional [Value]. This is
+     * true even if some of the slots could have been successfully set.
      *
      * @returns this Cell
      * @throws IllegalStateException when [block] does not set all slots or
@@ -145,6 +148,8 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
                 setter.completeExceptionally(wrappedException)
                 throw t
             }
+            // The compute block executed successfully, now write all slots
+            setter.complete()
             return true
         } else {
             // Already claimed
@@ -152,9 +157,20 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
         }
     }
 
+    /**
+     * Implementation of [SlotSetter] with "all-or-nothing" semantics, meaning slots cannot be partially set.
+     */
     private class SlotSetterImpl(private val slots: AtomicReferenceArray<Any?>) : SlotSetter {
-        private var setSlots: Int = 0 // bit vector of slots that have been set
+        // Bit vector of slots that have been set
+        private var setSlots: Int = 0
 
+        // Used to temporarily hold slot values
+        private val tempSlots = arrayOfNulls<Value<*>>(slots.length() - 1)
+
+        /**
+         * Collects slot values into [tempSlots] without actually writing them into the slots.
+         * Slots must be written by calling either [complete] or [completeExceptionally].
+         */
         override fun set(
             slotNo: Int,
             value: Value<*>
@@ -165,17 +181,23 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
                 throw IllegalStateException("Slot $slotNo has been set more than once.")
             }
             setSlots = setSlots or myBit
-
-            if (!slots.compareAndSet(slotNo, null, value)) {
-                // A reader attempted to read this value before it was claimed
-                (slots.get(slotNo) as CompletableDeferred<Value<*>>).complete(value)
-            }
+            tempSlots[slotNo] = value
         }
 
         fun assertAllSlotsSet() {
-            val mask = ((1L shl (slots.length() - 1)) - 1).toInt()
+            val mask = ((1L shl tempSlots.size) - 1).toInt()
             if ((setSlots and mask) != mask) {
-                throw IllegalStateException("Not all ${slots.length() - 1} slots are set. Set slots: ${setSlots.toString(2)}")
+                throw IllegalStateException("Not all ${tempSlots.size} slots are set. Set slots: ${setSlots.toString(2)}")
+            }
+        }
+
+        /**
+         * Completes all slots with the values held in [tempSlots].
+         */
+        fun complete() {
+            for (slotNo in 0 until tempSlots.size) {
+                val value = tempSlots[slotNo] as Value<*>
+                completeSlot(slotNo, value)
             }
         }
 
@@ -184,13 +206,18 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
          */
         fun completeExceptionally(t: Throwable) {
             val value = Value.fromThrowable<Nothing>(t)
-            for (slotNo in 0 until slots.length() - 1) {
-                if (!slots.compareAndSet(slotNo, null, value)) {
-                    // A reader attempted to read this value before it was claimed
-                    (slots.get(slotNo) as? CompletableDeferred<Value<*>>)?.let {
-                        if (!it.isCompleted) it.complete(value)
-                    }
-                }
+            for (slotNo in 0 until tempSlots.size) {
+                completeSlot(slotNo, value)
+            }
+        }
+
+        private fun completeSlot(
+            slotNo: Int,
+            value: Value<*>
+        ) {
+            if (!slots.compareAndSet(slotNo, null, value)) {
+                // A reader attempted to read this value before it was claimed
+                (slots.get(slotNo) as CompletableDeferred<Value<*>>).complete(value)
             }
         }
     }
@@ -206,8 +233,7 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
 interface SlotSetter {
     /**
      * Slots are containers for [Value]s.
-     * [set] allows you to set the values of those
-     * [Value]s.
+     * [set] allows you to set the values of those [Value]s.
      *
      * @throws IllegalStateException on an attempt to set a slot more than once.
      */
