@@ -1,5 +1,6 @@
 package viaduct.tenant.codegen.bytecode
 
+import viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 import viaduct.utils.timer.Timer
 
 data class CodeGenArgs(
@@ -11,4 +12,5 @@ data class CodeGenArgs(
     val workerNumber: Int,
     val workerCount: Int,
     val timer: Timer,
+    val baseTypeMapper: BaseTypeMapper,
 )

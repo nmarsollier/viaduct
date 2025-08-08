@@ -2,13 +2,11 @@ package viaduct.tenant.codegen.bytecode
 
 import java.io.File
 import viaduct.codegen.km.KmClassFilesBuilder
-import viaduct.codegen.utils.JavaIdName
 import viaduct.codegen.utils.JavaName
 import viaduct.codegen.utils.KmName
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.invariants.InvariantChecker
-import viaduct.tenant.codegen.bytecode.config.cfg
-import viaduct.tenant.codegen.bytecode.config.hasReflectedType
+import viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 import viaduct.tenant.codegen.bytecode.config.hashForSharding
 
 /** This class represents the public API to the bytecode generator.  Everything
@@ -30,6 +28,8 @@ import viaduct.tenant.codegen.bytecode.config.hashForSharding
 abstract class GRTClassFilesBuilderBase protected constructor(
     protected val args: CodeGenArgs,
 ) {
+    internal val baseTypeMapper: BaseTypeMapper get() = args.baseTypeMapper
+
     protected val ViaductExtendedSchema.TypeDef.isInShard
         get() =
             hashForSharding() % args.workerCount == args.workerNumber
@@ -123,29 +123,7 @@ abstract class GRTClassFilesBuilderBase protected constructor(
 
         val fqn = def.name.kmFQN(pkg)
 
-        val nested = mutableListOf<JavaIdName>()
-        if (cfg.isModern && def.hasReflectedType) {
-            nested += JavaIdName(cfg.REFLECTION_NAME)
-        }
-        if (!cfg.isModern && def is ViaductExtendedSchema.Object) {
-            nested += JavaIdName("Value")
-        }
-
-        if (def is ViaductExtendedSchema.Object) {
-            if (cfg.isModern) {
-                kmClassFilesBuilder.addExternalClassReference(fqn, nested = nested)
-            } else {
-                kmClassFilesBuilder.addExternalClassReference(fqn, isInterface = true, nested = nested)
-            }
-        }
-
-        if (def is ViaductExtendedSchema.Input || def is ViaductExtendedSchema.Enum) {
-            kmClassFilesBuilder.addExternalClassReference(fqn, nested = nested)
-        }
-
-        if (def is ViaductExtendedSchema.Interface || def is ViaductExtendedSchema.Union) {
-            kmClassFilesBuilder.addExternalClassReference(fqn, isInterface = true, nested = nested)
-        }
+        baseTypeMapper.addSchemaGRTReference(def, fqn, kmClassFilesBuilder)
     }
 
     // For testing

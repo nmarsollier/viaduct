@@ -29,17 +29,19 @@ import viaduct.graphql.schema.ViaductExtendedSchema
  */
 fun ViaductExtendedSchema.HasDefaultValue.kmType(
     pkg: KmName,
+    baseTypeMapper: BaseTypeMapper,
     isInput: Boolean = false,
     useSchemaValueType: Boolean = false
-): KmType = type.kmType(pkg, this, isInput, useSchemaValueType)
+): KmType = type.kmType(pkg, baseTypeMapper, this, isInput, useSchemaValueType)
 
 fun ViaductExtendedSchema.TypeExpr.kmType(
     pkg: KmName,
+    baseTypeMapper: BaseTypeMapper,
     field: ViaductExtendedSchema.HasDefaultValue?,
     isInput: Boolean,
     useSchemaValueType: Boolean
 ): KmType {
-    var result = this.baseTypeKmType(pkg, field)
+    var result = this.baseTypeKmType(pkg, baseTypeMapper, field)
 
     if (useSchemaValueType) {
         val baseType = this.baseTypeDef
@@ -47,7 +49,7 @@ fun ViaductExtendedSchema.TypeExpr.kmType(
             baseType is ViaductExtendedSchema.Object &&
             !baseType.isConnection &&
             !baseType.isNode &&
-            !cfg.nativeGraphQLTypeToKmName.containsKey(baseType.name)
+            !cfg.nativeGraphQLTypeToKmName(baseTypeMapper).containsKey(baseType.name)
         ) {
             val baseTypeName = "$pkg/${baseType.name}"
             return KmType().also {
@@ -64,7 +66,7 @@ fun ViaductExtendedSchema.TypeExpr.kmType(
         } else {
             when (this.baseTypeDef.kind) {
                 ViaductExtendedSchema.TypeDefKind.OBJECT -> {
-                    if (cfg.isModern) KmVariance.INVARIANT else KmVariance.OUT
+                    baseTypeMapper.getInputVarianceForObject() ?: KmVariance.INVARIANT
                 }
 
                 ViaductExtendedSchema.TypeDefKind.ENUM, ViaductExtendedSchema.TypeDefKind.INTERFACE, ViaductExtendedSchema.TypeDefKind.UNION
@@ -91,35 +93,22 @@ fun ViaductExtendedSchema.TypeExpr.kmType(
 }
 
 /** return a KmType describing this HasDefaultValue's base (unwrapped) type */
-fun ViaductExtendedSchema.HasDefaultValue.baseTypeKmType(pkg: KmName): KmType = this.type.baseTypeKmType(pkg, this)
+fun ViaductExtendedSchema.HasDefaultValue.baseTypeKmType(
+    pkg: KmName,
+    baseTypeMapper: BaseTypeMapper
+): KmType = this.type.baseTypeKmType(pkg, baseTypeMapper, this)
 
 /** return a KmType describing this TypeExpr's base (unwrapped) type */
 fun ViaductExtendedSchema.TypeExpr.baseTypeKmType(
     pkg: KmName,
+    baseTypeMapper: BaseTypeMapper,
     field: ViaductExtendedSchema.HasDefaultValue?,
 ): KmType {
-    val baseTypeDef = this.baseTypeDef
+    // Check if mapper wants to handle this type
+    baseTypeMapper.mapBaseType(this, pkg, field)?.let { return it }
 
-    // Do not convert connection types for V2 GRTs.
-    if (!cfg.isModern && baseTypeDef is ViaductExtendedSchema.Object && baseTypeDef.supers.any { it.name == "PagedConnection" }) {
-        val edgesField = baseTypeDef.field("edges") ?: throw IllegalStateException(
-            "${baseTypeDef.name} implements PagedConnection but missing 'edges' field"
-        )
-        val nodeField = (edgesField.type.baseTypeDef as ViaductExtendedSchema.Object).field("node")
-            ?: throw IllegalStateException("${baseTypeDef.name}.edges missing 'node' field")
-
-        return KmType().also {
-            it.classifier = KmClassifier.Class(cfg.EDGES_QUERY_RESPONSE.asKmName.toString())
-            it.arguments.add(KmTypeProjection(KmVariance.OUT, nodeField.baseTypeKmType(pkg)))
-            it.isNullable = this.baseTypeNullable
-        }
-    } else if (baseTypeDef.isBackingDataType) {
-        return backingDataType()
-    } else if (baseTypeDef.isID) {
-        return idKmType(pkg, field)
-    }
-
-    val kmName = cfg.nativeGraphQLTypeToKmName[this.baseTypeDef.name]
+    // Default case - create standard KmType
+    val kmName = cfg.nativeGraphQLTypeToKmName(baseTypeMapper)[this.baseTypeDef.name]
         ?: KmName("$pkg/${this.baseTypeDef.name}")
 
     return KmType().also {
@@ -164,14 +153,13 @@ fun ViaductExtendedSchema.TypeDef.hashForSharding(): Int {
     return if (0 <= h) h else -h
 }
 
-val ViaductExtendedSchema.Object.isEligible: Boolean
-    get() {
-        if (name == "Query" || name == "Mutation") return true
+fun ViaductExtendedSchema.Object.isEligible(baseTypeMapper: BaseTypeMapper): Boolean {
+    if (name == "Query" || name == "Mutation") return true
 
-        // PagedConnection types are generated via Kotlin src codegen (ConnectionTypeGenerator)
-        return !isPagedConnection &&
-            !cfg.nativeGraphQLTypeToKmName.containsKey(name)
-    }
+    // PagedConnection types are generated via Kotlin src codegen (ConnectionTypeGenerator)
+    return !isPagedConnection &&
+        !cfg.nativeGraphQLTypeToKmName(baseTypeMapper).containsKey(name)
+}
 
 // Internal for test generators
 val ViaductExtendedSchema.TypeDef.isPagedConnection

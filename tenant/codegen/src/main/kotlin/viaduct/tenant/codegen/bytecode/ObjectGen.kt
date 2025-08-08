@@ -45,6 +45,7 @@ private class ObjectClassGenV2(
     private val objectClass: CustomClassBuilder,
 ) {
     private val pkg = grtClassFilesBuilder.pkg
+    private val baseTypeMapper = grtClassFilesBuilder.baseTypeMapper
 
     init {
         for (s in (def.supers + def.unions)) {
@@ -116,7 +117,7 @@ private class ObjectClassGenV2(
             it.visibility = Visibility.PUBLIC
             it.modality = Modality.FINAL
             it.isSuspend = true
-            it.returnType = field.kmType(pkg)
+            it.returnType = field.kmType(pkg, baseTypeMapper)
             it.valueParameters.add(
                 KmValueParameter("alias").also {
                     it.type = Km.STRING.asNullableType()
@@ -126,14 +127,14 @@ private class ObjectClassGenV2(
 
         this.addSuspendFunction(
             kmFun,
-            returnTypeAsInputForSuspend = field.kmType(pkg, isInput = true),
+            returnTypeAsInputForSuspend = field.kmType(pkg, baseTypeMapper, isInput = true),
             body = buildString {
                 append("{\n")
                 append("return this.fetch(\n")
                 append("\"${field.name}\", \n")
                 append(
                     // class of field base type
-                    "kotlin.jvm.internal.Reflection.getOrCreateKotlinClass((Class)${field.baseTypeKmType(pkg).boxedJavaName()}.class), \n"
+                    "kotlin.jvm.internal.Reflection.getOrCreateKotlinClass((Class)${field.baseTypeKmType(pkg, baseTypeMapper).boxedJavaName()}.class), \n"
                 )
                 append("$1, \n") // alias
                 append("$2);\n") // continuation
@@ -149,12 +150,12 @@ private class ObjectClassGenV2(
             it.visibility = Visibility.PUBLIC
             it.modality = Modality.FINAL
             it.isSuspend = true
-            it.returnType = field.kmType(pkg)
+            it.returnType = field.kmType(pkg, baseTypeMapper)
         }
 
         this.addSuspendFunction(
             kmFun,
-            returnTypeAsInputForSuspend = field.kmType(pkg, isInput = true),
+            returnTypeAsInputForSuspend = field.kmType(pkg, baseTypeMapper, isInput = true),
             body = buildString {
                 append("{\n")
                 append("return this.${getterName(field.name)}((String)null, $1);")

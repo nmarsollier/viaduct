@@ -22,6 +22,7 @@ abstract class KotlinGRTFilesBuilder protected constructor(
     protected val args: KotlinCodeGenArgs,
 ) {
     open val pkg = args.pkgForGeneratedClasses
+    internal val baseTypeMapper get() = args.baseTypeMapper
 
     private var isLoaded = false
 

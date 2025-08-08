@@ -34,16 +34,17 @@ internal val ViaductExtendedSchema.TypeDef.isID: Boolean
  */
 internal fun ViaductExtendedSchema.TypeExpr.idKmType(
     pkg: KmName,
+    baseTypeMapper: BaseTypeMapper,
     field: ViaductExtendedSchema.HasDefaultValue?
 ): KmType {
     val stringKmType = KmType().also {
         it.classifier = KmClassifier.Class(Km.STRING.toString())
         it.isNullable = this.baseTypeNullable
     }
-    if (!cfg.isModern) {
+    if (baseTypeMapper.useGlobalIdTypeAlias()) {
         return stringKmType.also {
             it.abbreviatedType = KmType().also {
-                it.classifier = KmClassifier.TypeAlias(cfg.CLASSIC_GLOBALID.asKmName.toString())
+                it.classifier = KmClassifier.TypeAlias(baseTypeMapper.getGlobalIdType().asKmName.toString())
             }
         }
     }
@@ -59,7 +60,7 @@ internal fun ViaductExtendedSchema.TypeExpr.idKmType(
         return stringKmType
     }
 
-    return cfg.MODERN_GLOBALID.asKmName.asType().also {
+    return baseTypeMapper.getGlobalIdType().asKmName.asType().also {
         it.arguments += if (isNodeIdField) {
             require(idOf == null) {
                 "@idOf may not be used on the `id` field of a Node implementation"

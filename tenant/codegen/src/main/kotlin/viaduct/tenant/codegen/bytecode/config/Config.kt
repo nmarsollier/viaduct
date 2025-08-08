@@ -19,8 +19,6 @@ import viaduct.utils.string.capitalize
 // In the future some or all of these may need to be injectable, which
 // is why we have an object for them, but for now hard-wiring is fine.
 object cfg {
-    var isModern = false
-
     val INPUT_BASE_INTERFACE = KmName("com/airbnb/viaduct/schema/base/ViaductInputType")
 
     val JSON_CREATOR_ANNOTATION = "com/fasterxml/jackson/annotation/JsonCreator"
@@ -57,15 +55,7 @@ object cfg {
     private val graphqlScalarTypeToKmName: Map<String, KmName> =
         baseGraphqlScalarTypeMapping.mapValues { KmName(it.value.qualifiedName!!.replace(".", "/")) }
 
-    private val graphqlObjectTypeToKmName: Map<String, KmName> = mapOf(
-        "I18nText" to KmName("com/airbnb/viaduct/types/Text"),
-        "Query" to KmName("com/airbnb/viaduct/schema/root/IQuery"),
-        "Mutation" to KmName("com/airbnb/viaduct/schema/root/IMutation"),
-        "UGCText" to KmName("com/airbnb/viaduct/types/UGCText"),
-    )
-
-    val nativeGraphQLTypeToKmName: Map<String, KmName>
-        get() = if (isModern) graphqlScalarTypeToKmName else (graphqlScalarTypeToKmName + graphqlObjectTypeToKmName)
+    fun nativeGraphQLTypeToKmName(baseTypeMapper: BaseTypeMapper): Map<String, KmName> = graphqlScalarTypeToKmName + baseTypeMapper.getAdditionalTypeMapping()
 
     val typesThatNeedDefaultResolveFieldMethod = setOf(
         "ExperienceCategory",
@@ -155,9 +145,6 @@ object cfg {
     val MUTATION_OBJECT_GRT = JavaBinaryName("viaduct.api.types.Mutation")
     val OBJECT_GRT = JavaBinaryName("viaduct.api.types.Object")
     val UNION_GRT = JavaBinaryName("viaduct.api.types.Union")
-
-    val CLASSIC_GLOBALID = JavaBinaryName("com.airbnb.viaduct.types.GlobalID")
-    val MODERN_GLOBALID = JavaBinaryName("viaduct.api.globalid.GlobalID")
 
     /** Interface implemented by v2 object types */
     val OBJECT_BASE =

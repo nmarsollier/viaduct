@@ -13,6 +13,8 @@ import viaduct.graphql.schema.ViaductExtendedSchema.TypeDefKind
 import viaduct.graphql.schema.test.loadGraphQLSchema
 import viaduct.graphql.schema.test.mkSchema
 import viaduct.invariants.InvariantChecker
+import viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 import viaduct.tenant.codegen.bytecode.config.cfg
 import viaduct.tenant.codegen.bytecode.config.isEligible
 
@@ -64,7 +66,9 @@ data class Packages(val expected: String, val actual: String) {
 
 object ClassNames {
     val NoScalars: Predicate<TypeDef> = Predicate { it.kind != TypeDefKind.SCALAR }
-    val IsEligible: Predicate<TypeDef> = Predicate { (it as? Object)?.isEligible ?: true }
+    val IsEligible: Predicate<TypeDef> = Predicate { (it as? Object)?.isEligible(ViaductBaseTypeMapper()) ?: true }
+
+    fun isEligibleWith(baseTypeMapper: BaseTypeMapper): Predicate<TypeDef> = Predicate { (it as? Object)?.isEligible(baseTypeMapper) ?: true }
 
     fun fromSchema(
         packages: Packages,

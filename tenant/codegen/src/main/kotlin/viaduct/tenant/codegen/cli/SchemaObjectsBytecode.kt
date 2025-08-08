@@ -14,7 +14,7 @@ import viaduct.graphql.schema.graphqljava.GJSchemaRaw
 import viaduct.graphql.schema.graphqljava.readTypesFromFiles
 import viaduct.tenant.codegen.bytecode.CodeGenArgs
 import viaduct.tenant.codegen.bytecode.GRTClassFilesBuilderBase
-import viaduct.tenant.codegen.bytecode.config.cfg
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 import viaduct.tenant.codegen.graphql.bridge.ScopedSchemaFilter
 import viaduct.tenant.codegen.util.ZipUtil.zipAndWriteDirectories
 import viaduct.utils.timer.Timer
@@ -89,9 +89,9 @@ class SchemaObjectsBytecode : CliktCommand() {
             workerNumber = workerNumber,
             workerCount = workerCount,
             timer = timer,
+            baseTypeMapper = ViaductBaseTypeMapper(),
         )
 
-        cfg.isModern = true
         val grtBuilder = GRTClassFilesBuilderBase.builderFrom(codegenArgs)
 
         timer.time("generateBytecodeImpl") {

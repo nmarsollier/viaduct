@@ -12,7 +12,7 @@ import viaduct.tenant.codegen.bytecode.config.cfg
 import viaduct.tenant.codegen.bytecode.config.hasReflectedType
 import viaduct.tenant.codegen.bytecode.config.kmType
 
-fun KotlinGRTFilesBuilder.reflectedTypeGen(def: ViaductExtendedSchema.TypeDef): STContents = STContents(stGroup, ReflectedTypeModelImpl(pkg, def))
+fun KotlinGRTFilesBuilder.reflectedTypeGen(def: ViaductExtendedSchema.TypeDef): STContents = STContents(stGroup, ReflectedTypeModelImpl(pkg, def, baseTypeMapper))
 
 private interface ReflectedTypeModel {
     /** GraphQL name of this type */
@@ -100,7 +100,8 @@ private val stGroup = typeST + fieldST
 
 private class ReflectedTypeModelImpl(
     val pkg: String,
-    val def: ViaductExtendedSchema.TypeDef
+    val def: ViaductExtendedSchema.TypeDef,
+    val baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 ) : ReflectedTypeModel {
     override val name: String = def.name
     override val grtFqName: String = "$pkg.$name"
@@ -109,7 +110,7 @@ private class ReflectedTypeModelImpl(
     override val fields: List<ReflectedFieldModel>
         get() {
             val defFields = ((def as? ViaductExtendedSchema.Record)?.fields ?: emptyList())
-                .map { ReflectedFieldModelImpl(pkg, this, it) }
+                .map { ReflectedFieldModelImpl(pkg, this, it, baseTypeMapper) }
             return listOf(__typename(this)) + defFields
         }
 }
@@ -126,16 +127,17 @@ private class __typename(override val containingType: ReflectedTypeModel) : Refl
 private class ReflectedFieldModelImpl(
     pkg: String,
     override val containingType: ReflectedTypeModel,
-    field: ViaductExtendedSchema.Field
+    field: ViaductExtendedSchema.Field,
+    baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 ) : ReflectedFieldModel {
     private val kmPkg = JavaName(pkg).asKmName
 
     override val name: String = field.name
     override val escapedName: String = getEscapedFieldName(field.name)
     override val typeHasReflection: Boolean = field.type.baseTypeDef.hasReflectedType
-    override val kotlinType: String = field.kmType(kmPkg).kotlinTypeString
+    override val kotlinType: String = field.kmType(kmPkg, baseTypeMapper).kotlinTypeString
     override val unwrappedKotlinType: String = field.type.baseTypeDef.asTypeExpr()
-        .kmType(kmPkg, field, isInput = false, useSchemaValueType = false)
+        .kmType(kmPkg, baseTypeMapper, field, isInput = false, useSchemaValueType = false)
         .kotlinTypeString
         .trimEnd('?')
 
