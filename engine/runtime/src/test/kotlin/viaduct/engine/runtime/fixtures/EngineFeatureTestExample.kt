@@ -147,8 +147,8 @@ class EngineFeatureTestExample {
                     fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("123", s.getObjectType("TestNode")) }
                 }
             }
-            node("TestNode") {
-                unbatchedExecutor { id, _, _ ->
+            type("TestNode") {
+                nodeUnbatchedExecutor { id, _, _ ->
                     MockEngineObjectData(
                         objectType,
                         mapOf("id" to id, "name" to "Test Node $id")

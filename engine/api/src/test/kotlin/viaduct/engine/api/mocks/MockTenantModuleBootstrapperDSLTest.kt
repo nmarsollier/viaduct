@@ -26,7 +26,7 @@ class MockTenantModuleBootstrapperDSLTest {
             type Query {
               t: Test
             }
-            
+
             interface Node {
               id: ID
             }
@@ -155,7 +155,7 @@ class MockTenantModuleBootstrapperDSLTest {
     @Test
     fun `node checker with objectSelections adds to typeCheckerExecutors map`() {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
-            node("TestNode") {
+            type("TestNode") {
                 checker {
                     objectSelections("nodeObj", "fragment _ on TestNode { id }")
                     fn { _, _ -> /* validation logic */ }
@@ -264,11 +264,11 @@ class MockTenantModuleBootstrapperDSLTest {
     fun `duplicate node resolver calls throw IllegalArgumentException`() {
         assertThrows(IllegalArgumentException::class.java) {
             MockTenantModuleBootstrapper(Samples.testSchema) {
-                node("TestNode") {
-                    unbatchedExecutor { _, _, _ -> MockEngineObjectData(objectType, emptyMap()) }
+                type("TestNode") {
+                    nodeUnbatchedExecutor { _, _, _ -> MockEngineObjectData(objectType, emptyMap()) }
                 }
-                node("TestNode") {
-                    unbatchedExecutor { _, _, _ -> MockEngineObjectData(objectType, emptyMap()) }
+                type("TestNode") {
+                    nodeUnbatchedExecutor { _, _, _ -> MockEngineObjectData(objectType, emptyMap()) }
                 }
             }
         }
@@ -278,13 +278,13 @@ class MockTenantModuleBootstrapperDSLTest {
     fun `duplicate node batchResolver calls throw IllegalArgumentException`() {
         assertThrows(IllegalArgumentException::class.java) {
             MockTenantModuleBootstrapper(Samples.testSchema) {
-                node("TestNode") {
-                    batchedExecutor { selectors, _ ->
+                type("TestNode") {
+                    nodeBatchedExecutor { selectors, _ ->
                         selectors.associate { it to Result.success(MockEngineObjectData(objectType, emptyMap())) }
                     }
                 }
-                node("TestNode") {
-                    batchedExecutor { selectors, _ ->
+                type("TestNode") {
+                    nodeBatchedExecutor { selectors, _ ->
                         selectors.associate { it to Result.success(MockEngineObjectData(objectType, emptyMap())) }
                     }
                 }
@@ -308,7 +308,7 @@ class MockTenantModuleBootstrapperDSLTest {
     fun `duplicate node checker calls throw IllegalArgumentException`() {
         assertThrows(IllegalArgumentException::class.java) {
             MockTenantModuleBootstrapper(Samples.testSchema) {
-                node("TestNode") {
+                type("TestNode") {
                     checker { fn { _, _ -> /* validation1 */ } }
                     checker { fn { _, _ -> /* validation2 */ } }
                 }
@@ -362,8 +362,8 @@ class MockTenantModuleBootstrapperDSLTest {
     @Test
     fun `node with both resolver and checker`() {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
-            node("TestNode") {
-                unbatchedExecutor { id, _, _ ->
+            type("TestNode") {
+                nodeUnbatchedExecutor { id, _, _ ->
                     MockEngineObjectData(objectType, mapOf("id" to id))
                 }
                 checker {
@@ -443,15 +443,15 @@ class MockTenantModuleBootstrapperDSLTest {
             }
 
             // Node with resolver
-            node("TestNode") {
-                unbatchedExecutor { id, _, _ ->
+            type("TestNode") {
+                nodeUnbatchedExecutor { id, _, _ ->
                     MockEngineObjectData(objectType, mapOf("id" to id))
                 }
             }
 
             // Node with batch resolver and checker
-            node("BatchNode") {
-                batchedExecutor { selectors, _ ->
+            type("BatchNode") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associate { selector ->
                         selector to Result.success(MockEngineObjectData(objectType, mapOf("id" to selector.id)))
                     }
