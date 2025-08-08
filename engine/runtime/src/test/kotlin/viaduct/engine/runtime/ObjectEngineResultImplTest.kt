@@ -29,6 +29,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -700,20 +701,18 @@ class ObjectEngineResultImplTest {
             runBlocking {
                 val schema = mkSchema(
                     """
-                type Query {
-                  user: User
-                }
-                type User {
-                    id: ID!
-                    name: String
-                    friends: [User]
-                    posts: [Post]
-                }
-                type Post {
-                    id: ID!
-                    title: String
-                }
-            """
+                        type Query { user: User }
+                        type User {
+                            id: ID!
+                            name: String
+                            friends: [User]
+                            posts: [Post]
+                        }
+                        type Post {
+                            id: ID!
+                            title: String
+                        }
+                    """
                 )
                 val userType = schema.getObjectType("User")
 
@@ -768,17 +767,15 @@ class ObjectEngineResultImplTest {
             runBlocking {
                 val schema = mkSchema(
                     """
-                type Query {
-                  user: User
-                }
-                type User {
-                    id: ID!
-                    name: String
-                    friends(onlyDirect: Boolean): [User]
-                    friendCount(onlyDirect: Boolean = false): Int
-                    socialMedia(siteName: String): String
-                }
-            """
+                        type Query { user: User }
+                        type User {
+                            id: ID!
+                            name: String
+                            friends(onlyDirect: Boolean): [User]
+                            friendCount(onlyDirect: Boolean = false): Int
+                            socialMedia(siteName: String): String
+                        }
+                    """
                 )
                 val userType = schema.getObjectType("User")
 
@@ -786,10 +783,7 @@ class ObjectEngineResultImplTest {
                     "id" to "123",
                     "nickname" to "Alice",
                     "friends" to listOf(
-                        mapOf(
-                            "id" to "456",
-                            "name" to "Bob"
-                        )
+                        mapOf("id" to "456", "name" to "Bob")
                     ),
                     "friendCount" to 10,
                     "socialMedia" to "http://example.com"
@@ -840,22 +834,15 @@ class ObjectEngineResultImplTest {
             runBlocking {
                 val schema = mkSchema(
                     """
-                type Query {
-                  foo: Foo
-                }
-                type Foo { bar(id:Int):Bar }
-                type Bar { a:Int, b:Int }
-            """
+                        type Query { foo: Foo }
+                        type Foo { bar(id:Int):Bar }
+                        type Bar { a:Int, b:Int }
+                    """
                 )
                 val fooType = schema.getObjectType("Foo")
-
                 val data = mapOf(
-                    "b1" to mapOf(
-                        "a" to 12
-                    ),
-                    "b2" to mapOf(
-                        "b" to 21
-                    )
+                    "b1" to mapOf("a" to 12),
+                    "b2" to mapOf("b" to 21)
                 )
 
                 val result = ObjectEngineResultImpl.newFromMap(
@@ -884,22 +871,40 @@ class ObjectEngineResultImplTest {
         }
 
         @Test
+        fun `newFromMap converts __typename selection`() {
+            runBlocking {
+                val schema = mkSchema("type Query { x:Int }")
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    mapOf("__typename" to "Query"),
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "Query",
+                        "__typename",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                assertEquals("Query", result.fetch(ObjectEngineResult.Key("__typename"), RAW_VALUE_SLOT))
+            }
+        }
+
+        @Test
         fun `newFromMap with a widening spread`() {
             runBlocking {
                 val schema = mkSchema(
                     """
-                type Query {
-                  foo: Foo
-                }
-                interface I { x: Int }
-                type Foo implements I { x:Int }
-            """
+                        type Query { foo: Foo }
+                        interface I { x: Int }
+                        type Foo implements I { x:Int }
+                    """
                 )
                 val fooType = schema.getObjectType("Foo")
-
-                val data = mapOf(
-                    "x" to 42
-                )
+                val data = mapOf("x" to 42)
 
                 val result = ObjectEngineResultImpl.newFromMap(
                     fooType,
@@ -909,9 +914,7 @@ class ObjectEngineResultImplTest {
                     schema,
                     mkRss(
                         "Foo",
-                        """
-                            ... on I { x }
-                        """.trimIndent(),
+                        "... on I { x }",
                         emptyMap(),
                         schema
                     )
@@ -923,23 +926,211 @@ class ObjectEngineResultImplTest {
         }
 
         @Test
+        fun `newFromMap with a narrowing spread`() {
+            runBlocking {
+                val schema = mkSchema(
+                    """
+                        type Query { i:I }
+                        interface I { x:Int }
+                        type Foo implements I { x:Int, y:Int }
+                    """
+                )
+                val fooType = schema.getObjectType("Foo")
+                val data = mapOf("y" to 42)
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    fooType,
+                    data,
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "I",
+                        "... on Foo { y }",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                // Test successful fields
+                assertEquals(42, result.fetch(ObjectEngineResult.Key("y"), RAW_VALUE_SLOT))
+            }
+        }
+
+        @Test
+        fun `newFromMap with a nested narrowing spread`() {
+            runBlocking {
+                val schema = mkSchema(
+                    """
+                        type Query { i:I }
+                        interface I { x:Int }
+                        type Foo implements I { x:Int, y:Int }
+                    """
+                )
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    mapOf("i" to mapOf("__typename" to "Foo", "y" to 42)),
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "Query",
+                        "i { ... on Foo { y } }",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                // Test successful fields
+                val i = result.fetch(ObjectEngineResult.Key("i"), RAW_VALUE_SLOT) as ObjectEngineResult
+                val y = i.fetch(ObjectEngineResult.Key("y"), RAW_VALUE_SLOT)
+                assertEquals(42, y)
+            }
+        }
+
+        @Test
+        fun `newFromMap with list of objects`() {
+            runBlocking {
+                val schema = mkSchema(
+                    """
+                        type Query { u:[U] }
+                        union U = Foo
+                        type Foo { x:Int }
+                    """
+                )
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    mapOf("u" to listOf(mapOf("__typename" to "Foo", "x" to 42))),
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "Query",
+                        "u { ... on Foo { x } }",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                // Test successful fields
+                val us = result.fetch(ObjectEngineResult.Key("u"), RAW_VALUE_SLOT) as List<Cell>
+                assertEquals(1, us.size)
+                val u = us[0].fetch(RAW_VALUE_SLOT) as ObjectEngineResultImpl
+                assertEquals(42, u.fetch(ObjectEngineResult.Key("x"), RAW_VALUE_SLOT))
+            }
+        }
+
+        @Test
+        fun `newFromMap with nested objects`() {
+            runBlocking {
+                val schema = mkSchema(
+                    """
+                        type Query { u:U }
+                        union U = Foo
+                        type Foo { bar:Bar }
+                        type Bar { x:Int }
+                    """
+                )
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    mapOf("u" to mapOf("__typename" to "Foo", "bar" to mapOf("x" to 42))),
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "Query",
+                        "u { ... on Foo { bar { x } } }",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                // Test successful fields
+                val foo = result.fetch(ObjectEngineResult.Key("u"), RAW_VALUE_SLOT) as ObjectEngineResultImpl
+                assertEquals("Foo", foo.graphQLObjectType.name)
+                val bar = foo.fetch(ObjectEngineResult.Key("bar"), RAW_VALUE_SLOT) as ObjectEngineResultImpl
+                assertEquals(42, bar.fetch(ObjectEngineResult.Key("x"), RAW_VALUE_SLOT))
+            }
+        }
+
+        @Test
+        fun `newFromMap with a nested narrowing spread -- unselected type`() {
+            runBlocking {
+                val schema = mkSchema(
+                    """
+                        type Query { i:I }
+                        interface I { x:Int }
+                        type Foo implements I { x:Int }
+                        type Bar implements I { x:Int }
+                    """
+                )
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    mapOf("i" to mapOf("__typename" to "Foo", "x" to 42)),
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "Query",
+                        "i { ... on Bar { x } }",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                val i = result.fetch(ObjectEngineResult.Key("i"), RAW_VALUE_SLOT)
+                assertNotNull(i)
+            }
+        }
+
+        @Test
+        fun `newFromMap with a nested narrowing spread -- abstract selections only`() {
+            runBlocking {
+                val schema = mkSchema(
+                    """
+                        type Query { u:U }
+                        union U = Foo
+                        type Foo { x:Int }
+                    """
+                )
+
+                val result = ObjectEngineResultImpl.newFromMap(
+                    schema.queryType,
+                    mapOf("u" to mapOf("__typename" to "Foo", "x" to 42)),
+                    emptyList<Pair<String, Throwable>>().toMutableList(),
+                    emptyList(),
+                    schema,
+                    mkRss(
+                        "Query",
+                        "u { __typename }",
+                        emptyMap(),
+                        schema
+                    )
+                )
+
+                val u = result.fetch(ObjectEngineResult.Key("u"), RAW_VALUE_SLOT)
+                u as ObjectEngineResultImpl
+                assertEquals("Foo", u.fetch(ObjectEngineResult.Key("__typename"), RAW_VALUE_SLOT))
+            }
+        }
+
+        @Test
         fun `newFromMap with an abstract abstract spread`() {
             runBlocking {
                 val schema = mkSchema(
                     """
-                type Query {
-                  foo: Foo
-                }
-                type Foo { x:Int }
-                union U1 = Foo
-                union U2 = Foo
-            """
+                        type Query { foo: Foo }
+                        type Foo { x:Int }
+                        union U1 = Foo
+                        union U2 = Foo
+                    """
                 )
                 val fooType = schema.getObjectType("Foo")
-
-                val data = mapOf(
-                    "x" to 42
-                )
+                val data = mapOf("x" to 42)
 
                 val result = ObjectEngineResultImpl.newFromMap(
                     fooType,
