@@ -15,8 +15,8 @@ class FieldFetchingException private constructor(
     override val cause: Throwable? = null
 ) : RuntimeException(cause?.message, cause) {
     init {
-        require(cause !is FieldFetchingException) {
-            "FieldFetchingException should not be recursively applied"
+        require(cause !is FieldFetchingException || this.path != cause.path) {
+            "FieldFetchingException should not be recursively applied for the same field"
         }
     }
 

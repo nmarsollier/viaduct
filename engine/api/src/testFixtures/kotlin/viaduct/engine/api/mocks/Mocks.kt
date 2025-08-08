@@ -572,8 +572,8 @@ object Samples {
         }
 
         // Add node resolver for TestNode
-        node("TestNode") {
-            unbatchedExecutor { id, _, _ ->
+        type("TestNode") {
+            nodeUnbatchedExecutor { id, _, _ ->
                 MockEngineObjectData(
                     testSchema.getObjectType("TestNode"),
                     mapOf("id" to id)
@@ -582,8 +582,8 @@ object Samples {
         }
 
         // Add batch node resolver for TestBatchNode
-        node("TestBatchNode") {
-            batchedExecutor { selectors, _ ->
+        type("TestBatchNode") {
+            nodeBatchedExecutor { selectors, _ ->
                 selectors.associate { selector ->
                     selector to Result.success(
                         MockEngineObjectData(

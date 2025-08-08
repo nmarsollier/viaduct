@@ -140,8 +140,8 @@ class MocksAdditionalTest {
     @Test
     fun `MockTenantModuleBootstrapper Builder nodeResolver function`() {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
-            node("TestNode") {
-                unbatchedExecutor { id, _, _ ->
+            type("TestNode") {
+                nodeUnbatchedExecutor { id, _, _ ->
                     MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), mapOf("id" to id))
                 }
             }
@@ -158,8 +158,8 @@ class MocksAdditionalTest {
     @Test
     fun `MockTenantModuleBootstrapper Builder nodeBatchResolver function`() {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
-            node("TestBatchNode") {
-                batchedExecutor { selectors, _ ->
+            type("TestBatchNode") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associateWith { Result.success(MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap())) }
                 }
             }
@@ -186,11 +186,11 @@ class MocksAdditionalTest {
                     fn { _, _, _, _, _ -> "field2" }
                 }
             }
-            node("Node1") {
-                unbatchedExecutor { _, _, _ -> MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap()) }
+            type("Node1") {
+                nodeUnbatchedExecutor { _, _, _ -> MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap()) }
             }
-            node("BatchNode1") {
-                batchedExecutor { selectors, _ ->
+            type("BatchNode1") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associateWith { Result.success(MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap())) }
                 }
             }

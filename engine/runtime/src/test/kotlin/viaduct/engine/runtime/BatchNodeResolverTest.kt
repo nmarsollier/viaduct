@@ -40,8 +40,8 @@ class BatchNodeResolverTest {
                     }
                 }
             }
-            node("Baz") {
-                batchedExecutor { selectors, _ ->
+            type("Baz") {
+                nodeBatchedExecutor { selectors, _ ->
                     assert(selectors.size == 1) { "Expected exactly 1 ctx" }
                     selectors.associateWith { selector ->
                         Result.success(
@@ -71,8 +71,8 @@ class BatchNodeResolverTest {
                     }
                 }
             }
-            node("Baz") {
-                batchedExecutor { selectors, _ ->
+            type("Baz") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associateWith { selector ->
                         Result.success(
                             MockEngineObjectData(
@@ -104,8 +104,8 @@ class BatchNodeResolverTest {
                     }
                 }
             }
-            node("Baz") {
-                batchedExecutor { _, _ ->
+            type("Baz") {
+                nodeBatchedExecutor { _, _ ->
                     throw RuntimeException("baz fail")
                 }
             }
@@ -134,8 +134,8 @@ class BatchNodeResolverTest {
                     }
                 }
             }
-            node("Baz") {
-                batchedExecutor { selectors, _ ->
+            type("Baz") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associateWith { selector ->
                         if (selector.id == "2") {
                             Result.failure(IllegalArgumentException("Odd idx for ID: ${selector.id}"))
@@ -183,8 +183,8 @@ class BatchNodeResolverTest {
                     }
                 }
             }
-            node("Baz") {
-                batchedExecutor { selectors, _ ->
+            type("Baz") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associateWith { selector ->
                         val internalId = selector.id
                         execCounts.computeIfAbsent(internalId) { AtomicInteger(0) }.incrementAndGet()
@@ -226,8 +226,8 @@ class BatchNodeResolverTest {
                     }
                 }
             }
-            node("Baz") {
-                batchedExecutor { selectors, _ ->
+            type("Baz") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associateWith { selector ->
                         val internalId = selector.id
                         execCounts.computeIfAbsent(internalId) { AtomicInteger(0) }.incrementAndGet()

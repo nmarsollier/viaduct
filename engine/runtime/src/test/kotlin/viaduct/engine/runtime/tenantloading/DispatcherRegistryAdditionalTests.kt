@@ -119,8 +119,8 @@ class DispatcherRegistryAdditionalTests {
                     fn { _, _, _, _, _ -> "field1" }
                 }
             }
-            node("NodeType1") {
-                unbatchedExecutor { id, _, _ ->
+            type("NodeType1") {
+                nodeUnbatchedExecutor { id, _, _ ->
                     viaduct.engine.api.mocks.MockEngineObjectData(
                         Samples.testSchema.getObjectType("TestNode"),
                         mapOf("id" to id)
@@ -135,8 +135,8 @@ class DispatcherRegistryAdditionalTests {
                     fn { _, _, _, _, _ -> "field2" }
                 }
             }
-            node("BatchNodeType1") {
-                batchedExecutor { selectors, _ ->
+            type("BatchNodeType1") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associate { selector ->
                         selector to Result.success(
                             viaduct.engine.api.mocks.MockEngineObjectData(
@@ -170,8 +170,8 @@ class DispatcherRegistryAdditionalTests {
     fun `node resolver and batch resolver do not conflict`() {
         val moduleWithBoth = MockTenantModuleBootstrapper(Samples.testSchema) {
             // Regular node resolver
-            node("TestNode") {
-                unbatchedExecutor { id, _, _ ->
+            type("TestNode") {
+                nodeUnbatchedExecutor { id, _, _ ->
                     viaduct.engine.api.mocks.MockEngineObjectData(
                         Samples.testSchema.getObjectType("TestNode"),
                         mapOf("id" to id, "type" to "regular")
@@ -179,8 +179,8 @@ class DispatcherRegistryAdditionalTests {
                 }
             }
             // Batch node resolver for different type
-            node("TestBatchNode") {
-                batchedExecutor { selectors, _ ->
+            type("TestBatchNode") {
+                nodeBatchedExecutor { selectors, _ ->
                     selectors.associate { selector ->
                         selector to Result.success(
                             viaduct.engine.api.mocks.MockEngineObjectData(

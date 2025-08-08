@@ -164,10 +164,10 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
         block: FieldScope.() -> Unit
     ) = block(FieldScope(coord))
 
-    fun node(
+    fun type(
         typeName: String,
-        block: NodeScope.() -> Unit
-    ) = block(NodeScope(typeName))
+        block: TypeScope.() -> Unit
+    ) = block(TypeScope(typeName))
 
     @TenantModuleBootstrapperDsl
     inner class FieldScope(
@@ -357,18 +357,18 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
     } // End of FieldScope
 
     @TenantModuleBootstrapperDsl
-    inner class NodeScope(val typeName: String) {
+    inner class TypeScope(val typeName: String) {
         // DSL marker hides these -- reintroduce them
         val schema: GraphQLSchema get() = this@MockTenantModuleBootstrapperDSL.schema
         val fac: F get() = this@MockTenantModuleBootstrapperDSL.fac
         val queryType: GraphQLObjectType get() = this@MockTenantModuleBootstrapperDSL.queryType
         val objectType: GraphQLObjectType get() = schema.getObjectType(typeName)!!
 
-        fun batchedExecutor(block: NodeBatchResolverFn) {
+        fun nodeBatchedExecutor(block: NodeBatchResolverFn) {
             nodeResolverExecutors.putIfMissingOrFail(typeName) { MockNodeBatchResolverExecutor(typeName, block) }
         }
 
-        fun unbatchedExecutor(block: NodeUnbatchedResolverFn) {
+        fun nodeUnbatchedExecutor(block: NodeUnbatchedResolverFn) {
             nodeResolverExecutors.putIfMissingOrFail(typeName) { MockNodeUnbatchedResolverExecutor(typeName, block) }
         }
 
@@ -388,8 +388,8 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
             val schema: GraphQLSchema get() = this@MockTenantModuleBootstrapperDSL.schema
             val fac: F get() = this@MockTenantModuleBootstrapperDSL.fac
             val queryType: GraphQLObjectType get() = this@MockTenantModuleBootstrapperDSL.queryType
-            val typeName: String get() = this@NodeScope.typeName
-            val objectType: GraphQLObjectType get() = this@NodeScope.objectType
+            val typeName: String get() = this@TypeScope.typeName
+            val objectType: GraphQLObjectType get() = this@TypeScope.objectType
 
             fun variables(
                 vararg names: String,
@@ -410,8 +410,8 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
             val schema: GraphQLSchema get() = this@MockTenantModuleBootstrapperDSL.schema
             val fac: F get() = this@MockTenantModuleBootstrapperDSL.fac
             val queryType: GraphQLObjectType get() = this@MockTenantModuleBootstrapperDSL.queryType
-            val typeName: String get() = this@NodeScope.typeName
-            val objectType: GraphQLObjectType get() = this@NodeScope.objectType
+            val typeName: String get() = this@TypeScope.typeName
+            val objectType: GraphQLObjectType get() = this@TypeScope.objectType
 
             fun objectSelections(
                 selectionsName: String,
@@ -423,12 +423,12 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 objectSelectionsText: String,
                 block: SelectionsScope.() -> Unit,
             ) = requiredSelectionSets.putIfMissingOrFail(selectionsName) {
-                this@NodeScope.SelectionsScope(objectSelectionsText).apply { block() }.toRSS()
+                this@TypeScope.SelectionsScope(objectSelectionsText).apply { block() }.toRSS()
             }
 
             fun fn(executeFn: CheckerFn) {
                 this.executeFn = executeFn
             }
         }
-    } // End of NodeContext
+    } // End of TypeScope
 }
