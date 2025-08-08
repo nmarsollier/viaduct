@@ -28,7 +28,6 @@ import viaduct.engine.api.LazyEngineObjectData
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.runtime.Cell
 import viaduct.engine.runtime.EngineExecutionContextImpl
-import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.FetchedValueWithExtensions
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
@@ -200,35 +199,14 @@ class FieldResolver(
 
             val engineExecCtx =
                 parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
-            val engineResultLocalContext =
-                parameters.executionContext.findLocalContextForType<EngineResultLocalContext>()
             field.childPlans.forEach { childPlan ->
                 parameters.launchOnRootScope {
                     val variables = resolveVariables(parameters.engineResult, childPlan.variablesResolvers, arguments, engineExecCtx)
-
-                    val schema = parameters.executionContext.graphQLSchema
-                    val queryType = schema.queryType
-
-                    // Determine correct object type and parameters based on plan target
-                    val (objectType, planParameters) = if (childPlan.targetTypeName == queryType.name) {
-                        // For Query plans: use Query type and queryEngineResult
-                        val queryEngineResult = engineResultLocalContext.queryEngineResult
-                            ?: throw IllegalStateException("Missing queryEngineResult for Query plan")
-                        queryType to parameters.traverseChildPlan(childPlan, CoercedVariables(variables)).copy(
-                            fieldResolutionResult = FieldResolutionResult(
-                                queryEngineResult, // Use queryEngineResult for Query plans
-                                emptyList(), // No errors for fresh query execution
-                                parameters.executionContext.getLocalContext(), // Root execution context
-                                emptyMap(), // No extensions for fresh execution
-                                parameters.executionContext.getRoot() // Root source object
-                            )
-                        )
-                    } else {
-                        // For object plans: use parent object type and current parameters
-                        parameters.executionStepInfo.objectType to parameters.traverseChildPlan(childPlan, CoercedVariables(variables))
-                    }
-
-                    fetchObject(objectType, planParameters)
+                    val planParameters = parameters.traverseChildPlan(
+                        childPlan,
+                        CoercedVariables(variables)
+                    )
+                    fetchObject(childPlan.parentType as GraphQLObjectType, planParameters)
                 }
             }
         }

@@ -32,6 +32,24 @@ import viaduct.engine.runtime.getLocalContextForType
 import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
 import viaduct.utils.slf4j.logger
 
+/**
+ * Tests for ViaductExecutionStrategy focusing on core execution functionality.
+ *
+ * This test class covers:
+ * - Field resolution and data fetching behavior
+ * - Field merging with and without arguments
+ * - Error handling and instrumentation
+ * - DataLoader batching capabilities
+ * - Nested lists and DataFetcherResult handling
+ * - Mutation field serial execution
+ * - EngineResultLocalContext configuration
+ *
+ * For tests related to child plan execution and Required Selection Sets (RSS),
+ * see ViaductExecutionStrategyChildPlanTest.
+ *
+ * For tests comparing modern vs classic execution strategies,
+ * see ViaductExecutionStrategyModernTest.
+ */
 @ExperimentalCoroutinesApi
 class ViaductExecutionStrategyTest {
     companion object {

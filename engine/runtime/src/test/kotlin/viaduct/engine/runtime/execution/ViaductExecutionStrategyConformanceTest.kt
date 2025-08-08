@@ -13,6 +13,30 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+/**
+ * Conformance tests for ViaductExecutionStrategy against GraphQL-Java's vanilla execution.
+ *
+ * This test class validates that ViaductExecutionStrategy produces identical results
+ * to GraphQL-Java's standard AsyncExecutionStrategy across a comprehensive range of
+ * GraphQL query scenarios.
+ *
+ * Test categories include:
+ * - Basic field execution and null handling
+ * - Error propagation and non-nullable field violations
+ * - List execution with nulls and errors
+ * - Nested object resolution
+ * - DataFetcherResult handling with errors and extensions
+ * - Async data fetching with suspending functions
+ * - Complex error scenarios in nested structures
+ *
+ * Each test runs the same query through both ViaductExecutionStrategy and
+ * GraphQL-Java's vanilla execution strategy, asserting that results match exactly.
+ * This ensures our custom execution strategy maintains full compatibility with
+ * the GraphQL specification as implemented by GraphQL-Java.
+ *
+ * For core execution functionality tests, see ViaductExecutionStrategyTest.
+ * For child plan specific tests, see ViaductExecutionStrategyChildPlanTest.
+ */
 @ExperimentalCoroutinesApi
 class ViaductExecutionStrategyConformanceTest {
     @Test

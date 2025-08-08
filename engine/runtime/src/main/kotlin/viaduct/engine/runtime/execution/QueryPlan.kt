@@ -14,6 +14,7 @@ import graphql.language.SelectionSet as GJSelectionSet
 import graphql.language.SourceLocation
 import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLNamedOutputType
+import graphql.schema.GraphQLOutputType
 import graphql.schema.GraphQLTypeUtil
 import java.util.concurrent.Executors
 import kotlin.jvm.optionals.getOrNull
@@ -33,7 +34,7 @@ data class QueryPlan(
     val selectionSet: SelectionSet,
     val fragments: Fragments,
     val variablesResolvers: List<VariablesResolver>,
-    val targetTypeName: String? = null
+    val parentType: GraphQLOutputType
 ) {
     /**
      * Configuration for building a QueryPlan.
@@ -301,7 +302,7 @@ private class QueryPlanBuilder(
             selectionSet = state.selectionSet,
             fragments = QueryPlan.Fragments(fragments.toMap()),
             variablesResolvers = variablesResolvers,
-            targetTypeName = parentType.name
+            parentType = parentType
         )
     }
 
