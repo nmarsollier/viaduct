@@ -89,7 +89,7 @@ abstract class FeatureAppTestBase {
         grtPackagePrefix = derivedClassPackagePrefix
     )
 
-    private val viaductTenantAPIBootstrapperBuilder =
+    internal val viaductTenantAPIBootstrapperBuilder =
         ViaductTenantAPIBootstrapper.Builder()
             .tenantCodeInjector(guiceTenantCodeInjector)
             .tenantResolverClassFinderFactory(tenantResolverClassFinderFactory)

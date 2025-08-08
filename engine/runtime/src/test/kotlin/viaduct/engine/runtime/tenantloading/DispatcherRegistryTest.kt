@@ -3,6 +3,7 @@
 package viaduct.engine.runtime.tenantloading
 
 import graphql.language.AstPrinter
+import kotlin.collections.count
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,6 +21,10 @@ import viaduct.engine.api.TenantModuleException
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockCheckerExecutor
 import viaduct.engine.api.mocks.MockCheckerExecutorFactory
+import viaduct.engine.api.mocks.MockFieldBatchResolverExecutor
+import viaduct.engine.api.mocks.MockFieldUnbatchedResolverExecutor
+import viaduct.engine.api.mocks.MockNodeBatchResolverExecutor
+import viaduct.engine.api.mocks.MockNodeUnbatchedResolverExecutor
 import viaduct.engine.api.mocks.MockTenantAPIBootstrapper
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.Samples
@@ -57,10 +62,10 @@ class DispatcherRegistryTest {
     private fun createDispatcherRegistry() = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerExecutorFactory).create(ViaductSchema(Samples.testSchema))
 
     @Test
-    fun `test successful injection of DispatcherRegistry`() =
+    fun `test successful injection of dispatcher`() =
         runBlockingTest {
             val dispatcherRegistry = createDispatcherRegistry()
-            // We have 5 resolvers: aField, bIntField, parameterizedField, cField, dField
+            // We have 6 resolvers: aField, bIntField, parameterizedField, cField, dField, batchField
             assertEquals(6, dispatcherRegistry.get().count())
 
             val objectType = Samples.testSchema.getObjectType("TestType")
@@ -234,4 +239,25 @@ class DispatcherRegistryTest {
         }
         assertTrue(exception.message!!.startsWith("Refusing to create an empty executor registry for [viaduct.tenant.runtime.bootstrap.ViaductTenantModuleBootstrapper"))
     }
+
+    @Test
+    fun `test success creation of executors`() =
+        runBlockingTest {
+            val tenantModuleBootstrappers = bootstrapper.tenantModuleBootstrappers().toList()
+            assertEquals(1, tenantModuleBootstrappers.size)
+
+            val tenantModuleBootstrapper = tenantModuleBootstrappers[0]
+            val fieldResolverExecutors = tenantModuleBootstrapper.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toMap()
+            val nodeResolverExecutors = tenantModuleBootstrapper.nodeResolverExecutors().toMap()
+
+            assertEquals(6, fieldResolverExecutors.size)
+            assertEquals(2, nodeResolverExecutors.size)
+
+            assert(fieldResolverExecutors.get(("TestType" to "aField"))!! is MockFieldUnbatchedResolverExecutor)
+            assert(fieldResolverExecutors.get(("TestType" to "bIntField"))!! is MockFieldUnbatchedResolverExecutor)
+            assert(fieldResolverExecutors.get(("TestType" to "parameterizedField"))!! is MockFieldUnbatchedResolverExecutor)
+            assert(fieldResolverExecutors.get(("TestType" to "batchField"))!! is MockFieldBatchResolverExecutor)
+            assert(nodeResolverExecutors.get("TestNode")!! is MockNodeUnbatchedResolverExecutor)
+            assert(nodeResolverExecutors.get("TestBatchNode")!! is MockNodeBatchResolverExecutor)
+        }
 }
