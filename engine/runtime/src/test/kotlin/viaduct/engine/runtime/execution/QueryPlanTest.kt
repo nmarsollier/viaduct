@@ -60,6 +60,7 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
+                        query
                     )
                 )
             }
@@ -90,6 +91,7 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
+                        query
                     )
                 )
             }
@@ -128,6 +130,7 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
+                        query
                     )
                 )
             }
@@ -159,7 +162,8 @@ class QueryPlanTest {
                             )
                         ),
                         Fragments.empty,
-                        emptyList()
+                        emptyList(),
+                        query
                     )
                 )
             }
@@ -201,6 +205,7 @@ class QueryPlanTest {
                             )
                         ),
                         emptyList(),
+                        query
                     )
                 )
             }

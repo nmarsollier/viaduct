@@ -23,6 +23,7 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 import viaduct.engine.runtime.EngineExecutionContextImpl
+import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.findLocalContextForType
@@ -153,16 +154,61 @@ data class ExecutionParameters(
     fun traverseChildPlan(
         childPlan: QueryPlan,
         variables: CoercedVariables
-    ): ExecutionParameters =
-        copy(
+    ): ExecutionParameters {
+        val objectType = childPlan.parentType as? GraphQLObjectType
+            ?: throw IllegalArgumentException("Child plan must have a parent type of GraphQLObjectType")
+        val isRootQueryQueryPlan = objectType == executionContext.graphQLSchema.queryType
+
+        // Build execution step info based on plan type
+        val childExecutionStepInfo = if (isRootQueryQueryPlan) {
+            // Query-type child plans get a completely fresh execution context
+            ExecutionStepInfo.newExecutionStepInfo()
+                .type(objectType)
+                .path(ResultPath.rootPath())
+                .parentInfo(null)
+                .build()
+        } else {
+            // Object-type child plans maintain parent object context
+            // Use the parent's executionStepInfo if we have a parent, otherwise use current
+            val parentObjectStepInfo = parent?.executionStepInfo ?: executionStepInfo
+            ExecutionStepInfo.newExecutionStepInfo()
+                .type(objectType)
+                .path(parentObjectStepInfo.path)
+                .parentInfo(parentObjectStepInfo.parent)
+                .build()
+        }
+
+        // Build field resolution result based on plan type
+        val childFieldResolutionResult = if (isRootQueryQueryPlan) {
+            // Query plans use a fresh queryEngineResult as the root
+            val engineResultLocalContext = executionContext.findLocalContextForType<EngineResultLocalContext>()
+            val queryEngineResult = engineResultLocalContext.queryEngineResult
+                ?: throw IllegalStateException("Missing queryEngineResult for Query plan")
+
+            FieldResolutionResult(
+                queryEngineResult,
+                emptyList(),
+                executionContext.getLocalContext(),
+                emptyMap(),
+                executionContext.getRoot()
+            )
+        } else {
+            // Object plans use the current fieldResolutionResult
+            fieldResolutionResult
+        }
+
+        return copy(
             executionContext = executionContext.transform {
                 it.coercedVariables(variables)
             },
             queryPlan = childPlan,
             selectionSet = childPlan.selectionSet,
             parent = this,
-            errorAccumulator = ErrorAccumulator()
+            errorAccumulator = ErrorAccumulator(),
+            executionStepInfo = childExecutionStepInfo,
+            fieldResolutionResult = childFieldResolutionResult
         )
+    }
 
     @Suppress("ktlint:standard:indent")
     class Factory(
