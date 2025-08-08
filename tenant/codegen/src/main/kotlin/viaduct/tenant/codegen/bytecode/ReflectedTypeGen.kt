@@ -131,7 +131,7 @@ private class FieldsObjectBuilder(
             def.fields.forEach { f ->
                 grtClassFilesBuilder.addSchemaGRTReference(f.type.baseTypeDef)
 
-                val unwrappedType = f.baseTypeKmType(grtClassFilesBuilder.pkg).apply {
+                val unwrappedType = f.baseTypeKmType(grtClassFilesBuilder.pkg, grtClassFilesBuilder.baseTypeMapper).apply {
                     isNullable = false
                 }
                 val reflectedType = f.type.baseTypeDef.takeIf { it.hasReflectedType }
@@ -223,7 +223,8 @@ private class FieldsObjectBuilder(
     }
 }
 
-private fun GRTClassFilesBuilder.reflectedTypeKmNameForDef(def: ViaductExtendedSchema.TypeDef): KmName = def.asTypeExpr().baseTypeKmType(this.pkg, null).name.append(".${cfg.REFLECTION_NAME}")
+private fun GRTClassFilesBuilder.reflectedTypeKmNameForDef(def: ViaductExtendedSchema.TypeDef): KmName =
+    def.asTypeExpr().baseTypeKmType(this.pkg, this.baseTypeMapper, null).name.append(".${cfg.REFLECTION_NAME}")
 
 private fun GRTClassFilesBuilder.reflectedTypeForDef(def: ViaductExtendedSchema.TypeDef): KmType = reflectedTypeKmNameForDef(def).asType()
 

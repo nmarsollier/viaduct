@@ -66,6 +66,7 @@ private class InputClassGen(
     private val inputClass: CustomClassBuilder,
 ) {
     private val pkg = grtClassFilesBuilder.pkg
+    private val baseTypeMapper = grtClassFilesBuilder.baseTypeMapper
     private val contextType = cfg.INTERNAL_CONTEXT.asKmName.asType()
     private val graphQLInputObjectType = KmName("graphql/schema/GraphQLInputObjectType").asType()
 
@@ -189,8 +190,8 @@ private class InputClassGen(
     private fun CustomClassBuilder.addFieldProperty(field: ViaductExtendedSchema.HasDefaultValue) {
         grtClassFilesBuilder.addSchemaGRTReference(field.type.baseTypeDef)
 
-        val fieldType = field.kmType(pkg)
-        val baseTypeName = field.baseTypeKmType(pkg).boxedJavaName()
+        val fieldType = field.kmType(pkg, baseTypeMapper)
+        val baseTypeName = field.baseTypeKmType(pkg, baseTypeMapper).boxedJavaName()
         val kmProperty = KmPropertyBuilder(
             JavaIdName(field.name),
             fieldType,

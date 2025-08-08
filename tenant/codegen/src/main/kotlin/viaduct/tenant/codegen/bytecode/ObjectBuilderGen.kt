@@ -44,6 +44,7 @@ private class ObjectBuilderGenV2(
     private val builderFor: KmType
 ) {
     private val pkg = grtClassFilesBuilder.pkg
+    private val baseTypeMapper = grtClassFilesBuilder.baseTypeMapper
 
     init {
         builderClass
@@ -96,7 +97,7 @@ private class ObjectBuilderGenV2(
     private fun CustomClassBuilder.addFieldSetter(field: ViaductExtendedSchema.Field) {
         grtClassFilesBuilder.addSchemaGRTReference(field.type.baseTypeDef)
 
-        val fieldKmType = field.kmType(pkg, isInput = true)
+        val fieldKmType = field.kmType(pkg, baseTypeMapper, isInput = true)
 
         val kmFun = KmFunction(field.name).also {
             it.visibility = Visibility.PUBLIC

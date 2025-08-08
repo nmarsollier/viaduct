@@ -18,7 +18,8 @@ fun KotlinGRTFilesBuilder.inputKotlinGen(
         desc.className,
         desc.fields,
         taggingInterface,
-        desc.def?.let(::reflectedTypeGen)
+        desc.def?.let(::reflectedTypeGen),
+        baseTypeMapper
     )
 )
 
@@ -42,6 +43,7 @@ private interface InputModel {
     class FieldModel(
         pkg: String,
         fieldDef: ViaductExtendedSchema.HasDefaultValue,
+        baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
     ) {
         /** For fields whose names match Kotlin keywords (e.g., "private"),
          *  we need to use Kotlin's back-tick mechanism for escapsing.
@@ -49,7 +51,7 @@ private interface InputModel {
         val escapedName: String = getEscapedFieldName(fieldDef.name)
 
         /** Kotlin GRT-type of this field. */
-        val kotlinType: String = fieldDef.kmType(JavaName(pkg).asKmName).kotlinTypeString
+        val kotlinType: String = fieldDef.kmType(JavaName(pkg).asKmName, baseTypeMapper).kotlinTypeString
     }
 }
 
@@ -117,8 +119,9 @@ private class InputModelImpl(
     override val className: String,
     fieldDefs: Iterable<ViaductExtendedSchema.HasDefaultValue>,
     override val taggingInterface: String,
-    reflectedType: STContents?
+    reflectedType: STContents?,
+    baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 ) : InputModel {
-    override val fields: List<InputModel.FieldModel> = fieldDefs.map { InputModel.FieldModel(pkg, it) }
+    override val fields: List<InputModel.FieldModel> = fieldDefs.map { InputModel.FieldModel(pkg, it, baseTypeMapper) }
     override val reflection: String = reflectedType?.toString() ?: ""
 }

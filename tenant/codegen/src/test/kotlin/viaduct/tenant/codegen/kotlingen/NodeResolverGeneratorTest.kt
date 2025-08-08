@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.graphql.schema.ViaductSchema
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 
 class NodeResolverGeneratorTest {
     private fun gen(vararg types: String): String? {
@@ -52,7 +53,8 @@ class NodeResolverGeneratorTest {
             grtPackage = "pkg.grts",
             modernModuleGeneratedDir = File(""),
             metainfGeneratedDir = File(""),
-            resolverGeneratedDir = File("")
+            resolverGeneratedDir = File(""),
+            baseTypeMapper = ViaductBaseTypeMapper()
         )
 
         schema.generateNodeResolvers(args)

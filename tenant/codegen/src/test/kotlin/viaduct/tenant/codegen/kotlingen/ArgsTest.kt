@@ -3,6 +3,7 @@ package viaduct.tenant.codegen.kotlingen
 import java.io.File
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 
 class ArgsTest {
     private fun mkFile(): File = File.createTempFile("pre", "post")
@@ -19,7 +20,8 @@ class ArgsTest {
             "GRT PACKAGE",
             modernModuleGeneratedDir,
             metainfGeneratedDir,
-            resolverGeneratedDir
+            resolverGeneratedDir,
+            baseTypeMapper = ViaductBaseTypeMapper()
         )
 
         assertEquals("TENANT PACKAGE", args.tenantPackage)

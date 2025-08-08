@@ -55,6 +55,7 @@ private class InputBuilderGenV2(
     private val inputTaggingInterface: KmName
 ) {
     private val pkg = grtClassFilesBuilder.pkg
+    private val baseTypeMapper = grtClassFilesBuilder.baseTypeMapper
 
     private val internalContextType = cfg.INTERNAL_CONTEXT.asKmName.asType()
     private val executionContextType = cfg.EXECUTION_CONTEXT.asKmName.asType()
@@ -260,7 +261,7 @@ private class InputBuilderGenV2(
     private fun CustomClassBuilder.addFieldSetter(field: ViaductExtendedSchema.HasDefaultValue) {
         grtClassFilesBuilder.addSchemaGRTReference(field.type.baseTypeDef)
 
-        val fieldKmType = field.kmType(pkg, isInput = true)
+        val fieldKmType = field.kmType(pkg, baseTypeMapper, isInput = true)
 
         val kmFun = KmFunction(field.name).also {
             it.visibility = Visibility.PUBLIC

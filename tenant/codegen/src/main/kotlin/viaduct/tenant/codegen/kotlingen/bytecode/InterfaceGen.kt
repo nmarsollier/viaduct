@@ -11,7 +11,7 @@ import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.tenant.codegen.bytecode.config.cfg
 import viaduct.tenant.codegen.bytecode.config.kmType
 
-fun KotlinGRTFilesBuilder.interfaceKotlinGen(typeDef: ViaductExtendedSchema.Interface) = STContents(interfaceSTGroup, InterfaceModelImpl(typeDef, pkg, reflectedTypeGen(typeDef)))
+fun KotlinGRTFilesBuilder.interfaceKotlinGen(typeDef: ViaductExtendedSchema.Interface) = STContents(interfaceSTGroup, InterfaceModelImpl(typeDef, pkg, reflectedTypeGen(typeDef), baseTypeMapper))
 
 private interface InterfaceModel {
     /** Packege into which code will be generated. */
@@ -36,12 +36,13 @@ private interface InterfaceModel {
     class FieldModel(
         pkg: String,
         fieldDef: ViaductExtendedSchema.Field,
+        baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
     ) {
         /** Field getter name. */
         val getterName: String = getterName(fieldDef.name)
 
         /** Kotlin GRT-type of this field. */
-        val kotlinType: String = fieldDef.kmType(JavaName(pkg).asKmName).kotlinTypeString
+        val kotlinType: String = fieldDef.kmType(JavaName(pkg).asKmName, baseTypeMapper).kotlinTypeString
     }
 }
 
@@ -64,7 +65,8 @@ private val interfaceSTGroup =
 private class InterfaceModelImpl(
     private val typeDef: ViaductExtendedSchema.Interface,
     override val pkg: String,
-    reflectedType: STContents
+    reflectedType: STContents,
+    baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 ) : InterfaceModel {
     override val className = typeDef.name
 
@@ -79,5 +81,5 @@ private class InterfaceModelImpl(
     }
 
     override val fieldsNeedingGetter: List<InterfaceModel.FieldModel> =
-        typeDef.fields.filter { !it.isOverride }.map { InterfaceModel.FieldModel(pkg, it) }
+        typeDef.fields.filter { !it.isOverride }.map { InterfaceModel.FieldModel(pkg, it, baseTypeMapper) }
 }

@@ -13,7 +13,7 @@ import viaduct.tenant.codegen.bytecode.config.cfg
 import viaduct.tenant.codegen.bytecode.config.isNode
 import viaduct.tenant.codegen.bytecode.config.kmType
 
-fun KotlinGRTFilesBuilder.objectKotlinGen(typeDef: ViaductExtendedSchema.Object) = STContents(objectSTGroup, ObjectModelImpl(typeDef, pkg, reflectedTypeGen(typeDef)))
+fun KotlinGRTFilesBuilder.objectKotlinGen(typeDef: ViaductExtendedSchema.Object) = STContents(objectSTGroup, ObjectModelImpl(typeDef, pkg, reflectedTypeGen(typeDef), baseTypeMapper))
 
 private interface ObjectModel {
     /** Packege into which code will be generated. */
@@ -38,6 +38,7 @@ private interface ObjectModel {
     class FieldModel(
         pkg: String,
         fieldDef: ViaductExtendedSchema.Field,
+        baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
     ) {
         /** Field getter name. */
         val getterName: String = getterName(fieldDef.name)
@@ -58,7 +59,7 @@ private interface ObjectModel {
         val overrideKeywords: String = if (fieldDef.isOverride) "final override" else ""
 
         /** Kotlin GRT-type of this field. */
-        val kotlinType: String = fieldDef.kmType(JavaName(pkg).asKmName).kotlinTypeString
+        val kotlinType: String = fieldDef.kmType(JavaName(pkg).asKmName, baseTypeMapper).kotlinTypeString
     }
 }
 
@@ -101,7 +102,8 @@ private val objectSTGroup =
 private class ObjectModelImpl(
     private val typeDef: ViaductExtendedSchema.Object,
     override val pkg: String,
-    reflectedType: STContents
+    reflectedType: STContents,
+    baseTypeMapper: viaduct.tenant.codegen.bytecode.config.BaseTypeMapper
 ) : ObjectModel {
     override val className get() = typeDef.name
 
@@ -118,5 +120,5 @@ private class ObjectModelImpl(
         result.joinToString(",")
     }
 
-    override val fields: List<ObjectModel.FieldModel> = typeDef.fields.map { ObjectModel.FieldModel(pkg, it) }
+    override val fields: List<ObjectModel.FieldModel> = typeDef.fields.map { ObjectModel.FieldModel(pkg, it, baseTypeMapper) }
 }

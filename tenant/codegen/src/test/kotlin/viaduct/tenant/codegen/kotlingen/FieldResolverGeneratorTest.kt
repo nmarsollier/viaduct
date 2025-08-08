@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.graphql.schema.graphqljava.GJSchema
-import viaduct.tenant.codegen.bytecode.config.cfg
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 
 // This test suite is useful for inspecting the results of resolver generation.
 // While each test case makes only a small number of assertions, they are useful places
@@ -25,10 +25,9 @@ class FieldResolverGeneratorTest {
         sdl: String,
         typeName: String
     ): String {
-        cfg.isModern = true
         val schema = mkSchema(sdl)
         val type = schema.types[typeName] as ViaductExtendedSchema.Record
-        val contents = genResolver(typeName, type.fields, "pkg.tenant", "viaduct.api.grts")
+        val contents = genResolver(typeName, type.fields, "pkg.tenant", "viaduct.api.grts", ViaductBaseTypeMapper())
         return contents.toString()
     }
 
@@ -50,7 +49,8 @@ class FieldResolverGeneratorTest {
                     "bar",
                     File.createTempFile("temp", null).also { it.deleteOnExit() },
                     File.createTempFile("temp1", null).also { it.deleteOnExit() },
-                    File.createTempFile("temp2", null).also { it.deleteOnExit() }
+                    File.createTempFile("temp2", null).also { it.deleteOnExit() },
+                    baseTypeMapper = ViaductBaseTypeMapper()
                 )
             )
         }

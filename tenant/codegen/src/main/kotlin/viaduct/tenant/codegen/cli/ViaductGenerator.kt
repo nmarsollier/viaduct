@@ -58,8 +58,7 @@ class ViaductGenerator : CliktCommand() {
 
         val typeDefRegistry = readTypesFromFiles(schemaFiles)
         val schema = GJSchemaRaw.fromRegistry(typeDefRegistry)
-        cfg.isModern = true
-        // TODO(https://app.asana.com/1/150975571430/project/1207604899751448/task/1210764159508822?focus=true): Remove this global mutable state, see https://docs.google.com/document/d/18FKs13huMY3JyslnO11_V_WtYPcSA7Xb_vNQAf79yP0/edit?tab=t.0#heading=h.a24h0oe8myl2
+        // TODO(jimmy): Remove this global mutable state, see https://docs.google.com/document/d/18FKs13huMY3JyslnO11_V_WtYPcSA7Xb_vNQAf79yP0/edit?tab=t.0#heading=h.a24h0oe8myl2
         cfg.moduleExtractor = if (!tenantFromSourceNameRegex.isNullOrEmpty()) {
             Regex(tenantFromSourceNameRegex!!)
         } else {
@@ -77,7 +76,8 @@ class ViaductGenerator : CliktCommand() {
             modernModuleGeneratedDir = modernModuleGeneratedDir,
             metainfGeneratedDir = metainfGeneratedDir,
             resolverGeneratedDir = resolverGeneratedDir,
-            isFeatureAppTest = isFeatureAppTest
+            isFeatureAppTest = isFeatureAppTest,
+            baseTypeMapper = viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper()
         )
 
         if (resolverGeneratedDir.exists()) resolverGeneratedDir.deleteRecursively()

@@ -6,7 +6,6 @@ import kotlinx.metadata.KmClassifier
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.isNullable
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.codegen.km.kmListOfType
 import viaduct.codegen.utils.Km
@@ -14,17 +13,13 @@ import viaduct.codegen.utils.KmName
 import viaduct.codegen.utils.name
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.graphql.schema.test.mkSchema
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 import viaduct.tenant.codegen.bytecode.config.baseTypeKmType
-import viaduct.tenant.codegen.bytecode.config.cfg
 import viaduct.tenant.codegen.bytecode.config.kmType
 
 class KmUtilsTest {
     val pkg = KmName("testing")
-
-    @BeforeEach
-    fun setUp() {
-        cfg.isModern = false
-    }
+    val baseTypeMapper = ViaductBaseTypeMapper()
 
     @Test
     fun testListKmType() {
@@ -42,30 +37,30 @@ class KmUtilsTest {
         val input = mkSchema(schema).types["ListTest"] as ViaductExtendedSchema.Input
 
         val nullNull = kmListOfType(Km.STRING.asNullableType(), true)
-        assertKmTypeEquals(nullNull, input.field("field1")!!.kmType(pkg))
+        assertKmTypeEquals(nullNull, input.field("field1")!!.kmType(pkg, baseTypeMapper))
 
         val nullNonNull = kmListOfType(Km.STRING.asType(), true)
-        assertKmTypeEquals(nullNonNull, input.field("field2")!!.kmType(pkg))
+        assertKmTypeEquals(nullNonNull, input.field("field2")!!.kmType(pkg, baseTypeMapper))
 
         val nonNullNull = kmListOfType(Km.STRING.asNullableType())
-        assertKmTypeEquals(nonNullNull, input.field("field3")!!.kmType(pkg))
+        assertKmTypeEquals(nonNullNull, input.field("field3")!!.kmType(pkg, baseTypeMapper))
 
         val nonNullNonNull = kmListOfType(Km.STRING.asType())
-        assertKmTypeEquals(nonNullNonNull, input.field("field4")!!.kmType(pkg))
+        assertKmTypeEquals(nonNullNonNull, input.field("field4")!!.kmType(pkg, baseTypeMapper))
 
         assertKmTypeEquals(
             kmListOfType(nullNonNull, true),
-            input.field("field5")!!.kmType(pkg)
+            input.field("field5")!!.kmType(pkg, baseTypeMapper)
         )
 
         assertKmTypeEquals(
             kmListOfType(nonNullNull, true),
-            input.field("field6")!!.kmType(pkg)
+            input.field("field6")!!.kmType(pkg, baseTypeMapper)
         )
 
         assertKmTypeEquals(
             kmListOfType(nonNullNull),
-            input.field("field7")!!.kmType(pkg)
+            input.field("field7")!!.kmType(pkg, baseTypeMapper)
         )
     }
 
@@ -104,36 +99,35 @@ class KmUtilsTest {
         """.trimIndent()
         val input = mkSchema(schema).types["ListVarianceTest"] as ViaductExtendedSchema.Input
 
-        val scalarList = input.field("scalarList")!!.kmType(pkg, isInput = true)
+        val scalarList = input.field("scalarList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.INVARIANT, scalarList.arguments[0].variance)
 
-        val jsonList = input.field("jsonList")!!.kmType(pkg, isInput = true)
+        val jsonList = input.field("jsonList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, jsonList.arguments[0].variance)
 
-        val enumList = input.field("enumList")!!.kmType(pkg, isInput = true)
+        val enumList = input.field("enumList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, enumList.arguments[0].variance)
 
-        val interfaceList = input.field("interfaceList")!!.kmType(pkg, isInput = true)
+        val interfaceList = input.field("interfaceList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, interfaceList.arguments[0].variance)
 
-        val objectList = input.field("objectList")!!.kmType(pkg, isInput = true)
-        assertEquals(KmVariance.OUT, objectList.arguments[0].variance)
+        val objectList = input.field("objectList")!!.kmType(pkg, baseTypeMapper, isInput = true)
+        assertEquals(KmVariance.INVARIANT, objectList.arguments[0].variance) // Modern OSS behavior
 
-        val unionList = input.field("unionList")!!.kmType(pkg, isInput = true)
+        val unionList = input.field("unionList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, unionList.arguments[0].variance)
 
-        val nestedScalarList = input.field("nestedScalarList")!!.kmType(pkg, isInput = true)
+        val nestedScalarList = input.field("nestedScalarList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, nestedScalarList.arguments[0].variance)
         assertEquals(KmVariance.INVARIANT, nestedScalarList.arguments[0].type!!.arguments[0].variance)
 
-        val nestedObjectList = input.field("nestedObjectList")!!.kmType(pkg, isInput = true)
+        val nestedObjectList = input.field("nestedObjectList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, nestedObjectList.arguments[0].variance)
-        assertEquals(KmVariance.OUT, nestedObjectList.arguments[0].type!!.arguments[0].variance)
+        assertEquals(KmVariance.INVARIANT, nestedObjectList.arguments[0].type!!.arguments[0].variance) // Modern OSS behavior
     }
 
     @Test
     fun testListInputKmTypeV2Variance() {
-        cfg.isModern = true
         val schema = """
             input ListVarianceTest {
               scalarList: [String]
@@ -167,29 +161,29 @@ class KmUtilsTest {
         """.trimIndent()
         val input = mkSchema(schema).types["ListVarianceTest"] as ViaductExtendedSchema.Input
 
-        val scalarList = input.field("scalarList")!!.kmType(pkg, isInput = true)
+        val scalarList = input.field("scalarList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.INVARIANT, scalarList.arguments[0].variance)
 
-        val jsonList = input.field("jsonList")!!.kmType(pkg, isInput = true)
+        val jsonList = input.field("jsonList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, jsonList.arguments[0].variance)
 
-        val enumList = input.field("enumList")!!.kmType(pkg, isInput = true)
+        val enumList = input.field("enumList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, enumList.arguments[0].variance)
 
-        val interfaceList = input.field("interfaceList")!!.kmType(pkg, isInput = true)
+        val interfaceList = input.field("interfaceList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, interfaceList.arguments[0].variance)
 
-        val objectList = input.field("objectList")!!.kmType(pkg, isInput = true)
+        val objectList = input.field("objectList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.INVARIANT, objectList.arguments[0].variance)
 
-        val unionList = input.field("unionList")!!.kmType(pkg, isInput = true)
+        val unionList = input.field("unionList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, unionList.arguments[0].variance)
 
-        val nestedScalarList = input.field("nestedScalarList")!!.kmType(pkg, isInput = true)
+        val nestedScalarList = input.field("nestedScalarList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, nestedScalarList.arguments[0].variance)
         assertEquals(KmVariance.INVARIANT, nestedScalarList.arguments[0].type!!.arguments[0].variance)
 
-        val nestedObjectList = input.field("nestedObjectList")!!.kmType(pkg, isInput = true)
+        val nestedObjectList = input.field("nestedObjectList")!!.kmType(pkg, baseTypeMapper, isInput = true)
         assertEquals(KmVariance.OUT, nestedObjectList.arguments[0].variance)
         assertEquals(KmVariance.INVARIANT, nestedObjectList.arguments[0].type!!.arguments[0].variance)
     }
@@ -218,14 +212,14 @@ class KmUtilsTest {
         val typeDefs = mkSchema(schema)
 
         val gqlActualConnection = typeDefs.types["ActualConnection"]!!.asTypeExpr()
-        val subject = gqlActualConnection.baseTypeKmType(pkg, field = null)
+        val subject = gqlActualConnection.baseTypeKmType(pkg, baseTypeMapper, field = null)
+        // In OSS, PagedConnection types are handled as regular types, not EdgesQueryResponse
         assertKmTypeEquals(
-            cfg.EDGES_QUERY_RESPONSE.asKmName.asNullableType(),
+            KmName("testing/ActualConnection").asNullableType(),
             subject
         )
-        assertEquals(1, subject.arguments.size)
-        assertEquals(KmVariance.OUT, subject.arguments[0].variance)
-        assertEquals("testing/ActualNode", subject.arguments[0].type!!.name.toString())
+        // No type arguments for regular types
+        assertEquals(0, subject.arguments.size)
     }
 
     private fun assertKmTypeEquals(
@@ -251,7 +245,6 @@ class KmUtilsTest {
 
     @Test
     fun testConnectionKmTypeV2() {
-        cfg.isModern = true
         val schema = """
             interface PagedConnection {
                 # don't need pageInfo in tests
@@ -274,7 +267,7 @@ class KmUtilsTest {
         val typeDefs = mkSchema(schema)
 
         val gqlActualConnection = typeDefs.types["ActualConnection"]!!.asTypeExpr()
-        val subject = gqlActualConnection.baseTypeKmType(pkg, field = null)
+        val subject = gqlActualConnection.baseTypeKmType(pkg, baseTypeMapper, field = null)
         assertEquals("testing/ActualConnection", subject.name.toString())
         assertEquals(0, subject.arguments.size)
     }

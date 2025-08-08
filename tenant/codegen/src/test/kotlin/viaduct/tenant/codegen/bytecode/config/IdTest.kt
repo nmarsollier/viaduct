@@ -1,10 +1,8 @@
 package viaduct.tenant.codegen.bytecode.config
 
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.tenant.codegen.bytecode.util.assertKotlinTypeString
@@ -23,23 +21,19 @@ class IdTest {
 
     private val pkg: String = "pkg"
 
+    private val baseTypeMapper = ViaductBaseTypeMapper()
+
     private fun objectGlobalID(type: String) =
         // "viaduct.api.globalid.GlobalID<pkg.Foo>"
-        "${cfg.MODERN_GLOBALID}<$pkg.$type>"
+        "${baseTypeMapper.getGlobalIdType()}<$pkg.$type>"
 
     private fun interfaceOrUnionGlobalID(type: String) =
         // "viaduct.api.globalid.GlobalID<out pkg.Foo>"
-        "${cfg.MODERN_GLOBALID}<out $pkg.$type>"
+        "${baseTypeMapper.getGlobalIdType()}<out $pkg.$type>"
 
     private fun idOfGlobalID(type: String) =
-        // "viaduct.api.globalid.GlobalID<out pkg.Foo>"
-        "${cfg.MODERN_GLOBALID}<out $pkg.$type>"
-
-    @BeforeEach
-    @AfterEach
-    fun setup() {
-        cfg.isModern = false
-    }
+        // "viaduct.api.globalid.GlobalID<pkg.Foo>" (no out variance for concrete types)
+        "${baseTypeMapper.getGlobalIdType()}<$pkg.$type>"
 
     @Test
     fun `TypeDef_isID`() {
@@ -55,7 +49,7 @@ class IdTest {
     }
 
     @Test
-    fun `classic`() {
+    fun `modern behavior in OSS`() {
         val schema = mkSchema(
             """
             type MyNode implements Node { id: ID! }
@@ -67,9 +61,10 @@ class IdTest {
             }
             """.trimIndent()
         )
-        schema.field("Node", "id").assertKotlinTypeString("kotlin.String")
-        schema.field("Node", "id").assertKotlinTypeString("kotlin.String")
-        schema.field("MyNode", "id").assertKotlinTypeString("kotlin.String")
+        // In modern OSS builds, Node.id uses GlobalID type - interfaces use OUT, objects use INVARIANT
+        schema.field("Node", "id").assertKotlinTypeString(interfaceOrUnionGlobalID("Node"))
+        schema.field("MyNode", "id").assertKotlinTypeString(objectGlobalID("MyNode"))
+        // Regular ID fields are still String
         schema.field("Object", "f1").assertKotlinTypeString("kotlin.String?")
         schema.field("Object", "f2").assertKotlinTypeString("kotlin.String")
         schema.field("Object", "f3")
@@ -80,19 +75,16 @@ class IdTest {
 
     @Test
     fun `modern -- bare`() {
-        cfg.isModern = true
         mkSchema().typedef("ID").assertKotlinTypeString("kotlin.String?")
     }
 
     @Test
     fun `modern -- Node`() {
-        cfg.isModern = true
         mkSchema().field("Node", "id").assertKotlinTypeString(interfaceOrUnionGlobalID("Node"))
     }
 
     @Test
     fun `modern -- node interface`() {
-        cfg.isModern = true
         val schema = mkSchema(
             """
             interface Node2 implements Node {
@@ -106,12 +98,11 @@ class IdTest {
         // for interfaces that are-or-implement Node, IDs are untyped unless they use @idOf
         schema.field("Node2", "id").assertKotlinTypeString(interfaceOrUnionGlobalID("Node2"))
         schema.field("Node2", "id2").assertKotlinTypeString("kotlin.String")
-        schema.field("Node2", "id3").assertKotlinTypeString(idOfGlobalID("MyNode"))
+        schema.field("Node2", "id3").assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
     }
 
     @Test
     fun `modern -- node object`() {
-        cfg.isModern = true
         val schema = mkSchema(
             """
                 type MyNode implements Node {
@@ -124,12 +115,11 @@ class IdTest {
 
         schema.field("MyNode", "id").assertKotlinTypeString(objectGlobalID("MyNode"))
         schema.field("MyNode", "id2").assertKotlinTypeString("kotlin.String")
-        schema.field("MyNode", "id3").assertKotlinTypeString(idOfGlobalID("MyNode"))
+        schema.field("MyNode", "id3").assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
     }
 
     @Test
     fun `modern -- nulls and lists`() {
-        cfg.isModern = true
         val schema = mkSchema(
             """
                 type MyNode implements Node { id: ID! }
@@ -159,18 +149,17 @@ class IdTest {
             .assertKotlinTypeString("kotlin.collections.List<kotlin.String>")
 
         schema.field("Object", "f5")
-            .assertKotlinTypeString("${idOfGlobalID("MyNode")}?")
+            .assertKotlinTypeString("${interfaceOrUnionGlobalID("MyNode")}?")
         schema.field("Object", "f6")
-            .assertKotlinTypeString(idOfGlobalID("MyNode"))
+            .assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
         schema.field("Object", "f7")
-            .assertKotlinTypeString("kotlin.collections.List<${idOfGlobalID("MyNode")}?>?")
+            .assertKotlinTypeString("kotlin.collections.List<${interfaceOrUnionGlobalID("MyNode")}?>?")
         schema.field("Object", "f8")
-            .assertKotlinTypeString("kotlin.collections.List<${idOfGlobalID("MyNode")}>")
+            .assertKotlinTypeString("kotlin.collections.List<${interfaceOrUnionGlobalID("MyNode")}>")
     }
 
     @Test
     fun `modern -- input`() {
-        cfg.isModern = true
         val schema = mkSchema(
             """
                 type MyNode implements Node { id: ID! }
@@ -183,14 +172,13 @@ class IdTest {
             """.trimIndent()
         )
         schema.field("Input", "f1").assertKotlinTypeString("kotlin.String")
-        schema.field("Input", "f2").assertKotlinTypeString(idOfGlobalID("MyNode"))
+        schema.field("Input", "f2").assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
         schema.field("Input", "f3").assertKotlinTypeString("kotlin.String")
-        schema.field("Input", "f4").assertKotlinTypeString(idOfGlobalID("MyNode"))
+        schema.field("Input", "f4").assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
     }
 
     @Test
     fun `modern -- field arguments`() {
-        cfg.isModern = true
         val schema = mkSchema(
             """
                 type MyNode implements Node { id: ID! }
@@ -207,14 +195,13 @@ class IdTest {
         val args = schema.field("Object", "f").args.associateBy { it.name }
 
         args["a1"]!!.assertKotlinTypeString("kotlin.String")
-        args["a2"]!!.assertKotlinTypeString(idOfGlobalID("MyNode"))
+        args["a2"]!!.assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
         args["a3"]!!.assertKotlinTypeString("kotlin.String")
-        args["a4"]!!.assertKotlinTypeString(idOfGlobalID("MyNode"))
+        args["a4"]!!.assertKotlinTypeString(interfaceOrUnionGlobalID("MyNode"))
     }
 
     @Test
     fun `modern -- globalIDTypeName`() {
-        cfg.isModern = true
         val schema = mkSchema(
             """
             interface Node2 implements Node {

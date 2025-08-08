@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
 import viaduct.graphql.schema.graphqljava.GJSchemaRaw
 import viaduct.graphql.schema.graphqljava.readTypesFromFiles
-import viaduct.tenant.codegen.bytecode.config.cfg
+import viaduct.tenant.codegen.bytecode.config.ViaductBaseTypeMapper
 import viaduct.tenant.codegen.kotlingen.bytecode.KotlinCodeGenArgs
 import viaduct.tenant.codegen.kotlingen.bytecode.KotlinGRTFilesBuilder
 import viaduct.tenant.codegen.util.ZipUtil.zipAndWriteDirectories
@@ -52,10 +52,10 @@ class KotlinGRTsGenerator : CliktCommand() {
             pkgForGeneratedClasses = pkgForGeneratedClasses,
             dirForOutput = generatedDir,
             timer = timer,
+            baseTypeMapper = ViaductBaseTypeMapper(),
         )
 
-        cfg.isModern = true
-
+        // Modern builds use ViaductBaseTypeMapper (set by default in cfg)
         val grtBuilder = KotlinGRTFilesBuilder.builderFrom(args)
 
         timer.time("generateBytecodeImpl") {
