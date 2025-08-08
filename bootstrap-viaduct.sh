@@ -114,6 +114,7 @@ package com.example.viadapp
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -170,7 +171,10 @@ fun main(argv: Array<String>) {
 
     // [toSpecification] converts to JSON as described in the GraphQL
     // specification.
-    println(result.toSpecification())
+    val mapper = ObjectMapper().writerWithDefaultPrettyPrinter()
+    println(
+        mapper.writeValueAsString(result.toSpecification())
+    )
 }
 EOF
 
