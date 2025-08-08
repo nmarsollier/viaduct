@@ -106,8 +106,10 @@ class CellTest {
                     throw NumberFormatException("foo")
                 }
             }
-            assertThrows<RuntimeException> { cell.fetch(0) }
-            assertEquals("foo", cell.fetch(1))
+            val e1 = assertThrows<RuntimeException> { cell.fetch(0) }
+            val e2 = assertThrows<RuntimeException> { cell.fetch(1) }
+            assertEquals(e1, e2)
+            assertTrue(e1.cause is NumberFormatException)
         }
     }
 
@@ -122,21 +124,29 @@ class CellTest {
                 }
             }
             assertTrue(e.message!!.contains("Set slots: 101"))
-            assertEquals("foo", cell.fetch(0))
-            assertThrows<RuntimeException> { cell.fetch(1) }
+            val e1 = assertThrows<RuntimeException> { cell.fetch(0) }
+            val e2 = assertThrows<RuntimeException> { cell.fetch(1) }
+            val e3 = assertThrows<RuntimeException> { cell.fetch(2) }
+            assertEquals(e1, e2)
+            assertEquals(e2, e3)
+            assertTrue(e1.cause is IllegalStateException)
         }
     }
 
     @Test
     fun `set slot more than once`() {
-        val cell = Cell.create(1)
-        val e = assertThrows<IllegalStateException> {
-            cell.computeIfAbsent { setter ->
-                setter.set(0, Value.fromValue("foo"))
-                setter.set(0, Value.fromValue("bar"))
+        runBlocking {
+            val cell = Cell.create(1)
+            val e = assertThrows<IllegalStateException> {
+                cell.computeIfAbsent { setter ->
+                    setter.set(0, Value.fromValue("foo"))
+                    setter.set(0, Value.fromValue("bar"))
+                }
             }
+            assertTrue(e.message!!.contains("Slot 0 has been set more than once"))
+            val e1 = assertThrows<RuntimeException> { cell.fetch(0) }
+            assertTrue(e1.cause is IllegalStateException)
         }
-        assertTrue(e.message!!.contains("Slot 0 has been set more than once"))
     }
 
     @Test
