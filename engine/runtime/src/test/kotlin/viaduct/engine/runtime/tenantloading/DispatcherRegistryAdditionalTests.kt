@@ -82,11 +82,11 @@ class DispatcherRegistryAdditionalTests {
             .create(Samples.testSchema)
 
         // Should not have checker executors for non-existent resolvers
-        assertNull(registry.getCheckerExecutor("NonExistentType", "nonExistentField"))
-        assertNull(registry.getTypeCheckerExecutor("NonExistentNode"))
+        assertNull(registry.getFieldCheckerDispatcher("NonExistentType", "nonExistentField"))
+        assertNull(registry.getTypeCheckerDispatcher("NonExistentNode"))
 
         // But should have checker executors for existing resolvers
-        assertNotNull(registry.getTypeCheckerExecutor("TestNode"))
+        assertNotNull(registry.getTypeCheckerDispatcher("TestNode"))
     }
 
     @Test

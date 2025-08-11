@@ -63,7 +63,7 @@ internal class ResolverInstrumentationTest {
         mockDfEnv(mockParams)
 
         every { mockDispathcerRegistry.getFieldResolverDispatcher(typeName, fieldName) } returns mockk()
-        every { mockCheckerRegistry.getCheckerExecutor(typeName, fieldName) } returns mockk()
+        every { mockCheckerRegistry.getFieldCheckerDispatcher(typeName, fieldName) } returns mockk()
 
         val receivedFetcher = testClass.instrumentDataFetcher(
             dataFetcher = mockDataFetcher,

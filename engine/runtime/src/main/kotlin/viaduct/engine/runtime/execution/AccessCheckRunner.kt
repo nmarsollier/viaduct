@@ -5,7 +5,7 @@ import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLOutputType
 import java.util.function.Supplier
-import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.combine
 import viaduct.engine.api.coroutines.CoroutineInterop
@@ -41,7 +41,7 @@ class AccessCheckRunner(
         val localExecutionContext = engineExecutionContext.copy(
             dataFetchingEnvironment = dataFetchingEnvironmentProvider.get()
         )
-        val fieldChecker = localExecutionContext.dispatcherRegistry.getCheckerExecutor(parentTypeName, fieldName)
+        val fieldChecker = localExecutionContext.dispatcherRegistry.getFieldCheckerDispatcher(parentTypeName, fieldName)
             ?: return Value.nullValue // No access check for this field, return immediately
 
         // We're fetching an individual field; the current engine result will always be an ObjectEngineResult
@@ -61,7 +61,7 @@ class AccessCheckRunner(
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
 
         val typeName = objectEngineResult.graphQLObjectType.name
-        val typeChecker = engineExecutionContext.dispatcherRegistry.getTypeCheckerExecutor(typeName)
+        val typeChecker = engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(typeName)
         if (typeChecker == null) {
             // No access check for this field, return immediately
             return Value.nullValue
@@ -72,13 +72,13 @@ class AccessCheckRunner(
     }
 
     private fun executeChecker(
-        checker: CheckerExecutor,
+        dispatcher: CheckerDispatcher,
         engineExecutionContext: EngineExecutionContextImpl,
         objectEngineResult: ObjectEngineResultImpl,
         arguments: Map<String, Any?>,
     ): Value<out CheckerResult?> {
         val deferred = coroutineInterop.scopedAsync {
-            val rssMap = checker.requiredSelectionSets
+            val rssMap = dispatcher.requiredSelectionSets
             val proxyEODMap = rssMap.mapValues { (_, rss) ->
                 val selectionSet = rss?.let {
                     engineExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, emptyMap())
@@ -90,7 +90,7 @@ class AccessCheckRunner(
                     applyAccessChecks = false
                 )
             }
-            checker.execute(
+            dispatcher.execute(
                 arguments,
                 proxyEODMap,
                 engineExecutionContext
@@ -114,7 +114,7 @@ class AccessCheckRunner(
     ): Value<out CheckerResult?> {
         // Exit early if there is definitely no type check
         if (fieldType !is GraphQLCompositeType ||
-            (fieldType is GraphQLObjectType && engineExecutionContext.dispatcherRegistry.getTypeCheckerExecutor(fieldType.name) == null)
+            (fieldType is GraphQLObjectType && engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(fieldType.name) == null)
         ) {
             return fieldCheckerResultValue
         }

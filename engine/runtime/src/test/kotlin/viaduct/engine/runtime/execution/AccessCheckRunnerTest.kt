@@ -19,6 +19,7 @@ import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextImpl
@@ -138,7 +139,7 @@ class AccessCheckRunnerTest {
                     emptyMap(),
                     null
                 )
-                val typeChecks = mapOf("Foo" to errorCheckerExecutor)
+                val typeChecks = mapOf("Foo" to CheckerDispatcherImpl(errorCheckerExecutor))
                 val result = runner.combineWithTypeCheck(
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
@@ -164,7 +165,7 @@ class AccessCheckRunnerTest {
                     emptyMap(),
                     null
                 )
-                val typeChecks = mapOf("Foo" to errorCheckerExecutor)
+                val typeChecks = mapOf("Foo" to CheckerDispatcherImpl(errorCheckerExecutor))
                 val result = runner.combineWithTypeCheck(
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
@@ -181,8 +182,8 @@ class AccessCheckRunnerTest {
         isEnabled: Boolean,
         checker: CheckerExecutor? = null
     ): Value<out CheckerResult?> {
-        val checkerExecutors = if (checker != null) mapOf("Foo" to checker) else emptyMap()
-        val registry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), checkerExecutors)
+        val checkerDispatchers = if (checker != null) mapOf("Foo" to CheckerDispatcherImpl(checker)) else emptyMap()
+        val registry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), checkerDispatchers)
         val engineExecutionContext = mockk<EngineExecutionContextImpl> {
             every { dispatcherRegistry } returns registry
             every { rawSelectionSetFactory.rawSelectionSet(any(), any()) } returns RawSelectionSet.empty("Foo")
@@ -201,8 +202,8 @@ class AccessCheckRunnerTest {
         checker: CheckerExecutor? = null
     ): Value<out CheckerResult?> {
         val exec = AccessCheckRunner(DefaultCoroutineInterop)
-        val checkerExecutors = if (checker != null) mapOf("Foo" to "bar" to checker) else emptyMap()
-        val registry = DispatcherRegistry(emptyMap(), emptyMap(), checkerExecutors, emptyMap())
+        val checkerDispatchers = if (checker != null) mapOf("Foo" to "bar" to CheckerDispatcherImpl(checker)) else emptyMap()
+        val registry = DispatcherRegistry(emptyMap(), emptyMap(), checkerDispatchers, emptyMap())
         val context = ContextMocks(
             myEngineExecutionContext = mockk<EngineExecutionContextImpl> {
                 every { dispatcherRegistry } returns registry

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
@@ -36,7 +36,7 @@ class NodeEngineObjectDataImplTest {
     private lateinit var nodeResolver: NodeResolverDispatcher
     private lateinit var nodeReference: NodeEngineObjectDataImpl
     private lateinit var engineObjectData: EngineObjectData
-    private lateinit var nodeChecker: CheckerExecutor
+    private lateinit var nodeChecker: CheckerDispatcher
 
     @BeforeEach
     fun setUp() {
@@ -48,7 +48,7 @@ class NodeEngineObjectDataImplTest {
             myFlagManager = MockFlagManager()
         ).engineExecutionContext
         nodeResolver = mockk<NodeResolverDispatcher>()
-        nodeChecker = mockk<CheckerExecutor>()
+        nodeChecker = mockk<CheckerDispatcher>()
         engineObjectData = mockk<EngineObjectData>()
         nodeReference = NodeEngineObjectDataImpl("testID", testType, dispatcherRegistry, dispatcherRegistry)
     }
@@ -65,7 +65,7 @@ class NodeEngineObjectDataImplTest {
             every { dispatcherRegistry.getNodeResolverDispatcher("TestType") }.returns(nodeResolver)
             coEvery { nodeResolver.resolve("testID", selections, context) }.returns(engineObjectData)
             coEvery { engineObjectData.fetch("name") }.returns("testName")
-            every { dispatcherRegistry.getTypeCheckerExecutor("TestType") }.returns(null)
+            every { dispatcherRegistry.getTypeCheckerDispatcher("TestType") }.returns(null)
 
             nodeReference.resolveData(selections, context)
 
@@ -78,7 +78,7 @@ class NodeEngineObjectDataImplTest {
             every { dispatcherRegistry.getNodeResolverDispatcher("TestType") }.returns(nodeResolver)
             coEvery { nodeResolver.resolve("testID", selections, context) }.returns(engineObjectData)
             coEvery { engineObjectData.fetch("name") }.returns("testName")
-            every { dispatcherRegistry.getTypeCheckerExecutor("TestType") }.returns(nodeChecker)
+            every { dispatcherRegistry.getTypeCheckerDispatcher("TestType") }.returns(nodeChecker)
             coEvery { nodeChecker.execute(any(), any(), any()) }.returns(CheckerResult.Success)
 
             nodeReference.resolveData(selections, context)
@@ -106,7 +106,7 @@ class NodeEngineObjectDataImplTest {
             every { dispatcherRegistry.getNodeResolverDispatcher("TestType") }.returns(nodeResolver)
             coEvery { nodeResolver.resolve("testID", selections, context) }.returns(engineObjectData)
             coEvery { engineObjectData.fetch("name") }.returns("testName")
-            every { dispatcherRegistry.getTypeCheckerExecutor("TestType") }.returns(nodeChecker)
+            every { dispatcherRegistry.getTypeCheckerDispatcher("TestType") }.returns(nodeChecker)
             coEvery { nodeChecker.execute(any(), any(), any()) }.returns(MockCheckerErrorResult(RuntimeException("test")))
 
             assertThrows<RuntimeException> {

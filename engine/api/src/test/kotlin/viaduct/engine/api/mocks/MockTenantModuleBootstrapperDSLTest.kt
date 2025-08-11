@@ -123,10 +123,10 @@ class MockTenantModuleBootstrapperDSLTest {
 
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
         runBlockingTest {
-            val result1 = reg.getCheckerExecutor("TestType", "aField")!!.execute(emptyArgs, emptyObjectMap, ctx)
+            val result1 = reg.getFieldCheckerDispatcher("TestType", "aField")!!.execute(emptyArgs, emptyObjectMap, ctx)
             assertEquals(CheckerResult.Success, result1)
 
-            val result2 = reg.getCheckerExecutor("TestType", "cField")!!.execute(emptyArgs, emptyObjectMap, ctx)
+            val result2 = reg.getFieldCheckerDispatcher("TestType", "cField")!!.execute(emptyArgs, emptyObjectMap, ctx)
             assertEquals(true, result2 is CheckerResult.Error)
             assertEquals(true, (result2 as CheckerResult.Error).error is SecurityException)
         }
@@ -383,7 +383,7 @@ class MockTenantModuleBootstrapperDSLTest {
             assertEquals("test-id", result.fetch("id"))
 
             // Execute the checker and verify it works
-            val checkerResult = reg.getTypeCheckerExecutor("TestNode")!!.execute(emptyArgs, emptyObjectMap, ctx)
+            val checkerResult = reg.getTypeCheckerDispatcher("TestNode")!!.execute(emptyArgs, emptyObjectMap, ctx)
             assertEquals(CheckerResult.Success, checkerResult)
         }
     }

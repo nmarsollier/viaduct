@@ -48,7 +48,7 @@ class NodeEngineObjectDataImpl(
                 ?: throw IllegalStateException("No node resolver found for type ${graphQLObjectType.name}")
 
             if (!(context as EngineExecutionContextImpl).executeAccessChecksInModstrat) {
-                val nodeChecker = checkerRegistry.getTypeCheckerExecutor(graphQLObjectType.name)
+                val nodeChecker = checkerRegistry.getTypeCheckerDispatcher(graphQLObjectType.name)
                 if (nodeChecker == null) {
                     resolvedEngineObjectData = nodeResolver.resolve(id, selections, context)
                     resolving.complete(Unit)

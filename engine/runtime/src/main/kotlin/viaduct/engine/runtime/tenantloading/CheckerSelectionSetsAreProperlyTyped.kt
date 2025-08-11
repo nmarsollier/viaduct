@@ -17,7 +17,7 @@ class CheckerSelectionSetsAreProperlyTyped(
             val objectName = coord.first
             val mismatches = mutableSetOf<String>()
 
-            for (rss in executor.requiredSelectionSets.values) {
+            for (rss in ctx.requiredSelectionSets.values) {
                 val rssName = rss?.selections?.typeName
                 if (objectName != rssName && rssName != null) mismatches.add(rssName)
             }

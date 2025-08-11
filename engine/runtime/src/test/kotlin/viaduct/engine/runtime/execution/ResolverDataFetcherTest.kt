@@ -33,6 +33,7 @@ import viaduct.engine.api.mocks.FieldUnbatchedResolverFn
 import viaduct.engine.api.mocks.MockCheckerExecutor
 import viaduct.engine.api.mocks.MockFieldUnbatchedResolverExecutor
 import viaduct.engine.api.select.SelectionsParser
+import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
@@ -101,6 +102,7 @@ class ResolverDataFetcherTest {
             queryValue = objectValue,
             selections = null
         )
+        val checkerDispatcher = if (checkerExecutor == null) null else CheckerDispatcherImpl(checkerExecutor)
         val executor = if (resolveWithException) {
             TestFieldUnbatchedResolverExecutor(
                 objectSelectionSet = requiredSelectionSet,
@@ -122,7 +124,7 @@ class ResolverDataFetcherTest {
             typeName = testType,
             fieldName = testField,
             fieldResolverDispatcher = FieldResolverDispatcherImpl(executor),
-            checkerExecutor = checkerExecutor,
+            checkerDispatcher = checkerDispatcher,
             fragmentLoader = fragmentLoader,
             flagManager = flagManager,
             tenantNameResolver = TenantNameResolver(),
