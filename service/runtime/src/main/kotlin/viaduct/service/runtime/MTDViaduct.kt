@@ -4,12 +4,12 @@ package viaduct.service.runtime
 
 import graphql.ExecutionResult
 import graphql.GraphQL
-import graphql.schema.GraphQLSchema
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.Viaduct
 import viaduct.service.api.airbnb.AirbnbViaduct
@@ -45,7 +45,7 @@ open class MTDViaduct : Viaduct, AirbnbViaduct {
     override fun getAppliedScopes(schemaId: String): Set<String>? = getCurrentViaduct().getAppliedScopes(schemaId)
 
     /** Return the graphql-java engine that powers a given schema. */
-    override fun getEngine(schemaId: String): GraphQL? = getCurrentViaduct().graphqlSchemaRegistry.getEngine(schemaId)
+    override fun getEngine(schemaId: String): GraphQL? = getCurrentViaduct().viaductSchemaRegistry.getEngine(schemaId)
 
     override fun mkEngineExecutionContext() = getCurrentViaduct().mkEngineExecutionContext()
 
@@ -117,7 +117,7 @@ open class MTDViaduct : Viaduct, AirbnbViaduct {
 
     @Suppress("DEPRECATION")
     @Deprecated("Will be either private/or somewhere not exposed")
-    override fun getSchema(schemaId: String): GraphQLSchema? = getCurrentViaduct().getSchema(schemaId)
+    override fun getSchema(schemaId: String): ViaductSchema? = getCurrentViaduct().getSchema(schemaId)
 
     private fun isInitialized(): Boolean = versionsRef.get().first != null
 }

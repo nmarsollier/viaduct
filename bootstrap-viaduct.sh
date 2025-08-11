@@ -120,8 +120,8 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import viaduct.engine.runtime.execution.withThreadLocalCoroutineContext
 import viaduct.service.api.ExecutionInput
-import viaduct.service.runtime.SchemaRegistryBuilder
 import viaduct.service.runtime.StandardViaduct
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
@@ -140,7 +140,7 @@ fun main(argv: Array<String>) {
                 .tenantPackagePrefix("com.example.viadapp")
         )
         .withSchemaRegistryBuilder(
-            SchemaRegistryBuilder()
+            ViaductSchemaRegistryBuilder()
                 .withFullSchemaFromResources("", ".*graphqls")
                 .registerFullSchema(SCHEMA_ID)
         ).build()

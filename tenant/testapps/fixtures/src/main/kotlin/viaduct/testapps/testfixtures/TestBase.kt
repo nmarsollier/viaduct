@@ -2,7 +2,7 @@ package viaduct.testapps.testfixtures
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.BeforeEach
-import viaduct.service.runtime.SchemaRegistryBuilder
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
 import viaduct.testapps.fixtures.ScopedSchemaInfo
 import viaduct.testapps.fixtures.ViaductModernTestApplication
@@ -24,7 +24,7 @@ abstract class TestBase(
     private val scopeSchemaInfo: Set<ScopedSchemaInfo> = setOf(ScopedSchemaInfo("schemaId", setOf())),
     private val fullSchemaRegex: String? = null,
     private val tenantPackageFinder: TenantPackageFinder,
-    private val customSchemaRegistration: ((builder: SchemaRegistryBuilder) -> Unit)? = null
+    private val customSchemaRegistration: ((builder: ViaductSchemaRegistryBuilder) -> Unit)? = null
 ) {
     private lateinit var testApp: ViaductModernTestApplication
 

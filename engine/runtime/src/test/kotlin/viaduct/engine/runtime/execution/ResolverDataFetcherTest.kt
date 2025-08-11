@@ -4,7 +4,6 @@ import com.airbnb.viaduct.errors.ViaductPermissionDeniedException
 import graphql.execution.ExecutionStepInfo
 import graphql.language.OperationDefinition
 import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLSchema
 import io.mockk.every
 import io.mockk.mockk
 import java.util.concurrent.CompletionException
@@ -26,6 +25,7 @@ import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.VariablesResolver
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.derived.DerivedFieldQueryMetadata
 import viaduct.engine.api.fragment.Fragment
 import viaduct.engine.api.fragment.FragmentFieldEngineResolutionResult
@@ -72,7 +72,7 @@ class ResolverDataFetcherTest {
         val testType: String = "TestType",
         val testField: String = "testField"
     ) {
-        val schema: GraphQLSchema = mkSchema(
+        val schema: ViaductSchema = mkSchema(
             """
             type Query { placeholder: Int }
             type $testType {
@@ -87,9 +87,9 @@ class ResolverDataFetcherTest {
             type Baz { x: Int }
             """.trimIndent()
         )
-        val testTypeObject = schema.getObjectType(testType)
+        val testTypeObject = schema.schema.getObjectType(testType)
         val executionStepInfo = ExecutionStepInfo.newExecutionStepInfo()
-            .type(schema.getTypeAs("String"))
+            .type(schema.schema.getTypeAs("String"))
             .fieldContainer(testTypeObject)
             .build()
         var resolverRan = false
@@ -131,9 +131,9 @@ class ResolverDataFetcherTest {
         val dataFetchingEnvironment: DataFetchingEnvironment = mockk()
         val operationDefinition: OperationDefinition = mockk()
         val engineResultLocalContext = EngineResultLocalContext(
-            rootEngineResult = ObjectEngineResultImpl.newForType(schema.queryType),
+            rootEngineResult = ObjectEngineResultImpl.newForType(schema.schema.queryType),
             parentEngineResult = ObjectEngineResultImpl.newForType(testTypeObject),
-            queryEngineResult = ObjectEngineResultImpl.newForType(schema.queryType),
+            queryEngineResult = ObjectEngineResultImpl.newForType(schema.schema.queryType),
             executionStrategyParams = mockk(),
             executionContext = mockk()
         )
@@ -143,7 +143,7 @@ class ResolverDataFetcherTest {
         ).engineExecutionContextImpl
 
         init {
-            every { dataFetchingEnvironment.graphQLSchema } returns schema
+            every { dataFetchingEnvironment.graphQLSchema } returns schema.schema
             every { dataFetchingEnvironment.arguments } returns mapOf("arg1" to "param1")
             every { dataFetchingEnvironment.fieldDefinition } returns testTypeObject.getField(testField)
             every { dataFetchingEnvironment.executionStepInfo } returns executionStepInfo

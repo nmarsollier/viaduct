@@ -19,7 +19,7 @@ class VariablesResolverTest {
     private val engineCtx = mockk<EngineExecutionContext>()
     private val schema = MockSchema.mk("type Query { a:Int, b:Int }")
     private val objectData = MockEngineObjectData.wrap(
-        schema.queryType,
+        schema.schema.queryType,
         mapOf("a" to 1, "b" to 2)
     )
 

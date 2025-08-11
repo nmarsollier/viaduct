@@ -17,7 +17,6 @@ import viaduct.api.mocks.MockInternalContext
 import viaduct.api.select.SelectionSet
 import viaduct.api.types.Query as QueryType
 import viaduct.engine.api.EngineExecutionContext
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.mkRawSelectionSetFactory
 import viaduct.engine.api.mocks.variables
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
@@ -32,10 +31,10 @@ import viaduct.tenant.runtime.select.SelectionSetImpl
 class NodeExecutionContextImplTest {
     private val userId = GlobalIDImpl(User.Reflection, "123")
     private val queryObject = mockk<Query>()
-    private val rawSelectionSetFactory = mkRawSelectionSetFactory(ViaductSchema(GlobalIdFeatureAppTest.schema))
+    private val rawSelectionSetFactory = mkRawSelectionSetFactory(GlobalIdFeatureAppTest.schema)
 
     private val engineExecutionContext = mockk<EngineExecutionContext> {
-        every { fullSchema } returns ViaductSchema(GlobalIdFeatureAppTest.schema)
+        every { fullSchema } returns GlobalIdFeatureAppTest.schema
         every { createNodeEngineObjectData(any(), any()) } returns mockk {
             every { graphQLObjectType } returns mockk()
         }

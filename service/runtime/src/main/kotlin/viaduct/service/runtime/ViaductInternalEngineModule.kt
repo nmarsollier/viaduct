@@ -18,7 +18,7 @@ import viaduct.service.api.spi.FlagManager
  * These modules are the ones needed the inject Viaduct, and get it by the injector that is created from this module.
  */
 internal class ViaductInternalEngineModule(
-    val schemaRegistry: GraphQLSchemaRegistry,
+    val schemaRegistry: ViaductSchemaRegistry,
     val flagManager: FlagManager?,
     val dataFetcherExceptionHandler: DataFetcherExceptionHandler?,
     val coroutineInterop: CoroutineInterop,
@@ -54,5 +54,5 @@ internal class ViaductInternalEngineModule(
 
     @Provides
     @Singleton
-    fun providesSchemaRegistry(): GraphQLSchemaRegistry = schemaRegistry
+    fun providesSchemaRegistry(): ViaductSchemaRegistry = schemaRegistry
 }

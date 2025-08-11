@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleException
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockCheckerExecutor
 import viaduct.engine.api.mocks.MockCheckerExecutorFactory
 import viaduct.engine.api.mocks.MockFieldBatchResolverExecutor
@@ -59,7 +58,7 @@ class DispatcherRegistryTest {
         )
     }
 
-    private fun createDispatcherRegistry() = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerExecutorFactory).create(ViaductSchema(Samples.testSchema))
+    private fun createDispatcherRegistry() = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerExecutorFactory).create(Samples.testSchema)
 
     @Test
     fun `test successful injection of dispatcher`() =
@@ -68,7 +67,7 @@ class DispatcherRegistryTest {
             // We have 6 resolvers: aField, bIntField, parameterizedField, cField, dField, batchField
             assertEquals(6, dispatcherRegistry.get().count())
 
-            val objectType = Samples.testSchema.getObjectType("TestType")
+            val objectType = Samples.testSchema.schema.getObjectType("TestType")
             assertEquals("TestType", objectType.name)
 
             val resolverDispatcher = dispatcherRegistry.getFieldResolverDispatcher("TestType", "aField")
@@ -173,7 +172,7 @@ class DispatcherRegistryTest {
     fun `invokes validator`() {
         val bootstrapper = MockTenantAPIBootstrapper(emptyList())
         MockValidator().let { validator ->
-            val wiring = DispatcherRegistryFactory(bootstrapper, validator, MockCheckerExecutorFactory()).create(ViaductSchema(Samples.testSchema))
+            val wiring = DispatcherRegistryFactory(bootstrapper, validator, MockCheckerExecutorFactory()).create(Samples.testSchema)
             assertSame(wiring, validator.arg)
         }
     }
@@ -212,7 +211,7 @@ class DispatcherRegistryTest {
 
         val bootstrapper = MockTenantAPIBootstrapper(listOf(emptyModule, moduleWithResolvers))
         val wiring = MockValidator().let {
-            DispatcherRegistryFactory(bootstrapper, it, MockCheckerExecutorFactory()).create(ViaductSchema(Samples.testSchema))
+            DispatcherRegistryFactory(bootstrapper, it, MockCheckerExecutorFactory()).create(Samples.testSchema)
         }
         assertEquals(5, wiring.fieldResolverDispatchers.size)
     }
@@ -235,7 +234,7 @@ class DispatcherRegistryTest {
                 MockTenantAPIBootstrapper(listOf(MockTenantModuleBootstrapper(Samples.testSchema))),
                 Validator.Unvalidated,
                 checkerExecutorFactory
-            ).create(ViaductSchema(Samples.testSchema))
+            ).create(Samples.testSchema)
         }
         assertTrue(exception.message!!.startsWith("Refusing to create an empty executor registry for [viaduct.tenant.runtime.bootstrap.ViaductTenantModuleBootstrapper"))
     }
@@ -247,7 +246,7 @@ class DispatcherRegistryTest {
             assertEquals(1, tenantModuleBootstrappers.size)
 
             val tenantModuleBootstrapper = tenantModuleBootstrappers[0]
-            val fieldResolverExecutors = tenantModuleBootstrapper.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toMap()
+            val fieldResolverExecutors = tenantModuleBootstrapper.fieldResolverExecutors(Samples.testSchema).toMap()
             val nodeResolverExecutors = tenantModuleBootstrapper.nodeResolverExecutors().toMap()
 
             assertEquals(6, fieldResolverExecutors.size)

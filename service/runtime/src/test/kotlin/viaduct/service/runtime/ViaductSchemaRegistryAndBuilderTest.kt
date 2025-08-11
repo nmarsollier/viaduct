@@ -1,6 +1,5 @@
 package viaduct.service.runtime
 
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.UnExecutableSchemaGenerator
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -8,28 +7,31 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.mkCoroutineInterop
 import viaduct.engine.api.mocks.mkExecutionStrategy
 import viaduct.engine.api.mocks.mkInstrumentation
 
-class GraphQLSchemaRegistryAndBuilderTest {
+class ViaductSchemaRegistryAndBuilderTest {
     private val mockCoroutineInterop = mkCoroutineInterop()
     private val mockExecutionStrategy = mkExecutionStrategy()
     private val mockInstrumentation = mkInstrumentation()
 
     fun checkResults(
-        registry: GraphQLSchemaRegistry,
+        registry: ViaductSchemaRegistry,
         schemaId: String
-    ): GraphQLSchema {
+    ): ViaductSchema {
         val actualSchema = registry.getSchema(schemaId)
         assertNotNull(actualSchema)
-        assertEquals("Query", actualSchema?.queryType?.name)
+        assertEquals("Query", actualSchema?.schema?.queryType?.name)
 
         val engine = registry.getEngine(schemaId)
-        assertEquals(actualSchema, engine?.graphQLSchema)
+        assertNotNull(engine?.graphQLSchema)
+        assertEquals(actualSchema, ViaductSchema(requireNotNull(engine?.graphQLSchema)))
 
         val actualEngine = registry.getEngine(schemaId)
-        assertEquals(actualSchema, actualEngine?.graphQLSchema)
+        assertNotNull(actualEngine?.graphQLSchema)
+        assertEquals(actualSchema, ViaductSchema(requireNotNull(actualEngine?.graphQLSchema)))
 
         return actualSchema!!
     }
@@ -42,7 +44,7 @@ class GraphQLSchemaRegistryAndBuilderTest {
             }
         """.trimIndent()
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(validSchema)
             .registerFullSchema("testSchema")
 
@@ -66,7 +68,7 @@ class GraphQLSchemaRegistryAndBuilderTest {
             }
         """.trimIndent()
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(fullSchema)
             .registerScopedSchema("publicSchema", setOf("public"))
 
@@ -74,8 +76,8 @@ class GraphQLSchemaRegistryAndBuilderTest {
         registry.registerSchema(mockInstrumentation, mockExecutionStrategy, mockExecutionStrategy, mockExecutionStrategy)
 
         val actualSchema = checkResults(registry, "publicSchema")
-        assertNotNull(actualSchema.queryType!!.getField("hello"))
-        assertNull(actualSchema.queryType!!.getField("privateField"))
+        assertNotNull(actualSchema.schema.queryType!!.getField("hello"))
+        assertNull(actualSchema.schema.queryType!!.getField("privateField"))
         assertNotEquals(registry.getFullSchema(), actualSchema)
     }
 
@@ -93,7 +95,7 @@ class GraphQLSchemaRegistryAndBuilderTest {
             makeTestSchema(fullSchema)
         }
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(fullSchema)
             .registerSchema("asyncSchema", schemaComputeBlock, lazy = true)
 
@@ -122,7 +124,7 @@ class GraphQLSchemaRegistryAndBuilderTest {
             makeTestSchema(fullSchema)
         }
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(fullSchema)
             .registerSchema("asyncSchema", schemaComputeBlock, lazy = false)
 
@@ -140,7 +142,7 @@ class GraphQLSchemaRegistryAndBuilderTest {
     fun `test withFullSchema with predefined schema`() {
         val predefinedSchema = makeTestSchema()
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchema(predefinedSchema)
             .registerFullSchema("testSchema")
 
@@ -173,16 +175,18 @@ class GraphQLSchemaRegistryAndBuilderTest {
     }
 }
 
-internal fun makeTestSchema(sdl: String): GraphQLSchema = UnExecutableSchemaGenerator.makeUnExecutableSchema(SchemaParser().parse(sdl))
+internal fun makeTestSchema(sdl: String): ViaductSchema = ViaductSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(SchemaParser().parse(sdl)))
 
-internal fun makeTestSchema(): GraphQLSchema {
-    return UnExecutableSchemaGenerator.makeUnExecutableSchema(
-        SchemaParser().parse(
-            """
+internal fun makeTestSchema(): ViaductSchema {
+    return ViaductSchema(
+        UnExecutableSchemaGenerator.makeUnExecutableSchema(
+            SchemaParser().parse(
+                """
                     type Query {
                         hello: String
                     }
-            """.trimIndent()
+                """.trimIndent()
+            )
         )
     )
 }

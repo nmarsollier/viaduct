@@ -22,7 +22,7 @@ class ObjectStubTest {
         MockSchema.mk(sdl).let { schema ->
             ObjectStub(
                 MockInternalContext(schema),
-                MockEngineObjectData(schema.getObjectType(type), values.toMap())
+                MockEngineObjectData(schema.schema.getObjectType(type), values.toMap())
             )
         }
 

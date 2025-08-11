@@ -1,9 +1,9 @@
 package viaduct.api.internal
 
-import graphql.schema.GraphQLSchema
 import viaduct.api.ViaductFrameworkException
 import viaduct.api.context.ExecutionContext
 import viaduct.api.globalid.GlobalIDCodec
+import viaduct.engine.api.ViaductSchema
 
 /**
  * InternalContext encapsulates contextual dependencies of the viaduct runtime that
@@ -14,8 +14,8 @@ import viaduct.api.globalid.GlobalIDCodec
  * to an InternalContext.
  */
 interface InternalContext {
-    /** the GraphQL schema that underpins GRTs */
-    val schema: GraphQLSchema
+    /** the Viaduct schema that underpins GRTs */
+    val schema: ViaductSchema
 
     /**
      * A codec that is used to translate between [viaduct.api.globalid.GlobalID] tenant-space

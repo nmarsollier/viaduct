@@ -21,7 +21,7 @@ class VariablesProviderExecutor(
 
     override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> {
         val provider = variablesProvider.provider.get()
-        val internalContext = InternalContextImpl(ctx.engineExecutionContext.fullSchema.schema, globalIDCodec, reflectionLoader)
+        val internalContext = InternalContextImpl(ctx.engineExecutionContext.fullSchema, globalIDCodec, reflectionLoader)
         val args = ArgumentsArgs(internalContext, ctx.arguments)
         @Suppress("UNCHECKED_CAST")
         return (provider as VariablesProvider<Arguments>).provide(argumentsFactory(args))

@@ -3,6 +3,7 @@ package viaduct.service.api
 import graphql.ExecutionResult
 import graphql.schema.GraphQLSchema
 import java.util.concurrent.CompletableFuture
+import viaduct.engine.api.ViaductSchema
 
 /**
  * A unified interface for configuring and executing queries against the Viaduct runtime
@@ -42,5 +43,5 @@ interface Viaduct {
      * @return GraphQLSchema instance of the registered scope
      */
     @Deprecated("Will be either private/or somewhere not exposed")
-    fun getSchema(schemaId: String): GraphQLSchema?
+    fun getSchema(schemaId: String): ViaductSchema?
 }

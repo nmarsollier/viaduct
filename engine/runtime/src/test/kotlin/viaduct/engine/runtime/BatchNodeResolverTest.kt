@@ -36,7 +36,7 @@ class BatchNodeResolverTest {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx ->
-                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                        ctx.createNodeEngineObjectData("1", schema.schema.getObjectType("Baz"))
                     }
                 }
             }
@@ -66,7 +66,7 @@ class BatchNodeResolverTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         (1..3).map { i ->
-                            ctx.createNodeEngineObjectData(i.toString(), schema.getObjectType("Baz"))
+                            ctx.createNodeEngineObjectData(i.toString(), schema.schema.getObjectType("Baz"))
                         }
                     }
                 }
@@ -99,7 +99,7 @@ class BatchNodeResolverTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         (1..3).map { i ->
-                            ctx.createNodeEngineObjectData(i.toString(), schema.getObjectType("Baz"))
+                            ctx.createNodeEngineObjectData(i.toString(), schema.schema.getObjectType("Baz"))
                         }
                     }
                 }
@@ -129,7 +129,7 @@ class BatchNodeResolverTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         (1..3).map { i ->
-                            ctx.createNodeEngineObjectData(i.toString(), schema.getObjectType("Baz"))
+                            ctx.createNodeEngineObjectData(i.toString(), schema.schema.getObjectType("Baz"))
                         }
                     }
                 }
@@ -169,7 +169,7 @@ class BatchNodeResolverTest {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx ->
-                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                        ctx.createNodeEngineObjectData("1", schema.schema.getObjectType("Baz"))
                     }
                 }
             }
@@ -179,7 +179,7 @@ class BatchNodeResolverTest {
                     fn { _, objectValue, _, _, ctx ->
                         // Make this wait for the first Baz node resolver to be dispatched
                         objectValue.fetch("x")
-                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                        ctx.createNodeEngineObjectData("1", schema.schema.getObjectType("Baz"))
                     }
                 }
             }
@@ -212,7 +212,7 @@ class BatchNodeResolverTest {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx ->
-                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                        ctx.createNodeEngineObjectData("1", schema.schema.getObjectType("Baz"))
                     }
                 }
             }
@@ -222,7 +222,7 @@ class BatchNodeResolverTest {
                     fn { _, objectValue, _, _, ctx ->
                         // Make this wait for the first Baz node resolver to be dispatched
                         objectValue.fetch("x")
-                        ctx.createNodeEngineObjectData("1", schema.getObjectType("Baz"))
+                        ctx.createNodeEngineObjectData("1", schema.schema.getObjectType("Baz"))
                     }
                 }
             }

@@ -35,7 +35,7 @@ class NodeBatchResolverExecutorImpl(
         val contexts = selectors.map { key ->
             factory.make(
                 NodeArgs(
-                    InternalContextImpl(context.fullSchema.schema, globalIDCodec, reflectionLoader),
+                    InternalContextImpl(context.fullSchema, globalIDCodec, reflectionLoader),
                     selections = key.selections,
                     globalID = key.id,
                     selectionsLoaderFactory = SelectionsLoaderImpl.Factory(context.rawSelectionsLoaderFactory),

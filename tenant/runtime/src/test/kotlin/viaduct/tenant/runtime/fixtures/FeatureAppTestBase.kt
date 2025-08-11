@@ -13,8 +13,8 @@ import viaduct.api.reflect.Type
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
-import viaduct.service.runtime.SchemaRegistryBuilder
 import viaduct.service.runtime.StandardViaduct
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.GuiceTenantCodeInjector
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinderFactory
@@ -96,21 +96,21 @@ abstract class FeatureAppTestBase {
             .tenantPackagePrefix(derivedClassPackagePrefix)
 
     private lateinit var viaductBuilder: StandardViaduct.Builder
-    private lateinit var schemaRegistryBuilder: SchemaRegistryBuilder
+    private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
     private lateinit var viaductService: StandardViaduct
 
     fun withViaductBuilder(builderUpdate: StandardViaduct.Builder.() -> Unit) {
         viaductBuilder.apply(builderUpdate)
     }
 
-    fun withSchemaRegistryBuilder(builderUpdate: SchemaRegistryBuilder.() -> Unit) {
-        schemaRegistryBuilder.apply(builderUpdate)
+    fun withSchemaRegistryBuilder(builderUpdate: ViaductSchemaRegistryBuilder.() -> Unit) {
+        viaductSchemaRegistryBuilder.apply(builderUpdate)
     }
 
     @BeforeEach
     fun initViaductBuilder() {
-        if (!::schemaRegistryBuilder.isInitialized) {
-            schemaRegistryBuilder = SchemaRegistryBuilder()
+        if (!::viaductSchemaRegistryBuilder.isInitialized) {
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
                 .withFullSchemaFromSdl(sdl, customScalars)
                 .registerFullSchema(DEFAULT_SCOPE_ID)
         }
@@ -118,7 +118,7 @@ abstract class FeatureAppTestBase {
             viaductBuilder = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withTenantAPIBootstrapperBuilder(viaductTenantAPIBootstrapperBuilder)
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
         }
     }
 

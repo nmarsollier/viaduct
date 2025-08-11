@@ -14,8 +14,8 @@ import viaduct.service.api.Viaduct
 import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
 import viaduct.service.runtime.MTDViaduct
-import viaduct.service.runtime.SchemaRegistryBuilder
 import viaduct.service.runtime.StandardViaduct
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
@@ -36,13 +36,13 @@ class ViaductModernTestApplication(
     scopedSchemaInfo: Set<ScopedSchemaInfo>,
     fullSchemaRegex: String? = null,
     private val tenantPackageFinder: TenantPackageFinder,
-    customSchemaRegistration: ((builder: SchemaRegistryBuilder) -> Unit)? = null
+    customSchemaRegistration: ((builder: ViaductSchemaRegistryBuilder) -> Unit)? = null
 ) {
     private val flagManager = MockFlagManager(Flags.useModernExecutionStrategyFlags + Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY)
 
     private fun commonTenantPrefix() = tenantPackageFinder.tenantPackages().reduce { p, tenant -> p.commonPrefixWith(tenant) }
 
-    private val schemaRegistryBuilder = SchemaRegistryBuilder().apply {
+    private val viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().apply {
         if (customSchemaRegistration != null) {
             customSchemaRegistration(this)
         } else {
@@ -58,7 +58,7 @@ class ViaductModernTestApplication(
         .withFlagManager(flagManager)
         .withTenantAPIBootstrapperBuilder(ViaductTenantAPIBootstrapper.Builder().tenantPackageFinder(tenantPackageFinder))
         .withCheckerExecutorFactoryCreator { schema -> TestAppCheckerExecutorFactoryImpl(schema) }
-        .withSchemaRegistryBuilder(schemaRegistryBuilder)
+        .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
         .build()
 
     private val injector = Guice.createInjector(object : AbstractModule() {
@@ -100,13 +100,13 @@ class ViaductModernTestApplication(
         scopedSchemaInfo: Set<ScopedSchemaInfo>,
         fullSchemaRegex: String,
     ) {
-        val nextSchemaRegistryBuilder = SchemaRegistryBuilder().apply {
+        val nextViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().apply {
             withFullSchemaFromResources(commonTenantPrefix(), fullSchemaRegex)
             scopedSchemaInfo.forEach { (schemaId, scopesIds) ->
                 registerScopedSchema(schemaId, scopesIds)
             }
         }
-        val nextStandardViaduct = standardViaduct.newForSchema(nextSchemaRegistryBuilder)
+        val nextStandardViaduct = standardViaduct.newForSchema(nextViaductSchemaRegistryBuilder)
         mtdViaduct.beginHotSwap(nextStandardViaduct)
     }
 

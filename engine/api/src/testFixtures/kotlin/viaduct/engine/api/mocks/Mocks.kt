@@ -12,7 +12,6 @@ import graphql.schema.GraphQLList
 import graphql.schema.GraphQLNonNull
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLOutputType
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -233,13 +232,13 @@ class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolv
     override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = resolveFn(ctx)
 }
 
-fun mkSchema(sdl: String): GraphQLSchema {
+fun mkSchema(sdl: String): ViaductSchema {
     val tdr = SchemaParser().parse(sdl)
-    return SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING)
+    return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING))
 }
 
 object MockSchema {
-    val minimal: GraphQLSchema = mkSchema("type Query { empty: Int }")
+    val minimal: ViaductSchema = mkSchema("type Query { empty: Int }")
 
     fun mk(sdl: String) = mkSchema(sdl)
 }
@@ -307,7 +306,7 @@ open class MockFieldBatchResolverExecutor(
 }
 
 fun FieldResolverExecutor.invoke(
-    fullSchema: GraphQLSchema,
+    fullSchema: ViaductSchema,
     coord: Coordinate,
     arguments: Map<String, Any?> = emptyMap(),
     objectValue: Map<String, Any?> = emptyMap(),
@@ -317,21 +316,21 @@ fun FieldResolverExecutor.invoke(
 ) = runBlocking(MockNextTickDispatcher()) {
     val selector = FieldResolverExecutor.Selector(
         arguments = arguments,
-        objectValue = MockEngineObjectData(fullSchema.getObjectType(coord.first), objectValue),
-        queryValue = MockEngineObjectData(fullSchema.queryType, queryValue),
+        objectValue = MockEngineObjectData(fullSchema.schema.getObjectType(coord.first), objectValue),
+        queryValue = MockEngineObjectData(fullSchema.schema.queryType, queryValue),
         selections = selections,
     )
     batchResolve(listOf(selector), context).get(selector)?.getOrNull()
 }
 
 fun CheckerExecutor.invoke(
-    fullSchema: GraphQLSchema,
+    fullSchema: ViaductSchema,
     coord: Coordinate,
     arguments: Map<String, Any?> = emptyMap(),
     objectDataMap: Map<String, Map<String, Any?>> = emptyMap(),
     context: EngineExecutionContext = ContextMocks(fullSchema).engineExecutionContext,
 ) = runBlocking(MockNextTickDispatcher()) {
-    val objectType = fullSchema.getObjectType(coord.first)!!
+    val objectType = fullSchema.schema.getObjectType(coord.first)!!
     val objectMap = objectDataMap.mapValues { (_, it) -> MockEngineObjectData(objectType, it) }
     execute(arguments, objectMap, context)
 }
@@ -403,19 +402,17 @@ class MockTenantAPIBootstrapper(
 }
 
 class MockTenantModuleBootstrapper(
-    val schema: GraphQLSchema,
+    val schema: ViaductSchema,
     val fieldResolverExecutors: Iterable<Pair<Coordinate, FieldResolverExecutor>> = emptyList(),
     val nodeResolverExecutors: Iterable<Pair<String, NodeResolverExecutor>> = emptyList(),
     val checkerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
     val typeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
 ) : TenantModuleBootstrapper {
-    val vschema = ViaductSchema(schema)
-
     override fun fieldResolverExecutors(schema: ViaductSchema): Iterable<Pair<Coordinate, FieldResolverExecutor>> = fieldResolverExecutors
 
     override fun nodeResolverExecutors(): Iterable<Pair<String, NodeResolverExecutor>> = nodeResolverExecutors
 
-    fun resolverAt(coord: Coordinate) = fieldResolverExecutors(vschema).first { it.first == coord }.second
+    fun resolverAt(coord: Coordinate) = fieldResolverExecutors(schema).first { it.first == coord }.second
 
     fun checkerAt(coord: Coordinate) = checkerExecutors[coord]
 
@@ -426,7 +423,7 @@ class MockTenantModuleBootstrapper(
         ) = invoke(mkSchema(schemaSDL), block)
 
         operator fun invoke(
-            schema: GraphQLSchema,
+            schema: ViaductSchema,
             block: MockTenantModuleBootstrapperDSL<Unit>.() -> Unit
         ) = MockTenantModuleBootstrapperDSL<Unit>(schema, Unit).apply { block() }.create()
     }
@@ -595,7 +592,7 @@ object Samples {
         type("TestNode") {
             nodeUnbatchedExecutor { id, _, _ ->
                 MockEngineObjectData(
-                    testSchema.getObjectType("TestNode"),
+                    testSchema.schema.getObjectType("TestNode"),
                     mapOf("id" to id)
                 )
             }
@@ -607,7 +604,7 @@ object Samples {
                 selectors.associate { selector ->
                     selector to Result.success(
                         MockEngineObjectData(
-                            testSchema.getObjectType("TestBatchNode"),
+                            testSchema.schema.getObjectType("TestBatchNode"),
                             mapOf("id" to selector.id)
                         )
                     )

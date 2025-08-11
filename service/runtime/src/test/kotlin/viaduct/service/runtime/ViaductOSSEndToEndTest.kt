@@ -13,7 +13,6 @@ import graphql.execution.DataFetcherExceptionHandler
 import graphql.execution.ExecutionStrategy
 import graphql.execution.preparsed.NoOpPreparsedDocumentProvider
 import graphql.language.SourceLocation
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -28,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.CheckerExecutorFactory
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ChainedInstrumentation
 import viaduct.engine.runtime.execution.WrappedCoroutineExecutionStrategy
@@ -49,7 +49,7 @@ import viaduct.utils.invariants.typeInfo
 @ExperimentalCoroutinesApi
 class ViaductOSSEndToEndTest {
     private lateinit var subject: StandardViaduct
-    private lateinit var schemaRegistryBuilder: SchemaRegistryBuilder
+    private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
 
     val flagManager = object : FlagManager {
         override fun isEnabled(flag: Flag) = true
@@ -68,12 +68,12 @@ class ViaductOSSEndToEndTest {
 
     @BeforeEach
     fun setUp() {
-        schemaRegistryBuilder = SchemaRegistryBuilder().withFullSchema(schema).registerScopedSchema("public", setOf("viaduct-public"))
+        viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(schema).registerScopedSchema("public", setOf("viaduct-public"))
         subject = StandardViaduct.Builder()
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
             .withDataFetcherExceptionHandler(mockk())
-            .withSchemaRegistryBuilder(schemaRegistryBuilder)
+            .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
             .build()
     }
 
@@ -148,7 +148,7 @@ class ViaductOSSEndToEndTest {
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
             .withDataFetcherExceptionHandler(mockk())
-            .withSchemaRegistryBuilder(schemaRegistryBuilder)
+            .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
             .build()
 
         val bindingsMap = injector.allBindings.map { (key, value) ->
@@ -178,29 +178,34 @@ class ViaductOSSEndToEndTest {
                 "mutationExecutionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
                 "subscriptionExecutionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
                 // This is to ensure it's not null.
-                "graphqlSchemaRegistry" to ClassTypeInvariant(GraphQLSchemaRegistry::class),
+                "viaductSchemaRegistry" to ClassTypeInvariant(ViaductSchemaRegistry::class),
                 "chainedInstrumentation" to chainedInstrumentationInvariant
             )
         )
 
         viaductInvariant.check(viaduct)
 
-        val graphQLSchemaRegistry = injector.getInstance(GraphQLSchemaRegistry::class.java)
+        val viaductSchemaRegistry = injector.getInstance(ViaductSchemaRegistry::class.java)
 
-        val graphQLSchemaRegistryInvariant = FieldInvariant(
-            GraphQLSchemaRegistry::class,
+        val viaductSchemaRegistryInvariant = FieldInvariant(
+            ViaductSchemaRegistry::class,
             mapOf(
                 "enginesById" to FieldTypeInvariant(
                     Map::class,
                     listOf(
                         FieldInvariant(
-                            typeInfo<Lazy<GraphQL>>(),
+                            typeInfo<Lazy<ViaductSchemaRegistry.GraphQLEngine>>(),
                             mapOf(
-                                "queryStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-                                "mutationStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-                                "subscriptionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-                                "instrumentation" to chainedInstrumentationInvariant,
-                                "preparsedDocumentProvider" to ClassTypeInvariant(NoOpPreparsedDocumentProvider::class),
+                                "graphQL" to FieldInvariant(
+                                    typeInfo<GraphQL>(),
+                                    mapOf(
+                                        "queryStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
+                                        "mutationStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
+                                        "subscriptionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
+                                        "instrumentation" to chainedInstrumentationInvariant,
+                                        "preparsedDocumentProvider" to ClassTypeInvariant(NoOpPreparsedDocumentProvider::class),
+                                    )
+                                )
                             )
                         )
                     )
@@ -208,13 +213,13 @@ class ViaductOSSEndToEndTest {
             )
         )
 
-        graphQLSchemaRegistryInvariant.check(graphQLSchemaRegistry)
+        viaductSchemaRegistryInvariant.check(viaductSchemaRegistry)
 
         // Define the expected properties using FieldInvariant
         val bindingsInvariant = FieldInvariant(
             Map::class,
             mapOf(
-                "GraphQLSchemaRegistry" to ClassTypeInvariant(GraphQLSchemaRegistry::class),
+                "ViaductSchemaRegistry" to ClassTypeInvariant(ViaductSchemaRegistry::class),
                 "FlagManager" to ClassTypeInvariant(FlagManager::class),
                 "DataFetcherExceptionHandler" to ClassTypeInvariant(DataFetcherExceptionHandler::class),
                 "CoroutineInterop" to ClassTypeInvariant(CoroutineInterop::class),
@@ -228,5 +233,5 @@ class ViaductOSSEndToEndTest {
         bindingsInvariant.check(bindingsMap)
     }
 
-    private fun mkSchema(sdl: String): GraphQLSchema = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), wiring)
+    private fun mkSchema(sdl: String): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), wiring))
 }

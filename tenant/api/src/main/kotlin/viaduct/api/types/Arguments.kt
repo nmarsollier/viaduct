@@ -2,7 +2,7 @@ package viaduct.api.types
 
 import graphql.schema.GraphQLInputObjectField
 import graphql.schema.GraphQLInputObjectType
-import graphql.schema.GraphQLSchema
+import viaduct.engine.api.ViaductSchema
 import viaduct.utils.string.decapitalize
 
 /**
@@ -15,11 +15,11 @@ interface Arguments : InputLike {
     companion object {
         fun inputType(
             name: String,
-            schema: GraphQLSchema
+            schema: ViaductSchema
         ): GraphQLInputObjectType {
             val typeName = name.split("_").firstOrNull() ?: throw IllegalArgumentException("Invalid Arguments class name: $name")
             val fieldName = name.split("_").getOrNull(1)?.decapitalize() ?: throw IllegalArgumentException("Invalid Arguments class name: $name")
-            val field = schema.getObjectType(typeName)?.getField(fieldName) ?: throw IllegalArgumentException("Field $typeName.$fieldName not found")
+            val field = schema.schema.getObjectType(typeName)?.getField(fieldName) ?: throw IllegalArgumentException("Field $typeName.$fieldName not found")
             val fields = field.arguments.map {
                 val builder = GraphQLInputObjectField.Builder()
                     .name(it.name)

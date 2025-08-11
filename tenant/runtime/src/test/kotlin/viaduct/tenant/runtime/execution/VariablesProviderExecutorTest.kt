@@ -11,7 +11,6 @@ import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.ReflectionLoader
 import viaduct.api.types.Arguments
 import viaduct.engine.api.VariablesResolver
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
@@ -22,7 +21,7 @@ class VariablesProviderExecutorTest {
         val b: Int = args["b"] as Int
     }
 
-    private val objectData = MockEngineObjectData.wrap(MockSchema.minimal.queryType, emptyMap())
+    private val objectData = MockEngineObjectData.wrap(MockSchema.minimal.schema.queryType, emptyMap())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
@@ -45,7 +44,7 @@ class VariablesProviderExecutorTest {
                         objectData,
                         mapOf("a" to 5, "b" to 7),
                         mockk {
-                            every { fullSchema } returns ViaductSchema(MockSchema.minimal)
+                            every { fullSchema } returns MockSchema.minimal
                         }
                     )
                 )

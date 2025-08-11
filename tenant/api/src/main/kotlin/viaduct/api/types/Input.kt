@@ -1,7 +1,7 @@
 package viaduct.api.types
 
 import graphql.schema.GraphQLInputObjectType
-import graphql.schema.GraphQLSchema
+import viaduct.engine.api.ViaductSchema
 
 /**
  * Tagging interface for input types
@@ -10,9 +10,9 @@ interface Input : InputLike {
     companion object {
         fun inputType(
             name: String,
-            schema: GraphQLSchema
+            schema: ViaductSchema
         ): GraphQLInputObjectType {
-            return schema.getTypeAs(name)
+            return schema.schema.getTypeAs(name)
         }
     }
 }

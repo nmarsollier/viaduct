@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.RawSelection
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.select.SelectionsParser
 
@@ -56,7 +55,7 @@ class RawSelectionSetImplTest {
             RawSelectionSetImpl.create(
                 SelectionsParser.parse(typename, selections),
                 vars,
-                ViaductSchema(schema),
+                schema,
             )
         }
 

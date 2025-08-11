@@ -362,7 +362,7 @@ class ExecutionContextImplTest {
             }
 
             override val graphQLObjectType: GraphQLObjectType
-                get() = SelectTestFeatureAppTest.schema.getObjectType(fooType.name)
+                get() = SelectTestFeatureAppTest.schema.schema.getObjectType(fooType.name)
         }
 
         val nodeEngineObjectDataFactory: (String, GraphQLObjectType) -> NodeEngineObjectData = { _, _ ->

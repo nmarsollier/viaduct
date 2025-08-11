@@ -6,7 +6,6 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.RequiredSelectionSet
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockCheckerExecutor
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.mkRSS
@@ -117,7 +116,7 @@ class CheckerSelectionSetsAreProperlyTypedTest {
     ) {
         val schema = MockSchema.mk(
             """
-            type Query { 
+            type Query {
                 empty: Int
                 currentUser: User
                 globalFlag: String
@@ -145,7 +144,7 @@ class CheckerSelectionSetsAreProperlyTypedTest {
             executor = checker
         )
 
-        val validator = CheckerSelectionSetsAreProperlyTyped(ViaductSchema(schema))
+        val validator = CheckerSelectionSetsAreProperlyTyped(schema)
         validator.validate(ctx)
     }
 }

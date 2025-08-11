@@ -1,12 +1,12 @@
 package viaduct.engine.api.mocks
 
 import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLSchema
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.ViaductSchema
 
 class MockEngineObjectDataTest {
-    private fun GraphQLSchema.obj(name: String): GraphQLObjectType = getObjectType(name)
+    private fun ViaductSchema.obj(name: String): GraphQLObjectType = schema.getObjectType(name)
 
     @Test
     fun `wrap -- empty`() {

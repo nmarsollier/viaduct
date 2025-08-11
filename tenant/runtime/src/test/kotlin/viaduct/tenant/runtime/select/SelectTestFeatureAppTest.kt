@@ -1,15 +1,17 @@
 package viaduct.tenant.runtime.select
 
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.UnExecutableSchemaGenerator
+import viaduct.engine.api.ViaductSchema
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
 class SelectTestFeatureAppTest : FeatureAppTestBase() {
     companion object {
-        val schema: GraphQLSchema by lazy {
-            UnExecutableSchemaGenerator.makeUnExecutableSchema(
-                SchemaParser().parse(SelectTestFeatureAppTest().sdl)
+        val schema: ViaductSchema by lazy {
+            ViaductSchema(
+                UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                    SchemaParser().parse(SelectTestFeatureAppTest().sdl)
+                )
             )
         }
     }

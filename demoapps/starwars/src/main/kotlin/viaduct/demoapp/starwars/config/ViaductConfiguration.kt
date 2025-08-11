@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import viaduct.service.api.Viaduct
-import viaduct.service.runtime.SchemaRegistryBuilder
 import viaduct.service.runtime.StandardViaduct
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
 const val SCHEMA_ID = "publicSchema"
@@ -25,7 +25,7 @@ class ViaductConfiguration {
                     .tenantPackagePrefix("viaduct.demoapp.starwars")
             )
             .withSchemaRegistryBuilder(
-                SchemaRegistryBuilder()
+                ViaductSchemaRegistryBuilder()
                     .withFullSchemaFromResources("viaduct.demoapp.starwars", ".*\\.graphqls")
                     .registerScopedSchema(SCHEMA_ID, setOf(SCOPE_ID))
             ).build()

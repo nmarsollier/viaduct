@@ -54,7 +54,7 @@ class StandardViaduct internal constructor(
     private val queryExecutionStrategy: ExecutionStrategy,
     private val mutationExecutionStrategy: ExecutionStrategy,
     private val subscriptionExecutionStrategy: ExecutionStrategy,
-    val graphqlSchemaRegistry: GraphQLSchemaRegistry,
+    val viaductSchemaRegistry: ViaductSchemaRegistry,
     private val dispatcherRegistry: DispatcherRegistry,
     private val coroutineInterop: CoroutineInterop = DefaultCoroutineInterop,
     private val fragmentLoader: FragmentLoader,
@@ -64,7 +64,7 @@ class StandardViaduct internal constructor(
 ) : Viaduct, AirbnbViaduct {
     private val engineExecutionContextFactory =
         EngineExecutionContextFactory(
-            ViaductSchema(graphqlSchemaRegistry.getFullSchema()),
+            viaductSchemaRegistry.getFullSchema(),
             dispatcherRegistry,
             fragmentLoader,
             resolverInstrumentation,
@@ -77,7 +77,7 @@ class StandardViaduct internal constructor(
         @Named("MutationExecutionStrategy") mutationExecutionStrategy: ExecutionStrategy,
         @Named("SubscriptionExecutionStrategy") subscriptionExecutionStrategy: ExecutionStrategy,
         instrumentation: Instrumentation,
-        graphqlSchemaRegistry: GraphQLSchemaRegistry,
+        graphqlSchemaRegistry: ViaductSchemaRegistry,
         dispatcherRegistry: DispatcherRegistry,
         coroutineInterop: CoroutineInterop = DefaultCoroutineInterop,
         fragmentLoader: FragmentLoader,
@@ -99,7 +99,7 @@ class StandardViaduct internal constructor(
     )
 
     init {
-        graphqlSchemaRegistry.registerSchema(
+        viaductSchemaRegistry.registerSchema(
             chainedInstrumentation,
             queryExecutionStrategy,
             mutationExecutionStrategy,
@@ -113,10 +113,10 @@ class StandardViaduct internal constructor(
         private var instrumentation: Instrumentation? = null
         private var flagManager: FlagManager? = null
         private var checkerExecutorFactory: CheckerExecutorFactory? = null
-        private var checkerExecutorFactoryCreator: ((GraphQLSchema) -> CheckerExecutorFactory)? = null
+        private var checkerExecutorFactoryCreator: ((ViaductSchema) -> CheckerExecutorFactory)? = null
         private var dataFetcherExceptionHandler: DataFetcherExceptionHandler? = null
         private var coroutineInterop: CoroutineInterop? = null
-        private var schemaRegistryBuilder: SchemaRegistryBuilder = SchemaRegistryBuilder()
+        private var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
         private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperBuilder> = emptyList()
 
@@ -159,14 +159,14 @@ class StandardViaduct internal constructor(
                 this.checkerExecutorFactory = checkerExecutorFactory
             }
 
-        fun withCheckerExecutorFactoryCreator(factoryCreator: (GraphQLSchema) -> CheckerExecutorFactory): Builder =
+        fun withCheckerExecutorFactoryCreator(factoryCreator: (ViaductSchema) -> CheckerExecutorFactory): Builder =
             apply {
                 this.checkerExecutorFactoryCreator = factoryCreator
             }
 
-        fun withSchemaRegistryBuilder(schemaRegistryBuilder: SchemaRegistryBuilder): Builder =
+        fun withSchemaRegistryBuilder(viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder): Builder =
             apply {
-                this.schemaRegistryBuilder = schemaRegistryBuilder
+                this.viaductSchemaRegistryBuilder = viaductSchemaRegistryBuilder
             }
 
         fun withFlagManager(flagManager: FlagManager): Builder =
@@ -191,7 +191,7 @@ class StandardViaduct internal constructor(
             }
 
         @Deprecated("For advance uses, Airbnb only use.", level = DeprecationLevel.WARNING)
-        fun getSchemaRegistryBuilder(): SchemaRegistryBuilder = schemaRegistryBuilder
+        fun getSchemaRegistryBuilder(): ViaductSchemaRegistryBuilder = viaductSchemaRegistryBuilder
 
         /**
          * Builds the Guice Module within Viaduct and gets Viaduct from the injector.
@@ -200,7 +200,7 @@ class StandardViaduct internal constructor(
          */
         fun build(): StandardViaduct {
             val scopedFuture = coroutineInterop ?: DefaultCoroutineInterop
-            val schemaRegistry = schemaRegistryBuilder.build(scopedFuture)
+            val schemaRegistry = viaductSchemaRegistryBuilder.build(scopedFuture)
             val fullSchema = schemaRegistry.getFullSchema()
             checkerExecutorFactory = checkerExecutorFactory ?: checkerExecutorFactoryCreator?.invoke(fullSchema)
             val internalEngineModule = ViaductInternalEngineModule(
@@ -215,7 +215,7 @@ class StandardViaduct internal constructor(
 
             val viaductModule = Modules.combine(
                 ViaductExecutionStrategyModule(
-                    ViaductSchema(fullSchema),
+                    fullSchema,
                     instrumentation,
                     tenantBootstrapper,
                     fragmentLoader,
@@ -247,13 +247,13 @@ class StandardViaduct internal constructor(
      * all the properties from the existing instance except the schema registry builder.
      * Caller is expected to construct the schema register builder then pass it in.
      */
-    fun newForSchema(schemaRegistryBuilder: SchemaRegistryBuilder) =
+    fun newForSchema(viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder) =
         StandardViaduct(
             chainedInstrumentation,
             queryExecutionStrategy,
             mutationExecutionStrategy,
             subscriptionExecutionStrategy,
-            schemaRegistryBuilder.build(coroutineInterop),
+            viaductSchemaRegistryBuilder.build(coroutineInterop),
             dispatcherRegistry,
             coroutineInterop,
             fragmentLoader,
@@ -281,7 +281,7 @@ class StandardViaduct internal constructor(
      * @return [CompletableFuture] of sorted [ExecutionResult]
      */
     override fun executeAsync(executionInput: ExecutionInput): CompletableFuture<ExecutionResult> {
-        val engine = graphqlSchemaRegistry.getEngine(executionInput.schemaId)
+        val engine = viaductSchemaRegistry.getEngine(executionInput.schemaId)
             ?: return mkSchemaNotFoundError(executionInput.schemaId)
         val gjExecutionInput = mkExecutionInput(executionInput)
         return coroutineInterop.enterThreadLocalCoroutineContext {
@@ -406,7 +406,7 @@ class StandardViaduct internal constructor(
      */
     @Suppress("DEPRECATION")
     @Deprecated("Will be either private/or somewhere not exposed")
-    override fun getSchema(schemaId: String): GraphQLSchema? = graphqlSchemaRegistry.getSchema(schemaId)
+    override fun getSchema(schemaId: String): ViaductSchema? = viaductSchemaRegistry.getSchema(schemaId)
 
     /**
      * AirBNB only
@@ -416,7 +416,7 @@ class StandardViaduct internal constructor(
      *
      * @return GraphQL instance of the engine
      */
-    override fun getEngine(schemaId: String): GraphQL? = graphqlSchemaRegistry.getEngine(schemaId)
+    override fun getEngine(schemaId: String): GraphQL? = viaductSchemaRegistry.getEngine(schemaId)
 
     /**
      * Creates an instance of EngineExecutionContext. This should be called exactly once

@@ -9,7 +9,6 @@ import graphql.schema.GraphQLList
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLOutputType
 import graphql.schema.GraphQLScalarType
-import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLTypeUtil
 import graphql.schema.GraphQLUnionType
 import java.util.concurrent.ConcurrentHashMap
@@ -19,6 +18,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.RawSelectionSet
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 
 /**
@@ -218,7 +218,7 @@ class ObjectEngineResultImpl private constructor(
             data: Map<String, Any?>,
             errors: MutableList<Pair<String, Throwable>>,
             currentPath: List<String> = emptyList(),
-            schema: GraphQLSchema,
+            schema: ViaductSchema,
             selectionSet: RawSelectionSet,
         ): ObjectEngineResultImpl =
             newFromMap(
@@ -236,13 +236,13 @@ class ObjectEngineResultImpl private constructor(
             data: Map<ObjectEngineResult.Key, Any?>,
             errors: MutableList<Pair<ObjectEngineResult.Key, Throwable>>,
             currentPath: List<String> = emptyList(),
-            schema: GraphQLSchema,
+            schema: ViaductSchema,
             selectionSet: RawSelectionSet
         ): ObjectEngineResultImpl {
             val result = newForType(type)
 
             data.forEach { (key, value) ->
-                val field = schema.getFieldDefinition((type.name to key.name).gj)
+                val field = schema.schema.getFieldDefinition((type.name to key.name).gj)
                 result.computeIfAbsent(key) { slotSetter ->
                     val rawValue =
                         if (value == null) {
@@ -290,7 +290,7 @@ class ObjectEngineResultImpl private constructor(
             value: Any?,
             errors: MutableList<Pair<ObjectEngineResult.Key, Throwable>>,
             currentPath: List<String>,
-            schema: GraphQLSchema,
+            schema: ViaductSchema,
             selectionSet: RawSelectionSet
         ): Any? {
             if (value == null) return null
@@ -344,7 +344,7 @@ class ObjectEngineResultImpl private constructor(
                 is GraphQLUnionType -> {
                     val valueMap = value as Map<String, Any?>
                     val typeName = valueMap["__typename"] as String
-                    val concreteType = schema.getObjectType(typeName)
+                    val concreteType = schema.schema.getObjectType(typeName)
                     val subSelectionSet = selectionSet.selectionSetForSelection(
                         (parentType as GraphQLCompositeType).name,
                         key.alias ?: key.name

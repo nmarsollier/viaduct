@@ -2,8 +2,6 @@ package viaduct.engine.runtime.mocks
 
 import graphql.execution.instrumentation.Instrumentation
 import graphql.execution.instrumentation.SimplePerformantInstrumentation
-import graphql.schema.GraphQLSchema
-import io.mockk.every
 import io.mockk.mockk
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FragmentLoader
@@ -18,7 +16,7 @@ import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.mocks.MockFlagManager
 
 class ContextMocks(
-    myFullSchema: GraphQLSchema? = null,
+    myFullSchema: ViaductSchema? = null,
     myDispatcherRegistry: DispatcherRegistry? = null,
     myFragmentLoader: FragmentLoader? = null,
     myResolverInstrumentation: Instrumentation? = null,
@@ -27,13 +25,11 @@ class ContextMocks(
     private val myEngineExecutionContext: EngineExecutionContext? = null,
     myBaseLocalContext: CompositeLocalContext? = null,
 ) {
-    val fullSchema: GraphQLSchema = myFullSchema ?: mockk<GraphQLSchema>()
+    val fullSchema: ViaductSchema = myFullSchema ?: mockk<ViaductSchema>()
     val viaductSchema: ViaductSchema = if (myFullSchema != null) {
-        ViaductSchema(myFullSchema)
+        myFullSchema
     } else {
-        mockk<ViaductSchema> {
-            every { schema } returns fullSchema
-        }
+        fullSchema
     }
 
     val dispatcherRegistry: DispatcherRegistry = myDispatcherRegistry ?: DispatcherRegistry.Empty

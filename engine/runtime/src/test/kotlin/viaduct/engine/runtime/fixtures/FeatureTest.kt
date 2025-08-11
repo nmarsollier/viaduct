@@ -11,8 +11,8 @@ import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.graphql.test.assertJson as realAssertJson
 import viaduct.service.api.mocks.MockTenantAPIBootstrapperBuilder
 import viaduct.service.api.spi.mocks.MockFlagManager
-import viaduct.service.runtime.SchemaRegistryBuilder
 import viaduct.service.runtime.StandardViaduct
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 /**
  * Convert a MockTenantModuleBootstrapper into a Viaduct builder
@@ -37,14 +37,14 @@ fun MockTenantModuleBootstrapper.toViaductBuilder(): StandardViaduct.Builder {
         typeCheckerExecutors = typeCheckerExecutors
     )
 
-    val schemaRegistryBuilder = SchemaRegistryBuilder()
-        .withFullSchemaFromSdl(SchemaPrinter().print(schema)) // Need to reparse to get correct wiring
+    val viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
+        .withFullSchemaFromSdl(SchemaPrinter().print(schema.schema)) // Need to reparse to get correct wiring
         .registerFullSchema("")
 
     return StandardViaduct.Builder()
         .withTenantAPIBootstrapperBuilders(listOf(tenantAPIBootstrapperBuilder))
         .withFlagManager(MockFlagManager.Enabled)
-        .withSchemaRegistryBuilder(schemaRegistryBuilder)
+        .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
         .withCheckerExecutorFactory(checkerExecutorFactory)
 }
 

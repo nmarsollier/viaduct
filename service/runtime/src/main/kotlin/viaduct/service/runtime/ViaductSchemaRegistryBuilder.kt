@@ -4,7 +4,6 @@ import graphql.execution.preparsed.NoOpPreparsedDocumentProvider
 import graphql.execution.preparsed.PreparsedDocumentProvider
 import graphql.schema.GraphQLDirectiveContainer
 import graphql.schema.GraphQLScalarType
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -13,6 +12,7 @@ import java.util.SortedSet
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.graphql.Scalars
 import viaduct.graphql.scopes.ScopedSchemaBuilder
@@ -20,24 +20,24 @@ import viaduct.utils.slf4j.logger
 
 class ViaductSchemaLoadException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-class SchemaRegistryBuilder {
+class ViaductSchemaRegistryBuilder {
     private var graphQLSchemaFactory: GraphQLSchemaFactory = GraphQLSchemaFactory.FromRuntimeFiles()
     private var publicSchemaRegistration = mutableListOf<PublicSchemaRegistration>()
     private var asyncSchemaRegistration = ConcurrentHashMap<String, AsyncScopedSchema>()
-    var fullSchema: GraphQLSchema? = null
+    var fullSchema: ViaductSchema? = null
 
     data class AsyncScopedSchema(
-        val schemaComputeBlock: () -> GraphQLSchema,
-        val documentProviderFactory: ((GraphQLSchema) -> PreparsedDocumentProvider)?,
+        val schemaComputeBlock: () -> ViaductSchema,
+        val documentProviderFactory: ((ViaductSchema) -> PreparsedDocumentProvider)?,
         val lazy: Boolean = true
     )
 
     fun registerSchema(
         schemaId: String,
-        scopedSchemaComputeBlock: () -> GraphQLSchema,
-        documentProviderFactory: ((GraphQLSchema) -> PreparsedDocumentProvider)? = null,
+        scopedSchemaComputeBlock: () -> ViaductSchema,
+        documentProviderFactory: ((ViaductSchema) -> PreparsedDocumentProvider)? = null,
         lazy: Boolean = false,
-    ): SchemaRegistryBuilder {
+    ): ViaductSchemaRegistryBuilder {
         asyncSchemaRegistration[schemaId] = AsyncScopedSchema(scopedSchemaComputeBlock, documentProviderFactory, lazy)
         return this
     }
@@ -47,7 +47,7 @@ class SchemaRegistryBuilder {
      *
      * @param schema the full schema to register
      */
-    fun withFullSchema(schema: GraphQLSchema): SchemaRegistryBuilder {
+    fun withFullSchema(schema: ViaductSchema): ViaductSchemaRegistryBuilder {
         graphQLSchemaFactory = GraphQLSchemaFactory.Defined(schema)
         return this
     }
@@ -61,7 +61,7 @@ class SchemaRegistryBuilder {
     fun withFullSchemaFromResources(
         packagePrefix: String? = null,
         resourcesIncluded: String? = null,
-    ): SchemaRegistryBuilder {
+    ): ViaductSchemaRegistryBuilder {
         graphQLSchemaFactory = GraphQLSchemaFactory.FromRuntimeFiles(
             packagePrefix,
             resourcesIncluded?.toRegex(),
@@ -77,7 +77,7 @@ class SchemaRegistryBuilder {
     fun withFullSchemaFromSdl(
         sdl: String,
         customScalars: List<GraphQLScalarType>? = null,
-    ): SchemaRegistryBuilder {
+    ): ViaductSchemaRegistryBuilder {
         graphQLSchemaFactory = GraphQLSchemaFactory.FromSdl(
             sdl = sdl,
             customScalars = customScalars,
@@ -97,7 +97,7 @@ class SchemaRegistryBuilder {
     fun registerScopedSchema(
         schemaId: String,
         scopeIds: Set<String>
-    ): SchemaRegistryBuilder {
+    ): ViaductSchemaRegistryBuilder {
         publicSchemaRegistration.add(PublicSchemaRegistration.ScopedSchema(schemaId, scopeIds))
         return this
     }
@@ -112,7 +112,7 @@ class SchemaRegistryBuilder {
     fun registerSchemaFromSdl(
         schemaId: String,
         schemaSdl: String,
-    ): SchemaRegistryBuilder {
+    ): ViaductSchemaRegistryBuilder {
         publicSchemaRegistration.add(
             PublicSchemaRegistration.SchemaFromSdl(
                 schemaId,
@@ -129,18 +129,18 @@ class SchemaRegistryBuilder {
      * @param schemaId an identifier used to select the schema against which to run an operation
      *
      */
-    fun registerFullSchema(schemaId: String): SchemaRegistryBuilder {
+    fun registerFullSchema(schemaId: String): ViaductSchemaRegistryBuilder {
         publicSchemaRegistration.add(PublicSchemaRegistration.FullSchema(schemaId))
 
         return this
     }
     // END OF Register Public Schema methods
 
-    fun build(scopedFuture: CoroutineInterop): GraphQLSchemaRegistry {
+    fun build(scopedFuture: CoroutineInterop): ViaductSchemaRegistry {
         fullSchema = fullSchema ?: graphQLSchemaFactory.createSchema(scopedFuture)
 
-        val scopedSchemas: ConcurrentHashMap<String, GraphQLSchema> = ConcurrentHashMap()
-        val schemaDocumentProvider = ConcurrentHashMap<GraphQLSchema, PreparsedDocumentProvider>()
+        val scopedSchemas: ConcurrentHashMap<String, ViaductSchema> = ConcurrentHashMap()
+        val schemaDocumentProvider = ConcurrentHashMap<ViaductSchema, PreparsedDocumentProvider>()
 
         publicSchemaRegistration.forEach {
             it.buildPublicSchema(fullSchema!!, scopedFuture).let { generatedSchema ->
@@ -155,7 +155,7 @@ class SchemaRegistryBuilder {
             throw IllegalStateException("Duplicate schema IDs found in scopedSchemas and asyncGeneratedSchemas: $duplicateKeys")
         }
 
-        return GraphQLSchemaRegistry(scopedSchemas, asyncSchemaRegistration, schemaDocumentProvider, fullSchema!!)
+        return ViaductSchemaRegistry(scopedSchemas, asyncSchemaRegistration, schemaDocumentProvider, fullSchema!!)
     }
 }
 
@@ -165,12 +165,12 @@ class SchemaRegistryBuilder {
 private sealed interface PublicSchemaRegistration {
     data class GeneratedSchema(
         val schemaId: String,
-        val schema: GraphQLSchema,
+        val schema: ViaductSchema,
         val schemaDocumentProvider: PreparsedDocumentProvider
     )
 
     fun buildPublicSchema(
-        fullSchema: GraphQLSchema,
+        fullSchema: ViaductSchema,
         coroutineInterop: CoroutineInterop
     ): GeneratedSchema
 
@@ -185,17 +185,17 @@ private sealed interface PublicSchemaRegistration {
         private val scopeIds: Set<String>
     ) : PublicSchemaRegistration {
         override fun buildPublicSchema(
-            fullSchema: GraphQLSchema,
+            fullSchema: ViaductSchema,
             coroutineInterop: CoroutineInterop
         ): GeneratedSchema {
             val scopes = fullSchema.scopes()
             val scopedSchema = ScopedSchemaBuilder(
-                inputSchema = fullSchema,
+                inputSchema = fullSchema.schema,
                 additionalVisitorConstructors = emptyList(),
                 validScopes = scopes
             ).applyScopes(scopeIds).filtered
 
-            return GeneratedSchema(schemaId, scopedSchema, NoOpPreparsedDocumentProvider())
+            return GeneratedSchema(schemaId, ViaductSchema(scopedSchema), NoOpPreparsedDocumentProvider())
         }
     }
 
@@ -208,7 +208,7 @@ private sealed interface PublicSchemaRegistration {
         private val schemaId: String
     ) : PublicSchemaRegistration {
         override fun buildPublicSchema(
-            fullSchema: GraphQLSchema,
+            fullSchema: ViaductSchema,
             coroutineInterop: CoroutineInterop
         ): GeneratedSchema {
             return GeneratedSchema(schemaId, fullSchema, NoOpPreparsedDocumentProvider())
@@ -225,7 +225,7 @@ private sealed interface PublicSchemaRegistration {
         private val schemaSdl: String
     ) : PublicSchemaRegistration {
         override fun buildPublicSchema(
-            fullSchema: GraphQLSchema,
+            fullSchema: ViaductSchema,
             coroutineInterop: CoroutineInterop
         ): GeneratedSchema {
             val scopedSchema = schemaFromSdl(schemaSdl, coroutineInterop)
@@ -238,7 +238,7 @@ private sealed interface PublicSchemaRegistration {
  * Different strategies to build the GraphQLSchema
  */
 private sealed interface GraphQLSchemaFactory {
-    fun createSchema(coroutineInterop: CoroutineInterop): GraphQLSchema
+    fun createSchema(coroutineInterop: CoroutineInterop): ViaductSchema
 
     /**
      * Register the schema from a graphqls string
@@ -249,7 +249,7 @@ private sealed interface GraphQLSchemaFactory {
         val sdl: String,
         val customScalars: List<GraphQLScalarType>? = null,
     ) : GraphQLSchemaFactory {
-        override fun createSchema(coroutineInterop: CoroutineInterop): GraphQLSchema {
+        override fun createSchema(coroutineInterop: CoroutineInterop): ViaductSchema {
             return schemaFromSdl(sdl, coroutineInterop, customScalars)
         }
     }
@@ -268,7 +268,7 @@ private sealed interface GraphQLSchemaFactory {
             private val log by logger()
         }
 
-        override fun createSchema(coroutineInterop: CoroutineInterop): GraphQLSchema {
+        override fun createSchema(coroutineInterop: CoroutineInterop): ViaductSchema {
             return schemaFromRuntimeSchemaFiles(
                 coroutineInterop,
                 filesIncluded ?: Regex(".*graphqls"),
@@ -282,7 +282,7 @@ private sealed interface GraphQLSchemaFactory {
         private fun schemaFromRuntimeSchemaFiles(
             coroutineInterop: CoroutineInterop,
             filesIncluded: Regex,
-        ): GraphQLSchema {
+        ): ViaductSchema {
             val scanResult = ClassGraph().scan()
             val (resources, elapsedTime) =
                 measureTimedValue {
@@ -350,8 +350,8 @@ private sealed interface GraphQLSchemaFactory {
      *
      * @param schema the schema to register
      */
-    class Defined(private val schema: GraphQLSchema) : GraphQLSchemaFactory {
-        override fun createSchema(coroutineInterop: CoroutineInterop): GraphQLSchema {
+    class Defined(private val schema: ViaductSchema) : GraphQLSchemaFactory {
+        override fun createSchema(coroutineInterop: CoroutineInterop): ViaductSchema {
             return schema
         }
     }
@@ -365,7 +365,7 @@ private fun schemaFromSdl(
     coroutineInterop: CoroutineInterop,
     customScalars: List<GraphQLScalarType>? = null,
     sourceFiles: List<String>? = null,
-): GraphQLSchema {
+): ViaductSchema {
     if (sdl.trim().isEmpty()) {
         val sourceInfo = if (sourceFiles?.isNotEmpty() == true) {
             " Source files: ${sourceFiles.joinToString(", ")}"
@@ -399,17 +399,17 @@ private fun schemaFromSdl(
     }.build()
 
     // Let SchemaProblem and other GraphQL validation errors pass through
-    return SchemaGenerator().makeExecutableSchema(tdr, wiring)
+    return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, wiring))
 }
 
 /**
  * This function is used to get all the scopes defined in a GraphQLSchema.
  * Scopes are defined with the directive @scope
  */
-fun GraphQLSchema.scopes(): SortedSet<String> {
+fun ViaductSchema.scopes(): SortedSet<String> {
     val result = sortedSetOf<String>()
 
-    this.typeMap.values.forEach { type ->
+    this.schema.typeMap.values.forEach { type ->
         if (type !is GraphQLDirectiveContainer) {
             return@forEach
         }

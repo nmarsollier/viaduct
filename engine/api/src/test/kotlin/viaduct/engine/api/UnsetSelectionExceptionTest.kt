@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.mocks.MockSchema
 
 class UnsetSelectionExceptionTest {
-    private val obj = MockSchema.mk("type Query { x: Int }").queryType
+    private val obj = MockSchema.mk("type Query { x: Int }").schema.queryType
 
     @Test
     fun `message -- field`() {

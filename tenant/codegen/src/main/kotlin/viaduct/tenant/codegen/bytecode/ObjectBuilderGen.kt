@@ -75,6 +75,7 @@ private class ObjectBuilderGenV2(
                     ${castObjectExpression(cfg.INTERNAL_CONTEXT.asKmName.asType(), "$1")},
                     (${castObjectExpression(cfg.INTERNAL_CONTEXT.asKmName.asType(), "$1")})
                         .getSchema()
+                        .getSchema()
                         .getObjectType("${def.name}")
                 );
             """.trimIndent(),

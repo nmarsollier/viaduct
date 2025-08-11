@@ -56,7 +56,7 @@ class ObjectBaseTest {
         runBlockingTest {
             val o1 = O1(
                 internalContext,
-                EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                     .put("aliasedStringField", "ALIASED")
                     .build()
             )
@@ -68,10 +68,10 @@ class ObjectBaseTest {
         runBlockingTest {
             val o1 = O1(
                 internalContext,
-                EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                     .put(
                         "aliasedObjectField",
-                        EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                        EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                             .put("aliasedIntField", 42)
                             .build()
                     )
@@ -85,12 +85,12 @@ class ObjectBaseTest {
         runBlockingTest {
             val o1 = O1(
                 internalContext,
-                EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                     .put(
                         "aliasedListField",
                         listOf(
                             listOf(
-                                EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                                EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                                     .put("intField", 42)
                                     .build()
                             )
@@ -132,11 +132,11 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("stringField", "hi")
                         .put(
                             "objectField",
-                            EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                            EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                                 .put("intField", 1)
                                 .build()
                         )
@@ -152,7 +152,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("stringField", 1)
                         .build()
                 )
@@ -171,7 +171,7 @@ class ObjectBaseTest {
             val o2 =
                 O2(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                         .put("intField", "hi")
                         .build()
                 )
@@ -190,7 +190,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("enumField", "A")
                         .build()
                 )
@@ -203,7 +203,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("enumField", E1.A)
                         .build()
                 )
@@ -216,7 +216,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("enumField", 1)
                         .build()
                 )
@@ -235,10 +235,10 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "enumField",
-                            EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                            EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                                 .put("intField", 1)
                                 .build()
                         )
@@ -259,10 +259,10 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "interfaceField",
-                            EngineObjectDataBuilder.from(gqlSchema.getObjectType("I1"))
+                            EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("I1"))
                                 .put("commonField", "from I1")
                                 .build()
                         )
@@ -277,10 +277,10 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "interfaceField",
-                            EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                            EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                                 .put("commonField", "from I1")
                                 .build()
                         )
@@ -301,7 +301,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("interfaceField", "hi")
                         .build()
                 )
@@ -320,10 +320,10 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "objectField",
-                            EngineObjectDataBuilder.from(gqlSchema.getObjectType("I1"))
+                            EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("I1"))
                                 .put("commonField", "from I1")
                                 .build()
                         )
@@ -344,12 +344,12 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "listField",
                             listOf(
                                 listOf(
-                                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("I1"))
+                                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("I1"))
                                         .put("commonField", "from I1")
                                         .build()
                                 )
@@ -372,11 +372,11 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "listField",
                             listOf(
-                                EngineObjectDataBuilder.from(gqlSchema.getObjectType("I1"))
+                                EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("I1"))
                                     .put("commonField", "from I1")
                                     .build()
                             )
@@ -398,7 +398,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "listFieldNonNullBaseType",
                             listOf(
@@ -422,7 +422,7 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "listFieldNonNullBaseType",
                             listOf(
@@ -446,10 +446,10 @@ class ObjectBaseTest {
             val o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put(
                             "objectField",
-                            EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                            EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                                 .put("intField", null)
                                 .build()
                         )
@@ -480,7 +480,7 @@ class ObjectBaseTest {
             var o2 =
                 O2(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                         .put("backingDataField", "abc")
                         .build()
                 )
@@ -489,7 +489,7 @@ class ObjectBaseTest {
             o2 =
                 O2(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O2"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O2"))
                         .put("backingDataField", "abc")
                         .build()
                 )
@@ -508,7 +508,7 @@ class ObjectBaseTest {
             var o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("backingDataList", listOf(1))
                         .build()
                 )
@@ -517,7 +517,7 @@ class ObjectBaseTest {
             o1 =
                 O1(
                     internalContext,
-                    EngineObjectDataBuilder.from(gqlSchema.getObjectType("O1"))
+                    EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
                         .put("backingDataList", listOf(1))
                         .build()
                 )
@@ -525,7 +525,7 @@ class ObjectBaseTest {
             assertTrue(exception.message!!.contains("Expected backing data value to be of type String, got Int"))
         }
 
-    inner class BuggyBuilder : ObjectBase.Builder<O2>(internalContext, gqlSchema.getObjectType("O2")) {
+    inner class BuggyBuilder : ObjectBase.Builder<O2>(internalContext, gqlSchema.schema.getObjectType("O2")) {
         fun intField(v: Any?): BuggyBuilder {
             putInternal("intField", v)
             return this

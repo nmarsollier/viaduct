@@ -45,7 +45,7 @@ class SelectionsLoaderImplTest {
         runBlockingTest {
             val rawSelectionsLoader = mockk<RawSelectionsLoader> {
                 coEvery { load(any()) } returns mockk {
-                    every { graphQLObjectType } returns SelectTestFeatureAppTest.schema.getObjectType(Query.Reflection.name)
+                    every { graphQLObjectType } returns SelectTestFeatureAppTest.schema.schema.getObjectType(Query.Reflection.name)
                     coEvery { fetch(Query.Reflection.Fields.intField.name) } returns 42
                 }
             }

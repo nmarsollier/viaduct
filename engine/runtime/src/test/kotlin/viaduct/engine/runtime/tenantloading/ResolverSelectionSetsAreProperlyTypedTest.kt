@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.Coordinate
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockFieldUnbatchedResolverExecutor
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.mkRSS
@@ -128,7 +127,7 @@ class ResolverSelectionSetsAreProperlyTypedTest {
             querySelectionSet = querySelectionSet,
         )
 
-        val validator = ResolverSelectionSetsAreProperlyTyped(ViaductSchema(schema))
+        val validator = ResolverSelectionSetsAreProperlyTyped(schema)
         validator.validate(ctx)
     }
 }

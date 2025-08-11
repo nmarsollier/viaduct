@@ -1,6 +1,5 @@
 package viaduct.tenant.runtime.internal
 
-import graphql.schema.GraphQLSchema
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -19,6 +18,7 @@ import viaduct.api.types.CompositeOutput
 import viaduct.api.types.NodeObject
 import viaduct.api.types.Object
 import viaduct.api.types.Query
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
 
 class InternalContextImplTest {
@@ -68,7 +68,7 @@ private open class TestExecutionContext : ExecutionContext {
 }
 
 private open class TestCompositeContext : TestExecutionContext(), InternalContext {
-    override val schema: GraphQLSchema get() = TODO()
+    override val schema: ViaductSchema get() = TODO()
     override val globalIDCodec: GlobalIDCodec get() = TODO()
     override val reflectionLoader: ReflectionLoader get() = TODO()
 

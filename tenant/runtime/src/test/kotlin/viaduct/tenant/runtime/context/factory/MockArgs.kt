@@ -56,7 +56,7 @@ class MockArgs(
     val selections: RawSelectionSet? = selectionString?.let {
         rawSelectionsFactory.rawSelectionSet(typeName, it, emptyMap())
     }
-    val internalContext: InternalContext = MockInternalContext(schema.schema, reflectionLoader = reflectionLoader)
+    val internalContext: InternalContext = MockInternalContext(schema, reflectionLoader = reflectionLoader)
 
     val selectionsLoaderFactory: SelectionsLoader.Factory =
         MockSelectionsLoader.Factory(

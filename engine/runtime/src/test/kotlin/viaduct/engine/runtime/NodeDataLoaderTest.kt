@@ -4,21 +4,18 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.NodeResolverExecutor
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 
 class NodeDataLoaderTest {
     private val id1 = "1"
     private val id2 = "2"
-    val schema = ViaductSchema(
-        mkSchema(
-            """
+    val schema = mkSchema(
+        """
         type Query { test: Test }
         interface Node { id: ID! }
         type Test implements Node { id: ID! foo: Foo bar: String}
         type Foo { a: String }
-            """.trimIndent()
-        )
+        """.trimIndent()
     )
     private val selectionSetFactory = RawSelectionSetFactoryImpl(schema)
 

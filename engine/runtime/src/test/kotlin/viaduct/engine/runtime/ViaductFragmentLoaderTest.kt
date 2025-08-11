@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import viaduct.engine.api.ObjectEngineResult.Key
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.derived.DerivedFieldQueryMetadata
 import viaduct.engine.api.fragment.Fragment
 import viaduct.engine.api.fragment.FragmentFieldEngineResolutionResult
@@ -53,12 +54,12 @@ class ViaductFragmentLoaderTest {
 
             val metadata = getMockDFQueryMetadata(classPath = "classPath", onRootQuery = true)
             val rootEngineResult = objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data = mapOf(
                     "__typename" to "Query",
                     "a" to listOf(
                         objectEngineResult {
-                            type = schema.getObjectType("A")
+                            type = schema.schema.getObjectType("A")
                             data = mapOf(
                                 "__typename" to "A",
                                 "a1" to "value for a1",
@@ -66,7 +67,7 @@ class ViaductFragmentLoaderTest {
                             )
                         },
                         objectEngineResult {
-                            type = schema.getObjectType("A")
+                            type = schema.schema.getObjectType("A")
                             data = mapOf(
                                 "__typename" to "A",
                                 "a1" to "value for a1",
@@ -191,7 +192,7 @@ class ViaductFragmentLoaderTest {
             )
             val metadata = getMockDFQueryMetadata(classPath = "classPath", onRootQuery = true)
             val rootEngineResult = objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data = mapOf("__typename" to "Query", "field" to "value")
             }
             val dfe = getMockDFE(
@@ -222,11 +223,11 @@ class ViaductFragmentLoaderTest {
             )
             val metadata = getMockDFQueryMetadata(classPath = "classPath", onRootQuery = false)
             val rootEngineResult = objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data = mapOf(
                     "__typename" to "Query",
                     "a" to objectEngineResult {
-                        type = schema.getObjectType("A")
+                        type = schema.schema.getObjectType("A")
                         data = mapOf("__typename" to "A", "field" to "value")
                     }
                 )
@@ -359,13 +360,13 @@ class ViaductFragmentLoaderTest {
     fun `load with simple fragment`() =
         runTest(
             objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data =
                     mapOf(
                         "__typename" to "Query",
                         "a" to
                             objectEngineResult {
-                                type = schema.getObjectType("A")
+                                type = schema.schema.getObjectType("A")
                                 data =
                                     mapOf(
                                         "__typename" to "A",
@@ -398,19 +399,19 @@ class ViaductFragmentLoaderTest {
     fun `load fragment with nested selections`() =
         runTest(
             rootEngineResult = objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data =
                     mapOf(
                         "__typename" to "Query",
                         "b" to
                             objectEngineResult {
-                                type = schema.getObjectType("B")
+                                type = schema.schema.getObjectType("B")
                                 data =
                                     mapOf(
                                         "__typename" to "B",
                                         "i4" to
                                             objectEngineResult {
-                                                type = schema.getObjectType("C")
+                                                type = schema.schema.getObjectType("C")
                                                 data =
                                                     mapOf(
                                                         "__typename" to "C",
@@ -456,19 +457,19 @@ class ViaductFragmentLoaderTest {
         val a1Error = RuntimeException("error for a1")
         runTest(
             rootEngineResult = objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data =
                     mapOf(
                         "__typename" to "Query",
                         "b" to
                             objectEngineResult {
-                                type = schema.getObjectType("B")
+                                type = schema.schema.getObjectType("B")
                                 data =
                                     mapOf(
                                         "__typename" to "B",
                                         "b3" to
                                             objectEngineResult {
-                                                type = schema.getObjectType("C")
+                                                type = schema.schema.getObjectType("C")
                                                 data =
                                                     mapOf(
                                                         "__typename" to "A",
@@ -512,13 +513,13 @@ class ViaductFragmentLoaderTest {
     fun `load fragment with variables`() =
         runTest(
             rootEngineResult = objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data =
                     mapOf(
                         "__typename" to "Query",
                         "a" to
                             objectEngineResult {
-                                type = schema.getObjectType("A")
+                                type = schema.schema.getObjectType("A")
                                 data =
                                     mapOf(
                                         "__typename" to "A",
@@ -593,7 +594,7 @@ class ViaductFragmentLoaderTest {
 
             val oer =
                 ObjectEngineResultImpl.newFromMap(
-                    schema.getObjectType("A"),
+                    schema.schema.getObjectType("A"),
                     data,
                     errors,
                     emptyList(),
@@ -650,19 +651,19 @@ class ViaductFragmentLoaderTest {
     fun `load fragment with multiple nested selections`() =
         runTest(
             objectEngineResult {
-                type = schema.getObjectType("Query")
+                type = schema.schema.getObjectType("Query")
                 data =
                     mapOf(
                         "__typename" to "Query",
                         "c" to objectEngineResult {
-                            type = schema.getObjectType("C")
+                            type = schema.schema.getObjectType("C")
                             data =
                                 mapOf(
                                     "__typename" to "C",
                                     "c1" to "value for c1",
                                     "c2" to
                                         objectEngineResult {
-                                            type = schema.getObjectType("D")
+                                            type = schema.schema.getObjectType("D")
                                             data =
                                                 mapOf(
                                                     "__typename" to "D",
@@ -756,7 +757,7 @@ class ViaductFragmentLoaderTest {
     private lateinit var loader: ViaductFragmentLoader
     private val fragmentTransformer: ViaductExecutableFragmentParser = mockk()
 
-    private val schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(SchemaParser().parse(testSchema))
+    private val schema = ViaductSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(SchemaParser().parse(testSchema)))
 
     private val mockGeneratedObject = mockk<Any>()
 
@@ -797,7 +798,7 @@ class ViaductFragmentLoaderTest {
                 every { this@mockk.field } returns (fieldWithMetadata?.orElse(defaultFieldWithMetadata))
                 every { this@mockk.executionStepInfo } returns executionStepInfo
                 every { this@mockk.getLocalContext<CompositeLocalContext?>() } returns (localContext?.orElse(defaultLocalContext))
-                every { this@mockk.graphQLSchema } returns schema
+                every { this@mockk.graphQLSchema } returns schema.schema
             }
         return mockDFE
     }

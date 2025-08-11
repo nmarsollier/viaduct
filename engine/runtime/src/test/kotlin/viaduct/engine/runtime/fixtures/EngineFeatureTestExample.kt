@@ -144,7 +144,7 @@ class EngineFeatureTestExample {
             // TODO - can we get Query.node to work?
             field("Query" to "testNode") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("123", s.getObjectType("TestNode")) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("123", s.schema.getObjectType("TestNode")) }
                 }
             }
             type("TestNode") {

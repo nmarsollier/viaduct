@@ -58,7 +58,7 @@ class NodeReferenceFactoryImplTest {
         globalIDImpl: GlobalIDImpl<out NodeObject>,
         resolver: () -> Unit = {},
         fetcher: () -> Any? = { "user" },
-        graphqlObjectType: GraphQLObjectType = GlobalIdFeatureAppTest.schema.getObjectType(globalIDImpl.type.name),
+        graphqlObjectType: GraphQLObjectType = GlobalIdFeatureAppTest.schema.schema.getObjectType(globalIDImpl.type.name),
         globalIDCodec: GlobalIDCodec = MockGlobalIDCodec(),
     ): NodeEngineObjectData {
         return object : NodeEngineObjectData {

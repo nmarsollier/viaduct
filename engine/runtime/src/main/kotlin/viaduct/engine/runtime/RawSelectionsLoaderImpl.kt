@@ -46,7 +46,7 @@ class RawSelectionsLoaderImpl constructor(
                 }
             }.toMutableList(),
             emptyList(),
-            schema.schema,
+            schema,
             selections
         )
 

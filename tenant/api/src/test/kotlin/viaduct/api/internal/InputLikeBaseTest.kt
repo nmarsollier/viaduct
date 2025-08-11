@@ -55,7 +55,7 @@ class InputLikeBaseTest {
         val m = mapOf(
             "nonNullStringField" to "test",
         )
-        val type = gqlSchema.getTypeAs<GraphQLInputObjectType>("Input1")
+        val type = gqlSchema.schema.getTypeAs<GraphQLInputObjectType>("Input1")
         assertThrows<InvocationTargetException> { inputConstructor.newInstance(internalContext, m, type) }
         try {
             inputConstructor.newInstance(internalContext, m, type)
@@ -70,7 +70,7 @@ class InputLikeBaseTest {
             "enumFieldWithDefault" to "A",
             "nonNullEnumFieldWithDefault" to "A",
         )
-        val type = gqlSchema.getTypeAs<GraphQLInputObjectType>("Input1")
+        val type = gqlSchema.schema.getTypeAs<GraphQLInputObjectType>("Input1")
         assertThrows<InvocationTargetException> { inputConstructor.newInstance(internalContext, m, type) }
         try {
             inputConstructor.newInstance(internalContext, m, type)
@@ -158,7 +158,7 @@ class InputLikeBaseTest {
         val input = inputConstructor.newInstance(
             internalContext,
             args,
-            gqlSchema.getTypeAs<GraphQLInputObjectType>("Input1")
+            gqlSchema.schema.getTypeAs<GraphQLInputObjectType>("Input1")
         ) as Input1
 
         // verify set values via backing map
@@ -192,7 +192,7 @@ class InputLikeBaseTest {
         val input = inputConstructor.newInstance(
             internalContext,
             args,
-            gqlSchema.getTypeAs<GraphQLInputObjectType>("Input1")
+            gqlSchema.schema.getTypeAs<GraphQLInputObjectType>("Input1")
         ) as Input1
 
         assertEquals(E1.B, input.enumFieldWithDefault)
@@ -211,7 +211,7 @@ class InputLikeBaseTest {
         val argumentName = "O2_ArgumentedField_Arguments"
         val typeName = argumentName.split("_").first()
         val fieldName = argumentName.split("_")[1].decapitalize()
-        val arguments = gqlSchema.getObjectType(typeName).getField(fieldName).arguments
+        val arguments = gqlSchema.schema.getObjectType(typeName).getField(fieldName).arguments
         val fields = arguments.map {
             val builder = GraphQLInputObjectField.Builder()
                 .name(it.name)
@@ -263,7 +263,7 @@ class InputLikeBaseTest {
         val input = inputConstructor.newInstance(
             internalContext,
             args,
-            gqlSchema.getTypeAs<GraphQLInputObjectType>("Input1")
+            gqlSchema.schema.getTypeAs<GraphQLInputObjectType>("Input1")
         ) as Input1
 
         assertNotNull(input)

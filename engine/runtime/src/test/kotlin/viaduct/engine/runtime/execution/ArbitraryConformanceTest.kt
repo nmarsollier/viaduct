@@ -111,9 +111,9 @@ class ArbitraryConformanceTest : KotestPropertyBase() {
     @Test
     fun `trivial schema -- re-execute document with different variables`() {
         Conformer("type Query {x: Int}", cfg) {
-            val inputs = Arb.graphQLDocument(schema, cfg)
+            val inputs = Arb.graphQLDocument(schema.schema, cfg)
                 .map { doc ->
-                    Arb.graphQLExecutionInput(schema, doc, cfg)
+                    Arb.graphQLExecutionInput(schema.schema, doc, cfg)
                         .asViaductExecutionInput(schema)
                         .take(10, randomSource())
                         .toList()

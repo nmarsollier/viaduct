@@ -20,6 +20,7 @@ import viaduct.api.types.Mutation
 import viaduct.api.types.NodeObject
 import viaduct.api.types.Object
 import viaduct.api.types.Query
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.graphql.schema.graphqljava.GJSchema
@@ -52,13 +53,13 @@ val GraphQLSchema.viaduct: ViaductExtendedSchema
         GJSchema.fromSchema(this)
 
 class MockInternalContext(
-    override val schema: GraphQLSchema,
+    override val schema: ViaductSchema,
     override val globalIDCodec: GlobalIDCodec = MockGlobalIDCodec(),
     override val reflectionLoader: ReflectionLoader = mockReflectionLoader("viaduct.api.grts")
 ) : InternalContext {
     companion object {
         fun mk(
-            schema: GraphQLSchema,
+            schema: ViaductSchema,
             grtPackage: String = "viaduct.api.grts"
         ): MockInternalContext = MockInternalContext(schema, MockGlobalIDCodec(), mockReflectionLoader(grtPackage))
     }
@@ -86,7 +87,7 @@ class MockExecutionContext(internalContext: InternalContext) : ExecutionContext,
     ): String = throw UnsupportedOperationException()
 
     companion object {
-        fun mk(schema: GraphQLSchema = MockSchema.minimal): MockExecutionContext = MockExecutionContext(MockInternalContext.mk(schema))
+        fun mk(schema: ViaductSchema = MockSchema.minimal): MockExecutionContext = MockExecutionContext(MockInternalContext.mk(schema))
     }
 }
 

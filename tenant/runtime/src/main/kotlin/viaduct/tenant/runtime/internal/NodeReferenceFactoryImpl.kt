@@ -26,7 +26,7 @@ class NodeReferenceFactoryImpl(
         id: GlobalID<T>,
         internalContext: InternalContext
     ): T {
-        val type = internalContext.schema.getObjectType(id.type.name)
+        val type = internalContext.schema.schema.getObjectType(id.type.name)
         val nodeEOD = nodeEngineObjectDataFactory(
             internalContext.globalIDCodec.serialize(id),
             type,

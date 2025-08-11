@@ -12,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flag
 import viaduct.service.api.spi.FlagManager
@@ -25,7 +26,7 @@ import viaduct.service.api.spi.FlagManager
 @ExperimentalCoroutinesApi
 class ViaductOSSScopesEndToEndTest {
     private lateinit var subject: StandardViaduct
-    private lateinit var schemaRegistryBuilder: SchemaRegistryBuilder
+    private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
 
     val flagManager = object : FlagManager {
         override fun isEnabled(flag: Flag) = true
@@ -43,12 +44,12 @@ class ViaductOSSScopesEndToEndTest {
                 type Foo @scope(to: ["viaduct-public"]) { field: Int }
             """
 
-            schemaRegistryBuilder = SchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("viaduct-public"))
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("viaduct-public"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
             val query = """
@@ -75,13 +76,13 @@ class ViaductOSSScopesEndToEndTest {
     @Test
     fun `Verify Builder using withFullSchemaFromFiles and registerSchema`() =
         runBlocking {
-            schemaRegistryBuilder = SchemaRegistryBuilder().withFullSchemaFromResources()
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromResources()
                 .registerScopedSchema("public", setOf("viaduct-public"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
             val query = """
@@ -113,13 +114,13 @@ class ViaductOSSScopesEndToEndTest {
             type Foo @scope(to: ["viaduct-public"]) { field: Int }
         """
 
-            schemaRegistryBuilder = SchemaRegistryBuilder()
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
                 .registerSchemaFromSdl("schema_id", sdl).registerScopedSchema("public", setOf("viaduct-public"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
             val query = """
@@ -179,13 +180,13 @@ class ViaductOSSScopesEndToEndTest {
                  extensionTest: String
             }
             """
-            schemaRegistryBuilder = SchemaRegistryBuilder().withFullSchemaFromSdl(sdl)
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl)
                 .registerScopedSchema("SCHEMA_ID", setOf("SCOPE1"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
             val query = """
@@ -228,12 +229,12 @@ class ViaductOSSScopesEndToEndTest {
     @Test
     fun `Verify Builder using registerFullSchema`() =
         runBlocking {
-            schemaRegistryBuilder = SchemaRegistryBuilder().registerFullSchema("public")
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().registerFullSchema("public")
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
             val query = """
@@ -266,15 +267,15 @@ class ViaductOSSScopesEndToEndTest {
         schema { query: Foo }
         type Foo @scope(to: ["viaduct-public"]) { field: Int }
     """
-            val schema = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING)
+            val schema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING))
 
-            schemaRegistryBuilder = SchemaRegistryBuilder().withFullSchema(schema)
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(schema)
                 .registerScopedSchema("public", setOf("viaduct-public"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
             val query = """

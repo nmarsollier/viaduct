@@ -2,14 +2,14 @@
 
 package viaduct.api.schemautils
 
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import viaduct.api.testschema.ApiTestSchemaFeatureAppTest
+import viaduct.engine.api.ViaductSchema
 
 object SchemaUtils {
-    fun getSchema(): GraphQLSchema {
+    fun getSchema(): ViaductSchema {
         val schemaContent = ApiTestSchemaFeatureAppTest().sdl
             .substringAfter("#START_SCHEMA")
             .substringBefore("#END_SCHEMA")
@@ -20,8 +20,8 @@ object SchemaUtils {
         return mkSchema(schemaContent)
     }
 
-    private fun mkSchema(sdl: String): GraphQLSchema {
+    private fun mkSchema(sdl: String): ViaductSchema {
         val tdr = SchemaParser().parse(sdl)
-        return SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING)
+        return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING))
     }
 }

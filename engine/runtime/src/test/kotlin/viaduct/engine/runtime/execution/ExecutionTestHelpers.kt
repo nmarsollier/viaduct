@@ -22,7 +22,6 @@ import graphql.execution.preparsed.PreparsedDocumentProvider
 import graphql.parser.ParserOptions
 import graphql.scalars.ExtendedScalars
 import graphql.schema.DataFetcher
-import graphql.schema.GraphQLSchema
 import graphql.schema.TypeResolver
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
@@ -43,6 +42,7 @@ import viaduct.arbitrary.graphql.graphQLExecutionInput
 import viaduct.engine.api.FieldCheckerDispatcherRegistry
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ViaductModernInstrumentation
 import viaduct.engine.runtime.CompositeLocalContext
@@ -72,21 +72,21 @@ object ExecutionTestHelpers {
             instrumentations = instrumentations,
             flagManager = flagManager
         )
-        return executeQuery(modernGraphQL, query, variables)
+        return executeQuery(schema, modernGraphQL, query, variables)
     }
 
     fun createSchema(
         sdl: String,
         resolvers: Map<String, Map<String, DataFetcher<*>>>,
         typeResolvers: Map<String, TypeResolver> = emptyMap()
-    ): GraphQLSchema = createSchema(sdl, createRuntimeWiring(resolvers, typeResolvers))
+    ): ViaductSchema = createSchema(sdl, createRuntimeWiring(resolvers, typeResolvers))
 
     fun createSchema(
         sdl: String,
         runtimeWiring: RuntimeWiring
-    ): GraphQLSchema {
+    ): ViaductSchema {
         val typeDefinitionRegistry = SchemaParser().parse(sdl)
-        return SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)
+        return ViaductSchema(SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, runtimeWiring))
     }
 
     val supportedScalars = listOf(
@@ -120,7 +120,7 @@ object ExecutionTestHelpers {
     }
 
     fun createViaductGraphQL(
-        schema: GraphQLSchema,
+        schema: ViaductSchema,
         requiredSelectionSetRegistry: RequiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
         preparsedDocumentProvider: PreparsedDocumentProvider = DocumentCache(),
         instrumentations: List<ViaductModernInstrumentation> = emptyList(),
@@ -137,7 +137,7 @@ object ExecutionTestHelpers {
             flagManager
         )
         val accessCheckRunner = AccessCheckRunner(coroutineInterop)
-        return GraphQL.newGraphQL(schema)
+        return GraphQL.newGraphQL(schema.schema)
             .preparsedDocumentProvider(preparsedDocumentProvider)
             .queryExecutionStrategy(
                 ViaductExecutionStrategy(ExceptionHandlerWithFuture(), execParamFactory, accessCheckRunner, isSerial = false, coroutineInterop)
@@ -176,11 +176,11 @@ object ExecutionTestHelpers {
         }
 
     fun createGJGraphQL(
-        schema: GraphQLSchema,
+        schema: ViaductSchema,
         preparsedDocumentProvider: PreparsedDocumentProvider = DocumentCache(),
         instrumentations: List<Instrumentation> = emptyList()
     ): GraphQL {
-        return GraphQL.newGraphQL(schema)
+        return GraphQL.newGraphQL(schema.schema)
             .preparsedDocumentProvider(preparsedDocumentProvider)
             .instrumentation(ChainedInstrumentation(instrumentations))
             .queryExecutionStrategy(AsyncExecutionStrategy(ExceptionHandlerWithFuture()))
@@ -190,18 +190,19 @@ object ExecutionTestHelpers {
     }
 
     suspend fun executeQuery(
+        schema: ViaductSchema,
         graphQL: GraphQL,
         query: String,
         variables: Map<String, Any?>
     ): ExecutionResult {
         // clear query plan cache
         QueryPlan.resetCache()
-        val executionInput = createExecutionInput(graphQL.graphQLSchema, query, variables)
+        val executionInput = createExecutionInput(schema, query, variables)
         return graphQL.executeAsync(executionInput).await()
     }
 
     fun createExecutionInput(
-        schema: GraphQLSchema,
+        schema: ViaductSchema,
         query: String,
         variables: Map<String, Any?> = emptyMap(),
         operationName: String? = null,
@@ -223,7 +224,7 @@ object ExecutionTestHelpers {
             }
             .build()
 
-    fun createLocalContext(schema: GraphQLSchema): CompositeLocalContext =
+    fun createLocalContext(schema: ViaductSchema): CompositeLocalContext =
         ContextMocks(
             myFullSchema = schema,
             myFlagManager = FlagManager.Companion.DefaultFlagManager,
@@ -266,11 +267,11 @@ object DataFetchers {
 
 /** generate an [Arb] of [ExecutionInput] that is configured for running on viaduct */
 internal fun Arb.Companion.viaductExecutionInput(
-    schema: GraphQLSchema,
+    schema: ViaductSchema,
     cfg: Config = Config.default,
-): Arb<ExecutionInput> = Arb.graphQLExecutionInput(schema, cfg).asViaductExecutionInput(schema)
+): Arb<ExecutionInput> = Arb.graphQLExecutionInput(schema.schema, cfg).asViaductExecutionInput(schema)
 
-fun Arb<ExecutionInput>.asViaductExecutionInput(schema: GraphQLSchema): Arb<ExecutionInput> =
+fun Arb<ExecutionInput>.asViaductExecutionInput(schema: ViaductSchema): Arb<ExecutionInput> =
     map { input ->
         input.transform {
             it.localContext(createLocalContext(schema))
