@@ -82,7 +82,7 @@ data class Fragment(
                 is Field -> listOf(selection)
                 is InlineFragment -> collectFields(selection.selectionSet)
                 is FragmentSpread -> throw ViaductInvalidConfigurationException(
-                    "Named fragments not yet supported in derived fields"
+                    "Named fragments not supported in required selection sets"
                 )
 
                 else -> throw ViaductInvalidConfigurationException(
