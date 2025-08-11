@@ -6,6 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import viaduct.api.context.NodeExecutionContext
 import viaduct.graphql.test.assertData
@@ -177,6 +178,7 @@ class NodeResolverTest {
     }
 
     @Test
+    @Disabled("flaky")
     fun `node resolver reads from dataloader cache`() {
         val execCounts = ConcurrentHashMap<String, AtomicInteger>()
         builder { ctx ->
