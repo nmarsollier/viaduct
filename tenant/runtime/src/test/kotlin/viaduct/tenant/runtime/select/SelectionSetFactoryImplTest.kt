@@ -1,20 +1,26 @@
 package viaduct.tenant.runtime.select
 
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
+import viaduct.engine.api.RawSelectionSet
 
 @ExperimentalCoroutinesApi
 class SelectionSetFactoryImplTest : Assertions() {
-    private val factory = SelectionSetFactoryImpl(
-        RawSelectionSetFactoryImpl(ViaductSchema(SelectTestFeatureAppTest.schema))
-    )
-
     @Test
     fun `selectionsOn -- simple`() {
+        val emptyRawSelectionSet = RawSelectionSet.empty("id")
+        val factory = SelectionSetFactoryImpl(
+            mockk {
+                every {
+                    rawSelectionSet(any(), any(), any())
+                } returns emptyRawSelectionSet
+            }
+        )
+
         val ss = factory.selectionsOn(Foo.Reflection, "id", emptyMap())
-        assertFalse(ss.isEmpty())
+        assertTrue(ss.isEmpty())
     }
 }

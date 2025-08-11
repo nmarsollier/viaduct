@@ -1,5 +1,6 @@
 package viaduct.tenant.runtime.execution
 
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -10,9 +11,9 @@ import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.ReflectionLoader
 import viaduct.api.types.Arguments
 import viaduct.engine.api.VariablesResolver
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
-import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
 class VariablesProviderExecutorTest {
@@ -43,7 +44,9 @@ class VariablesProviderExecutorTest {
                     VariablesResolver.ResolveCtx(
                         objectData,
                         mapOf("a" to 5, "b" to 7),
-                        ContextMocks(myFullSchema = MockSchema.minimal).engineExecutionContext
+                        mockk {
+                            every { fullSchema } returns ViaductSchema(MockSchema.minimal)
+                        }
                     )
                 )
             )

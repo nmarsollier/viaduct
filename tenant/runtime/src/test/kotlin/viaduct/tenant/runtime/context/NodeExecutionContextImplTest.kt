@@ -1,6 +1,7 @@
 package viaduct.tenant.runtime.context
 
 import graphql.schema.GraphQLObjectType
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -15,11 +16,10 @@ import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.MockInternalContext
 import viaduct.api.select.SelectionSet
 import viaduct.api.types.Query as QueryType
+import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.mocks.ContextMocks
-import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
-import viaduct.engine.runtime.select.RawSelectionSetImpl
-import viaduct.service.api.spi.FlagManager
+import viaduct.engine.api.mocks.mkRawSelectionSetFactory
+import viaduct.engine.api.mocks.variables
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.globalid.GlobalIdFeatureAppTest
 import viaduct.tenant.runtime.globalid.Query
@@ -32,11 +32,14 @@ import viaduct.tenant.runtime.select.SelectionSetImpl
 class NodeExecutionContextImplTest {
     private val userId = GlobalIDImpl(User.Reflection, "123")
     private val queryObject = mockk<Query>()
-    private val rawSelectionSetFactory = RawSelectionSetFactoryImpl(ViaductSchema(GlobalIdFeatureAppTest.schema))
-    private val engineExecutionContext = ContextMocks(
-        myFullSchema = GlobalIdFeatureAppTest.schema,
-        myFlagManager = FlagManager.Companion.DefaultFlagManager,
-    ).engineExecutionContext
+    private val rawSelectionSetFactory = mkRawSelectionSetFactory(ViaductSchema(GlobalIdFeatureAppTest.schema))
+
+    private val engineExecutionContext = mockk<EngineExecutionContext> {
+        every { fullSchema } returns ViaductSchema(GlobalIdFeatureAppTest.schema)
+        every { createNodeEngineObjectData(any(), any()) } returns mockk {
+            every { graphQLObjectType } returns mockk()
+        }
+    }
 
     private fun mk(
         userId: GlobalID<User> = this.userId,
@@ -71,8 +74,8 @@ class NodeExecutionContextImplTest {
         val ctx = mk()
         val ss = ctx.selectionsFor(Query.Reflection, "__typename", mapOf("var" to true))
         assertTrue(ss.contains(Query.Reflection.Fields.__typename))
-        val inner = (ss as SelectionSetImpl).rawSelectionSet as RawSelectionSetImpl
-        assertEquals(mapOf("var" to true), inner.ctx.variables)
+        val inner = (ss as SelectionSetImpl).rawSelectionSet
+        assertEquals(mapOf("var" to true), inner.variables())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

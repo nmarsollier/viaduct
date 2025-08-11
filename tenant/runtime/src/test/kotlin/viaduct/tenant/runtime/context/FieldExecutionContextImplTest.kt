@@ -20,8 +20,8 @@ import viaduct.api.types.Arguments
 import viaduct.api.types.Object
 import viaduct.api.types.Query as QueryType
 import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
-import viaduct.engine.runtime.select.RawSelectionSetImpl
+import viaduct.engine.api.mocks.mkRawSelectionSetFactory
+import viaduct.engine.api.mocks.variables
 import viaduct.tenant.runtime.select.Foo
 import viaduct.tenant.runtime.select.Query
 import viaduct.tenant.runtime.select.SelectTestFeatureAppTest
@@ -45,7 +45,7 @@ class FieldExecutionContextImplTest {
         selectionSet: SelectionSet<*> = SelectionSet.NoSelections,
         queryLoader: SelectionsLoader<QueryType> = SelectionsLoader.const(queryObject),
         selectionSetFactory: SelectionSetFactory =
-            SelectionSetFactoryImpl(RawSelectionSetFactoryImpl(ViaductSchema(SelectTestFeatureAppTest.schema))),
+            SelectionSetFactoryImpl(mkRawSelectionSetFactory(ViaductSchema(SelectTestFeatureAppTest.schema))),
         nodeReferenceFactory: NodeReferenceFactory = mockk<NodeReferenceFactory>()
     ) = FieldExecutionContextImpl(
         ExecutionContextImpl(
@@ -75,8 +75,8 @@ class FieldExecutionContextImplTest {
         val ctx = mk()
         val ss = ctx.selectionsFor(Query.Reflection, "__typename")
         assertTrue(ss.contains(Query.Reflection.Fields.__typename))
-        val inner = (ss as SelectionSetImpl).rawSelectionSet as RawSelectionSetImpl
-        assertTrue(inner.ctx.variables.isEmpty())
+        val inner = (ss as SelectionSetImpl).rawSelectionSet
+        assertTrue(inner.variables().isEmpty())
     }
 
     @Test
@@ -84,8 +84,8 @@ class FieldExecutionContextImplTest {
         val ctx = mk()
         val ss = ctx.selectionsFor(Query.Reflection, "__typename", mapOf("var" to true))
         assertTrue(ss.contains(Query.Reflection.Fields.__typename))
-        val inner = (ss as SelectionSetImpl).rawSelectionSet as RawSelectionSetImpl
-        assertEquals(mapOf("var" to true), inner.ctx.variables)
+        val inner = (ss as SelectionSetImpl).rawSelectionSet
+        assertEquals(mapOf("var" to true), inner.variables())
     }
 
     @Test
@@ -217,7 +217,7 @@ class FieldExecutionContextImplTest {
         assertTrue(ss.contains(Foo.Reflection.Fields.id))
         assertTrue(ss.contains(Foo.Reflection.Fields.fooSelf))
 
-        val inner = (ss as SelectionSetImpl).rawSelectionSet as RawSelectionSetImpl
-        assertTrue(inner.ctx.variables.isEmpty())
+        val inner = (ss as SelectionSetImpl).rawSelectionSet
+        assertTrue(inner.variables().isEmpty())
     }
 }
