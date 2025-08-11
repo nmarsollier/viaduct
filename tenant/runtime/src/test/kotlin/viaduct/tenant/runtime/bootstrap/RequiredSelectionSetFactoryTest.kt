@@ -1,6 +1,8 @@
 package viaduct.tenant.runtime.bootstrap
 
 import com.google.inject.Guice
+import io.mockk.every
+import io.mockk.mockk
 import kotlin.reflect.full.findAnnotation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -31,7 +33,6 @@ import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.resolve
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.api.variableNames
-import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.tenant.runtime.context.factory.Factory
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
@@ -77,7 +78,11 @@ class RequiredSelectionSetFactoryTest {
     private val vresolveCtx = VariablesResolver.ResolveCtx(
         objectData,
         emptyMap(),
-        ContextMocks(myFullSchema = defaultSchema).engineExecutionContext
+        mockk {
+            every {
+                fullSchema
+            } returns viaductSchema
+        }
     )
 
     private fun mkFactory(): RequiredSelectionSetFactory =

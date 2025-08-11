@@ -31,8 +31,6 @@ import viaduct.api.types.Query
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.NodeEngineObjectData
 import viaduct.engine.api.RawSelectionSet
-import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.globalid.User
@@ -59,7 +57,7 @@ class ExecutionContextImplTest {
         globalIDCodec: GlobalIDCodec = MockGlobalIDCodec(),
         selectionSet: SelectionSet<*> = SelectionSet.NoSelections,
         queryLoader: SelectionsLoader<Query> = SelectionsLoader.const(queryObject),
-        selectionSetFactory: viaduct.api.internal.select.SelectionSetFactory = SelectionSetFactoryImpl(RawSelectionSetFactoryImpl(ViaductSchema(SelectTestFeatureAppTest.schema))),
+        selectionSetFactory: viaduct.api.internal.select.SelectionSetFactory = SelectionSetFactoryImpl(mockk()),
         nodeReferenceFactory: NodeReferenceFactory = mockk<NodeReferenceFactory>()
     ) = FieldExecutionContextImpl(
         ExecutionContextImpl(

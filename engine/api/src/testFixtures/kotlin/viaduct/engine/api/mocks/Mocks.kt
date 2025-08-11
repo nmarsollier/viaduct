@@ -29,6 +29,7 @@ import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeResolverExecutor
+import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
@@ -43,6 +44,8 @@ import viaduct.engine.runtime.FieldResolverDispatcherImpl
 import viaduct.engine.runtime.NodeResolverDispatcherImpl
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.mocks.ContextMocks
+import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
+import viaduct.engine.runtime.select.RawSelectionSetImpl
 
 typealias CheckerFn = suspend (arguments: Map<String, Any?>, objectDataMap: Map<String, EngineObjectData>) -> Unit
 typealias NodeBatchResolverFn = suspend (selectors: List<NodeResolverExecutor.Selector>, context: EngineExecutionContext) -> Map<NodeResolverExecutor.Selector, Result<EngineObjectData>>
@@ -54,6 +57,7 @@ typealias FieldUnbatchedResolverFn = suspend (
     selections: RawSelectionSet?,
     context: EngineExecutionContext
 ) -> Any?
+
 typealias FieldBatchResolverFn = suspend (selectors: List<FieldResolverExecutor.Selector>, context: EngineExecutionContext) -> Map<FieldResolverExecutor.Selector, Result<Any?>>
 typealias VariablesResolverFn = suspend (ctx: VariablesResolver.ResolveCtx) -> Map<String, Any?>
 
@@ -62,6 +66,21 @@ fun mkCoroutineInterop(): CoroutineInterop = DefaultCoroutineInterop
 fun mkExecutionStrategy(): ExecutionStrategy = AsyncExecutionStrategy(SimpleDataFetcherExceptionHandler())
 
 fun mkInstrumentation(): Instrumentation = ChainedInstrumentation(listOf<Instrumentation>())
+
+fun RawSelectionSet.variables() = (this as RawSelectionSetImpl).ctx.variables
+
+fun mkRawSelectionSet(
+    parsedSelections: ParsedSelections,
+    viaductSchema: ViaductSchema,
+    variables: Map<String, Any?>
+): RawSelectionSet =
+    RawSelectionSetImpl.create(
+        parsedSelections,
+        variables,
+        viaductSchema
+    )
+
+fun mkRawSelectionSetFactory(viaductSchema: ViaductSchema) = RawSelectionSetFactoryImpl(viaductSchema)
 
 fun mkRSS(
     typeName: String,
@@ -475,6 +494,7 @@ data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectTyp
                                 maybeWrap(type.getFieldDefinition(fname).type, value)
                             }
                         )
+
                     is GraphQLCompositeType -> throw IllegalArgumentException("don't know how to wrap type $type with value $value")
                     else -> value
                 }

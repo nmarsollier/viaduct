@@ -24,7 +24,6 @@ import viaduct.engine.api.NodeEngineObjectData
 import viaduct.engine.api.NodeResolverDispatcherRegistry
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
-import viaduct.engine.runtime.NodeEngineObjectDataImpl
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.globalid.GlobalIdFeatureAppTest
@@ -41,11 +40,10 @@ class NodeReferenceFactoryImplTest {
             every { nodeCheckerRegistryProvider.get() } returns mockk()
             val schema = GlobalIdFeatureAppTest.schema
             val globalId = GlobalIDImpl(User.Reflection, "123")
-            val factory = NodeReferenceFactoryImpl {
-                    id: String,
-                    graphQLObjectType: GraphQLObjectType,
-                ->
-                NodeEngineObjectDataImpl(id, graphQLObjectType, nodeResolverRegistryProvider.get(), nodeCheckerRegistryProvider.get())
+            val factory = NodeReferenceFactoryImpl { id: String, objectType: GraphQLObjectType ->
+                mockk {
+                    every { graphQLObjectType } returns objectType
+                }
             }
 
             val reflectionLoader = ReflectionLoaderImpl { TODO("unused") }

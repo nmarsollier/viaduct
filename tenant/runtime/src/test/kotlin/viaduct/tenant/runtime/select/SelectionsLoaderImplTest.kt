@@ -16,19 +16,15 @@ import viaduct.api.select.SelectionSet
 import viaduct.api.types.Query as QueryType
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RawSelectionsLoader
-import viaduct.engine.api.ViaductSchema
-import viaduct.engine.runtime.ProxyEngineObjectData
-import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 
 class SelectionsLoaderImplTest {
-    private val ssFactory = SelectionSetFactoryImpl(RawSelectionSetFactoryImpl(ViaductSchema(SelectTestFeatureAppTest.schema)))
     private val context = MockInternalContext(SelectTestFeatureAppTest.schema).executionContext
 
     @Test
     fun `loads empty selections`() =
         runBlockingTest {
             val rawSelectionsLoader = mockk<RawSelectionsLoader> {
-                coEvery { load(any()) } returns mockk<ProxyEngineObjectData>()
+                coEvery { load(any()) } returns mockk()
             }
             SelectionsLoaderImpl<QueryType>(rawSelectionsLoader)
                 .load(context, SelectionSet.empty(Query.Reflection))
@@ -38,7 +34,7 @@ class SelectionsLoaderImplTest {
     fun `loads empty selections 2`() =
         runBlockingTest {
             val rawSelectionsLoader = mockk<RawSelectionsLoader> {
-                coEvery { load(any()) } returns mockk<ProxyEngineObjectData>()
+                coEvery { load(any()) } returns mockk()
             }
             SelectionsLoaderImpl<Query>(rawSelectionsLoader)
                 .load(context, SelectionSetImpl(Query.Reflection, RawSelectionSet.empty(Query.Reflection.name)))
@@ -47,15 +43,21 @@ class SelectionsLoaderImplTest {
     @Test
     fun `loads simple selections`() =
         runBlockingTest {
-            val mockPED = mockk<ProxyEngineObjectData> {
-                every { graphQLObjectType } returns SelectTestFeatureAppTest.schema.getObjectType(Query.Reflection.name)
-                coEvery { fetch(Query.Reflection.Fields.intField.name) } returns 42
-            }
             val rawSelectionsLoader = mockk<RawSelectionsLoader> {
-                coEvery { load(any()) } returns mockPED
+                coEvery { load(any()) } returns mockk {
+                    every { graphQLObjectType } returns SelectTestFeatureAppTest.schema.getObjectType(Query.Reflection.name)
+                    coEvery { fetch(Query.Reflection.Fields.intField.name) } returns 42
+                }
             }
+            val rawSelectionSet = mockk<RawSelectionSet>()
             val loaded = SelectionsLoaderImpl<Query>(rawSelectionsLoader)
-                .load(context, ssFactory.selectionsOn(Query.Reflection, Query.Reflection.Fields.intField.name))
+                .load(
+                    context,
+                    SelectionSetImpl(
+                        Query.Reflection,
+                        mockk()
+                    )
+                )
             assertEquals(42, loaded.getIntField())
         }
 

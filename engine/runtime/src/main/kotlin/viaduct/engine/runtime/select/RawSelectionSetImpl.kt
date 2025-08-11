@@ -428,6 +428,7 @@ data class RawSelectionSetImpl(
                     }
                 }
             }
+
             is InlineFragment ->
                 if (sel.selectionSet.selections.isEmpty()) {
                     null
@@ -436,6 +437,7 @@ data class RawSelectionSetImpl(
                         sel.transform { it.selectionSet(ss) }
                     }
                 }
+
             is FragmentSpread -> {
                 val frag = getFragmentDefinition(sel.name)
                 if (frag.selectionSet.selections.isEmpty()) {
@@ -449,6 +451,7 @@ data class RawSelectionSetImpl(
                     }
                 }
             }
+
             else -> throw IllegalArgumentException("Unsupported Selection type: $sel")
         }
 

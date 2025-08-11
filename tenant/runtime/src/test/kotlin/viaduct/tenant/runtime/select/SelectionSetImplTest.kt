@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test
 import viaduct.api.reflect.Type
 import viaduct.api.types.CompositeOutput
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.api.mocks.mkRawSelectionSet
 import viaduct.engine.api.select.SelectionsParser
-import viaduct.engine.runtime.select.RawSelectionSetImpl
 
 @ExperimentalCoroutinesApi
 class SelectionSetImplTest {
@@ -20,10 +20,10 @@ class SelectionSetImplTest {
     ): SelectionSetImpl<T> =
         SelectionSetImpl(
             type,
-            RawSelectionSetImpl.create(
+            mkRawSelectionSet(
                 SelectionsParser.parse(type.name, selections),
+                ViaductSchema(SelectTestFeatureAppTest.schema),
                 variables,
-                ViaductSchema(SelectTestFeatureAppTest.schema)
             )
         )
 

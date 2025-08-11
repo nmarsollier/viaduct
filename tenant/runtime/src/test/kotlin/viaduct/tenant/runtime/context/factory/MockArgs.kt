@@ -2,6 +2,8 @@ package viaduct.tenant.runtime.context.factory
 
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.UnExecutableSchemaGenerator
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.api.internal.InternalContext
 import viaduct.api.internal.ReflectionLoader
@@ -11,13 +13,12 @@ import viaduct.api.mocks.MockExecutionContext
 import viaduct.api.mocks.MockInternalContext
 import viaduct.api.mocks.MockSelectionSetFactory
 import viaduct.api.mocks.MockSelectionsLoader
+import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockEngineObjectData
-import viaduct.engine.runtime.mocks.ContextMocks
-import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
-import viaduct.service.api.spi.FlagManager
+import viaduct.engine.api.mocks.mkRawSelectionSetFactory
 import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 
 /**
@@ -44,7 +45,7 @@ class MockArgs(
             )
         }
         val defaultReflectionLoader: ReflectionLoader = ReflectionLoaderImpl { name -> Class.forName("viaduct.tenant.runtime.context.factory.$name").kotlin }
-        val rawSelectionsFactory = RawSelectionSetFactoryImpl(contextFactoryTestSchema)
+        val rawSelectionsFactory = mkRawSelectionSetFactory(contextFactoryTestSchema)
         val selectionSetFactory: SelectionSetFactory = MockSelectionSetFactory()
     }
 
@@ -63,10 +64,11 @@ class MockArgs(
             Mutation.Builder(MockExecutionContext(internalContext)).build()
         )
 
-    val engineExecutionContext = ContextMocks(
-        myFullSchema = contextFactoryTestSchema.schema,
-        myFlagManager = FlagManager.Companion.DefaultFlagManager,
-    ).engineExecutionContext
+    val engineExecutionContext: EngineExecutionContext = mockk {
+        every {
+            fullSchema
+        } returns contextFactoryTestSchema
+    }
 
     fun getFieldArgs() =
         FieldArgs(
@@ -78,7 +80,7 @@ class MockArgs(
             selectionSetFactory = selectionSetFactory,
             selections = selections,
             selectionsLoaderFactory = selectionsLoaderFactory,
-            engineExecutionContext = engineExecutionContext,
+            engineExecutionContext = engineExecutionContext
         )
 
     fun getNodeArgs() =
