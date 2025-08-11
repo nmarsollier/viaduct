@@ -4,7 +4,9 @@ import java.io.File
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.get
@@ -123,16 +125,26 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         @Suppress("DEPRECATION")
         val schemaDir = File(project.buildDir, "featureapp-schemas")
         val schemaFile = File(schemaDir, "$featureAppName.graphql")
-        schemaDir.mkdirs()
 
-        try {
-            extractSchemaFromFeatureApp(featureAppFile, schemaFile)
-        } catch (e: Exception) {
-            project.logger.error("Failed to extract schema from ${featureAppFile.name}: ${e.message}")
-            return
+        // Create schema extraction task
+        val extractionTask = project.tasks.register("extract${featureAppName.capitalize()}Schema") {
+            group = "viaduct-feature-app"
+            description = "Extracts schema from FeatureApp $featureAppName"
+
+            inputs.file(featureAppFile)
+            outputs.file(schemaFile)
+
+            doLast {
+                schemaDir.mkdirs()
+                try {
+                    extractSchemaFromFeatureApp(featureAppFile, schemaFile)
+                } catch (e: Exception) {
+                    throw GradleException("Failed to extract schema from ${featureAppFile.name}: ${e.message}", e)
+                }
+            }
         }
 
-        val schemaTask = configureSchemaGeneration(project, featureAppName, schemaFile, packageName)
+        val schemaTask = configureSchemaGeneration(project, featureAppName, schemaFile, packageName, extractionTask)
         val tenantTask = configureTenantGeneration(project, featureAppName, schemaFile, packageName, schemaTask)
 
         // Link tasks to compilation
@@ -225,6 +237,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         featureAppName: String,
         schemaFile: File,
         packageName: String,
+        extractionTask: TaskProvider<Task>
     ): org.gradle.api.tasks.TaskProvider<ViaductFeatureAppSchemaTask> {
         val toolchainService = project.extensions.getByType<JavaToolchainService>()
         val javaPluginExt = project.extensions.getByType<JavaPluginExtension>()
@@ -242,6 +255,8 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         ) {
             group = "viaduct-feature-app"
             description = "Generates schema objects for FeatureApp $featureAppName"
+
+            dependsOn(extractionTask)
 
             this.schemaName.set("default")
             this.packageName.set(packageName)
@@ -263,8 +278,8 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         featureAppName: String,
         schemaFile: File,
         packageName: String,
-        schemaTask: org.gradle.api.tasks.TaskProvider<ViaductFeatureAppSchemaTask>?
-    ): org.gradle.api.tasks.TaskProvider<ViaductFeatureAppTenantTask> {
+        schemaTask: TaskProvider<ViaductFeatureAppSchemaTask>?
+    ): TaskProvider<ViaductFeatureAppTenantTask> {
         val tenantName = packageName.split(".").last()
         val tenantPackageName = packageName.split(".").dropLast(1).joinToString(".")
 
@@ -333,7 +348,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
      */
     private fun linkToCompilationTasks(
         project: Project,
-        generationTask: org.gradle.api.tasks.TaskProvider<*>
+        generationTask: TaskProvider<*>
     ) {
         // Make test compilation tasks depend on generation (not main compilation)
         listOf("compileTestJava", "compileTestKotlin").forEach { taskName ->
