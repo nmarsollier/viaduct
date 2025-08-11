@@ -9,6 +9,8 @@ import graphql.language.NonNullType
 import graphql.language.Type
 import graphql.language.TypeName
 import graphql.parser.Parser
+import graphql.parser.ParserEnvironment
+import graphql.parser.ParserOptions
 import graphql.schema.GraphQLDirective
 import graphql.schema.GraphQLInputType
 import graphql.schema.GraphQLInterfaceType
@@ -270,7 +272,14 @@ fun GraphQLType.asAstType(): Type<*> =
 val String.asSchema: GraphQLSchema get() = SchemaGenerator.createdMockedSchema(this)
 
 /** Return a parsed [Document] described by this String value */
-val String.asDocument: Document get() = Parser.parse(this)
+val String.asDocument: Document get() =
+    Parser.parse(
+        ParserEnvironment.newParserEnvironment()
+            .document(this)
+            // use the SDL parser options, which will parse an unlimited number of tokens
+            .parserOptions(ParserOptions.getDefaultSdlParserOptions())
+            .build()
+    )
 
 /** A [Comparator] that orders [ExecutionInput]s by how many nodes are in their parsed document */
 val ExecutionInputComparator: Comparator<ExecutionInput> =

@@ -16,6 +16,15 @@ import viaduct.arbitrary.common.WeightValidator
  */
 object SchemaSize : ConfigKey<Int>(20, IntValidator(0..1_000_000))
 
+/**
+ * Relative weights of different [TypeType]s. Any unset keys will be interpreted as a weight of 1.0.
+ * Weights may be any positive double and may be greater than 1.0.
+ */
+object TypeTypeWeights : ConfigKey<Map<TypeType, Double>>(emptyMap(), Unvalidated) {
+    /** A value with all [TypeType]s configured with a 0 weight */
+    val zero: Map<TypeType, Double> = TypeType.values().associateWith { 0.0 }
+}
+
 /** The probability that an Object type will implement any interface */
 object ObjectImplementsInterface : ConfigKey<CompoundingWeight>(CompoundingWeight(.1, 10), CompoundingWeightValidator)
 
