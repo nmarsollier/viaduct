@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.VariablesResolver
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
 
 class MocksAdditionalTest {
@@ -129,7 +128,7 @@ class MocksAdditionalTest {
             }
         }
 
-        val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
+        val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
 
         val (coordinate, executor) = resolvers[0]
@@ -142,7 +141,7 @@ class MocksAdditionalTest {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
             type("TestNode") {
                 nodeUnbatchedExecutor { id, _, _ ->
-                    MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), mapOf("id" to id))
+                    MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestNode"), mapOf("id" to id))
                 }
             }
         }
@@ -160,7 +159,7 @@ class MocksAdditionalTest {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
             type("TestBatchNode") {
                 nodeBatchedExecutor { selectors, _ ->
-                    selectors.associateWith { Result.success(MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap())) }
+                    selectors.associateWith { Result.success(MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestNode"), emptyMap())) }
                 }
             }
         }
@@ -187,16 +186,16 @@ class MocksAdditionalTest {
                 }
             }
             type("Node1") {
-                nodeUnbatchedExecutor { _, _, _ -> MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap()) }
+                nodeUnbatchedExecutor { _, _, _ -> MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestNode"), emptyMap()) }
             }
             type("BatchNode1") {
                 nodeBatchedExecutor { selectors, _ ->
-                    selectors.associateWith { Result.success(MockEngineObjectData(Samples.testSchema.getObjectType("TestNode"), emptyMap())) }
+                    selectors.associateWith { Result.success(MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestNode"), emptyMap())) }
                 }
             }
         }
 
-        assertEquals(2, module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).count())
+        assertEquals(2, module.fieldResolverExecutors(Samples.testSchema).count())
         assertEquals(2, module.nodeResolverExecutors().count())
     }
 
@@ -205,12 +204,12 @@ class MocksAdditionalTest {
         val schema = Samples.testSchema
 
         // Verify schema contains expected types
-        assertNotNull(schema.getObjectType("TestType"))
-        assertNotNull(schema.getObjectType("TestNode"))
-        assertNotNull(schema.queryType)
+        assertNotNull(schema.schema.getObjectType("TestType"))
+        assertNotNull(schema.schema.getObjectType("TestNode"))
+        assertNotNull(schema.schema.queryType)
 
         // Verify TestType fields
-        val testType = schema.getObjectType("TestType")
+        val testType = schema.schema.getObjectType("TestType")
         assertNotNull(testType.getFieldDefinition("aField"))
         assertNotNull(testType.getFieldDefinition("bIntField"))
         assertNotNull(testType.getFieldDefinition("parameterizedField"))
@@ -223,7 +222,7 @@ class MocksAdditionalTest {
         val module = Samples.mockTenantModule
 
         // Verify it has resolvers
-        val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
+        val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(6, resolvers.size)
 
         // Verify resolver coordinates
@@ -287,7 +286,7 @@ class MocksAdditionalTest {
 
     @Test
     fun `MockEngineObjectData basic properties`() {
-        val objectType = Samples.testSchema.getObjectType("TestType")
+        val objectType = Samples.testSchema.schema.getObjectType("TestType")
         val data = mapOf("aField" to "fieldValue", "bIntField" to 42)
         val mockData = MockEngineObjectData(objectType, data)
 
@@ -298,22 +297,22 @@ class MocksAdditionalTest {
     @Test
     fun `MockSchema minimal schema structure`() {
         val schema = MockSchema.minimal
-        assertNotNull(schema.queryType)
-        assertNotNull(schema.queryType.getFieldDefinition("empty"))
+        assertNotNull(schema.schema.queryType)
+        assertNotNull(schema.schema.queryType.getFieldDefinition("empty"))
     }
 
     @Test
     fun `MockSchema mk helper function`() {
         val schema = MockSchema.mk("type Query { testField: String }")
-        assertNotNull(schema.queryType)
-        assertNotNull(schema.queryType.getFieldDefinition("testField"))
+        assertNotNull(schema.schema.queryType)
+        assertNotNull(schema.schema.queryType.getFieldDefinition("testField"))
     }
 
     @Test
     fun `MockTenantModuleBootstrapper empty constructor`() {
         val emptyModule = MockTenantModuleBootstrapper(MockSchema.minimal)
 
-        assertEquals(0, emptyModule.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).count())
+        assertEquals(0, emptyModule.fieldResolverExecutors(Samples.testSchema).count())
         assertEquals(0, emptyModule.nodeResolverExecutors().count())
     }
 

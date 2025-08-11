@@ -17,7 +17,6 @@ import org.openjdk.jmh.annotations.State
 import org.openjdk.jmh.annotations.Warmup
 import org.openjdk.jmh.infra.Blackhole
 import viaduct.engine.api.RequiredSelectionSetRegistry
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.parse.CachedDocumentParser.parseDocument
 import viaduct.engine.runtime.execution.QueryPlan
 import viaduct.engine.runtime.mkSchema
@@ -35,7 +34,7 @@ open class QueryPlanBenchmark {
 
         val parameters = QueryPlan.Parameters(
             data.query,
-            ViaductSchema(schema),
+            schema,
             RequiredSelectionSetRegistry.Empty,
             // passing false here, as RSS registry is empty, plus query plan cache is turned off.
             // So it makes no difference whether passing true or false.

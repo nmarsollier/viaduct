@@ -21,7 +21,6 @@ import viaduct.engine.api.FieldCheckerDispatcherRegistry
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 import viaduct.engine.runtime.CompositeLocalContext
@@ -285,7 +284,7 @@ data class ExecutionParameters(
                     QueryPlan.build(
                         QueryPlan.Parameters(
                             executionContext.executionInput.query,
-                            ViaductSchema(executionContext.graphQLSchema),
+                            engineExecutionContext.fullSchema,
                             requiredSelectionSetRegistry,
                             engineExecutionContext.executeAccessChecksInModstrat
                         ),

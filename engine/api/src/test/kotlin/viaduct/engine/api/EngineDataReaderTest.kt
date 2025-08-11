@@ -23,7 +23,7 @@ class EngineDataReaderTest {
         """.trimIndent()
     )
 
-    private fun mkData(map: Map<String, Any?>): EngineObjectData = MockEngineObjectData.wrap(schema.queryType, map)
+    private fun mkData(map: Map<String, Any?>): EngineObjectData = MockEngineObjectData.wrap(schema.schema.queryType, map)
 
     @Test
     fun `read -- reading from empty path returns root object`() =

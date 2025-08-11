@@ -12,5 +12,6 @@ dependencies {
     implementation(libs.graphql.java)
 
     testImplementation(testFixtures(project(":shared:graphql")))
+    testImplementation(project(":engine:engine-api"))
     testImplementation(project(":tenant:testapps:fixtures"))
 }

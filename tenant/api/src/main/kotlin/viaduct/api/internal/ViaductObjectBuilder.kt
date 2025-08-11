@@ -69,7 +69,7 @@ class ViaductObjectBuilder<T : Object> private constructor(
             ctx: InternalContext,
             grtClazz: KClass<T>
         ): ViaductObjectBuilder<T> {
-            val graphqlType = ctx.schema.getObjectType(grtClazz.simpleName)
+            val graphqlType = ctx.schema.schema.getObjectType(grtClazz.simpleName)
             return ViaductObjectBuilder(ctx, graphqlType, grtClazz)
         }
     }

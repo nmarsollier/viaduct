@@ -60,7 +60,7 @@ class FieldUnbatchedResolverExecutorImpl(
     ): Any? {
         val ctx = resolverContextFactory.make(
             FieldArgs(
-                internalContext = InternalContextImpl(context.fullSchema.schema, globalIDCodec, reflectionLoader),
+                internalContext = InternalContextImpl(context.fullSchema, globalIDCodec, reflectionLoader),
                 arguments = arguments,
                 objectValue = objectValue,
                 queryValue = queryValue,

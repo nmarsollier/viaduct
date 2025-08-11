@@ -1,15 +1,17 @@
 package viaduct.tenant.runtime.globalid
 
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.UnExecutableSchemaGenerator
+import viaduct.engine.api.ViaductSchema
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
 class GlobalIdFeatureAppTest : FeatureAppTestBase() {
     companion object {
-        val schema: GraphQLSchema by lazy {
-            UnExecutableSchemaGenerator.makeUnExecutableSchema(
-                SchemaParser().parse(GlobalIdFeatureAppTest().sdl)
+        val schema: ViaductSchema by lazy {
+            ViaductSchema(
+                UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                    SchemaParser().parse(GlobalIdFeatureAppTest().sdl)
+                )
             )
         }
     }

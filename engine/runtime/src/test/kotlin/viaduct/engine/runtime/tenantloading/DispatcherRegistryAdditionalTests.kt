@@ -34,7 +34,7 @@ class DispatcherRegistryAdditionalTests {
         val bootstrapper = MockTenantAPIBootstrapper(listOf(throwingModule, workingModule))
         val checkerExecutorFactory = MockCheckerExecutorFactory()
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerExecutorFactory)
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         // Should still have resolvers from working module
         assertEquals(6, registry.fieldResolverDispatchers.size)
@@ -59,7 +59,7 @@ class DispatcherRegistryAdditionalTests {
 
         val bootstrapper = MockTenantAPIBootstrapper(listOf(module1, module2))
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, MockCheckerExecutorFactory())
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         assertEquals(1, registry.fieldResolverDispatchers.size)
         // The second module should win - verify the resolver is from module2
@@ -79,7 +79,7 @@ class DispatcherRegistryAdditionalTests {
 
         val bootstrapper = MockTenantAPIBootstrapper(listOf(Samples.mockTenantModule))
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerFactory)
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         // Should not have checker executors for non-existent resolvers
         assertNull(registry.getCheckerExecutor("NonExistentType", "nonExistentField"))
@@ -94,7 +94,7 @@ class DispatcherRegistryAdditionalTests {
         val bootstrapper = MockTenantAPIBootstrapper(listOf(Samples.mockTenantModule))
         val checkerExecutorFactory = MockCheckerExecutorFactory()
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerExecutorFactory)
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         val batchResolver = registry.getNodeResolverDispatcher("TestBatchNode")
 
@@ -105,7 +105,7 @@ class DispatcherRegistryAdditionalTests {
     fun `empty tenant modules handling`() {
         val bootstrapper = MockTenantAPIBootstrapper(emptyList())
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, MockCheckerExecutorFactory())
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         assertEquals(0, registry.fieldResolverDispatchers.size)
         assertEquals(0, registry.nodeResolverDispatchers.size)
@@ -122,7 +122,7 @@ class DispatcherRegistryAdditionalTests {
             type("NodeType1") {
                 nodeUnbatchedExecutor { id, _, _ ->
                     viaduct.engine.api.mocks.MockEngineObjectData(
-                        Samples.testSchema.getObjectType("TestNode"),
+                        Samples.testSchema.schema.getObjectType("TestNode"),
                         mapOf("id" to id)
                     )
                 }
@@ -140,7 +140,7 @@ class DispatcherRegistryAdditionalTests {
                     selectors.associate { selector ->
                         selector to Result.success(
                             viaduct.engine.api.mocks.MockEngineObjectData(
-                                Samples.testSchema.getObjectType("TestNode"),
+                                Samples.testSchema.schema.getObjectType("TestNode"),
                                 mapOf("id" to selector.id)
                             )
                         )
@@ -151,7 +151,7 @@ class DispatcherRegistryAdditionalTests {
 
         val bootstrapper = MockTenantAPIBootstrapper(listOf(module1, module2))
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, MockCheckerExecutorFactory())
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         // Should have both field resolvers
         assertEquals(2, registry.fieldResolverDispatchers.size)
@@ -173,7 +173,7 @@ class DispatcherRegistryAdditionalTests {
             type("TestNode") {
                 nodeUnbatchedExecutor { id, _, _ ->
                     viaduct.engine.api.mocks.MockEngineObjectData(
-                        Samples.testSchema.getObjectType("TestNode"),
+                        Samples.testSchema.schema.getObjectType("TestNode"),
                         mapOf("id" to id, "type" to "regular")
                     )
                 }
@@ -184,7 +184,7 @@ class DispatcherRegistryAdditionalTests {
                     selectors.associate { selector ->
                         selector to Result.success(
                             viaduct.engine.api.mocks.MockEngineObjectData(
-                                Samples.testSchema.getObjectType("TestNode"),
+                                Samples.testSchema.schema.getObjectType("TestNode"),
                                 mapOf("id" to selector.id, "type" to "batch")
                             )
                         )
@@ -195,7 +195,7 @@ class DispatcherRegistryAdditionalTests {
 
         val bootstrapper = MockTenantAPIBootstrapper(listOf(moduleWithBoth))
         val registry = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, MockCheckerExecutorFactory())
-            .create(ViaductSchema(Samples.testSchema))
+            .create(Samples.testSchema)
 
         // Should have both resolvers
         val regularResolver = registry.getNodeResolverDispatcher("TestNode")

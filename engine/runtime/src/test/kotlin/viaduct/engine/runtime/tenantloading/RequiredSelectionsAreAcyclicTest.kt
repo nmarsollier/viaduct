@@ -10,7 +10,6 @@ import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.FromQueryFieldVariable
 import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.VariablesResolver
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.select.SelectionsParser
@@ -546,7 +545,7 @@ class RequiredSelectionsAreAcyclicTest {
             $sdl
             """.trimIndent()
         )
-        val validator = RequiredSelectionsAreAcyclic(ViaductSchema(schema))
+        val validator = RequiredSelectionsAreAcyclic(schema)
 
         val coordToValidate = registry.entries.map { it.coord }.toSet()
         coordToValidate.map { coord ->

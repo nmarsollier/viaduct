@@ -39,7 +39,7 @@ class GlobalIDCodecImplTest : KotestPropertyBase() {
         val schema = GlobalIdFeatureAppTest.schema
         codec = GlobalIDCodecImpl(mirror)
 
-        val (objectsResults, nonObjectsResults) = schema.allTypesAsList
+        val (objectsResults, nonObjectsResults) = schema.schema.allTypesAsList
             .filter { !it.name.startsWith("_") }
             .partition {
                 it is GraphQLObjectType

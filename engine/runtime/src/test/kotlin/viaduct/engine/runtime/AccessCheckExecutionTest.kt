@@ -44,9 +44,9 @@ class AccessCheckExecutionTest {
         """.trimIndent()
 
         private val schema = MockSchema.mk(SDL)
-        private val booType = schema.getObjectType("Boo")
-        private val bazType = schema.getObjectType("Baz")
-        private val queryType = schema.getObjectType("Query")
+        private val booType = schema.schema.getObjectType("Boo")
+        private val bazType = schema.schema.getObjectType("Baz")
+        private val queryType = schema.schema.getObjectType("Query")
     }
 
     @Test

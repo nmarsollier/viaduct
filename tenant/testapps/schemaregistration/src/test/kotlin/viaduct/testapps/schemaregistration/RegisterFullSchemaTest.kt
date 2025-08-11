@@ -1,11 +1,10 @@
 package viaduct.testapps.schemaregistration
 
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
-import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.ViaductSchema
 import viaduct.graphql.test.assertEquals
 import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
@@ -88,4 +87,4 @@ class RegisterFullSchemaTest : TestBase(
     }
 }
 
-private fun mkSchema(sdl: String): GraphQLSchema = SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING)
+private fun mkSchema(sdl: String): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING))

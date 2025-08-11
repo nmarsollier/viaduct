@@ -6,16 +6,16 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.runtime.fixtures.runFeatureTest
 import viaduct.engine.runtime.fixtures.toViaductBuilder
-import viaduct.service.runtime.SchemaRegistryBuilder
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 class OperationValidationTest {
     val testSchema = """
         directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-        
+
         type Query @scope(to: ["public","private"]) {
             f1: Int
         }
-        
+
         extend type Query @scope(to: ["private"]) {
             f2: Int
         }
@@ -26,7 +26,7 @@ class OperationValidationTest {
         fieldWithValue("Query" to "f2", 2)
     }.toViaductBuilder()
         .withSchemaRegistryBuilder(
-            SchemaRegistryBuilder()
+            ViaductSchemaRegistryBuilder()
                 .withFullSchemaFromSdl(testSchema)
                 .registerFullSchema("full")
                 .registerScopedSchema("public", setOf("public"))

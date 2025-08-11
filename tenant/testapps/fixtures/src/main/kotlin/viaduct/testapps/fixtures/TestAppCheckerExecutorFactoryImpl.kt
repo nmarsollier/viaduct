@@ -1,22 +1,24 @@
 package viaduct.testapps.fixtures
 
 import graphql.schema.GraphQLAppliedDirective
-import graphql.schema.GraphQLSchema
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerExecutorFactory
+import viaduct.engine.api.ViaductSchema
 
 /**
  * This class implements a viaduct modern tenant test app with specific behavior for the @policyCheck directive.
  * This should not be available outside oss/testapps.
  */
 internal class TestAppCheckerExecutorFactoryImpl(
-    private val schema: GraphQLSchema,
+    private val schema: ViaductSchema,
 ) : CheckerExecutorFactory {
+    private val graphQLSchema = schema.schema
+
     override fun checkerExecutorForField(
         typeName: String,
         fieldName: String
     ): CheckerExecutor? {
-        val graphqlField = schema.getObjectType(typeName)?.getFieldDefinition(fieldName)
+        val graphqlField = graphQLSchema.getObjectType(typeName)?.getFieldDefinition(fieldName)
             ?: throw IllegalStateException("Cannot find field $fieldName in type $typeName")
 
         if (!graphqlField.hasAppliedDirective("policyCheck")) {
@@ -29,7 +31,7 @@ internal class TestAppCheckerExecutorFactoryImpl(
     }
 
     override fun checkerExecutorForType(typeName: String): CheckerExecutor? {
-        val graphqlType = schema.getObjectType(typeName)
+        val graphqlType = graphQLSchema.getObjectType(typeName)
             ?: throw IllegalStateException("Cannot find type $typeName")
 
         if (!graphqlType.hasAppliedDirective("policyCheck")) {

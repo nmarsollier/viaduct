@@ -15,7 +15,6 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLList
 import graphql.schema.GraphQLNonNull
-import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLType
 import graphql.schema.GraphQLTypeUtil
 import graphql.schema.TypeResolver
@@ -35,6 +34,7 @@ import viaduct.arbitrary.common.minViolation
 import viaduct.arbitrary.common.randomSource
 import viaduct.arbitrary.graphql.ExecutionInputComparator
 import viaduct.arbitrary.graphql.arbRuntimeWiring
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createExecutionInput
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createGJGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createRuntimeWiring
@@ -68,7 +68,7 @@ import viaduct.engine.runtime.execution.RecordingInstrumentation.RecordingInstru
  */
 @ExperimentalCoroutinesApi
 internal class Conformer private constructor(
-    val schema: GraphQLSchema,
+    val schema: ViaductSchema,
     private val fn: suspend Conformer.() -> Unit = {}
 ) {
     /** Create a [Conformer] backed by the provided resolvers */

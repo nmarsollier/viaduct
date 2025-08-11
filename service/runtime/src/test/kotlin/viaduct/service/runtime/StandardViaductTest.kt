@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.fragment.ViaductExecutableFragmentParser
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextImpl
@@ -35,13 +36,13 @@ import viaduct.engine.runtime.getLocalContextForType
 import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.FlagManager
-import viaduct.service.runtime.SchemaRegistryBuilder.AsyncScopedSchema
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder.AsyncScopedSchema
 
 class StandardViaductTest {
     private lateinit var subject: StandardViaduct
     private lateinit var mockGraphql: GraphQL
     private lateinit var fullSchema: GraphQLSchema
-    private lateinit var graphQLSchemaRegistry: GraphQLSchemaRegistry
+    private lateinit var graphQLSchemaRegistry: ViaductSchemaRegistry
     private lateinit var instrumentation: Instrumentation
     private lateinit var queryExecutionStrategy: ExecutionStrategy
     private lateinit var mutationExecutionStrategy: ExecutionStrategy
@@ -59,7 +60,7 @@ class StandardViaductTest {
         every { fullSchema.allTypesAsList } returns listOf()
 
         graphQLSchemaRegistry = mockk()
-        every { graphQLSchemaRegistry.getFullSchema() } returns fullSchema
+        every { graphQLSchemaRegistry.getFullSchema() } returns ViaductSchema(fullSchema)
         every { graphQLSchemaRegistry.registerSchema(any(), any(), any(), any()) } returns Unit
 
         instrumentation = mockk()
@@ -84,7 +85,7 @@ class StandardViaductTest {
         asyncGeneratedSchemas: ConcurrentHashMap<String, AsyncScopedSchema> = ConcurrentHashMap(),
     ) {
         if (scopedSchemas.get(SCHEMA_ID) != null || asyncGeneratedSchemas.get(SCHEMA_ID) != null) {
-            every { graphQLSchemaRegistry.getSchema(SCHEMA_ID) } returns fullSchema
+            every { graphQLSchemaRegistry.getSchema(SCHEMA_ID) } returns ViaductSchema(fullSchema)
             every { graphQLSchemaRegistry.getEngine(SCHEMA_ID) } returns mockGraphql
         }
 
@@ -242,7 +243,7 @@ class StandardViaductTest {
             assertEquals(input.context, requestContext)
             val engineExecutionContext = input.getLocalContextForType<EngineExecutionContextImpl>()
             assertNotNull(engineExecutionContext)
-            assertEquals(graphQLSchemaRegistry.getFullSchema(), engineExecutionContext.fullSchema.schema)
+            assertEquals(graphQLSchemaRegistry.getFullSchema(), engineExecutionContext.fullSchema)
             CompletableFuture.supplyAsync { SuccessfulExecutionResult() }
         }
 
@@ -269,7 +270,7 @@ class StandardViaductTest {
             assertEquals(input.context, context)
             val engineExecutionContext = input.getLocalContextForType<EngineExecutionContextImpl>()
             assertNotNull(engineExecutionContext)
-            assertEquals(graphQLSchemaRegistry.getFullSchema(), engineExecutionContext.fullSchema.schema)
+            assertEquals(graphQLSchemaRegistry.getFullSchema(), engineExecutionContext.fullSchema)
             CompletableFuture.supplyAsync { SuccessfulExecutionResult() }
         }
 
@@ -325,14 +326,14 @@ class StandardViaductTest {
             """.trimIndent()
         )
 
-        val registryBuilder = SchemaRegistryBuilder().withFullSchema(fullSchema).registerScopedSchema(
+        val registryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(fullSchema).registerScopedSchema(
             SCHEMA_ID,
             setOf("scope1"),
         )
         val viaductBuilder = StandardViaduct.Builder().withSchemaRegistryBuilder(registryBuilder)
 
         val stdViaduct = viaductBuilder.build()
-        val queryType = stdViaduct.getSchema(SCHEMA_ID)?.typeMap?.get("Query") as GraphQLObjectType?
+        val queryType = stdViaduct.getSchema(SCHEMA_ID)?.schema?.typeMap?.get("Query") as GraphQLObjectType?
         val queryFields = queryType?.fieldDefinitions?.map { it.name }
 
         assertEquals(listOf("_", "field1"), queryFields)
@@ -360,29 +361,31 @@ class StandardViaductTest {
     fun `test newForSchema creates new instance with different schema registry`() {
         createSimpleStandardViaduct()
 
-        val newSchemaRegistryBuilder = mockk<SchemaRegistryBuilder>()
-        val newSchemaRegistry = mockk<GraphQLSchemaRegistry>()
+        val newViaductSchemaRegistryBuilder = mockk<ViaductSchemaRegistryBuilder>()
+        val newSchemaRegistry = mockk<ViaductSchemaRegistry>()
         val newSchema = mockk<GraphQLSchema>()
 
-        every { newSchemaRegistryBuilder.build(any()) } returns newSchemaRegistry
-        every { newSchemaRegistry.getFullSchema() } returns newSchema
+        every { newViaductSchemaRegistryBuilder.build(any()) } returns newSchemaRegistry
         every { newSchemaRegistry.registerSchema(any(), any(), any(), any()) } returns Unit
         every { newSchema.allTypesAsList } returns listOf()
+        every { newSchemaRegistry.getFullSchema() } returns ViaductSchema(newSchema)
 
-        val newViaduct = subject.newForSchema(newSchemaRegistryBuilder)
+        val newViaduct = subject.newForSchema(newViaductSchemaRegistryBuilder)
 
-        assertEquals(newSchemaRegistry, newViaduct.graphqlSchemaRegistry)
+        assertEquals(newSchemaRegistry, newViaduct.viaductSchemaRegistry)
         assertEquals(subject.chainedInstrumentation, newViaduct.chainedInstrumentation)
     }
 }
 
-private fun makeSchema(schema: String): GraphQLSchema {
-    return UnExecutableSchemaGenerator.makeUnExecutableSchema(
-        SchemaParser().parse(
-            """
+private fun makeSchema(schema: String): ViaductSchema {
+    return ViaductSchema(
+        UnExecutableSchemaGenerator.makeUnExecutableSchema(
+            SchemaParser().parse(
+                """
                 directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
                 $schema
-            """.trimIndent()
+                """.trimIndent()
+            )
         )
     )
 }

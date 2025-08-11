@@ -19,7 +19,6 @@ import viaduct.api.select.SelectionSet
 import viaduct.api.types.Arguments
 import viaduct.api.types.Object
 import viaduct.api.types.Query as QueryType
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.mkRawSelectionSetFactory
 import viaduct.engine.api.mocks.variables
 import viaduct.tenant.runtime.select.Foo
@@ -45,7 +44,7 @@ class FieldExecutionContextImplTest {
         selectionSet: SelectionSet<*> = SelectionSet.NoSelections,
         queryLoader: SelectionsLoader<QueryType> = SelectionsLoader.const(queryObject),
         selectionSetFactory: SelectionSetFactory =
-            SelectionSetFactoryImpl(mkRawSelectionSetFactory(ViaductSchema(SelectTestFeatureAppTest.schema))),
+            SelectionSetFactoryImpl(mkRawSelectionSetFactory(SelectTestFeatureAppTest.schema)),
         nodeReferenceFactory: NodeReferenceFactory = mockk<NodeReferenceFactory>()
     ) = FieldExecutionContextImpl(
         ExecutionContextImpl(

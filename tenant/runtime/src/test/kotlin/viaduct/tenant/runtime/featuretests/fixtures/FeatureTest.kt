@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.Viaduct
 import viaduct.service.runtime.MTDViaduct
-import viaduct.service.runtime.SchemaRegistryBuilder
 import viaduct.service.runtime.StandardViaduct
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 /**
  * Test harness for the Viaduct Modern engine configured with in-memory resolvers.
@@ -90,7 +90,7 @@ class FeatureTest(
         fullSchemaSdl: String,
         scopedSchemaSdl: String? = null
     ): FeatureTest {
-        val nextSchemaRegistryBuilder = SchemaRegistryBuilder().withFullSchemaFromSdl(fullSchemaSdl)
+        val nextViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(fullSchemaSdl)
             .apply {
                 if (scopedSchemaSdl != null) {
                     registerSchemaFromSdl(FeatureTestBuilder.SCHEMA_ID, scopedSchemaSdl)
@@ -98,7 +98,7 @@ class FeatureTest(
                     registerFullSchema(FeatureTestBuilder.SCHEMA_ID)
                 }
             }
-        val nextViaduct = standardViaduct.newForSchema(nextSchemaRegistryBuilder)
+        val nextViaduct = standardViaduct.newForSchema(nextViaductSchemaRegistryBuilder)
         mtdViaduct.beginHotSwap(nextViaduct)
         // Calling endHotSwap or not doesn't make a difference at the moment, thus skip for now
         return this

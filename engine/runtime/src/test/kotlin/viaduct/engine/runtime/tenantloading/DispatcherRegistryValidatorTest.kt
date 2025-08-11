@@ -5,7 +5,6 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.TenantModuleBootstrapper
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockCheckerExecutor
 import viaduct.engine.api.mocks.MockCheckerExecutorFactory
 import viaduct.engine.api.mocks.MockFieldUnbatchedResolverExecutor
@@ -46,7 +45,7 @@ class DispatcherRegistryValidatorTest {
                     "Foo" to "field" to MockCheckerExecutor()
                 )
             )
-        ).create(ViaductSchema(MockSchema.minimal))
+        ).create(MockSchema.minimal)
     }
 
     @Test

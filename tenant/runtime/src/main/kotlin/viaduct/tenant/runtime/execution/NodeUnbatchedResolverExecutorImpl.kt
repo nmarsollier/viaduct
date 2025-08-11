@@ -45,7 +45,7 @@ class NodeUnbatchedResolverExecutorImpl(
     ): EngineObjectData {
         val ctx = factory.make(
             NodeArgs(
-                InternalContextImpl(context.fullSchema.schema, globalIDCodec, reflectionLoader),
+                InternalContextImpl(context.fullSchema, globalIDCodec, reflectionLoader),
                 selections = selections,
                 globalID = id,
                 selectionsLoaderFactory = SelectionsLoaderImpl.Factory(context.rawSelectionsLoaderFactory),

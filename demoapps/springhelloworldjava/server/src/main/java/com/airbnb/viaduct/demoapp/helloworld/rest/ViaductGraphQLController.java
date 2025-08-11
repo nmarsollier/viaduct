@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import viaduct.service.api.ExecutionInput;
 import viaduct.service.api.Viaduct;
-import viaduct.service.runtime.SchemaRegistryBuilder;
 import viaduct.service.runtime.StandardViaduct;
+import viaduct.service.runtime.ViaductSchemaRegistryBuilder;
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper;
 
 @RestController
@@ -27,7 +27,7 @@ public class ViaductGraphQLController {
               new ViaductTenantAPIBootstrapper.Builder()
                   .tenantPackagePrefix("viaduct.demoapp.tenant1"))
           .withSchemaRegistryBuilder(
-              new SchemaRegistryBuilder()
+              new ViaductSchemaRegistryBuilder()
                   .withFullSchemaFromResources("viaduct.demoapp", ".*demoapp.*graphqls")
                   .registerScopedSchema(SCHEMA_ID, Set.of(SCOPE_ID)))
           .build();

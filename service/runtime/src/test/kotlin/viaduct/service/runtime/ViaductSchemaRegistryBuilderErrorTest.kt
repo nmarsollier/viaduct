@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.coroutines.CoroutineInterop
 
-class SchemaRegistryBuilderErrorTest {
+class ViaductSchemaRegistryBuilderErrorTest {
     private lateinit var mockCoroutineInterop: CoroutineInterop
     private lateinit var mockInstrumentation: Instrumentation
     private lateinit var mockExecutionStrategy: ExecutionStrategy
@@ -24,7 +24,7 @@ class SchemaRegistryBuilderErrorTest {
 
     @Test
     fun `test empty SDL string throws ViaductSchemaLoadException with source info`() {
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl("")
 
         val exception = assertThrows<ViaductSchemaLoadException> {
@@ -41,7 +41,7 @@ class SchemaRegistryBuilderErrorTest {
 
     @Test
     fun `test whitespace-only SDL string throws ViaductSchemaLoadException`() {
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl("   \n\t   ")
 
         val exception = assertThrows<ViaductSchemaLoadException> {
@@ -55,7 +55,7 @@ class SchemaRegistryBuilderErrorTest {
     fun `test invalid GraphQL syntax throws ViaductSchemaLoadException with source info`() {
         val invalidSchema = "invalid graphql syntax {"
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(invalidSchema)
 
         val exception = assertThrows<ViaductSchemaLoadException> {
@@ -77,7 +77,7 @@ class SchemaRegistryBuilderErrorTest {
             }
         """.trimIndent()
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(invalidSchema)
 
         // Should throw SchemaProblem, not IllegalStateException
@@ -93,7 +93,7 @@ class SchemaRegistryBuilderErrorTest {
     fun `test no schema files found throws ViaductSchemaLoadException`() {
         // This test verifies the error message when no schema files are found
         // We'll use a package prefix and file pattern that definitely doesn't exist
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromResources("nonexistent.package.that.does.not.exist", "nonexistent-file-pattern-xyz")
 
         val exception = assertThrows<ViaductSchemaLoadException> {
@@ -109,7 +109,7 @@ class SchemaRegistryBuilderErrorTest {
         val schemaId = "testSchema"
         val emptySchema = ""
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl("type Query { hello: String }")
             .registerSchemaFromSdl(schemaId, emptySchema)
 
@@ -130,7 +130,7 @@ class SchemaRegistryBuilderErrorTest {
             }
         """.trimIndent()
 
-        val builder = SchemaRegistryBuilder()
+        val builder = ViaductSchemaRegistryBuilder()
             .withFullSchemaFromSdl(schema)
             .registerFullSchema("duplicateId")
             .registerSchema("duplicateId", { makeTestSchema() })

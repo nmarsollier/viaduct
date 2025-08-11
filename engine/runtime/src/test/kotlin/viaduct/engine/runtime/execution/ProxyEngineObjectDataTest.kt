@@ -10,7 +10,6 @@ import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.UnsetSelectionException
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockCheckerErrorResult
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.FieldErrorsException
@@ -29,7 +28,7 @@ class ProxyEngineObjectDataTest {
     private inner class Fixture(sdl: String, test: suspend Fixture.() -> Unit) {
         val schema = mkSchema(sdl)
 
-        private val selectionSetFactory = RawSelectionSetFactoryImpl(ViaductSchema(schema))
+        private val selectionSetFactory = RawSelectionSetFactoryImpl(schema)
 
         fun mkOER(
             typename: String,
@@ -39,7 +38,7 @@ class ProxyEngineObjectDataTest {
             selections: String = "id"
         ): ObjectEngineResultImpl =
             ObjectEngineResultImpl.newFromMap(
-                schema.getObjectType(typename),
+                schema.schema.getObjectType(typename),
                 resultMap,
                 errors.toMutableList(),
                 emptyList(),
@@ -59,7 +58,7 @@ class ProxyEngineObjectDataTest {
                     selectionSetFactory.rawSelectionSet(typename, fragment, variables)
                 }
             val oer = ObjectEngineResultImpl.newFromMap(
-                schema.getObjectType(typename),
+                schema.schema.getObjectType(typename),
                 resultMap,
                 errors.toMutableList(),
                 emptyList(),
@@ -82,7 +81,7 @@ class ProxyEngineObjectDataTest {
                     selectionSetFactory.rawSelectionSet(typename, fragment, variables)
                 }
             val oer = ObjectEngineResultImpl.newFromMap(
-                schema.getObjectType(typename),
+                schema.schema.getObjectType(typename),
                 resultMap,
                 errors.toMutableList(),
                 emptyList(),
@@ -401,7 +400,7 @@ class ProxyEngineObjectDataTest {
     @Test
     fun `access checks applied when applyAccessChecks is true`() {
         Fixture("type Query { stringField: String }") {
-            val oer = ObjectEngineResultImpl.newForType(schema.getObjectType("Query"))
+            val oer = ObjectEngineResultImpl.newForType(schema.schema.getObjectType("Query"))
             oer.computeIfAbsent(ObjectEngineResult.Key("stringField")) { slotSetter ->
                 slotSetter.setRawValue(
                     Value.fromValue(
@@ -426,7 +425,7 @@ class ProxyEngineObjectDataTest {
     @Test
     fun `access check slot not fetched when applyAccessChecks is false`() {
         Fixture("type Query { stringField: String intField: Int }") {
-            val oer = ObjectEngineResultImpl.newForType(schema.getObjectType("Query"))
+            val oer = ObjectEngineResultImpl.newForType(schema.schema.getObjectType("Query"))
             oer.computeIfAbsent(ObjectEngineResult.Key("stringField")) { slotSetter ->
                 slotSetter.setRawValue(
                     Value.fromValue(

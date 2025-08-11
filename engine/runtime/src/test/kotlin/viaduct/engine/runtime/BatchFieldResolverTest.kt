@@ -35,7 +35,7 @@ class BatchFieldResolverTest {
                         val size = arguments["size"] as? Int ?: 1
                         (1..size).map { i ->
                             MockEngineObjectData(
-                                schema.getObjectType("Item"),
+                                schema.schema.getObjectType("Item"),
                                 mapOf("x" to i)
                             )
                         }
@@ -72,7 +72,7 @@ class BatchFieldResolverTest {
                         val size = arguments["size"] as? Int ?: 1
                         (1..size).map { i ->
                             MockEngineObjectData(
-                                schema.getObjectType("Item"),
+                                schema.schema.getObjectType("Item"),
                                 mapOf("x" to i)
                             )
                         }
@@ -103,7 +103,7 @@ class BatchFieldResolverTest {
                         val size = arguments["size"] as? Int ?: 1
                         (1..size).map { i ->
                             MockEngineObjectData(
-                                schema.getObjectType("Item"),
+                                schema.schema.getObjectType("Item"),
                                 mapOf("x" to i)
                             )
                         }
@@ -139,7 +139,7 @@ class BatchFieldResolverTest {
                         val size = arguments["size"] as? Int ?: 1
                         (1..size).map { i ->
                             MockEngineObjectData(
-                                schema.getObjectType("Item"),
+                                schema.schema.getObjectType("Item"),
                                 mapOf("x" to i)
                             )
                         }
@@ -182,7 +182,7 @@ class BatchFieldResolverTest {
                     fn { arguments, _, _, _, _ ->
                         listOf(1, 2).map { i ->
                             MockEngineObjectData(
-                                schema.getObjectType("Item"),
+                                schema.schema.getObjectType("Item"),
                                 mapOf("x" to i)
                             )
                         }
@@ -193,7 +193,7 @@ class BatchFieldResolverTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         MockEngineObjectData(
-                            schema.getObjectType("Item"),
+                            schema.schema.getObjectType("Item"),
                             mapOf("x" to 1)
                         )
                     }

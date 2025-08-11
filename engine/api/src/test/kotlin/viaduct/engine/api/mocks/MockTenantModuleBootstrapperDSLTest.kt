@@ -15,7 +15,6 @@ import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.NodeEngineObjectData
-import viaduct.engine.api.ViaductSchema
 
 class MockTenantModuleBootstrapperDSLTest {
     companion object {
@@ -55,7 +54,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val module = MockTenantModuleBootstrapper(schemaSDL) {
             field(coord) {
                 valueFromContext { ctx ->
-                    ctx.createNodeEngineObjectData("123", schema.getObjectType("Test"))
+                    ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("Test"))
                 }
             }
         }
@@ -179,15 +178,15 @@ class MockTenantModuleBootstrapperDSLTest {
             }
         }
 
-        val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
+        val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
         val executor = resolvers[0].second
         assertEquals(mapOf("key1" to "value1", "key2" to "value2"), executor.metadata)
 
         // Execute the resolver and verify it works
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
-        val testObject = MockEngineObjectData(Samples.testSchema.getObjectType("TestType"), emptyMap())
-        val testQuery = MockEngineObjectData(Samples.testSchema.getObjectType("Query"), emptyMap())
+        val testObject = MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestType"), emptyMap())
+        val testQuery = MockEngineObjectData(Samples.testSchema.schema.getObjectType("Query"), emptyMap())
         runBlockingTest {
             val result = reg.getFieldResolverDispatcher("TestType", "aField")!!.resolve(
                 emptyArgs,
@@ -214,7 +213,7 @@ class MockTenantModuleBootstrapperDSLTest {
             }
         }
 
-        val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
+        val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
         val executor = resolvers[0].second
         assertEquals(mapOf("category" to "test"), executor.metadata)
@@ -222,8 +221,8 @@ class MockTenantModuleBootstrapperDSLTest {
 
         // Execute the resolver and verify it works
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
-        val testObject = MockEngineObjectData(Samples.testSchema.getObjectType("TestType"), emptyMap())
-        val testQuery = MockEngineObjectData(Samples.testSchema.getObjectType("Query"), emptyMap())
+        val testObject = MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestType"), emptyMap())
+        val testQuery = MockEngineObjectData(Samples.testSchema.schema.getObjectType("Query"), emptyMap())
         runBlockingTest {
             val result = reg.getFieldResolverDispatcher("TestType", "aField")!!.resolve(
                 mapOf("input" to "test-input"),
@@ -335,7 +334,7 @@ class MockTenantModuleBootstrapperDSLTest {
         }
 
         assertEquals(Samples.testSchema, capturedSchema)
-        assertEquals(Samples.testSchema.getObjectType("TestType"), capturedType)
+        assertEquals(Samples.testSchema.schema.getObjectType("TestType"), capturedType)
         assertEquals(Coordinate("TestType", "aField"), capturedCoord)
         assertNotNull(capturedFieldType)
     }
@@ -354,7 +353,7 @@ class MockTenantModuleBootstrapperDSLTest {
         }
 
         // Verify both resolver and checker were created
-        val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
+        val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
         assertEquals(1, module.checkerExecutors.size)
     }
@@ -399,7 +398,7 @@ class MockTenantModuleBootstrapperDSLTest {
             }
         }
 
-        val resolvers = module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).toList()
+        val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
         val executor = resolvers[0].second
         // objectSelectionSet should be null when no objectSelections() is called
@@ -407,8 +406,8 @@ class MockTenantModuleBootstrapperDSLTest {
 
         // Execute the resolver and verify it works
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
-        val testObject = MockEngineObjectData(Samples.testSchema.getObjectType("TestType"), emptyMap())
-        val testQuery = MockEngineObjectData(Samples.testSchema.getObjectType("Query"), emptyMap())
+        val testObject = MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestType"), emptyMap())
+        val testQuery = MockEngineObjectData(Samples.testSchema.schema.getObjectType("Query"), emptyMap())
         runBlockingTest {
             val result = reg.getFieldResolverDispatcher("TestType", "aField")!!.resolve(
                 emptyArgs,
@@ -464,7 +463,7 @@ class MockTenantModuleBootstrapperDSLTest {
         }
 
         // Verify resolver/node counts
-        assertEquals(2, module.fieldResolverExecutors(ViaductSchema(Samples.testSchema)).count())
+        assertEquals(2, module.fieldResolverExecutors(Samples.testSchema).count())
         assertEquals(2, module.nodeResolverExecutors().count())
 
         // Verify checkers were accumulated in external maps

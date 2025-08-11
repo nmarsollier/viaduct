@@ -47,7 +47,7 @@ class FieldBatchResolverExecutorImpl(
         val contexts = selectors.map { key ->
             resolverContextFactory.make(
                 FieldArgs(
-                    internalContext = InternalContextImpl(context.fullSchema.schema, globalIDCodec, reflectionLoader),
+                    internalContext = InternalContextImpl(context.fullSchema, globalIDCodec, reflectionLoader),
                     arguments = key.arguments,
                     objectValue = key.objectValue,
                     queryValue = key.queryValue,

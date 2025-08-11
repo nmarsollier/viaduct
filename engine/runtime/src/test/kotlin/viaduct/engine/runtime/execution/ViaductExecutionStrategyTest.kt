@@ -105,9 +105,10 @@ class ViaductExecutionStrategyTest {
             }
             // Create a list of instrumentations containing our failing instrumentation.
             val instrumentations = listOf<ViaductModernInstrumentation>(FailingFieldCompletionInstrumentation())
+            val schema = createSchema(sdl, resolvers)
             // Build the GraphQL engine with our schema, resolvers, and instrumentation.
-            val graphQL = createViaductGraphQL(createSchema(sdl, resolvers), instrumentations = instrumentations)
-            val executionResult = executeQuery(graphQL, query, emptyMap())
+            val graphQL = createViaductGraphQL(schema, instrumentations = instrumentations)
+            val executionResult = executeQuery(schema, graphQL, query, emptyMap())
             // The field should resolve to null because the forced error is caught and converted
             // into a field-level error rather than aborting the whole query.
             val data = executionResult.getData<Map<String, Any?>>()
@@ -763,7 +764,7 @@ class ViaductExecutionStrategyTest {
                 }
                 """
 
-            val executionResult = executeQuery(graphQL, query, emptyMap())
+            val executionResult = executeQuery(schema, graphQL, query, emptyMap())
 
             // Assertions
             assertTrue(executionResult.errors.isEmpty())
@@ -866,8 +867,9 @@ class ViaductExecutionStrategyTest {
                 map.toMap()
             }
 
-            val graphQL = createViaductGraphQL(createSchema(sdl, resolvers))
-            val executionResult = executeQuery(graphQL, query, emptyMap())
+            val schema = createSchema(sdl, resolvers)
+            val graphQL = createViaductGraphQL(schema)
+            val executionResult = executeQuery(schema, graphQL, query, emptyMap())
 
             assertEquals(expectedData, executionResult.getData<Map<String, Any?>>())
             assertTrue(executionResult.errors.isEmpty())
@@ -877,18 +879,17 @@ class ViaductExecutionStrategyTest {
     @Test
     fun `mutation field resolver throws an exception`() {
         runExecutionTest {
-            val graphQL = createViaductGraphQL(
-                createSchema(
-                    """
-                       type Query { empty: Int }
-                       type Mutation { x: Int }
-                    """.trimIndent(),
-                    mapOf(
-                        "Mutation" to mapOf("x" to DataFetcher { throw RuntimeException("error!") })
-                    )
+            val schema = createSchema(
+                """
+                   type Query { empty: Int }
+                   type Mutation { x: Int }
+                """.trimIndent(),
+                mapOf(
+                    "Mutation" to mapOf("x" to DataFetcher { throw RuntimeException("error!") })
                 )
             )
-            val executionResult = executeQuery(graphQL, "mutation { x }", emptyMap())
+            val graphQL = createViaductGraphQL(schema)
+            val executionResult = executeQuery(schema, graphQL, "mutation { x }", emptyMap())
 
             assertEquals(mapOf("x" to null), executionResult.getData<Map<String, Any?>>())
             assertEquals(1, executionResult.errors.size)
@@ -901,23 +902,22 @@ class ViaductExecutionStrategyTest {
     @Test
     fun `mutation operation throws multiple field exceptions`() {
         runExecutionTest {
-            val graphQL = createViaductGraphQL(
-                createSchema(
-                    """
-                        type Query { empty: Int }
-                        type Mutation { x:Int, y:Int, z:Int }
-                    """.trimIndent(),
-                    mapOf(
-                        "Mutation" to mapOf(
-                            "x" to DataFetcher { throw RuntimeException("error!") },
-                            "y" to DataFetcher { throw RuntimeException("error!") },
-                            "z" to DataFetcher { throw RuntimeException("error!") },
-                        )
+            val schema = createSchema(
+                """
+                    type Query { empty: Int }
+                    type Mutation { x:Int, y:Int, z:Int }
+                """.trimIndent(),
+                mapOf(
+                    "Mutation" to mapOf(
+                        "x" to DataFetcher { throw RuntimeException("error!") },
+                        "y" to DataFetcher { throw RuntimeException("error!") },
+                        "z" to DataFetcher { throw RuntimeException("error!") },
                     )
                 )
             )
+            val graphQL = createViaductGraphQL(schema)
 
-            val executionResult = executeQuery(graphQL, "mutation { x y z }", emptyMap())
+            val executionResult = executeQuery(schema, graphQL, "mutation { x y z }", emptyMap())
             listOf("x", "y", "z").forEach { key ->
                 val data = executionResult.getData<Map<String, Any?>>()
                 assertTrue(data.containsKey(key))

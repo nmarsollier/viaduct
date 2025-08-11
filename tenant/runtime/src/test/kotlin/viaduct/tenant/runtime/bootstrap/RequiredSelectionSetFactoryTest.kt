@@ -27,7 +27,6 @@ import viaduct.engine.api.FromArgumentVariable
 import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.FromQueryFieldVariable
 import viaduct.engine.api.VariablesResolver
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.resolve
@@ -73,15 +72,14 @@ class RequiredSelectionSetFactoryTest {
         """.trimIndent()
     )
 
-    private val viaductSchema = ViaductSchema(defaultSchema)
-    private val objectData = MockEngineObjectData.wrap(defaultSchema.queryType, emptyMap())
+    private val objectData = MockEngineObjectData.wrap(defaultSchema.schema.queryType, emptyMap())
     private val vresolveCtx = VariablesResolver.ResolveCtx(
         objectData,
         emptyMap(),
         mockk {
             every {
                 fullSchema
-            } returns viaductSchema
+            } returns defaultSchema
         }
     )
 
@@ -127,7 +125,7 @@ class RequiredSelectionSetFactoryTest {
     @Test
     fun `mkRequiredSelectionSets -- via injector`() {
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = MyResolverBase::class,
             argumentsFactory = argumentsFactory,
@@ -143,7 +141,7 @@ class RequiredSelectionSetFactoryTest {
     @Test
     fun `mkRequiredSelectionSets -- injector handles empty annotation`() {
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = EmptyAnnotationResolver::class,
             argumentsFactory = argumentsFactory,
@@ -162,7 +160,7 @@ class RequiredSelectionSetFactoryTest {
     fun `mkRequiredSelectionSets -- injector validates variable requires fragment`() {
         assertThrows<IllegalStateException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = VariableWithoutFragmentResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -179,7 +177,7 @@ class RequiredSelectionSetFactoryTest {
     fun `mkRequiredSelectionSets -- injector validates variable requires source`() {
         assertThrows<IllegalStateException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = VariableWithoutSourceResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -199,7 +197,7 @@ class RequiredSelectionSetFactoryTest {
     fun `mkRequiredSelectionSets -- injector validates variable cannot have both sources`() {
         assertThrows<IllegalStateException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = VariableWithBothSourcesResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -218,7 +216,7 @@ class RequiredSelectionSetFactoryTest {
     @Test
     fun `mkRequiredSelectionSets -- injector handles valid fromField variable`() {
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = ValidFromFieldResolver::class,
             argumentsFactory = argumentsFactory,
@@ -238,7 +236,7 @@ class RequiredSelectionSetFactoryTest {
     @Test
     fun `mkRequiredSelectionSets -- injector handles valid fromArgument variable`() {
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = ValidFromArgumentResolver::class,
             argumentsFactory = argumentsFactory,
@@ -253,7 +251,7 @@ class RequiredSelectionSetFactoryTest {
     fun `mkRequiredSelectionSets -- injector validates @Variables class implements VariablesProvider`() {
         assertThrows<IllegalArgumentException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = InvalidVariablesClassResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -687,7 +685,7 @@ class RequiredSelectionSetFactoryTest {
     fun `@Variables string is empty -- should be allowed at bootstrap time`() {
         // Empty @Variables strings are valid and result in no variables being declared
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = EmptyVariablesResolver::class,
             argumentsFactory = argumentsFactory,
@@ -703,7 +701,7 @@ class RequiredSelectionSetFactoryTest {
     fun `@Variables string is all commas -- should be allowed at bootstrap time`() {
         // Comma-only @Variables strings are valid and result in no variables being declared
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = CommasOnlyVariablesResolver::class,
             argumentsFactory = argumentsFactory,
@@ -721,7 +719,7 @@ class RequiredSelectionSetFactoryTest {
     fun `@Variables string is syntactically invalid -- should throw at bootstrap time`() {
         val exception = assertThrows<IllegalArgumentException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = InvalidSyntaxVariablesResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -780,7 +778,7 @@ class RequiredSelectionSetFactoryTest {
 
         // For now, we test that the resolver can be created successfully (no bootstrap-time type validation)
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = NonExistentTypeVariablesResolver::class,
             argumentsFactory = argumentsFactory,
@@ -798,7 +796,7 @@ class RequiredSelectionSetFactoryTest {
         // Union types are not valid as GraphQL variable types and should throw at bootstrap time
         assertThrows<IllegalArgumentException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = UnionTypeVariablesResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -814,7 +812,7 @@ class RequiredSelectionSetFactoryTest {
         // Interface types are not valid as GraphQL variable types and should throw at bootstrap time
         assertThrows<IllegalArgumentException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = InterfaceTypeVariablesResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -830,7 +828,7 @@ class RequiredSelectionSetFactoryTest {
         // Object types are not valid as GraphQL variable types and should throw at bootstrap time
         assertThrows<IllegalArgumentException> {
             mkFactory().mkRequiredSelectionSets(
-                schema = viaductSchema,
+                schema = defaultSchema,
                 injector = injector,
                 resolverCls = ObjectTypeVariablesResolver::class,
                 argumentsFactory = argumentsFactory,
@@ -844,7 +842,7 @@ class RequiredSelectionSetFactoryTest {
     fun `@Variables string refers to valid input type -- should be allowed at bootstrap time`() {
         // Input types are valid as GraphQL variable types and should be allowed
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = ValidInputTypeVariablesResolver::class,
             argumentsFactory = argumentsFactory,
@@ -863,7 +861,7 @@ class RequiredSelectionSetFactoryTest {
     @Test
     fun `mkRequiredSelectionSets -- injector handles queryValueFragment only`() {
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = QueryOnlyResolver::class,
             argumentsFactory = argumentsFactory,
@@ -878,7 +876,7 @@ class RequiredSelectionSetFactoryTest {
     @Test
     fun `mkRequiredSelectionSets -- injector handles both objectValueFragment and queryValueFragment`() {
         val rss = mkFactory().mkRequiredSelectionSets(
-            schema = viaductSchema,
+            schema = defaultSchema,
             injector = injector,
             resolverCls = DualFragmentResolver::class,
             argumentsFactory = argumentsFactory,
@@ -1027,7 +1025,7 @@ class RequiredSelectionSetFactoryTest {
         // This will test the validation indirectly through the factory method
         assertThrows<IllegalStateException> {
             mkFactory().mkRequiredSelectionSets(
-                viaductSchema,
+                defaultSchema,
                 injector,
                 BadMultipleFieldsResolver::class,
                 argumentsFactory,
@@ -1047,7 +1045,7 @@ class RequiredSelectionSetFactoryTest {
         // This will test the validation indirectly through the factory method
         assertThrows<IllegalStateException> {
             mkFactory().mkRequiredSelectionSets(
-                viaductSchema,
+                defaultSchema,
                 injector,
                 BadNoFieldsResolver::class,
                 argumentsFactory,
@@ -1092,7 +1090,7 @@ class RequiredSelectionSetFactoryTest {
     fun `mkRequiredSelectionSets -- validation error for empty fromQueryField path`() {
         assertThrows<IllegalArgumentException>("Path for variable `emptyVar` is empty") {
             mkFactory().mkRequiredSelectionSets(
-                viaductSchema,
+                defaultSchema,
                 injector,
                 EmptyQueryFieldPathResolver::class,
                 argumentsFactory,
@@ -1112,7 +1110,7 @@ class RequiredSelectionSetFactoryTest {
     fun `mkRequiredSelectionSets -- validation error for invalid fromQueryField path`() {
         assertThrows<IllegalArgumentException> {
             mkFactory().mkRequiredSelectionSets(
-                viaductSchema,
+                defaultSchema,
                 injector,
                 InvalidQueryFieldPathResolver::class,
                 argumentsFactory,
@@ -1133,7 +1131,7 @@ class RequiredSelectionSetFactoryTest {
         // Should work fine - testField returns String which is a valid scalar type
         assertDoesNotThrow {
             mkFactory().mkRequiredSelectionSets(
-                viaductSchema,
+                defaultSchema,
                 injector,
                 QueryFieldToObjectTypeResolver::class,
                 argumentsFactory,

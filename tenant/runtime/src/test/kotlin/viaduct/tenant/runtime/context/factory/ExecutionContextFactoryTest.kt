@@ -14,7 +14,7 @@ class ExecutionContextFactoryTest {
             .mk(args.getExecutionContextArgs())
 
         val internal = ctx as InternalContext
-        assertEquals(args.schema.schema, internal.schema)
+        assertEquals(args.schema, internal.schema)
         assertEquals(args.reflectionLoader, internal.reflectionLoader)
     }
 }

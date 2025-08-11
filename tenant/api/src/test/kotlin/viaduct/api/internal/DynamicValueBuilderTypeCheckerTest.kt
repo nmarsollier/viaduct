@@ -18,10 +18,10 @@ class DynamicValueBuilderTypeCheckerTest {
     private val graphqlSchema = SchemaUtils.getSchema()
     private val context = MockInternalContext.mk(graphqlSchema, "viaduct.api.testschema")
     private val checker = DynamicValueBuilderTypeChecker(context)
-    private val o1Type = graphqlSchema.getObjectType(O1.Reflection.name)
-    private val o2Type = graphqlSchema.getObjectType(O2.Reflection.name)
-    private val userType = graphqlSchema.getObjectType("TestUser")
-    private val testType = graphqlSchema.getObjectType("TestType")
+    private val o1Type = graphqlSchema.schema.getObjectType(O1.Reflection.name)
+    private val o2Type = graphqlSchema.schema.getObjectType(O2.Reflection.name)
+    private val userType = graphqlSchema.schema.getObjectType("TestUser")
+    private val testType = graphqlSchema.schema.getObjectType("TestType")
 
     @Test
     fun testBasicTypeCheck() {

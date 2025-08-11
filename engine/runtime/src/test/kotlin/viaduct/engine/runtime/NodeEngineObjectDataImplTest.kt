@@ -29,7 +29,7 @@ class NodeEngineObjectDataImplTest {
         type TestType implements Node { id: ID! }
         """.trimIndent()
     )
-    private val testType = schema.getObjectType("TestType")
+    private val testType = schema.schema.getObjectType("TestType")
     private lateinit var context: EngineExecutionContext
     private lateinit var selections: RawSelectionSet
     private lateinit var dispatcherRegistry: DispatcherRegistry
