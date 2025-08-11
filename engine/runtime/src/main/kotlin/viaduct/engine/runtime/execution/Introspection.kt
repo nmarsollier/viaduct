@@ -40,7 +40,9 @@ object Introspection {
             return null
         }
 
-        val collected = collectFields(parameters.engineResult.graphQLObjectType, parameters)
+        val queryType = parameters.graphQLSchema.queryType
+
+        val collected = collectFields(queryType, parameters)
         return collected.selections.firstNotNullOfOrNull {
             when (val sel = it) {
                 is QueryPlan.CollectedField -> {

@@ -12,7 +12,6 @@ import graphql.execution.instrumentation.parameters.InstrumentationExecutionStra
 import graphql.execution.instrumentation.parameters.InstrumentationFieldCompleteParameters
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLEnumType
-import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLTypeUtil
 import kotlinx.coroutines.Deferred
@@ -76,11 +75,7 @@ class FieldCompleter(
         val ctxCompleteObject = nonNullCtx(
             parameters.instrumentation.beginCompleteObject(instrumentationParams, parameters.executionContext.instrumentationState)
         )
-
-        val parentOER = checkNotNull(parameters.fieldResolutionResult.engineResult as? ObjectEngineResultImpl) {
-            "Expected engine result to be ObjectEngineResult."
-        }
-
+        val parentOER = parameters.parentEngineResult
         return Value.fromDeferred(parentOER.state)
             .thenCompose { _, throwable ->
                 ctxCompleteObject.onDispatched()
@@ -109,7 +104,7 @@ class FieldCompleter(
         return fields.fold(initial) { acc, field ->
             field as QueryPlan.CollectedField
 
-            val newParams = parameters.withCollectedField(parentOER.graphQLObjectType, field)
+            val newParams = parameters.forField(parentOER.graphQLObjectType, field)
             val fieldKey = buildOERKeyForField(newParams, field)
             val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(newParams, field, parentOER) }
 
@@ -298,8 +293,7 @@ class FieldCompleter(
                             completeValueForEnum(parameters, fieldType as GraphQLEnumType, result)
 
                         else -> {
-                            val resolvedObjectType = (engineResult as ObjectEngineResultImpl).graphQLObjectType
-                            completeValueForObject(field, parameters, resolvedObjectType, fieldResult)
+                            completeValueForObject(field, parameters, fieldResult)
                         }
                     }
                 }
@@ -482,16 +476,15 @@ class FieldCompleter(
     private fun completeValueForObject(
         field: QueryPlan.CollectedField,
         parameters: ExecutionParameters,
-        resolvedObjectType: GraphQLObjectType,
         result: FieldResolutionResult,
-    ): Value<FieldCompletionResult> {
-        val newParams = parameters.copy(
-            selectionSet = checkNotNull(field.selectionSet) {
-                "Expected selection set for object field."
-            },
-            fieldResolutionResult = result,
-            executionStepInfo = parameters.executionStepInfo.changeTypeWithPreservedNonNull(resolvedObjectType)
+    ): Value<FieldCompletionResult> =
+        completeObject(
+            parameters.forObjectTraversal(
+                field,
+                result.engineResult as? ObjectEngineResultImpl
+                    ?: throw IllegalStateException("Invariant: Expected ObjectEngineResultImpl for object completion"),
+                result.localContext,
+                result.originalSource
+            )
         )
-        return completeObject(newParams)
-    }
 }

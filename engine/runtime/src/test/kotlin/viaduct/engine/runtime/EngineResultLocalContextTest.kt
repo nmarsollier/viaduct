@@ -24,15 +24,6 @@ class EngineResultLocalContextTest {
     }
 
     @Test
-    fun `test EngineResultLocalContext with null values`() {
-        val context = EngineResultLocalContext(null, null, null, null, null)
-
-        assertEquals(null, context.rootEngineResult)
-        assertEquals(null, context.parentEngineResult)
-        assertEquals(null, context.queryEngineResult)
-    }
-
-    @Test
     fun `test EngineResultLocalContext with different queryEngineResult`() {
         val rootEngineResult = mockk<ObjectEngineResultImpl>()
         val parentEngineResult = mockk<ObjectEngineResultImpl>()

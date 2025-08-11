@@ -16,8 +16,6 @@ data class FieldResolutionResult(
     val extensions: Map<Any, Any?>,
     val originalSource: Any?,
 ) {
-    fun toFetchedValue(): FetchedValue = FetchedValueWithExtensions(engineResult, errors, localContext, extensions)
-
     companion object {
         private val Any?.asCompositeLocalContext: CompositeLocalContext
             get() = when (val ctx = this) {

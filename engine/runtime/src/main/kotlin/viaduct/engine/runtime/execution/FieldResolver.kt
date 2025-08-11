@@ -107,7 +107,7 @@ class FieldResolver(
                 .selections
                 .associate { field ->
                     field as QueryPlan.CollectedField
-                    val newParams = parameters.withCollectedField(objectType, field)
+                    val newParams = parameters.forField(objectType, field)
                     field.responseKey to resolveField(newParams, field)
                 }
             resolveObjectCtx.onCompleted(results, null)
@@ -151,7 +151,7 @@ class FieldResolver(
             val result = fields.fold(initial) { acc, field ->
                 field as QueryPlan.CollectedField
                 acc.flatMap { _ ->
-                    val fieldParameters = parameters.withCollectedField(objectType, field)
+                    val fieldParameters = parameters.forField(objectType, field)
                     resolveField(fieldParameters, field)
                         .thenApply { _, _ ->
                             // ignore any errors thrown by the field resolver so that the chained deferred
@@ -192,7 +192,7 @@ class FieldResolver(
             // plan VariablesResolver.
             val def = parameters.executionStepInfo.fieldDefinition
             val arguments = FieldExecutionHelpers.getArgumentValues(
-                parameters.executionContext,
+                parameters,
                 def.arguments,
                 field.mergedField.arguments,
             ).get()
@@ -201,8 +201,8 @@ class FieldResolver(
                 parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
             field.childPlans.forEach { childPlan ->
                 parameters.launchOnRootScope {
-                    val variables = resolveVariables(parameters.engineResult, childPlan.variablesResolvers, arguments, engineExecCtx)
-                    val planParameters = parameters.traverseChildPlan(
+                    val variables = resolveVariables(parameters.parentEngineResult, childPlan.variablesResolvers, arguments, engineExecCtx)
+                    val planParameters = parameters.forChildPlan(
                         childPlan,
                         CoercedVariables(variables)
                     )
@@ -232,9 +232,7 @@ class FieldResolver(
         val field = checkNotNull(parameters.field) { "Expected field to be non-null." }
 
         // We're fetching an individual field; the current engine result will always be an ObjectEngineResult
-        val parentOER = checkNotNull(parameters.fieldResolutionResult.engineResult as? ObjectEngineResultImpl) {
-            "Invariant: expected engine result to be a `ObjectEngineResult`."
-        }
+        val parentOER = parameters.parentEngineResult
         val oerKey = buildOERKeyForField(parameters, field)
         val executionStepInfoForField = parameters.executionStepInfo
         val fieldInstrumentationCtx = parameters.instrumentation.beginFieldExecution(
@@ -333,11 +331,7 @@ class FieldResolver(
         fieldType: GraphQLOutputType,
         fetchedValue: FetchedValue,
     ): FieldResolutionResult {
-        val data = fetchedValue.fetchedValue
-        // Handle the null case
-        if (data == null) {
-            return FieldResolutionResult.fromFetchedValue(null, fetchedValue)
-        }
+        val data = fetchedValue.fetchedValue ?: return FieldResolutionResult.fromFetchedValue(null, fetchedValue)
 
         // if type has a non-null wrapper, unwrap one level and recurse
         if (GraphQLTypeUtil.isNonNull(fieldType)) {
@@ -440,7 +434,7 @@ class FieldResolver(
                 parameters.launchOnRootScope {
                     try {
                         val dataFetchingEnvironment = env.get()
-                        val selections = parameters.rawSelectionSetFactory.rawSelectionSet(dataFetchingEnvironment)
+                        val selections = parameters.constants.rawSelectionSetFactory.rawSelectionSet(dataFetchingEnvironment)
                             ?: throw IllegalStateException(
                                 "Attempting to resolve LazyEngineObjectData but no selection set found"
                             )
@@ -503,10 +497,9 @@ class FieldResolver(
             else -> {
                 // if engineResult is a scalar or simple value, then no nesting is possible and we can return
                 val oer = fieldResolutionResult.engineResult as? ObjectEngineResultImpl ?: return
-
                 fetchObject(
                     oer.graphQLObjectType,
-                    parameters.traverseFieldResult(field, fieldResolutionResult)
+                    parameters.forObjectTraversal(field, oer, fieldResolutionResult.localContext, fieldResolutionResult.originalSource)
                 )
             }
         }
@@ -534,7 +527,7 @@ class FieldResolver(
     ): Pair<Value<FetchedValueWithExtensions>, Value<out CheckerResult?>> =
         try {
             val fieldDef = parameters.executionStepInfo.fieldDefinition
-            var dataFetcher = parameters.executionContext.graphQLSchema.codeRegistry.getDataFetcher(
+            var dataFetcher = parameters.graphQLSchema.codeRegistry.getDataFetcher(
                 FieldExecutionHelpers.coordinateOfField(parameters, field),
                 fieldDef
             )
@@ -562,8 +555,8 @@ class FieldResolver(
             // For top-level mutation and subscription fields, execute the data fetcher only if the access check succeeds.
             // For everything else, execute the access check in parallel with the data fetcher.
             val executeCheckerSequentially = when (parameters.executionStepInfo.objectType.name) {
-                parameters.executionContext.graphQLSchema.mutationType?.name,
-                parameters.executionContext.graphQLSchema.subscriptionType?.name -> true
+                parameters.graphQLSchema.mutationType?.name,
+                parameters.graphQLSchema.subscriptionType?.name -> true
                 else -> false
             }
 
@@ -639,12 +632,12 @@ class FieldResolver(
             return FetchedValueWithExtensions(
                 parameters.executionContext.valueUnboxer.unbox(result),
                 mutableListOf(),
-                parameters.fieldResolutionResult.localContext,
+                parameters.localContext,
                 emptyMap()
             )
         }
         val localContext = result.localContext?.let { result.compositeLocalContext }
-            ?: parameters.fieldResolutionResult.localContext
+            ?: parameters.localContext
         val value = parameters.executionContext.valueUnboxer.unbox(result.data)
         return FetchedValueWithExtensions(value, result.errors, localContext, result.extensions ?: emptyMap())
     }
@@ -666,7 +659,7 @@ class FieldResolver(
     ): Value<Any?> =
         try {
             if (dataFetcher is LightDataFetcher) {
-                dataFetcher.get(fieldDef, parameters.fieldResolutionResult.originalSource, dataFetchingEnvironment)
+                dataFetcher.get(fieldDef, parameters.source, dataFetchingEnvironment)
             } else {
                 dataFetcher.get(dataFetchingEnvironment.get())
             }.let { // Any? | CompletionStage<*>

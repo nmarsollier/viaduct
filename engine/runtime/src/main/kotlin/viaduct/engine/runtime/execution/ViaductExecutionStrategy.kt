@@ -15,11 +15,9 @@ import java.util.concurrent.CompletableFuture
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import viaduct.engine.api.coroutines.CoroutineInterop
-import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.execution.CompletionErrors.FieldCompletionException
 import viaduct.engine.runtime.execution.CompletionErrors.NonNullableFieldWithErrorException
-import viaduct.engine.runtime.updateCompositeLocalContext
 import viaduct.logging.ifDebug
 import viaduct.utils.slf4j.logger
 
@@ -218,7 +216,7 @@ class ViaductExecutionStrategy internal constructor(
                 buildExecutionResult(queryResult, parameters.errorAccumulator.toList())
             }.let {
                 log.ifDebug {
-                    debug("Took ${it.duration} to build execution result: ${executionContext.operationDefinition.operation.name}.")
+                    debug("Took ${it.duration} to build execution result: ${executionContext.operationDefinition.operation.name} ${it.value}.")
                 }
                 it.value
             }
@@ -231,20 +229,11 @@ class ViaductExecutionStrategy internal constructor(
     ): ExecutionParameters {
         val rootOER = createRootObjectEngineResult(executionContext)
         val queryOER = createQueryEngineResult(executionContext, rootOER)
-        val localContext = EngineResultLocalContext(rootOER, rootOER, queryOER, gjParameters, executionContext)
-
         return executionParametersFactory.fromExecutionStrategyContextAndParameters(
-            executionContext.transform {
-                it.localContext(
-                    executionContext.updateCompositeLocalContext<EngineResultLocalContext> { _ -> localContext },
-                )
-            },
-            gjParameters.transform {
-                it.localContext(
-                    gjParameters.updateCompositeLocalContext<EngineResultLocalContext> { _ -> localContext },
-                )
-            },
+            executionContext,
+            gjParameters,
             rootOER,
+            queryOER,
         )
     }
 

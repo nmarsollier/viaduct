@@ -8,9 +8,9 @@ import graphql.execution.ExecutionStrategyParameters
  * [ObjectEngineResult] for a given field, and the query [ObjectEngineResult] for query selections.
  */
 data class EngineResultLocalContext(
-    val rootEngineResult: ObjectEngineResultImpl?,
-    val parentEngineResult: ObjectEngineResultImpl?,
-    val queryEngineResult: ObjectEngineResultImpl?,
+    val rootEngineResult: ObjectEngineResultImpl,
+    val parentEngineResult: ObjectEngineResultImpl,
+    val queryEngineResult: ObjectEngineResultImpl,
     val executionStrategyParams: ExecutionStrategyParameters?,
     val executionContext: ExecutionContext?
 )

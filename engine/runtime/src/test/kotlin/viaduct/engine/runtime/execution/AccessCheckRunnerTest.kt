@@ -218,7 +218,7 @@ class AccessCheckRunnerTest {
             }
             every { field?.fieldName } returns "bar"
             every { executionContext.getLocalContext<CompositeLocalContext>() } returns context
-            every { fieldResolutionResult.engineResult } returns mockk<ObjectEngineResultImpl>()
+            every { parentEngineResult } returns mockk<ObjectEngineResultImpl>()
         }
         val dataFetchingEnvironmentProvider = mockk<Supplier<DataFetchingEnvironment>> {
             every { get() } returns mockk()

@@ -64,7 +64,7 @@ internal object FieldExecutionHelpers {
         val schemaArguments = def.arguments
         val keyArguments = if (schemaArguments.isNotEmpty()) {
             getArgumentValues(
-                parameters.executionContext,
+                parameters,
                 schemaArguments,
                 field.mergedField.arguments
             ).get()
@@ -88,26 +88,37 @@ internal object FieldExecutionHelpers {
             NormalizedVariables.emptyVariables()
         }
         val fieldCollector = DataFetchingFieldSelectionSetImpl.newCollector(
-            parameters.executionContext.graphQLSchema,
+            parameters.graphQLSchema,
             fieldDef.type,
             normalizedFieldSupplier,
         )
         val queryDirectives = QueryDirectivesImpl(
             field.mergedField,
-            parameters.executionContext.graphQLSchema,
-            parameters.executionContext.coercedVariables,
+            parameters.graphQLSchema,
+            parameters.coercedVariables,
             normalizedVariableValuesSupplier,
             parameters.executionContext.graphQLContext,
             parameters.executionContext.locale
         )
-        val localContext = (parameters.fieldResolutionResult.localContext).let { ctx ->
+        val localContext = parameters.localContext.let { ctx ->
+            // update the context with either a new EngineResultLocalContext or update the existing one
             ctx.get<EngineResultLocalContext>().let { extant ->
-                extant ?: throw IllegalStateException("Missing EngineResultLocalContext")
-                ctx.addOrUpdate(extant.copy(parentEngineResult = parentOER))
+                ctx.addOrUpdate(
+                    // if the context is already set, just update the parentOER
+                    extant?.copy(
+                        parentEngineResult = parentOER,
+                    ) ?: EngineResultLocalContext( // otherwise create it
+                        parentEngineResult = parentOER,
+                        queryEngineResult = parameters.queryEngineResult,
+                        rootEngineResult = parameters.rootEngineResult,
+                        executionStrategyParams = parameters.gjParameters,
+                        executionContext = parameters.executionContext,
+                    )
+                )
             }
         }
         return DataFetchingEnvironmentImpl.newDataFetchingEnvironment(parameters.executionContext)
-            .source(parameters.fieldResolutionResult.originalSource)
+            .source(parameters.source)
             .localContext(localContext)
             .arguments(argumentValuesSupplier)
             .fieldDefinition(fieldDef)
@@ -142,26 +153,26 @@ internal object FieldExecutionHelpers {
     }
 
     internal fun getArgumentValues(
-        executionContext: ExecutionContext,
+        parameters: ExecutionParameters,
         argDefs: List<GraphQLArgument>,
         args: List<Argument>
     ): Supplier<ImmutableMapWithNullValues<String, Any>> {
-        val codeRegistry = executionContext.graphQLSchema.codeRegistry
+        val codeRegistry = parameters.graphQLSchema.codeRegistry
         val argValuesSupplier = Supplier {
             val resolvedValues = ValuesResolver.getArgumentValues(
                 codeRegistry,
                 argDefs,
                 args,
-                executionContext.coercedVariables,
-                executionContext.graphQLContext,
-                executionContext.locale
+                parameters.coercedVariables,
+                parameters.executionContext.graphQLContext,
+                parameters.executionContext.locale
             )
             ImmutableMapWithNullValues.copyOf(resolvedValues)
         }
         return FpKit.intraThreadMemoize(argValuesSupplier)
     }
 
-    fun getNormalizedField(
+    private fun getNormalizedField(
         executionContext: ExecutionContext,
         parameters: ExecutionStrategyParameters,
         executionStepInfo: Supplier<ExecutionStepInfo>
@@ -188,7 +199,7 @@ internal object FieldExecutionHelpers {
     ): QueryPlan.SelectionSet =
         CollectFields.shallowStrictCollect(
             parameters.selectionSet,
-            parameters.executionContext.coercedVariables,
+            parameters.coercedVariables,
             objectType,
             parameters.queryPlan.fragments
         )

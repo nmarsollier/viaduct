@@ -42,17 +42,10 @@ class AccessCheckRunner(
             dataFetchingEnvironment = dataFetchingEnvironmentProvider.get()
         )
         val fieldChecker = localExecutionContext.dispatcherRegistry.getCheckerExecutor(parentTypeName, fieldName)
-        if (fieldChecker == null) {
-            // No access check for this field, return immediately
-            return Value.nullValue
-        }
+            ?: return Value.nullValue // No access check for this field, return immediately
 
         // We're fetching an individual field; the current engine result will always be an ObjectEngineResult
-        val parentOER = checkNotNull(parameters.fieldResolutionResult.engineResult as? ObjectEngineResultImpl) {
-            "Invariant: expected engine result to be a `ObjectEngineResult`."
-        }
-
-        return executeChecker(fieldChecker, localExecutionContext, parentOER, parameters.executionStepInfo.arguments)
+        return executeChecker(fieldChecker, localExecutionContext, parameters.parentEngineResult, parameters.executionStepInfo.arguments)
     }
 
     /**
