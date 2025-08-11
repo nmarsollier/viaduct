@@ -2,10 +2,12 @@
 
 package viaduct.engine.runtime.select.loader
 
+import graphql.GraphQLError
 import graphql.schema.DataFetchingEnvironment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -15,6 +17,7 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.derived.DerivedFieldQueryMetadata
 import viaduct.engine.api.fragment.Fragment
 import viaduct.engine.api.fragment.FragmentFieldEngineResolutionResult
+import viaduct.engine.api.fragment.errors.FragmentFieldEngineResolutionError
 import viaduct.engine.runtime.MkMutationMetadata
 import viaduct.engine.runtime.MkQueryMetadata
 import viaduct.engine.runtime.RawSelectionsLoaderImpl
@@ -25,13 +28,15 @@ class RawSelectionsLoaderImplTest {
     private val ssFactory = RawSelectionSetFactoryImpl(ViaductSchema(SelectTestSchemaFixture.schema))
 
     @Test
-    fun `loads empty selections`() =
+    fun `empty selections throws`() =
         runBlockingTest {
-            RawSelectionsLoaderImpl(
-                ViaductSchema(SelectTestSchemaFixture.schema),
-                MockFragmentLoader.empty,
-                MkQueryMetadata("myResolverId")
-            ).load(RawSelectionSet.empty("Query"))
+            assertThrows<RuntimeException> {
+                RawSelectionsLoaderImpl(
+                    ViaductSchema(SelectTestSchemaFixture.schema),
+                    MockFragmentLoader.empty,
+                    MkQueryMetadata("myResolverId")
+                ).load(RawSelectionSet.empty("Query"))
+            }
         }
 
     @Test
@@ -52,6 +57,39 @@ class RawSelectionsLoaderImplTest {
             )
             val loaded = loader.load(selections)
             Assertions.assertEquals(42, loaded.fetch("intField"))
+        }
+
+    @Test
+    fun `loads invalid selections`() =
+        runBlockingTest {
+            val errors = listOf(
+                FragmentFieldEngineResolutionError(
+                    GraphQLError.newError().message("validation failed").build()
+                ),
+                FragmentFieldEngineResolutionError(
+                    GraphQLError.newError().message("foo").build(),
+                    cause = IllegalStateException()
+                )
+            )
+            val result = FragmentFieldEngineResolutionResult(emptyMap(), errors)
+            val loader =
+                RawSelectionsLoaderImpl(
+                    ViaductSchema(SelectTestSchemaFixture.schema),
+                    MockFragmentLoader(result),
+                    MkQueryMetadata("myResolverId")
+                )
+
+            val selections = ssFactory.rawSelectionSet(
+                typeName = "Query",
+                "intField",
+                mapOf()
+            )
+            val e = assertThrows<RuntimeException> {
+                loader.load(selections)
+            }
+            val msg = e.message!!
+            assertTrue(msg.contains("validation failed") && msg.contains("foo"))
+            assertTrue(e.cause is IllegalStateException)
         }
 
     @Test

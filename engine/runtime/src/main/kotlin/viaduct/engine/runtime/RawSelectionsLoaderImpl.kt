@@ -7,6 +7,7 @@ import viaduct.engine.api.RawSelectionsLoader
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.derived.DerivedFieldQueryMetadata
 import viaduct.engine.api.fragment.FragmentFieldEngineResolutionResult
+import viaduct.engine.api.fragment.errors.FragmentFieldEngineResolutionError
 import viaduct.engine.runtime.select.RawSelectionSetImpl
 import viaduct.engine.runtime.select.hash
 
@@ -37,6 +38,11 @@ class RawSelectionsLoaderImpl constructor(
             fragmentLoader.loadFromEngine(rawSS.toFragment(), mkDFPMetadata(rawSS))
         }
 
+        // Empty data means the query failed, e.g. there was a validation error
+        if (fragResult.data.isNullOrEmpty()) {
+            throw loadError(fragResult.errors)
+        }
+
         val oer = ObjectEngineResultImpl.newFromMap(
             schema.schema.getObjectType(selections.type),
             fragResult.data,
@@ -51,6 +57,15 @@ class RawSelectionsLoaderImpl constructor(
         )
 
         return ProxyEngineObjectData(oer, rawSS)
+    }
+
+    private fun loadError(errors: List<FragmentFieldEngineResolutionError>): RuntimeException {
+        val message = "Failed to load query"
+        if (errors.isEmpty()) return RuntimeException(message)
+
+        val errorMessages = errors.map { it.message }.joinToString("; ")
+        val cause = errors.firstNotNullOfOrNull { it.cause }
+        return RuntimeException("$message, errors: $errorMessages", cause)
     }
 }
 
