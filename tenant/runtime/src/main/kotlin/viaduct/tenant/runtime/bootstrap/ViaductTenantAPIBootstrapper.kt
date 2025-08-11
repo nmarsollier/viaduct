@@ -6,7 +6,7 @@ import kotlinx.coroutines.coroutineScope
 import viaduct.api.TenantCodeInjector
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
-import viaduct.service.bootapi.TenantAPIBootstrapperActualBuilder
+import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
 import viaduct.utils.slf4j.logger
 
 /**
@@ -45,7 +45,7 @@ class ViaductTenantAPIBootstrapper
         /**
          * Builder for creating a ViaductTenantAPIBootstrapper instance.
          */
-        class Builder : TenantAPIBootstrapperActualBuilder {
+        class Builder : TenantAPIBootstrapperBuilder {
             private var tenantCodeInjector: TenantCodeInjector = TenantCodeInjector.Naive
             private var tenantPackagePrefix: String? = null
             private var tenantPackageFinder: TenantPackageFinder? = null

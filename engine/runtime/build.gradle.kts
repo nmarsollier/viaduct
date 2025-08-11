@@ -41,7 +41,6 @@ dependencies {
     testImplementation(testFixtures(project(":engine:engine-runtime")))
     testImplementation(testFixtures(project(":service:service-api")))
     testImplementation(testFixtures(project(":shared:graphql")))
-    testImplementation(project(":service:service-bootapi"))
     testImplementation(project(":service:service-runtime"))
     testImplementation(project(":shared:arbitrary"))
     testImplementation(project(":shared:dataloader"))

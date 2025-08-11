@@ -1,5 +1,7 @@
 package viaduct.service.api.spi
 
+import viaduct.engine.api.TenantAPIBootstrapper
+
 /**
  * A tagging interface for builders of TenantAPIBootstrapper implementations.
  *
@@ -8,4 +10,6 @@ package viaduct.service.api.spi
  * these instances must come from valid Tenant API implementations, which understand
  * a special protocol expected by StandardViadcut.
  */
-interface TenantAPIBootstrapperBuilder
+interface TenantAPIBootstrapperBuilder {
+    fun create(): TenantAPIBootstrapper
+}

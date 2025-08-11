@@ -8,7 +8,6 @@ val projectNames = setOf(
     ":engine:engine-api",
     ":engine:engine-runtime",
     ":service:service-api",
-    ":service:service-bootapi",
     ":service:service-runtime",
     ":shared:arbitrary",
     ":shared:graphql",

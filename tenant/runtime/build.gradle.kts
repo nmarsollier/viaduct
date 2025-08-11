@@ -10,7 +10,6 @@ dependencies {
     implementation(project(":engine:engine-api"))
     implementation(project(":engine:engine-runtime"))
     implementation(project(":service:service-api"))
-    implementation(project(":service:service-bootapi"))
     implementation(project(":shared:arbitrary"))
     implementation(project(":shared:graphql"))
     implementation(project(":shared:logging"))

@@ -14,7 +14,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 
     testFixturesImplementation(project(":engine:engine-api"))
-    testFixturesImplementation(project(":service:service-bootapi"))
 }
 
 tasks.register<Jar>("sourcesJar") {

@@ -8,7 +8,7 @@ import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.ViaductSchema
-import viaduct.service.bootapi.TenantAPIBootstrapperActualBuilder
+import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
 import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl
@@ -20,7 +20,7 @@ class FeatureTestTenantAPIBootstrapperBuilder(
     val fieldUnbatchedResolverStubs: Map<Coordinate, FieldUnbatchedResolverStub<*>>,
     val nodeUnbatchedResolverStubs: Map<String, NodeUnbatchedResolverStub>,
     val nodeBatchResolverStubs: Map<String, NodeBatchResolverStub>,
-) : TenantAPIBootstrapperActualBuilder {
+) : TenantAPIBootstrapperBuilder {
     override fun create() =
         object : TenantAPIBootstrapper {
             val module: TenantModuleBootstrapper = FeatureTestTenantModuleBootstrapper(
