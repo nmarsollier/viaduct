@@ -11,7 +11,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.supervisorScope
-import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.ObjectEngineResult
@@ -36,7 +36,7 @@ class ResolverDataFetcher(
     internal val typeName: String,
     internal val fieldName: String,
     private val fieldResolverDispatcher: FieldResolverDispatcher,
-    private val checkerExecutor: CheckerExecutor?,
+    private val checkerDispatcher: CheckerDispatcher?,
     private val fragmentLoader: FragmentLoader,
     private val flagManager: FlagManager,
     private val tenantNameResolver: TenantNameResolver,
@@ -85,7 +85,7 @@ class ResolverDataFetcher(
         //  implementation is done.
         // --------- Execute access checks in ResolverDataFetcher ---------------
         // If there is no checker, just resolve the field
-        if (checkerExecutor == null) {
+        if (checkerDispatcher == null) {
             return resolveField(environment, objectValueEOD, queryValueEOD, localExecutionContext)
         }
 
@@ -95,7 +95,7 @@ class ResolverDataFetcher(
             OperationDefinition.Operation.QUERY -> {
                 supervisorScope {
                     val checkAsync = async {
-                        checkerExecutor.execute(
+                        checkerDispatcher.execute(
                             environment.arguments,
                             checkerProxyEODMap,
                             localExecutionContext
@@ -111,7 +111,7 @@ class ResolverDataFetcher(
             }
             // for mutation, execute checker then resolve field synchronously
             OperationDefinition.Operation.MUTATION -> {
-                val checkerResult = checkerExecutor.execute(
+                val checkerResult = checkerDispatcher.execute(
                     environment.arguments,
                     checkerProxyEODMap,
                     localExecutionContext
@@ -239,7 +239,7 @@ class ResolverDataFetcher(
                 )
             } else {
                 val resolverSelectionSet = fieldResolverDispatcher.objectSelectionSet
-                val checkerSelectionSets = checkerExecutor?.requiredSelectionSets?.values?.toList()?.filterNotNull()
+                val checkerSelectionSets = checkerDispatcher?.requiredSelectionSets?.values?.toList()?.filterNotNull()
                 if (resolverSelectionSet == null && checkerSelectionSets.isNullOrEmpty()) {
                     CompletableDeferred(ObjectEngineResultImpl.newForType(environment.executionStepInfo.objectType))
                 } else {
@@ -270,15 +270,15 @@ class ResolverDataFetcher(
         environment: DataFetchingEnvironment,
         engineResult: ObjectEngineResult
     ): Map<String, ProxyEngineObjectData> {
-        check(checkerExecutor != null) {
+        check(checkerDispatcher != null) {
             "Checker executor should not be null when getting checker proxyEOD map."
         }
         val checkerSelectionSetMap = if (shouldUseModernExecutionStrategy(environment)) {
-            checkerExecutor.requiredSelectionSets
+            checkerDispatcher.requiredSelectionSets
         } else {
             // Get checker proxyEOD from old engine.
             // Note checker variables and composite checkers with multiple selection sets are not supported.
-            val firstRss = checkerExecutor.requiredSelectionSets.values.firstOrNull()
+            val firstRss = checkerDispatcher.requiredSelectionSets.values.firstOrNull()
                 ?: return mapOf(
                     "key" to ProxyEngineObjectData(engineResult)
                 )

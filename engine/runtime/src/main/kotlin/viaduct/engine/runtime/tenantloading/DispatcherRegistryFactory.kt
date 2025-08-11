@@ -4,7 +4,7 @@ package viaduct.engine.runtime.tenantloading
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.FieldResolverDispatcher
@@ -12,6 +12,7 @@ import viaduct.engine.api.NodeResolverDispatcher
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleException
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
 import viaduct.engine.runtime.NodeResolverDispatcherImpl
@@ -31,8 +32,8 @@ class DispatcherRegistryFactory(
     fun create(schema: ViaductSchema): DispatcherRegistry {
         val fieldResolverDispatchers = mutableMapOf<Coordinate, FieldResolverDispatcher>()
         val nodeResolverDispatchers = mutableMapOf<String, NodeResolverDispatcher>()
-        val checkerExecutors = mutableMapOf<Coordinate, CheckerExecutor>()
-        val nodeCheckerExecutors = mutableMapOf<String, CheckerExecutor>()
+        val fieldCheckerDispatchers = mutableMapOf<Coordinate, CheckerDispatcher>()
+        val typeCheckerDispatchers = mutableMapOf<String, CheckerDispatcher>()
 
         val tenantModuleBootstrappers = runBlocking(Dispatchers.Default) {
             tenantAPIBootstrapper.tenantModuleBootstrappers()
@@ -56,7 +57,7 @@ class DispatcherRegistryFactory(
                 fieldResolverDispatchers[fieldCoord] = FieldResolverDispatcherImpl(executor)
                 // Enable access controls for resolver fields only
                 checkerExecutorFactory.checkerExecutorForField(fieldCoord.first, fieldCoord.second)?.let {
-                    checkerExecutors[fieldCoord] = it
+                    fieldCheckerDispatchers[fieldCoord] = CheckerDispatcherImpl(it)
                 }
                 tenantContributesExecutors = true
             }
@@ -66,7 +67,7 @@ class DispatcherRegistryFactory(
             for ((typeName, _) in nodeResolverDispatchers) {
                 // Enable access controls for node resolvers only
                 checkerExecutorFactory.checkerExecutorForType(typeName)?.let {
-                    nodeCheckerExecutors[typeName] = it
+                    typeCheckerDispatchers[typeName] = CheckerDispatcherImpl(it)
                 }
                 tenantContributesExecutors = true
             }
@@ -77,7 +78,7 @@ class DispatcherRegistryFactory(
                 }
             }
         }
-        val dispatcherRegistry = DispatcherRegistry(fieldResolverDispatchers.toMap(), nodeResolverDispatchers.toMap(), checkerExecutors.toMap(), nodeCheckerExecutors.toMap())
+        val dispatcherRegistry = DispatcherRegistry(fieldResolverDispatchers.toMap(), nodeResolverDispatchers.toMap(), fieldCheckerDispatchers.toMap(), typeCheckerDispatchers.toMap())
         if (dispatcherRegistry.isEmpty() && nonContributingModernBootstrappersPresent) {
             try {
                 throw TenantModuleException("Refusing to create an empty executor registry for $tenantModuleBootstrappers")

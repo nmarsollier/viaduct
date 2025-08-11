@@ -38,6 +38,7 @@ import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.select.SelectionsParser
+import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
 import viaduct.engine.runtime.NodeResolverDispatcherImpl
@@ -246,14 +247,14 @@ object MockSchema {
 fun mkDispatcherRegistry(
     fieldResolverExecutors: Map<Coordinate, FieldResolverExecutor> = emptyMap(),
     nodeResolverExecutors: Map<String, NodeResolverExecutor> = emptyMap(),
-    checkerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
-    nodeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
+    fieldCheckerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
+    typeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
 ): DispatcherRegistry {
     return DispatcherRegistry(
         fieldResolverDispatchers = fieldResolverExecutors.map { (k, v) -> k to FieldResolverDispatcherImpl(v) }.toMap(),
         nodeResolverDispatchers = nodeResolverExecutors.map { (k, v) -> k to NodeResolverDispatcherImpl(v) }.toMap(),
-        checkerExecutors = checkerExecutors,
-        nodeCheckerExecutors = nodeCheckerExecutors
+        fieldCheckerDispatchers = fieldCheckerExecutors.map { (k, v) -> k to CheckerDispatcherImpl(v) }.toMap(),
+        typeCheckerDispatchers = typeCheckerExecutors.map { (k, v) -> k to CheckerDispatcherImpl(v) }.toMap(),
     )
 }
 

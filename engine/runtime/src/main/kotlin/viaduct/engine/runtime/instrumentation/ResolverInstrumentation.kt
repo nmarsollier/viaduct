@@ -36,12 +36,12 @@ class ResolverInstrumentation(
         val fieldName = dfEnv.fieldDefinition.name
 
         val resolverDispatcher = resolverDispatcher(typeName, fieldName) ?: return dataFetcher
-        val checkerExecutor = checkerRegistry.getCheckerExecutor(typeName, fieldName)
+        val checkerDispatcher = checkerRegistry.getFieldCheckerDispatcher(typeName, fieldName)
         return ResolverDataFetcher(
             typeName = typeName,
             fieldName = fieldName,
             fieldResolverDispatcher = resolverDispatcher,
-            checkerExecutor = checkerExecutor,
+            checkerDispatcher = checkerDispatcher,
             fragmentLoader = fragmentLoader,
             flagManager = flagManager,
             tenantNameResolver = tenantNameResolver,

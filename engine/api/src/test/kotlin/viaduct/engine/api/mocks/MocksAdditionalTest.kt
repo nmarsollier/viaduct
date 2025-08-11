@@ -275,13 +275,13 @@ class MocksAdditionalTest {
         val registry = mkDispatcherRegistry(
             fieldResolverExecutors = mapOf(Coordinate("Test", "field") to fieldUnbatchedResolverExecutor, Coordinate("Test", "fieldBatch") to fieldBatchResolverExecutor),
             nodeResolverExecutors = mapOf("TestNode" to nodeUnbatchedResolverExecutor, "TestNodeBatch" to nodeBatchResolverExecutor),
-            checkerExecutors = mapOf(Coordinate("Test", "field") to checker),
-            nodeCheckerExecutors = mapOf("TestNode" to checker)
+            fieldCheckerExecutors = mapOf(Coordinate("Test", "field") to checker),
+            typeCheckerExecutors = mapOf("TestNode" to checker)
         )
 
         // Test through the public interface
-        assertSame(checker, registry.getCheckerExecutor("Test", "field"))
-        assertSame(checker, registry.getTypeCheckerExecutor("TestNode"))
+        assertNotNull(registry.getFieldCheckerDispatcher("Test", "field"))
+        assertNotNull(registry.getTypeCheckerDispatcher("TestNode"))
     }
 
     @Test

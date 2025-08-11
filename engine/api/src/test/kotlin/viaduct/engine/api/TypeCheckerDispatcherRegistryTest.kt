@@ -7,8 +7,8 @@ class TypeCheckerDispatcherRegistryTest {
     @Test
     fun `Empty`() {
         val reg = TypeCheckerDispatcherRegistry.Empty
-        assertEquals(null, reg.getTypeCheckerExecutor("Query"))
-        assertEquals(null, reg.getTypeCheckerExecutor("Foo"))
-        assertEquals(null, reg.getTypeCheckerExecutor(""))
+        assertEquals(null, reg.getTypeCheckerDispatcher("Query"))
+        assertEquals(null, reg.getTypeCheckerDispatcher("Foo"))
+        assertEquals(null, reg.getTypeCheckerDispatcher(""))
     }
 }

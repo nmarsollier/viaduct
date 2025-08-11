@@ -74,26 +74,26 @@ class DispatcherRegistryTest {
             assertNotNull(resolverDispatcher)
             val batchResolverDispatcher = dispatcherRegistry.getFieldResolverDispatcher("TestType", "batchField")
             assertNotNull(batchResolverDispatcher)
-            val checkerExecutor = dispatcherRegistry.getCheckerExecutor("TestType", "aField")
+            val checkerExecutor = dispatcherRegistry.getFieldCheckerDispatcher("TestType", "aField")
             assertNotNull(checkerExecutor)
 
             val resolverDispatcherInt = dispatcherRegistry.getFieldResolverDispatcher("TestType", "bIntField")
             assertNotNull(resolverDispatcherInt)
-            val checkerExecutorB = dispatcherRegistry.getCheckerExecutor("TestType", "bIntField")
+            val checkerExecutorB = dispatcherRegistry.getFieldCheckerDispatcher("TestType", "bIntField")
             assertNotNull(checkerExecutorB)
         }
 
     @Test
-    fun `test DispatcherRegistry getNodeCheckerExecutor`() {
+    fun `test DispatcherRegistry getTypeCheckerExecutor`() {
         val dispatcherRegistry = createDispatcherRegistry()
         // absent
-        assertEquals(null, dispatcherRegistry.getTypeCheckerExecutor("Other"))
+        assertEquals(null, dispatcherRegistry.getTypeCheckerDispatcher("Other"))
 
         // present without a node resolver
-        assertNull(dispatcherRegistry.getTypeCheckerExecutor("TestType"))
+        assertNull(dispatcherRegistry.getTypeCheckerDispatcher("TestType"))
 
         // present with a node resolver
-        assertNotNull(dispatcherRegistry.getTypeCheckerExecutor("TestNode"))
+        assertNotNull(dispatcherRegistry.getTypeCheckerDispatcher("TestNode"))
     }
 
     @Test

@@ -7,8 +7,8 @@ class FieldCheckerDispatcherRegistryTest {
     @Test
     fun `Empty`() {
         val reg = FieldCheckerDispatcherRegistry.Empty
-        assertEquals(null, reg.getCheckerExecutor("Query", "__typename"))
-        assertEquals(null, reg.getCheckerExecutor("Foo", "foo"))
-        assertEquals(null, reg.getCheckerExecutor("", ""))
+        assertEquals(null, reg.getFieldCheckerDispatcher("Query", "__typename"))
+        assertEquals(null, reg.getFieldCheckerDispatcher("Foo", "foo"))
+        assertEquals(null, reg.getFieldCheckerDispatcher("", ""))
     }
 }

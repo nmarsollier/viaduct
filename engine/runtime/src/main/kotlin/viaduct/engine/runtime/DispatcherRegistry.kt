@@ -1,7 +1,7 @@
 package viaduct.engine.runtime
 
 import javax.inject.Singleton
-import viaduct.engine.api.CheckerExecutor
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.FieldCheckerDispatcherRegistry
 import viaduct.engine.api.FieldResolverDispatcher
@@ -16,8 +16,8 @@ import viaduct.engine.api.TypeCheckerDispatcherRegistry
 class DispatcherRegistry(
     internal val fieldResolverDispatchers: Map<Coordinate, FieldResolverDispatcher>,
     internal val nodeResolverDispatchers: Map<String, NodeResolverDispatcher>,
-    internal val checkerExecutors: Map<Coordinate, CheckerExecutor>,
-    internal val nodeCheckerExecutors: Map<String, CheckerExecutor>
+    internal val fieldCheckerDispatchers: Map<Coordinate, CheckerDispatcher>,
+    internal val typeCheckerDispatchers: Map<String, CheckerDispatcher>
 ) : RequiredSelectionSetRegistry, NodeResolverDispatcherRegistry, TypeCheckerDispatcherRegistry, FieldResolverDispatcherRegistry, FieldCheckerDispatcherRegistry {
     override fun getFieldResolverDispatcher(
         typeName: String,
@@ -45,18 +45,18 @@ class DispatcherRegistry(
             //  in resolver data fetcher, we need to register its RSS to query plan to get correct OER
             //  for checker execution.
             if (executeAccessChecksInModstrat || fieldResolverExecutor != null) {
-                getCheckerExecutor(typeName, fieldName)?.requiredSelectionSets?.values?.filterNotNull()?.let { addAll(it) }
+                getFieldCheckerDispatcher(typeName, fieldName)?.requiredSelectionSets?.values?.filterNotNull()?.let { addAll(it) }
             }
         }
 
-    override fun getCheckerExecutor(
+    override fun getFieldCheckerDispatcher(
         typeName: String,
         fieldName: String
-    ) = checkerExecutors[Pair(typeName, fieldName)]
+    ) = fieldCheckerDispatchers[Pair(typeName, fieldName)]
 
     override fun getNodeResolverDispatcher(typeName: String): NodeResolverDispatcher? = nodeResolverDispatchers[typeName]
 
-    override fun getTypeCheckerExecutor(typeName: String): CheckerExecutor? = nodeCheckerExecutors[typeName]
+    override fun getTypeCheckerDispatcher(typeName: String): CheckerDispatcher? = typeCheckerDispatchers[typeName]
 
     // Visible for testing
     fun get() = fieldResolverDispatchers
@@ -66,5 +66,5 @@ class DispatcherRegistry(
         val Empty = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), emptyMap())
     }
 
-    fun isEmpty() = fieldResolverDispatchers.isEmpty() && nodeResolverDispatchers.isEmpty() && checkerExecutors.isEmpty() && nodeCheckerExecutors.isEmpty()
+    fun isEmpty() = fieldResolverDispatchers.isEmpty() && nodeResolverDispatchers.isEmpty() && fieldCheckerDispatchers.isEmpty() && typeCheckerDispatchers.isEmpty()
 }

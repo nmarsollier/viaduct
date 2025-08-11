@@ -1,6 +1,5 @@
 package viaduct.engine.runtime.tenantloading
 
-import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.NodeResolverDispatcher
 import viaduct.engine.api.RequiredSelectionSet
@@ -28,7 +27,7 @@ class RequiredSelectionsValidationCtx(
 
 class CheckerExecutorValidationCtx(
     val coord: Coordinate,
-    val executor: CheckerExecutor,
+    val requiredSelectionSets: Map<String, RequiredSelectionSet?>,
 )
 
 /** A concrete implementation of a [Validator] for [DispatcherRegistry] */
@@ -46,9 +45,9 @@ class DispatcherRegistryValidator(
             )
         }
 
-        wiring.checkerExecutors.forEach { entry ->
+        wiring.fieldCheckerDispatchers.forEach { entry ->
             checkerExecutorValidator.validate(
-                CheckerExecutorValidationCtx(entry.key, entry.value)
+                CheckerExecutorValidationCtx(entry.key, entry.value.requiredSelectionSets)
             )
         }
 

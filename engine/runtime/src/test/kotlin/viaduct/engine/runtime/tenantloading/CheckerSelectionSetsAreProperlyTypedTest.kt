@@ -141,7 +141,7 @@ class CheckerSelectionSetsAreProperlyTypedTest {
 
         val ctx = CheckerExecutorValidationCtx(
             coord = Coordinate(typeName, fieldName),
-            executor = checker
+            requiredSelectionSets = checker.requiredSelectionSets
         )
 
         val validator = CheckerSelectionSetsAreProperlyTyped(schema)
