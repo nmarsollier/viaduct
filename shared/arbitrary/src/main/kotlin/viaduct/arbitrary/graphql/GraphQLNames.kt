@@ -77,19 +77,15 @@ class GraphQLNames internal constructor(internal val names: Map<TypeType, Set<St
             tailrec fun loop(
                 acc: Map<TypeType, Set<String>>,
                 pool: List<String>,
-                typeTypes: List<TypeType>,
-                chunkSize: Int
+                typeTypeCounts: List<Pair<TypeType, Int>>
             ): GraphQLNames =
-                if (typeTypes.isNotEmpty()) {
-                    val entry =
-                        typeTypes.first().let { tt ->
-                            tt to pool.take(chunkSize).prefix(tt).toSet()
-                        }
+                if (typeTypeCounts.isNotEmpty()) {
+                    val (tt, count) = typeTypeCounts.first()
+                    val entry = tt to pool.take(count).prefix(tt).toSet()
                     loop(
                         acc = acc + entry,
-                        pool = pool.drop(chunkSize),
-                        typeTypes = typeTypes.drop(1),
-                        chunkSize = chunkSize
+                        pool = pool.drop(count),
+                        typeTypeCounts = typeTypeCounts.drop(1),
                     )
                 } else {
                     GraphQLNames(acc)
@@ -104,11 +100,20 @@ class GraphQLNames internal constructor(internal val names: Map<TypeType, Set<St
                         }
                     }
                 }
+            val typeTypeCounts = typeTypes.associateWith { tt ->
+                cfg[TypeTypeWeights][tt] ?: 1.0
+            }.let { ttWeights ->
+                // normalize
+                val total = ttWeights.values.sum()
+                ttWeights.mapValues { (tt, weight) ->
+                    val normWeight = weight / total
+                    (names.size * normWeight).toInt()
+                }
+            }
             return loop(
                 acc = emptyMap(),
                 pool = names,
-                typeTypes = typeTypes.toList(),
-                chunkSize = names.size / typeTypes.size
+                typeTypeCounts = typeTypeCounts.toList()
             )
         }
     }

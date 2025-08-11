@@ -51,6 +51,7 @@ open class QueryPlanBenchmark {
     private lateinit var simple: Fixture
     private lateinit var manyFragments1: Fixture
     private lateinit var extraLarge1: Fixture
+    private lateinit var extraLarge2: Fixture
     private lateinit var extraLarge3: Fixture
 
     @Setup
@@ -64,6 +65,7 @@ open class QueryPlanBenchmark {
 
         manyFragments1 = Fixture(TestData.loadFromResources("many-fragments-1"))
         extraLarge1 = Fixture(TestData.loadFromResources("extra-large-1"))
+        extraLarge2 = Fixture(TestData.loadFromResources("extra-large-2"))
         extraLarge3 = Fixture(TestData.loadFromResources("extra-large-3"))
     }
 
@@ -95,6 +97,12 @@ open class QueryPlanBenchmark {
     @Benchmark
     fun extraLarge1(blackhole: Blackhole) {
         val plan = extraLarge1.toQueryPlan()
+        blackhole.consume(plan)
+    }
+
+    @Benchmark
+    fun extraLarge2(blackhole: Blackhole) {
+        val plan = extraLarge2.toQueryPlan()
         blackhole.consume(plan)
     }
 

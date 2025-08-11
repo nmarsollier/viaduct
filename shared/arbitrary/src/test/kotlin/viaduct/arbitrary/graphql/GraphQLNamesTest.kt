@@ -57,6 +57,31 @@ class GraphQLNamesTest : KotestPropertyBase() {
     }
 
     @Test
+    fun `Arb_graphQLNames -- TypeTypeWeights -- zero`() =
+        runBlockingTest {
+            // all weights are 0
+            val cfg = Config.default +
+                (TypeTypeWeights to TypeTypeWeights.zero) +
+                (IncludeBuiltinScalars to false) +
+                (IncludeBuiltinDirectives to false)
+
+            Arb.graphQLNames(cfg).forAll { names -> names.allNames.isEmpty() }
+        }
+
+    @Test
+    fun `Arb_graphQLNames -- TypeTypeWeights -- skewed weights`() =
+        runBlockingTest {
+            val ttw = TypeTypeWeights.default + (TypeType.Enum to 10.0) + (TypeType.Union to 0.0)
+            Arb.int(0 until 1_000)
+                .flatMap { schemaSize ->
+                    val cfg = Config.default + (TypeTypeWeights to ttw) + (SchemaSize to schemaSize)
+                    Arb.graphQLNames(cfg)
+                }.forAll { names ->
+                    names.unions.isEmpty() && names.enums.size >= names.objects.size
+                }
+        }
+
+    @Test
     fun `graphQLNames plus`() =
         runBlockingTest {
             Arb.pair(
