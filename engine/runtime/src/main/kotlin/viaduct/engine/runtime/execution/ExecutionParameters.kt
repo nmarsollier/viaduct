@@ -8,6 +8,8 @@ import graphql.execution.MergedSelectionSet
 import graphql.execution.NonNullableFieldValidator
 import graphql.execution.ResultPath
 import graphql.schema.GraphQLObjectType
+import graphql.schema.GraphQLSchema
+import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.time.ExperimentalTime
@@ -22,9 +24,8 @@ import viaduct.engine.api.TypeCheckerDispatcherRegistry
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
+import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.EngineExecutionContextImpl
-import viaduct.engine.runtime.EngineResultLocalContext
-import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.findLocalContextForType
 import viaduct.service.api.spi.FlagManager
@@ -34,81 +35,85 @@ import viaduct.utils.slf4j.logger
 /**
  * Holds parameters used throughout the modern execution strategy.
  *
- * @property executionContext The execution context for the GraphQL query.
- * @property queryPlan The query plan for the current execution.
- * @property engineResult The root object engine result.
- * @property fieldResolutionResult The current engine result, which can be updated as we execute fields.
- * @property rootExecutionJob The root coroutine job for the execution.
- * @property coroutineContext The coroutine context for the current execution.
- * @property executionStepInfo The execution step info for the current execution.
- * @property nonNullFieldValidator The non-null field validator for the current execution.
- * @property requiredSelectionSetRegistry a registry that will be used for loading the data dependencies of a field
- * @property selectionSet The selection set for the current _level_ of execution.
- * @property parent The parent execution parameters, if any.
- * @property field The field currently being executed.
+ * This class represents a position in the GraphQL execution tree, containing both
+ * the immutable execution scope and the traversal-specific state that changes
+ * as we navigate through the query.
+ *
+ * @property constants Immutable execution-wide constants shared across the entire execution
+ * @property parentEngineResult Parent ObjectEngineResult for field execution (changes during traversal)
+ * @property coercedVariables Coerced variables for the current execution context
+ * @property queryPlan Current query plan being executed
+ * @property localContext Local context for the current execution scope
+ * @property source The source object for the current execution step
+ * @property executionStepInfo Current position in the query execution tree
+ * @property selectionSet Selection set for the current level of execution
+ * @property errorAccumulator Errors collected at this level
+ * @property parent Parent parameters in the traversal chain, if any
+ * @property field Field currently being executed, if any
  */
 data class ExecutionParameters(
-    val executionContext: ExecutionContext,
+    val constants: Constants,
+    val parentEngineResult: ObjectEngineResultImpl,
+    val coercedVariables: CoercedVariables,
     val queryPlan: QueryPlan,
-    val engineResult: ObjectEngineResultImpl,
-    val fieldResolutionResult: FieldResolutionResult,
-    val rootExecutionJob: Job,
-    val coroutineContext: CoroutineContext,
+    val localContext: CompositeLocalContext,
+    val source: Any?,
     val executionStepInfo: ExecutionStepInfo,
-    val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
     val selectionSet: QueryPlan.SelectionSet,
-    val rawSelectionSetFactory: RawSelectionSet.Factory,
-    val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
-    val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
     val errorAccumulator: ErrorAccumulator,
     val parent: ExecutionParameters? = null,
     val field: QueryPlan.CollectedField? = null,
 ) {
+    // Computed properties
     /** The ResultPath for the current level of execution */
     val path: ResultPath get() = executionStepInfo.path
 
-    val gjParameters: ExecutionStrategyParameters =
-        ExecutionStrategyParameters.newParameters()
+    /** Convenient access to the execution context from constants */
+    val executionContext: ExecutionContext get() = constants.executionContext
+
+    /** Convenient access to the GraphQL schema from constants */
+    val graphQLSchema: GraphQLSchema get() = constants.executionContext.graphQLSchema
+
+    /** Convenient access to instrumentation from constants */
+    val instrumentation: ViaductModernGJInstrumentation get() = constants.instrumentation
+
+    /** The root ObjectEngineResult for the entire request */
+    val rootEngineResult: ObjectEngineResultImpl get() = constants.rootEngineResult
+
+    /** The query ObjectEngineResult for query selections, if available */
+    val queryEngineResult: ObjectEngineResultImpl get() = constants.queryEngineResult
+
+    val gjParameters: ExecutionStrategyParameters
+        get() = ExecutionStrategyParameters.newParameters()
             // graphql-java requires a merged selection set, though our execution strategy doesn't use it.
             // provide a placeholder value
             .fields(emptyMergedSelectionSet)
-            .localContext(fieldResolutionResult.localContext)
-            .source(fieldResolutionResult.originalSource) // in some cases this should be the resolved one in currentEngineResult
+            .source(source) // in some cases this should be the resolved one in currentEngineResult
             // nonNullFieldValidator is required but not used in modstrat
             // see [viaduct.engine.runtime.execution.NonNullableFieldValidator]
+            // .localContext(localContext)
             .nonNullFieldValidator(NonNullableFieldValidator(executionContext))
             .executionStepInfo(executionStepInfo)
             .path(path)
             .parent(parent?.gjParameters)
-            .field(field?.mergedField)
+            .field(this.field?.mergedField)
             .build()
 
     /**
-     * The instrumentation instance from the execution context.
-     */
-    val instrumentation: ViaductModernGJInstrumentation =
-        if (executionContext.instrumentation !is ViaductModernGJInstrumentation) {
-            ViaductModernGJInstrumentation.fromStandardInstrumentation(executionContext.instrumentation)
-        } else {
-            executionContext.instrumentation as ViaductModernGJInstrumentation
-        }
-
-    /**
-     * Launches a coroutine on the root execution scope.
+     * Delegates to scope for launching coroutines on the root execution scope.
      *
      * @param block The suspend function to execute.
      */
-    fun launchOnRootScope(block: suspend CoroutineScope.() -> Unit) =
-        CoroutineScope(coroutineContext + rootExecutionJob).launch {
-            block(this)
-        }
+    fun launchOnRootScope(block: suspend CoroutineScope.() -> Unit) = constants.launchOnRootScope(block)
 
     /**
-     * Return a new ExecutionParameters that can be used to execute the given field
-     * @param objectType the GraphQLObjectType that owns the definition of `field`
-     * @param field the CollectedField to be executed
+     * Creates ExecutionParameters for executing a specific field.
+     *
+     * @param objectType The GraphQLObjectType that owns the field definition
+     * @param field The CollectedField to be executed
+     * @return New ExecutionParameters configured for field execution
      */
-    fun withCollectedField(
+    fun forField(
         objectType: GraphQLObjectType,
         field: QueryPlan.CollectedField
     ): ExecutionParameters {
@@ -128,30 +133,27 @@ data class ExecutionParameters(
             key.arguments
         )
         return copy(
+            parentEngineResult = parentEngineResult,
+            coercedVariables = coercedVariables,
             field = field,
             executionStepInfo = executionStepInfo,
             parent = this,
         )
     }
 
-    /** return a new [ExecutionParameters] that models traversing into the subselections of the provided [field] and its resolved result */
-    fun traverseFieldResult(
-        field: QueryPlan.CollectedField,
-        fieldResolutionResult: FieldResolutionResult
-    ): ExecutionParameters {
-        val oer = checkNotNull(fieldResolutionResult.engineResult as? ObjectEngineResultImpl)
-
-        return copy(
-            // ExecutionStepInfo.type is initially set to an abstract type like Node
-            // It can be refined during execution as abstract types become resolved
-            executionStepInfo = executionStepInfo.changeTypeWithPreservedNonNull(oer.graphQLObjectType),
-            fieldResolutionResult = fieldResolutionResult,
-            selectionSet = checkNotNull(field.selectionSet) { "Expected selection set to be non-null." },
-        )
-    }
-
-    /** return a new [ExecutionParameters] that models pivoting into a childPlan contained by [field] */
-    fun traverseChildPlan(
+    /**
+     * Creates ExecutionParameters for executing a child plan (Query or Object type).
+     *
+     * For Query-type child plans: Creates a fresh execution context with root path
+     * and uses the queryEngineResult as the root.
+     * For Object-type child plans: Maintains the parent object's path context
+     * and uses the current field's parent engine result.
+     *
+     * @param childPlan The child QueryPlan to execute
+     * @param variables Resolved variables for the child plan
+     * @return New ExecutionParameters configured for child plan execution
+     */
+    fun forChildPlan(
         childPlan: QueryPlan,
         variables: CoercedVariables
     ): ExecutionParameters {
@@ -169,7 +171,6 @@ data class ExecutionParameters(
                 .build()
         } else {
             // Object-type child plans maintain parent object context
-            // Use the parent's executionStepInfo if we have a parent, otherwise use current
             val parentObjectStepInfo = parent?.executionStepInfo ?: executionStepInfo
             ExecutionStepInfo.newExecutionStepInfo()
                 .type(objectType)
@@ -178,103 +179,206 @@ data class ExecutionParameters(
                 .build()
         }
 
-        // Build field resolution result based on plan type
-        val childFieldResolutionResult = if (isRootQueryQueryPlan) {
-            // Query plans use a fresh queryEngineResult as the root
-            val engineResultLocalContext = executionContext.findLocalContextForType<EngineResultLocalContext>()
-            val queryEngineResult = engineResultLocalContext.queryEngineResult
-                ?: throw IllegalStateException("Missing queryEngineResult for Query plan")
-
-            FieldResolutionResult(
-                queryEngineResult,
-                emptyList(),
-                executionContext.getLocalContext(),
-                emptyMap(),
-                executionContext.getRoot()
-            )
+        val newParentOER = if (isRootQueryQueryPlan) {
+            // For root query plans, we use the query engine result
+            constants.queryEngineResult
         } else {
-            // Object plans use the current fieldResolutionResult
-            fieldResolutionResult
+            // For object plans, we use the current parent engine result
+            parentEngineResult
+        }
+
+        val localContext = if (isRootQueryQueryPlan) {
+            // For root query plans, we use the root local context
+            executionContext.getLocalContext()
+        } else {
+            // For object plans, we use the current local context
+            localContext
+        }
+
+        val source = if (isRootQueryQueryPlan) {
+            executionContext.getRoot()
+        } else {
+            // For object plans, we use the current source
+            source
         }
 
         return copy(
-            executionContext = executionContext.transform {
-                it.coercedVariables(variables)
-            },
+            coercedVariables = variables,
             queryPlan = childPlan,
             selectionSet = childPlan.selectionSet,
             parent = this,
             errorAccumulator = ErrorAccumulator(),
             executionStepInfo = childExecutionStepInfo,
-            fieldResolutionResult = childFieldResolutionResult
+            parentEngineResult = newParentOER,
+            localContext = localContext,
+            source = source,
         )
     }
 
-    @Suppress("ktlint:standard:indent")
-    class Factory(
-        private val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
-        private val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
-        private val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
-        private val flagManager: FlagManager,
-    ) {
-        private val log by logger()
+    /**
+     * Creates ExecutionParameters for traversing into an object's selections.
+     *
+     * @param field The field containing the selection set to traverse
+     * @param engineResult The ObjectEngineResult for the current object
+     * @param localContext The local context for the current execution scope
+     * @param source The source object for the current execution step
+     * @return New ExecutionParameters configured for object traversal
+     */
+    fun forObjectTraversal(
+        field: QueryPlan.CollectedField,
+        engineResult: ObjectEngineResultImpl,
+        localContext: CompositeLocalContext,
+        source: Any?,
+    ): ExecutionParameters {
+        return copy(
+            parentEngineResult = engineResult, // Update parent to be the current object we're traversing into
+            coercedVariables = coercedVariables,
+            // ExecutionStepInfo.type is initially set to an abstract type like Node
+            // It can be refined during execution as abstract types become resolved
+            executionStepInfo = executionStepInfo.changeTypeWithPreservedNonNull(engineResult.graphQLObjectType),
+            localContext = localContext,
+            source = source,
+            selectionSet = checkNotNull(field.selectionSet) { "Expected selection set to be non-null." },
+        )
+    }
 
-        /**
-         * Constructs [ExecutionParameters] from the execution context and strategy parameters.
-         *
-         * @param executionContext The execution context for the GraphQL query.
-         * @param parameters The execution strategy parameters.
-         * @param rootEngineResult The root object engine result.
-         * @return A new instance of [ExecutionParameters].
-         */
-        @OptIn(ExperimentalTime::class)
-        internal suspend fun fromExecutionStrategyContextAndParameters(
-            executionContext: ExecutionContext,
-            parameters: ExecutionStrategyParameters,
-            rootEngineResult: ObjectEngineResultImpl,
-        ): ExecutionParameters {
-            // TODO: determine if we want nested resolvers to be included in this query plan
-
-            val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
-
-            val (queryPlan, duration) = measureTimedValue {
-                QueryPlan.build(
-                    QueryPlan.Parameters(
-                        executionContext.executionInput.query,
-                        ViaductSchema(executionContext.graphQLSchema),
-                        requiredSelectionSetRegistry,
-                        engineExecutionContext.executeAccessChecksInModstrat,
-                    ),
-                    executionContext.document,
-                    executionContext.executionInput.operationName
-                        ?.takeIf(String::isNotEmpty)
-                        ?.let(DocumentKey::Operation),
-                    useCache = !flagManager.isEnabled(Flags.DISABLE_QUERY_PLAN_CACHE)
-                )
+    /**
+     * Factory for creating root [ExecutionParameters] instances.
+     *
+     * This factory is responsible for:
+     * - Building the initial QueryPlan
+     * - Creating the ExecutionScope with all execution-wide dependencies
+     * - Constructing the root ExecutionParameters for query execution
+     */
+    class Factory
+        @Inject
+        constructor(
+            private val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
+            private val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
+            private val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
+            private val flagManager: FlagManager,
+        ) {
+            companion object {
+                private val log by logger()
             }
 
-            val rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory
+            /**
+             * Creates root ExecutionParameters from the execution context and strategy parameters.
+             *
+             * @param executionContext The execution context for the GraphQL query
+             * @param parameters The execution strategy parameters
+             * @param rootEngineResult The root object engine result
+             * @param queryEngineResult The query object engine result for query selections
+             * @return A new instance of [ExecutionParameters] configured for root execution
+             */
+            @OptIn(ExperimentalTime::class)
+            internal suspend fun fromExecutionStrategyContextAndParameters(
+                executionContext: ExecutionContext,
+                parameters: ExecutionStrategyParameters,
+                rootEngineResult: ObjectEngineResultImpl,
+                queryEngineResult: ObjectEngineResultImpl,
+            ): ExecutionParameters {
+                val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
 
-            log.debug("Built QueryPlan in $duration")
-            return ExecutionParameters(
-                executionContext,
-                queryPlan,
-                rootEngineResult,
-                FieldResolutionResult(rootEngineResult, emptyList(), executionContext.getLocalContext(), emptyMap(), executionContext.getRoot()),
-                coroutineContext[Job.Key]!!,
-                coroutineContext,
-                parameters.executionStepInfo,
-                requiredSelectionSetRegistry,
-                queryPlan.selectionSet,
-                rawSelectionSetFactory,
-                fieldCheckerDispatcherRegistry,
-                typeCheckerDispatcherRegistry,
-                ErrorAccumulator()
-            )
+                // Build the query plan
+                val (queryPlan, duration) = measureTimedValue {
+                    QueryPlan.build(
+                        QueryPlan.Parameters(
+                            executionContext.executionInput.query,
+                            ViaductSchema(executionContext.graphQLSchema),
+                            requiredSelectionSetRegistry,
+                            engineExecutionContext.executeAccessChecksInModstrat
+                        ),
+                        executionContext.document,
+                        executionContext.executionInput.operationName
+                            ?.takeIf(String::isNotEmpty)
+                            ?.let(DocumentKey::Operation),
+                        useCache = !flagManager.isEnabled(Flags.DISABLE_QUERY_PLAN_CACHE)
+                    )
+                }
+                log.debug("Built QueryPlan in $duration")
+
+                // Create the execution scope with all execution-wide dependencies
+                val constants = Constants(
+                    executionContext = executionContext,
+                    rootEngineResult = rootEngineResult,
+                    queryEngineResult = queryEngineResult,
+                    rootExecutionJob = coroutineContext[Job.Key]!!,
+                    coroutineContext = coroutineContext,
+                    requiredSelectionSetRegistry = requiredSelectionSetRegistry,
+                    rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory,
+                    fieldCheckerDispatcherRegistry = fieldCheckerDispatcherRegistry,
+                    typeCheckerDispatcherRegistry = typeCheckerDispatcherRegistry,
+                )
+
+                // Create and return root ExecutionParameters
+                return ExecutionParameters(
+                    constants = constants,
+                    parentEngineResult = rootEngineResult, // Initially, parent is the same as root
+                    coercedVariables = executionContext.coercedVariables,
+                    queryPlan = queryPlan,
+                    source = executionContext.getRoot(),
+                    localContext = executionContext.getLocalContext(),
+                    executionStepInfo = parameters.executionStepInfo,
+                    selectionSet = queryPlan.selectionSet,
+                    errorAccumulator = ErrorAccumulator(),
+                )
+            }
         }
-    }
 
     companion object {
         private val emptyMergedSelectionSet = MergedSelectionSet.newMergedSelectionSet().build()
+    }
+
+    /**
+     * Immutable object containing execution-wide constants that remain unchanged throughout
+     * the entire GraphQL query execution.
+     *
+     * This class encapsulates all the dependencies and context that are shared across
+     * the entire execution tree, separating them from the traversal-specific state
+     * in [ExecutionParameters].
+     *
+     * @property executionContext Base GraphQL execution context from graphql-java
+     * @property rootEngineResult Root ObjectEngineResult for the entire request
+     * @property queryEngineResult Query ObjectEngineResult for query selections
+     * @property rootExecutionJob Root coroutine job for the entire execution
+     * @property coroutineContext Base coroutine context for async operations
+     * @property requiredSelectionSetRegistry Registry for loading field data dependencies
+     * @property rawSelectionSetFactory Factory for creating raw selection sets
+     * @property fieldCheckerDispatcherRegistry Registry for field-level access checks
+     * @property typeCheckerDispatcherRegistry Registry for type-level access checks
+     */
+    data class Constants(
+        val executionContext: ExecutionContext,
+        val rootEngineResult: ObjectEngineResultImpl,
+        val queryEngineResult: ObjectEngineResultImpl,
+        val rootExecutionJob: Job,
+        val coroutineContext: CoroutineContext,
+        val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
+        val rawSelectionSetFactory: RawSelectionSet.Factory,
+        val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
+        val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
+    ) {
+        /**
+         * Launches a coroutine on the root execution scope.
+         * This ensures all async operations are properly scoped to the execution lifetime.
+         *
+         * @param block The suspend function to execute
+         */
+        fun launchOnRootScope(block: suspend CoroutineScope.() -> Unit) =
+            CoroutineScope(coroutineContext + rootExecutionJob).launch {
+                block(this)
+            }
+
+        /**
+         * The instrumentation instance from the execution context.
+         * Automatically wraps standard instrumentation in ViaductModernGJInstrumentation if needed.
+         */
+        val instrumentation: ViaductModernGJInstrumentation
+            get() = if (executionContext.instrumentation !is ViaductModernGJInstrumentation) {
+                ViaductModernGJInstrumentation.fromStandardInstrumentation(executionContext.instrumentation)
+            } else {
+                executionContext.instrumentation as ViaductModernGJInstrumentation
+            }
     }
 }
