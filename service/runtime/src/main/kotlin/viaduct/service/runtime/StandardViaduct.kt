@@ -37,7 +37,6 @@ import viaduct.service.api.Viaduct
 import viaduct.service.api.airbnb.AirbnbViaduct
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
-import viaduct.service.bootapi.TenantAPIBootstrapperActualBuilder
 
 /**
  * An immutable implementation of Viaduct interface, it configures and executes queries against the Viaduct runtime
@@ -119,7 +118,7 @@ class StandardViaduct internal constructor(
         private var coroutineInterop: CoroutineInterop? = null
         private var schemaRegistryBuilder: SchemaRegistryBuilder = SchemaRegistryBuilder()
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
-        private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperActualBuilder> = emptyList()
+        private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperBuilder> = emptyList()
 
         fun enableAirbnbBypassDoNotUse(
             fragmentLoader: FragmentLoader,
@@ -144,13 +143,7 @@ class StandardViaduct internal constructor(
          */
         fun withTenantAPIBootstrapperBuilders(builders: List<TenantAPIBootstrapperBuilder>): Builder =
             apply {
-                builders.forEach {
-                    if (it !is TenantAPIBootstrapperActualBuilder) {
-                        throw IllegalArgumentException("Bootstrap builder does not appear to have come from a proper tenant API implementation ($it)")
-                    }
-                }
-                @Suppress("UNCHECKED_CAST")
-                tenantAPIBootstrapperBuilders = builders as List<TenantAPIBootstrapperActualBuilder>
+                tenantAPIBootstrapperBuilders = builders
             }
 
         /**
