@@ -25,6 +25,8 @@ import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.TenantAPIBootstrapper.Companion.flatten
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
+import viaduct.engine.api.execution.ResolverErrorBuilder
+import viaduct.engine.api.execution.ResolverErrorReporter
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextFactory
@@ -115,6 +117,8 @@ class StandardViaduct internal constructor(
         private var checkerExecutorFactory: CheckerExecutorFactory? = null
         private var checkerExecutorFactoryCreator: ((ViaductSchema) -> CheckerExecutorFactory)? = null
         private var dataFetcherExceptionHandler: DataFetcherExceptionHandler? = null
+        private var resolverErrorReporter: ResolverErrorReporter? = null
+        private var resolverErrorBuilder: ResolverErrorBuilder? = null
         private var coroutineInterop: CoroutineInterop? = null
         private var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
@@ -179,6 +183,16 @@ class StandardViaduct internal constructor(
                 this.dataFetcherExceptionHandler = dataFetcherExceptionHandler
             }
 
+        // fun withDataFetcherErrorReporter(dataFetcherErrorReporter: DataFetcherErrorReporter): Builder =
+        //     apply {
+        //         this.dataFetcherErrorReporter = dataFetcherErrorReporter
+        //     }
+        //
+        // fun withDataFetcherErrorBuilder(dataFetcherErrorBuilder: DataFetcherErrorBuilder): Builder =
+        //     apply {
+        //         this.dataFetcherErrorBuilder = dataFetcherErrorBuilder
+        //     }
+
         @Deprecated("For advance uses, Airbnb only use.", level = DeprecationLevel.WARNING)
         fun withInstrumentation(instrumentation: Instrumentation) =
             apply {
@@ -206,9 +220,11 @@ class StandardViaduct internal constructor(
             val internalEngineModule = ViaductInternalEngineModule(
                 schemaRegistry,
                 flagManager,
-                dataFetcherExceptionHandler,
                 scopedFuture,
                 checkerExecutorFactory,
+                dataFetcherExceptionHandler,
+                resolverErrorReporter ?: ResolverErrorReporter.NoOpResolverErrorReporter,
+                resolverErrorBuilder ?: ResolverErrorBuilder.NoOpResolverErrorBuilder
             )
 
             val tenantBootstrapper = tenantAPIBootstrapperBuilders.map { it.create() }.flatten()

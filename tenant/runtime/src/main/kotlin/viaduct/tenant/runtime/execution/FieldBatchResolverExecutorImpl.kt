@@ -5,9 +5,11 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
 import viaduct.api.FieldValue
 import viaduct.api.ViaductFrameworkException
+import viaduct.api.ViaductTenantResolverException
 import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.ReflectionLoader
 import viaduct.api.internal.ResolverBase
+import viaduct.api.wrapResolveException
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.FieldResolverExecutor.Selector

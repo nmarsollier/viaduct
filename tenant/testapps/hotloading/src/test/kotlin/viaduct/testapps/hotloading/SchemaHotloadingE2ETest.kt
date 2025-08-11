@@ -336,7 +336,7 @@ class SchemaHotloadingE2ETest : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/objField3/field2) : InputLikeBase.get failed for Object5_Field2_Arguments.enumInput " +
+                    "message" to "viaduct.api.ViaductFrameworkException: InputLikeBase.get failed for Object5_Field2_Arguments.enumInput " +
                         "(java.lang.IllegalArgumentException: No enum constant viaduct.api.grts.SomeEnum.NEW_VALUE)"
                     "locations" to arrayOf(
                         {
@@ -349,6 +349,9 @@ class SchemaHotloadingE2ETest : TestBase(
                         "field2"
                     )
                     "extensions" to {
+                        "fieldName" to "field2"
+                        "parentType" to "Object5"
+                        "operationName" to "TestQuery"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -410,8 +413,8 @@ class SchemaHotloadingE2ETest : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/nodeReference/value) : Attempted to access field " +
-                        "TestNode1.value but it was not set: Please set a value for value using the builder for TestNode1"
+                    "message" to "viaduct.engine.api.UnsetSelectionException: Attempted to access field TestNode1.value but it was not set: " +
+                        "Please set a value for value using the builder for TestNode1"
                     "locations" to arrayOf(
                         {
                             "line" to 1
@@ -423,6 +426,8 @@ class SchemaHotloadingE2ETest : TestBase(
                         "value"
                     )
                     "extensions" to {
+                        "fieldName" to "value"
+                        "parentType" to "TestNode1"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -482,9 +487,8 @@ class SchemaHotloadingE2ETest : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/fieldWithInput) : java.lang.NullPointerException: " +
-                        "Cannot invoke \"viaduct.api.grts.TestInput.getStrField()\" because the return value of " +
-                        "\"viaduct.api.grts.Query_FieldWithInput_Arguments.getInput()\" is null"
+                    "message" to "java.lang.NullPointerException: Cannot invoke \"viaduct.api.grts.TestInput.getStrField()\"" +
+                        " because the return value of \"viaduct.api.grts.Query_FieldWithInput_Arguments.getInput()\" is null"
                     "locations" to arrayOf(
                         {
                             "line" to 1
@@ -493,6 +497,8 @@ class SchemaHotloadingE2ETest : TestBase(
                     )
                     "path" to listOf("fieldWithInput")
                     "extensions" to {
+                        "fieldName" to "fieldWithInput"
+                        "parentType" to "Query"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -508,7 +514,7 @@ class SchemaHotloadingE2ETest : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/fieldWithInput) : java.lang.NullPointerException: " +
+                    "message" to "java.lang.NullPointerException: " +
                         "Cannot invoke \"viaduct.api.grts.TestInput.getStrField()\" because the return value of " +
                         "\"viaduct.api.grts.Query_FieldWithInput_Arguments.getInput()\" is null"
                     "locations" to arrayOf(
@@ -519,6 +525,9 @@ class SchemaHotloadingE2ETest : TestBase(
                     )
                     "path" to listOf("fieldWithInput")
                     "extensions" to {
+                        "fieldName" to "fieldWithInput"
+                        "parentType" to "Query"
+                        "operationName" to "TestQuery"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -558,9 +567,8 @@ class SchemaHotloadingE2ETest : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/fieldWithInput2) : java.lang.NullPointerException: " +
-                        "Cannot invoke \"viaduct.api.grts.TestInput.getStrField()\" because the return value of " +
-                        "\"viaduct.api.grts.Query_FieldWithInput2_Arguments.getInput()\" is null"
+                    "message" to "java.lang.NullPointerException: Cannot invoke \"viaduct.api.grts.TestInput.getStrField()\"" +
+                        " because the return value of \"viaduct.api.grts.Query_FieldWithInput2_Arguments.getInput()\" is null"
                     "locations" to arrayOf(
                         {
                             "line" to 1
@@ -569,6 +577,8 @@ class SchemaHotloadingE2ETest : TestBase(
                     )
                     "path" to listOf("fieldWithInput2")
                     "extensions" to {
+                        "fieldName" to "fieldWithInput2"
+                        "parentType" to "Query"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -701,7 +711,7 @@ class SchemaHotloadingE2ETest : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/objField) : ObjectBase.Builder.putInternal failed (java.lang.NullPointerException: " +
+                    "message" to "viaduct.api.ViaductFrameworkException: ObjectBase.Builder.putInternal failed (java.lang.NullPointerException: " +
                         "Cannot invoke \"graphql.schema.GraphQLFieldDefinition.getType()\" because \"field\" is null)"
                     "locations" to arrayOf(
                         {
@@ -711,6 +721,8 @@ class SchemaHotloadingE2ETest : TestBase(
                     )
                     "path" to listOf("objField")
                     "extensions" to {
+                        "fieldName" to "objField"
+                        "parentType" to "Query"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -738,8 +750,7 @@ class SchemaHotloadingE2ETest : TestBase(
             endHotSwap()
         }
 
-        val commonSuffix = " <{errors=[{message=Exception while fetching data (/objField2) : ObjectBase.Builder.putInternal failed " +
-            "(java.lang.NullPointerException: Cannot invoke \"graphql.schema.GraphQLFieldDefinition.getType()\" because \"field\" is null), "
+        val commonSuffix = " <{errors=[{message=viaduct.api.ViaductFrameworkException: ObjectBase.Builder.putInternal failed"
         assertTrue(
             listOf(
                 "Expected <{data={objField2=null}}>, actual$commonSuffix",

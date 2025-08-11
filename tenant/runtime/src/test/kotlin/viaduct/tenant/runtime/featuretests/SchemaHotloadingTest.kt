@@ -71,7 +71,7 @@ class SchemaHotloadingTest {
                 {
                   "errors": [
                     {
-                      "message": "Exception while fetching data (/a) : Expected data to be an Iterable, was class java.lang.String.",
+                      "message": "viaduct.engine.runtime.execution.InternalEngineException: Expected data to be an Iterable, was class java.lang.String.",
                       "locations": [
                         {
                           "line": 1,
@@ -82,6 +82,8 @@ class SchemaHotloadingTest {
                             "a"
                         ],
                       "extensions": {
+                        "fieldName": "a",
+                        "parentType": "Query",
                         "classification": "DataFetchingException"
                       }
                     }

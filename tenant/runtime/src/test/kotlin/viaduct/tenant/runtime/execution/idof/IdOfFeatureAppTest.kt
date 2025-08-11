@@ -74,7 +74,7 @@ class IdOfFeatureAppTest : FeatureAppTestBase() {
             }
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/user) : InputLikeBase.get failed for Query_User_Arguments.id " +
+                    "message" to "viaduct.api.ViaductFrameworkException: InputLikeBase.get failed for Query_User_Arguments.id " +
                         "(java.lang.IllegalArgumentException: Expected GlobalID \"123\" to be a Base64-encoded string with the decoded format " +
                         "'<type name>:<internal ID>', got decoded value �m)"
                     "locations" to arrayOf(
@@ -85,6 +85,8 @@ class IdOfFeatureAppTest : FeatureAppTestBase() {
                     )
                     "path" to listOf("user")
                     "extensions" to {
+                        "fieldName" to "user"
+                        "parentType" to "Query"
                         "classification" to "DataFetchingException"
                     }
                 }

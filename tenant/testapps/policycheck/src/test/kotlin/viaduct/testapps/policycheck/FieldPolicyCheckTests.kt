@@ -81,7 +81,7 @@ class FieldPolicyCheckTests : TestBase(
         assertEquals(mapOf("canNotAccessField" to null), result.toSpecification()["data"])
         assertEquals(1, result.errors.size)
         val error = result.errors[0]
-        assertTrue(error.message.contains("Exception while fetching data (/canNotAccessField) : This field is not accessible"))
+        assertTrue(error.message.contains("This field is not accessible"))
         assertEquals(listOf("canNotAccessField"), error.path)
     }
 }
