@@ -6,7 +6,6 @@ import graphql.ExecutionResult
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
-import io.mockk.mockk
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
@@ -48,7 +47,6 @@ class ViaductOSSScopesEndToEndTest {
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withDataFetcherExceptionHandler(mockk())
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
@@ -81,7 +79,6 @@ class ViaductOSSScopesEndToEndTest {
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withDataFetcherExceptionHandler(mockk())
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
@@ -119,7 +116,6 @@ class ViaductOSSScopesEndToEndTest {
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withDataFetcherExceptionHandler(mockk())
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
@@ -185,7 +181,6 @@ class ViaductOSSScopesEndToEndTest {
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withDataFetcherExceptionHandler(mockk())
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
@@ -233,7 +228,6 @@ class ViaductOSSScopesEndToEndTest {
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withDataFetcherExceptionHandler(mockk())
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 
@@ -274,7 +268,6 @@ class ViaductOSSScopesEndToEndTest {
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withDataFetcherExceptionHandler(mockk())
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
                 .build()
 

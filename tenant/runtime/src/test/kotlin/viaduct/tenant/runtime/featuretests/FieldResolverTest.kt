@@ -24,10 +24,12 @@ class FieldResolverTest {
                 {
                     data: { x: null },
                     errors: [{
-                        message: "Exception while fetching data (/x) : java.lang.RuntimeException: error!",
+                        message: "java.lang.RuntimeException: error!",
                         locations: [{ line: 1, column: 3 }],
                         path: ["x"],
                         extensions: {
+                            fieldName: "x",
+                            parentType: "Query",
                             classification: "DataFetchingException"
                         }
                     }]
@@ -47,10 +49,12 @@ class FieldResolverTest {
                 {
                     data: { x: null },
                     errors: [{
-                        message: "Exception while fetching data (/x) : java.lang.RuntimeException: error!",
+                        message: "java.lang.RuntimeException: error!",
                         locations: [{ line: 1, column: 16 }],
                         path: ["x"],
                         extensions: {
+                            fieldName: "x",
+                            parentType: "Subscription",
                             classification: "DataFetchingException"
                         }
                     }]

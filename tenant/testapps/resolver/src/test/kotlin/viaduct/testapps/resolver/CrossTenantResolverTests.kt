@@ -63,7 +63,7 @@ class CrossTenantResolverTests : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/nestedFieldException) : viaduct.api.ViaductTenantUsageException: Attempted to access field Query.throwsException " +
+                    "message" to "viaduct.api.ViaductTenantUsageException: Attempted to access field Query.throwsException " +
                         "but it was not set: please add it to the @Resolver fragment"
                     "locations" to arrayOf(
                         {
@@ -73,6 +73,9 @@ class CrossTenantResolverTests : TestBase(
                     )
                     "path" to listOf("nestedFieldException")
                     "extensions" to {
+                        "fieldName" to "nestedFieldException"
+                        "parentType" to "Query"
+                        "operationName" to "TestQuery"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -101,7 +104,7 @@ class CrossTenantResolverTests : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/nestedFieldFragmentError) : viaduct.api.ViaductTenantUsageException: " +
+                    "message" to "viaduct.api.ViaductTenantUsageException: " +
                         "Attempted to access field Query.throwsException but it was not set: please add it to the @Resolver fragment"
                     "locations" to arrayOf(
                         {
@@ -111,6 +114,9 @@ class CrossTenantResolverTests : TestBase(
                     )
                     "path" to listOf("nestedFieldFragmentError")
                     "extensions" to {
+                        "fieldName" to "nestedFieldFragmentError"
+                        "parentType" to "Query"
+                        "operationName" to "TestQuery"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -129,7 +135,7 @@ class CrossTenantResolverTests : TestBase(
         ).assertEquals {
             "errors" to arrayOf(
                 {
-                    "message" to "Exception while fetching data (/throwsException) : java.lang.NullPointerException: This is a test exception"
+                    "message" to "java.lang.NullPointerException: This is a test exception"
                     "locations" to arrayOf(
                         {
                             "line" to 1
@@ -138,6 +144,9 @@ class CrossTenantResolverTests : TestBase(
                     )
                     "path" to listOf("throwsException")
                     "extensions" to {
+                        "fieldName" to "throwsException"
+                        "parentType" to "Query"
+                        "operationName" to "TestQuery"
                         "classification" to "DataFetchingException"
                     }
                 }
@@ -194,7 +203,7 @@ class CrossTenantResolverTests : TestBase(
             assertEquals(1, resp.errors.size)
             val err = resp.errors.first().toSpecification()
             assertEquals(listOf("nestedFieldError"), err["path"])
-            assertEquals(mapOf("classification" to "DataFetchingException"), err["extensions"])
+            assertEquals(mapOf("fieldName" to "nestedFieldError", "parentType" to "Query", "operationName" to "TestQuery", "classification" to "DataFetchingException"), err["extensions"])
         }
     }
 }

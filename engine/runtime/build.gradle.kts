@@ -19,6 +19,8 @@ dependencies {
     implementation(project(":shared:graphql"))
     implementation(project(":shared:logging"))
     implementation(project(":shared:utils"))
+    implementation(project(":snipped:errors"))
+    implementation(project(":tenant:tenant-api"))
     implementation(libs.caffeine)
     implementation(libs.graphql.java)
     implementation(libs.graphql.java.extension)

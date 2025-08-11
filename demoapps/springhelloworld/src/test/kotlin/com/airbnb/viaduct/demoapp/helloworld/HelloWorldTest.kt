@@ -208,7 +208,7 @@ class HelloWorldTest(
             {
               "errors": [
                 {
-                  "message": "Exception while fetching data (/throwException) : java.lang.IllegalStateException: This is a resolver error",
+                  "message": "java.lang.IllegalStateException: This is a resolver error",
                   "locations": [
                     {
                       "line": 1,
@@ -219,6 +219,9 @@ class HelloWorldTest(
                     "throwException"
                   ],
                   "extensions": {
+                    "fieldName": "throwException",
+                    "parentType": "Query",
+                    "operationName": "ThrowException",
                     "classification": "DataFetchingException"
                   }
                 }

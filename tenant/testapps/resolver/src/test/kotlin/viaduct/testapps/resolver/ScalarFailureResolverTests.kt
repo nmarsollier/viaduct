@@ -16,7 +16,7 @@ class ScalarFailureResolverTests : TestBase(
             schemaId = DEFAULT_SCHEMA_ID,
             query = "query TestQuery { scalarFailureEnum }"
         ).assertJson(
-            """{"errors":[{"message":"Exception while fetching data (/scalarFailureEnum) : java.lang.NullPointerException","locations":[{"line":1,"column":19}],"path":["scalarFailureEnum"],"extensions":{"classification":"DataFetchingException"}}],"data":null}"""
+            """{"errors":[{"message":"java.lang.NullPointerException: null","locations":[{"line":1,"column":19}],"path":["scalarFailureEnum"],"extensions":{"fieldName":"scalarFailureEnum","parentType":"Query","operationName":"TestQuery","classification":"DataFetchingException"}}],"data":null}"""
         )
     }
 
@@ -26,7 +26,7 @@ class ScalarFailureResolverTests : TestBase(
             schemaId = DEFAULT_SCHEMA_ID,
             query = "query TestQuery { scalarFailureString }"
         ).assertJson(
-            """{"errors":[{"message":"Exception while fetching data (/scalarFailureString) : java.lang.RuntimeException: Error Occurred","locations":[{"line":1,"column":19}],"path":["scalarFailureString"],"extensions":{"classification":"DataFetchingException"}}],"data":null}"""
+            """{"errors":[{"message":"java.lang.RuntimeException: Error Occurred","locations":[{"line":1,"column":19}],"path":["scalarFailureString"],"extensions":{"fieldName":"scalarFailureString","parentType":"Query","operationName":"TestQuery","classification":"DataFetchingException"}}],"data":null}"""
         )
     }
 
@@ -36,7 +36,7 @@ class ScalarFailureResolverTests : TestBase(
             schemaId = DEFAULT_SCHEMA_ID,
             query = "query TestQuery { scalarFailureInt }"
         ).assertJson(
-            """{"errors":[{"message":"Exception while fetching data (/scalarFailureInt) : java.lang.StackOverflowError","locations":[{"line":1,"column":19}],"path":["scalarFailureInt"],"extensions":{"classification":"DataFetchingException"}}],"data":null}"""
+            """{"errors":[{"message":"java.lang.StackOverflowError: null","locations":[{"line":1,"column":19}],"path":["scalarFailureInt"],"extensions":{"fieldName":"scalarFailureInt","parentType":"Query","operationName":"TestQuery","classification":"DataFetchingException"}}],"data":null}"""
         )
     }
 
