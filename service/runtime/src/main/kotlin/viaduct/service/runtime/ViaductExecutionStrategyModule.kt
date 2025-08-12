@@ -27,6 +27,7 @@ import viaduct.engine.runtime.execution.TenantNameResolver
 import viaduct.engine.runtime.execution.ViaductExecutionStrategy
 import viaduct.engine.runtime.execution.WrappedCoroutineExecutionStrategy
 import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
+import viaduct.engine.runtime.instrumentation.ScopeInstrumentation
 import viaduct.engine.runtime.tenantloading.CheckerSelectionSetsAreProperlyTyped
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryValidator
@@ -166,7 +167,7 @@ class ViaductExecutionStrategyModule(
     @Provides
     @Singleton
     fun providesScopeInstrumentation(flagManager: FlagManager): ScopeInstrumentation {
-        return ScopeInstrumentation(flagManager)
+        return ScopeInstrumentation()
     }
 
     @Provides
@@ -195,7 +196,7 @@ class ViaductExecutionStrategyModule(
     ): Instrumentation {
         return instrumentation ?: ChainedInstrumentation(
             listOf(
-                scopeInstrumentation,
+                scopeInstrumentation.asStandardInstrumentation,
                 resolverInstrumentation,
             )
         )

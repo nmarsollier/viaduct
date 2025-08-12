@@ -30,8 +30,10 @@ import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ChainedInstrumentation
+import viaduct.engine.api.instrumentation.ViaductInstrumentationAdapter
 import viaduct.engine.runtime.execution.WrappedCoroutineExecutionStrategy
 import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
+import viaduct.engine.runtime.instrumentation.ScopeInstrumentation
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flag
 import viaduct.service.api.spi.FlagManager
@@ -164,7 +166,10 @@ class ViaductOSSEndToEndTest {
                 "instrumentations" to FieldTypeInvariant(
                     List::class,
                     listOf(
-                        ClassTypeInvariant(ScopeInstrumentation::class),
+                        FieldInvariant(
+                            ViaductInstrumentationAdapter::class,
+                            mapOf("viaductInstrumentation" to ClassTypeInvariant(ScopeInstrumentation::class))
+                        ),
                         ClassTypeInvariant(ResolverInstrumentation::class)
                     )
                 )
