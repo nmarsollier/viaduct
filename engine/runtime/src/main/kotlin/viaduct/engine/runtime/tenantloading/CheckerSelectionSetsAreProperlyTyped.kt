@@ -10,14 +10,14 @@ import viaduct.engine.runtime.validation.Validator
  */
 class CheckerSelectionSetsAreProperlyTyped(
     private val schema: ViaductSchema,
-) : Validator<CheckerExecutorValidationCtx> {
+) : Validator<FieldCheckerExecutorValidationCtx> {
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-    override fun validate(ctx: CheckerExecutorValidationCtx) =
+    override fun validate(ctx: FieldCheckerExecutorValidationCtx) =
         ctx.run {
             val objectName = coord.first
             val mismatches = mutableSetOf<String>()
 
-            for (rss in ctx.requiredSelectionSets.values) {
+            for (rss in executor.requiredSelectionSets.values) {
                 val rssName = rss?.selections?.typeName
                 if (objectName != rssName && rssName != null) mismatches.add(rssName)
             }

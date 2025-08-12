@@ -139,9 +139,9 @@ class CheckerSelectionSetsAreProperlyTypedTest {
 
         val checker = MockCheckerExecutor(requiredSelectionSets = requiredSelectionSets)
 
-        val ctx = CheckerExecutorValidationCtx(
+        val ctx = FieldCheckerExecutorValidationCtx(
             coord = Coordinate(typeName, fieldName),
-            requiredSelectionSets = checker.requiredSelectionSets
+            executor = checker
         )
 
         val validator = CheckerSelectionSetsAreProperlyTyped(schema)

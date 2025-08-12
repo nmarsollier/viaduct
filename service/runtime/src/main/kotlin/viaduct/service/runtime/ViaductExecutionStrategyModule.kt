@@ -30,7 +30,7 @@ import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
 import viaduct.engine.runtime.instrumentation.ScopeInstrumentation
 import viaduct.engine.runtime.tenantloading.CheckerSelectionSetsAreProperlyTyped
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
-import viaduct.engine.runtime.tenantloading.DispatcherRegistryValidator
+import viaduct.engine.runtime.tenantloading.ExecutorValidator
 import viaduct.engine.runtime.tenantloading.RequiredSelectionsAreAcyclic
 import viaduct.engine.runtime.tenantloading.RequiredSelectionsAreSchematicallyValid
 import viaduct.engine.runtime.tenantloading.ResolverSelectionSetsAreProperlyTyped
@@ -70,8 +70,8 @@ class ViaductExecutionStrategyModule(
 
     @Provides
     @Singleton
-    fun providesDispatcherRegistryValidator() =
-        DispatcherRegistryValidator(
+    fun providesExecutorValidator() =
+        ExecutorValidator(
             nodeResolverValidator = Validator.Unvalidated,
             fieldResolverExecutorValidator = ResolverSelectionSetsAreProperlyTyped(schema),
             requiredSelectionsValidator = listOf(
@@ -79,13 +79,13 @@ class ViaductExecutionStrategyModule(
                 RequiredSelectionsAreAcyclic(schema),
                 VariableReferencesFromArgumentsExistAndMatchRequiredTypes(schema)
             ).flatten(),
-            checkerExecutorValidator = CheckerSelectionSetsAreProperlyTyped(schema),
+            fieldCheckerExecutorValidator = CheckerSelectionSetsAreProperlyTyped(schema),
         )
 
     @Provides
     @Singleton
     fun providesDispatcherRegistry(
-        validator: DispatcherRegistryValidator,
+        validator: ExecutorValidator,
         checkerExecutorFactory: CheckerExecutorFactory,
         @Suppress("UNUSED_PARAMETER") flagManager: FlagManager,
     ): DispatcherRegistry {
