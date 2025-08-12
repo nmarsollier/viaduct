@@ -103,7 +103,11 @@ class BatchResolverErrorHandlingFeatureAppTest : FeatureAppTestBase() {
                     )
                     "path" to listOf("f1")
                     "extensions" to {
-                        "classification" to "VIADUCT_INTERNAL_ENGINE_EXCEPTION"
+                        "fieldName" to "foo"
+                        "parentType" to "Foo"
+                        "isFrameworkError" to "false"
+                        "resolvers" to "Foo"
+                        "classification" to "DataFetchingException"
                     }
                 },
                 {
@@ -116,7 +120,11 @@ class BatchResolverErrorHandlingFeatureAppTest : FeatureAppTestBase() {
                     )
                     "path" to listOf("f2")
                     "extensions" to {
-                        "classification" to "VIADUCT_INTERNAL_ENGINE_EXCEPTION"
+                        "fieldName" to "foo"
+                        "parentType" to "Foo"
+                        "isFrameworkError" to "false"
+                        "resolvers" to "Foo"
+                        "classification" to "DataFetchingException"
                     }
                 }
             )

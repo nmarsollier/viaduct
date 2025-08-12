@@ -81,9 +81,14 @@ class FieldCompleter(
                 ctxCompleteObject.onDispatched()
                 if (throwable != null) {
                     ctxCompleteObject.onCompleted(null, throwable)
-                    val err = FieldCompletionException(throwable, parameters)
-                    parameters.errorAccumulator += err.graphQLErrors
-                    Value.fromThrowable(err)
+                    val mergedField = checkNotNull(parameters.field?.mergedField)
+                    val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(parameters, mergedField, parentOER) }
+                    handleFetchingException(dataFetchingEnvironmentProvider, throwable)
+                        .flatMap {
+                            val err = FieldCompletionException(throwable, it.errors)
+                            parameters.errorAccumulator += it.errors
+                            Value.fromThrowable(err)
+                        }
                 } else {
                     objectFieldMap(parameters, parentOER).map { resolvedData ->
                         ctxCompleteObject.onCompleted(resolvedData, null)
@@ -106,7 +111,7 @@ class FieldCompleter(
 
             val newParams = parameters.forField(parentOER.graphQLObjectType, field)
             val fieldKey = buildOERKeyForField(newParams, field)
-            val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(newParams, field, parentOER) }
+            val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(newParams, field.mergedField, parentOER) }
 
             // Obtain a result for this field
             val combinedValue = combineValues(
