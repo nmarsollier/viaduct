@@ -5,6 +5,7 @@ import graphql.execution.ExecutionContext
 import graphql.execution.ExecutionStepInfo
 import graphql.execution.ExecutionStepInfoFactory
 import graphql.execution.ExecutionStrategyParameters
+import graphql.execution.MergedField
 import graphql.execution.NormalizedVariables
 import graphql.execution.ValuesResolver
 import graphql.execution.directives.QueryDirectivesImpl
@@ -76,7 +77,7 @@ internal object FieldExecutionHelpers {
 
     fun buildDataFetchingEnvironment(
         parameters: ExecutionParameters,
-        field: QueryPlan.CollectedField,
+        field: MergedField,
         parentOER: ObjectEngineResultImpl,
     ): DataFetchingEnvironment {
         val fieldDef = parameters.executionStepInfo.fieldDefinition
@@ -93,7 +94,7 @@ internal object FieldExecutionHelpers {
             normalizedFieldSupplier,
         )
         val queryDirectives = QueryDirectivesImpl(
-            field.mergedField,
+            field,
             parameters.graphQLSchema,
             parameters.coercedVariables,
             normalizedVariableValuesSupplier,
@@ -122,7 +123,7 @@ internal object FieldExecutionHelpers {
             .localContext(localContext)
             .arguments(argumentValuesSupplier)
             .fieldDefinition(fieldDef)
-            .mergedField(field.mergedField)
+            .mergedField(field)
             .fieldType(fieldDef.type)
             .executionStepInfo(execStepInfo)
             .parentType(parentOER.graphQLObjectType)

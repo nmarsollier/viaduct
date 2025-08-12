@@ -31,5 +31,6 @@ internal object CompletionErrors {
             },
             cause
         )
+        constructor(cause: Throwable, graphQLErrors: List<GraphQLError>) : this(graphQLErrors, cause)
     }
 }

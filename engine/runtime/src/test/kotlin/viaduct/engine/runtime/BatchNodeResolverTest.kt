@@ -118,8 +118,7 @@ class BatchNodeResolverTest {
             result.errors.forEachIndexed { idx, error ->
                 assertEquals(listOf("bazList", idx), error.path)
                 assertTrue(error.message.contains("baz fail"))
-                // TODO(aileen): This is not right, we need to fix this and change this assertion
-                assertEquals("VIADUCT_INTERNAL_ENGINE_EXCEPTION", error.errorType.toString())
+                assertEquals("DataFetchingException", error.errorType.toString())
             }
         }
     }
@@ -159,8 +158,7 @@ class BatchNodeResolverTest {
             val error = result.errors[0]
             assertEquals(listOf("bazList", 1), error.path)
             assertTrue(error.message.contains("Odd idx for ID: 2"))
-            // TODO(aileen): This is not right, we need to fix this and change this assertion
-            assertEquals("VIADUCT_INTERNAL_ENGINE_EXCEPTION", error.errorType.toString())
+            assertEquals("DataFetchingException", error.errorType.toString())
         }
     }
 

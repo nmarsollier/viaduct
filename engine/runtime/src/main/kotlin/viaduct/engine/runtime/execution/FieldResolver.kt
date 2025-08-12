@@ -241,7 +241,7 @@ class FieldResolver(
         ) ?: FieldFetchingInstrumentationContext.NOOP
 
         val dataFetchingEnvironmentProvider =
-            FpKit.intraThreadMemoize { buildDataFetchingEnvironment(parameters, field, parentOER) }
+            FpKit.intraThreadMemoize { buildDataFetchingEnvironment(parameters, field.mergedField, parentOER) }
 
         fieldInstrumentationCtx.onDispatched()
 
