@@ -30,14 +30,14 @@ enum SomeEnum @scope(to: ["publicScope"]) {
   VALUE1
 }
 
-union Pet = Cat
+union Pet @scope(to: ["publicScope"]) = Cat
 
-type Cat {
+type Cat @scope(to: ["publicScope"]) {
   name: String!
   meow: String!
 }
 
-type Dog {
+type Dog @scope(to: ["publicScope"]) {
   name: String!
   bark: String!
 }

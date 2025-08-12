@@ -15,6 +15,7 @@ import viaduct.graphql.scopes.visitors.FilterChildrenVisitor
 import viaduct.graphql.scopes.visitors.SchemaTransformations
 import viaduct.graphql.scopes.visitors.TransformationsVisitor
 import viaduct.graphql.scopes.visitors.TypeRemovalVisitor
+import viaduct.graphql.scopes.visitors.ValidateRequiredScopesVisitor
 import viaduct.graphql.scopes.visitors.ValidateScopesVisitor
 
 typealias AdditionalVisitorConstructor = (
@@ -69,13 +70,19 @@ internal class SchemaScopeTransformer(
         val additionalVisitors =
             additionalVisitorConstructors.map { it(schema, typesToRemove, elementChildren, appliedScopes) }
                 .toTypedArray()
-        val visitor =
-            if (appliedScopes == validScopes) { // fast path for building full schema with additional transformations
-                // Build a composite visitor that only runs additional visitors
+        val visitor = when {
+            validScopes.isEmpty() && appliedScopes.isEmpty() ->
+                // If no scopes are applied, we can skip the validation and just run additional visitors
                 CompositeVisitor(
                     *additionalVisitors
                 )
-            } else {
+
+            appliedScopes == validScopes -> CompositeVisitor(
+                ValidateRequiredScopesVisitor(scopeDirectiveParser),
+                *additionalVisitors
+            )
+
+            else -> {
                 // Build a composite visitor that will run child visitors (FilterChildren and TypeRemoval, in this case)
                 CompositeVisitor(
                     ValidateScopesVisitor(validScopes, scopeDirectiveParser),
@@ -88,6 +95,7 @@ internal class SchemaScopeTransformer(
                     *additionalVisitors
                 )
             }
+        }
 
         buildSchemaTraverser(schema).traverse(stubRoot, visitor)
 
