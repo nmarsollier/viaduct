@@ -1,6 +1,6 @@
 directive @policyCheck(canAccess: Boolean) on FIELD_DEFINITION | OBJECT
 
-extend type Query {
+extend type Query @scope(to: ["SCOPE1"]) {
   canAccessTypeByReference(id: String!): CanAccessPerson! @resolver
   canNotAccessTypeByReference(id: String!): CanNotAccessPerson! @resolver
   canNotAccessType: CanNotAccessPerson! @resolver
