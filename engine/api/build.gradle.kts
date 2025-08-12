@@ -20,8 +20,12 @@ dependencies {
     testFixturesImplementation(libs.kotlinx.coroutines.test)
     testFixturesImplementation(project(":engine:engine-runtime"))
     testFixturesImplementation(project(":service:service-api"))
+    testFixturesImplementation(project(":service:service-runtime"))
+    testFixturesImplementation(project(":shared:graphql"))
     testFixturesImplementation(testFixtures(project(":engine:engine-runtime")))
+    testFixturesImplementation(testFixtures(project(":service:service-api")))
     testFixturesImplementation(testFixtures(project(":shared:dataloader")))
+    testFixturesImplementation(testFixtures(project(":shared:graphql")))
 
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.junit)

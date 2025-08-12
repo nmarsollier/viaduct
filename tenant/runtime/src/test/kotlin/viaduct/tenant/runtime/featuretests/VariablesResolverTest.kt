@@ -11,111 +11,10 @@ import viaduct.engine.api.GraphQLBuildError
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestBuilder
 import viaduct.tenant.runtime.featuretests.fixtures.UntypedFieldContext
 import viaduct.tenant.runtime.featuretests.fixtures.const
-import viaduct.tenant.runtime.featuretests.fixtures.untyped
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
 @ExperimentalCoroutinesApi
 class VariablesResolverTest {
-    @Test
-    fun `variables provider -- const`() =
-        FeatureTestBuilder()
-            .sdl("type Query { foo: Int, bar(x: Int!): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 2 },
-                "bar(x:\$varx)",
-                variablesProvider = VariablesProviderInfo.const(mapOf("varx" to 3))
-            )
-            .resolver("Query" to "bar") { it.arguments.get<Int>("x") * 5 }
-            .build()
-            .assertJson("{data: {foo: 30}}", "{foo}")
-
-    @Test
-    fun `variables provider -- transform dependent field arg`() =
-        FeatureTestBuilder()
-            .sdl("type Query { foo(y: Int!): Int!, bar(x:Int!): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
-                "bar(x:\$varx)",
-                variablesProvider = VariablesProviderInfo.untyped("varx") { args ->
-                    mapOf("varx" to args.get<Int>("y") * 2)
-                },
-            )
-            .resolver("Query" to "bar") { it.arguments.get<Int>("x") * 3 }
-            .build()
-            .assertJson("{data: {foo: 30}}", "{foo(y:1)}")
-
-    @Test
-    fun `variables provider -- returns extra variables`() =
-        FeatureTestBuilder()
-            .sdl("type Query { foo: Int!, bar(x:Int!): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
-                "bar(x:\$varx)",
-                variablesProvider = VariablesProviderInfo.untyped("varx") {
-                    mapOf("varx" to 2, "extra" to 3)
-                },
-            )
-            .resolver("Query" to "bar") { it.arguments.get<Int>("x") * 3 }
-            .build()
-            .let {
-                assertThrows<IllegalStateException> {
-                    it.execute("{foo}")
-                }
-                Unit
-            }
-
-    @Test
-    fun `variables provider -- returns null value`() =
-        FeatureTestBuilder()
-            .sdl("type Query { foo: Int!, bar(x:Int): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
-                "bar(x:\$varx)",
-                variablesProvider = VariablesProviderInfo.const(mapOf("varx" to null))
-            )
-            .resolver("Query" to "bar") { it.arguments.tryGet<Int>("x")?.let { 1 } ?: 2 }
-            .build()
-            .assertJson("{data: {foo:10}}", "{foo}")
-
-    @Test
-    fun `variables provider -- does not return declared variable value`() =
-        FeatureTestBuilder()
-            .sdl("type Query { foo: Int!, bar(x:Int!): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
-                "bar(x:\$varx)",
-                variablesProvider = VariablesProviderInfo.untyped("varx") { emptyMap() }
-            )
-            .resolver("Query" to "bar") { it.arguments.get<Int>("x") * 3 }
-            .build()
-            .let {
-                assertThrows<IllegalStateException> {
-                    it.execute("{foo}")
-                }
-                Unit
-            }
-
-    @Test
-    fun `variables provider -- variable name overlaps with unbound field arg`() =
-        // this test defines a variable provider that defines a variable with a name that overlaps with
-        // a field argument. The field argument is not bound to a variable, so this is allowed
-        FeatureTestBuilder()
-            .sdl("type Query { foo: Int!, bar(x:Int!): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
-                "bar(x:\$x)",
-                variablesProvider = VariablesProviderInfo.const(mapOf("x" to 2)),
-            )
-            .resolver("Query" to "bar") { it.arguments.get<Int>("x") * 3 }
-            .build()
-            .assertJson("{data: {foo: 30}}", "{foo}")
-
     @Test
     fun `variables provider -- variable name overlaps with bound field arg`() =
         FeatureTestBuilder()
@@ -383,21 +282,6 @@ class VariablesResolverTest {
             .resolver("Query" to "baz") { it.arguments.get<Int>("x") * 5 }
             .build()
             .assertJson("{data:{foo:110, bar:105}}", "{foo(x:2) bar(x:3)}")
-
-    @Test
-    fun `invalid variable reference`() =
-        FeatureTestBuilder()
-            .sdl("type Query { foo: Int!, bar(x:Int!): Int! }")
-            .resolver(
-                "Query" to "foo",
-                { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
-                "bar(x:\$invalid)",
-            )
-            .resolver("Query" to "bar") { it.arguments.get<Int>("x") * 3 }
-            .let {
-                assertThrows<Exception> { it.build() }
-                Unit
-            }
 
     @Test
     fun `from query field -- invalid path`() =

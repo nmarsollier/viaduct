@@ -9,7 +9,7 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
-import viaduct.engine.runtime.fixtures.runFeatureTest
+import viaduct.engine.api.mocks.runFeatureTest
 
 @ExperimentalCoroutinesApi
 class AccessCheckExecutionTest {

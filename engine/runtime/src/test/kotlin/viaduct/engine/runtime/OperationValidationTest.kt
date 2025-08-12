@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
-import viaduct.engine.runtime.fixtures.runFeatureTest
-import viaduct.engine.runtime.fixtures.toViaductBuilder
+import viaduct.engine.api.mocks.runFeatureTest
+import viaduct.engine.api.mocks.toViaductBuilder
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 class OperationValidationTest {
