@@ -8,6 +8,9 @@ import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
+import viaduct.engine.api.mocks.fetchAs
+import viaduct.engine.api.mocks.getAs
+import viaduct.engine.api.mocks.runFeatureTest
 
 /**
  * Example test demonstrating the EngineFeatureTest framework usage.
@@ -58,7 +61,7 @@ class EngineFeatureTestExample {
             field("TwoContainer" to "two") {
                 resolver {
                     querySelections("one")
-                    fn { _, _, qry, _, _ -> (qry.fetch("one") as Int) + 1 }
+                    fn { _, _, qry, _, _ -> qry.fetchAs<Int>("one") + 1 }
                 }
             }
         }.runFeatureTest {
@@ -186,7 +189,7 @@ class EngineFeatureTestExample {
 
             field("Query" to "calc") {
                 resolver {
-                    fn { args, _, _, _, _ -> (args["n"] as Int) + 1 }
+                    fn { args, _, _, _, _ -> args.getAs<Int>("n") + 1 }
                 }
             }
 

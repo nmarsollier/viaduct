@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
-import viaduct.engine.runtime.fixtures.runFeatureTest
+import viaduct.engine.api.mocks.runFeatureTest
 
 @ExperimentalCoroutinesApi
 class BatchNodeResolverTest {

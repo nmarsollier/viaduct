@@ -1,13 +1,11 @@
 @file:Suppress("ForbiddenImport")
 
-package viaduct.engine.runtime.fixtures
+package viaduct.engine.api.mocks
 
 import graphql.ExecutionResult
 import graphql.schema.idl.SchemaPrinter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import viaduct.engine.api.mocks.MockCheckerExecutorFactory
-import viaduct.engine.api.mocks.MockTenantAPIBootstrapper
-import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
+import viaduct.engine.api.EngineObjectData
 import viaduct.graphql.test.assertJson as realAssertJson
 import viaduct.service.api.mocks.MockTenantAPIBootstrapperBuilder
 import viaduct.service.api.spi.mocks.MockFlagManager
@@ -103,3 +101,7 @@ class FeatureTest(
      */
     fun ExecutionResult.assertJson(expectedJson: String,): Unit = this.realAssertJson(expectedJson)
 }
+
+suspend inline fun <reified T : Any?> EngineObjectData.fetchAs(selection: String) = this.fetch(selection) as T
+
+suspend inline fun <reified T : Any?> Map<String, Any?>.getAs(key: String) = this[key] as T
