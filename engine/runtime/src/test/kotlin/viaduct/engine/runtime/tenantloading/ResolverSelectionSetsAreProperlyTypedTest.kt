@@ -121,10 +121,9 @@ class ResolverSelectionSetsAreProperlyTypedTest {
             resolverId = typeName + "." + fieldName
         )
 
-        val ctx = ResolverExecutorValidationCtx(
+        val ctx = FieldResolverExecutorValidationCtx(
             coord = Coordinate(typeName, fieldName),
-            objectSelectionSet = objectSelectionSet,
-            querySelectionSet = querySelectionSet,
+            executor = resolver,
         )
 
         val validator = ResolverSelectionSetsAreProperlyTyped(schema)

@@ -9,7 +9,6 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -28,7 +27,6 @@ import viaduct.engine.api.mocks.MockTenantAPIBootstrapper
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.Samples
 import viaduct.engine.api.select.SelectionsParser
-import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.validation.Validator
 
 class DispatcherRegistryTest {
@@ -160,10 +158,10 @@ class DispatcherRegistryTest {
         )
     }
 
-    internal class MockValidator : Validator<DispatcherRegistry> {
-        var arg: DispatcherRegistry? = null
+    internal class MockValidator : Validator<ExecutorValidatorContext> {
+        var arg: ExecutorValidatorContext? = null
 
-        override fun validate(t: DispatcherRegistry) {
+        override fun validate(t: ExecutorValidatorContext) {
             arg = t
         }
     }
@@ -173,7 +171,7 @@ class DispatcherRegistryTest {
         val bootstrapper = MockTenantAPIBootstrapper(emptyList())
         MockValidator().let { validator ->
             val wiring = DispatcherRegistryFactory(bootstrapper, validator, MockCheckerExecutorFactory()).create(Samples.testSchema)
-            assertSame(wiring, validator.arg)
+            assertNotNull(validator.arg)
         }
     }
 

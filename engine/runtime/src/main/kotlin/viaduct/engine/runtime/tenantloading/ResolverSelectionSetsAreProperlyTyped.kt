@@ -10,14 +10,14 @@ import viaduct.engine.runtime.validation.Validator
  */
 class ResolverSelectionSetsAreProperlyTyped(
     private val schema: ViaductSchema,
-) : Validator<ResolverExecutorValidationCtx> {
+) : Validator<FieldResolverExecutorValidationCtx> {
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-    override fun validate(ctx: ResolverExecutorValidationCtx) =
+    override fun validate(ctx: FieldResolverExecutorValidationCtx) =
         ctx.run {
-            val objRSSName = objectSelectionSet?.selections?.typeName
+            val objRSSName = executor.objectSelectionSet?.selections?.typeName
             val objectName = coord.first
 
-            val qryRSSName = querySelectionSet?.selections?.typeName
+            val qryRSSName = executor.querySelectionSet?.selections?.typeName
             val queryName = schema.schema.getQueryType().name
 
             var msg: String? = null

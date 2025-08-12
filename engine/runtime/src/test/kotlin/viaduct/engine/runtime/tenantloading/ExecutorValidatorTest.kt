@@ -15,7 +15,7 @@ import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.validation.Validator
 
-class DispatcherRegistryValidatorTest {
+class ExecutorValidatorTest {
     private val moduleBootstrap = MockTenantModuleBootstrapper(
         fieldResolverExecutors = listOf(
             "Foo" to "field" to MockFieldUnbatchedResolverExecutor(
@@ -31,12 +31,12 @@ class DispatcherRegistryValidatorTest {
 
     private fun test(
         bootstrappers: List<TenantModuleBootstrapper> = listOf(moduleBootstrap),
-        nodeResolverValidator: Validator<NodeResolverDispatcherValidationCtx> = Validator.Unvalidated,
-        resolverExecutorValidator: Validator<ResolverExecutorValidationCtx> = Validator.Unvalidated,
+        nodeResolverValidator: Validator<NodeResolverExecutorValidationCtx> = Validator.Unvalidated,
+        resolverExecutorValidator: Validator<FieldResolverExecutorValidationCtx> = Validator.Unvalidated,
         requiredSelectionSetValidator: Validator<RequiredSelectionsValidationCtx> = Validator.Unvalidated,
-        checkerExecutorValidator: Validator<CheckerExecutorValidationCtx> = Validator.Unvalidated
+        checkerExecutorValidator: Validator<FieldCheckerExecutorValidationCtx> = Validator.Unvalidated
     ) {
-        val validator = DispatcherRegistryValidator(nodeResolverValidator, resolverExecutorValidator, requiredSelectionSetValidator, checkerExecutorValidator)
+        val validator = ExecutorValidator(nodeResolverValidator, resolverExecutorValidator, requiredSelectionSetValidator, checkerExecutorValidator)
         DispatcherRegistryFactory(
             MockTenantAPIBootstrapper(bootstrappers),
             validator,

@@ -5,10 +5,13 @@ package viaduct.engine.runtime.tenantloading
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import viaduct.engine.api.CheckerDispatcher
+import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.FieldResolverDispatcher
+import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeResolverDispatcher
+import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleException
 import viaduct.engine.api.ViaductSchema
@@ -21,7 +24,7 @@ import viaduct.utils.slf4j.logger
 
 class DispatcherRegistryFactory(
     private val tenantAPIBootstrapper: TenantAPIBootstrapper,
-    private val validator: Validator<DispatcherRegistry>,
+    private val validator: Validator<ExecutorValidatorContext>,
     private val checkerExecutorFactory: CheckerExecutorFactory,
 ) {
     companion object {
@@ -34,6 +37,11 @@ class DispatcherRegistryFactory(
         val nodeResolverDispatchers = mutableMapOf<String, NodeResolverDispatcher>()
         val fieldCheckerDispatchers = mutableMapOf<Coordinate, CheckerDispatcher>()
         val typeCheckerDispatchers = mutableMapOf<String, CheckerDispatcher>()
+
+        // Create a collection of executors for validation purpose
+        val fieldResolverExecutorsToValidate = mutableMapOf<Coordinate, FieldResolverExecutor>()
+        val nodeResolverExecutorsToValidate = mutableMapOf<String, NodeResolverExecutor>()
+        val fieldCheckerExecutorsToValidate = mutableMapOf<Coordinate, CheckerExecutor>()
 
         val tenantModuleBootstrappers = runBlocking(Dispatchers.Default) {
             tenantAPIBootstrapper.tenantModuleBootstrappers()
@@ -55,14 +63,17 @@ class DispatcherRegistryFactory(
             var tenantContributesExecutors = false
             for ((fieldCoord, executor) in tenantFieldResolverExecutors) {
                 fieldResolverDispatchers[fieldCoord] = FieldResolverDispatcherImpl(executor)
+                fieldResolverExecutorsToValidate[fieldCoord] = executor
                 // Enable access controls for resolver fields only
                 checkerExecutorFactory.checkerExecutorForField(fieldCoord.first, fieldCoord.second)?.let {
                     fieldCheckerDispatchers[fieldCoord] = CheckerDispatcherImpl(it)
+                    fieldCheckerExecutorsToValidate[fieldCoord] = it
                 }
                 tenantContributesExecutors = true
             }
             for ((typeName, executor) in tenantNodeResolverExecutors) {
                 nodeResolverDispatchers[typeName] = NodeResolverDispatcherImpl(executor)
+                nodeResolverExecutorsToValidate[typeName] = executor
             }
             for ((typeName, _) in nodeResolverDispatchers) {
                 // Enable access controls for node resolvers only
@@ -87,6 +98,15 @@ class DispatcherRegistryFactory(
                 throw e
             }
         }
-        return dispatcherRegistry.also(validator::validate)
+
+        validator.validate(
+            ExecutorValidatorContext(
+                fieldResolverExecutorsToValidate,
+                nodeResolverExecutorsToValidate,
+                fieldCheckerExecutorsToValidate,
+                dispatcherRegistry, // need requiredSelectionSetRegistry on dispatcherRegistry for validation
+            )
+        )
+        return dispatcherRegistry
     }
 }
