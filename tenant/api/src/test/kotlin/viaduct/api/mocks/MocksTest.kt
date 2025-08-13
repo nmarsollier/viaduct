@@ -31,9 +31,15 @@ class MocksTest {
     }
 
     @Test
+    fun InternalContext_resolverExecutionContext() {
+        val ec = MockResolverExecutionContext.mk()
+        assertSame(ec, ec.internal.resolverExecutionContext)
+    }
+
+    @Test
     fun `InternalContext_executionContext -- not an ExecutionContext`() {
         val ic = MockInternalContext(MockSchema.minimal)
-        val ec = ic.executionContext
+        val ec = ic.resolverExecutionContext
         assertSame(ec, ec.internal)
         assertThrows<UnsupportedOperationException> {
             ec.selectionsFor(

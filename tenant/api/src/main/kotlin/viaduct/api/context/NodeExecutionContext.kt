@@ -7,7 +7,7 @@ import viaduct.api.types.NodeObject
 /**
  * An ExecutionContext provided to [Node] resolvers
  */
-interface NodeExecutionContext<T : NodeObject> : ExecutionContext {
+interface NodeExecutionContext<T : NodeObject> : ResolverExecutionContext {
     /**
      * ID of the node that is being resolved
      */

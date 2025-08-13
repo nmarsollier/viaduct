@@ -52,7 +52,7 @@ class NodeExecutionContextImplTest {
             engineExecutionContext.createNodeEngineObjectData(id, graphQLObjectType)
         }
     ) = NodeExecutionContextImpl(
-        ExecutionContextImpl(
+        ResolverExecutionContextImpl(
             MockInternalContext(GlobalIdFeatureAppTest.schema, MockGlobalIDCodec()),
             queryLoader,
             selectionSetFactory,

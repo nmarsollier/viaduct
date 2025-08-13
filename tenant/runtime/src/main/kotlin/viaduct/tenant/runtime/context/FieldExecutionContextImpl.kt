@@ -1,7 +1,7 @@
 package viaduct.tenant.runtime.context
 
-import viaduct.api.context.ExecutionContext
 import viaduct.api.context.FieldExecutionContext
+import viaduct.api.context.ResolverExecutionContext
 import viaduct.api.internal.InternalContext
 import viaduct.api.internal.internal
 import viaduct.api.select.SelectionSet
@@ -11,11 +11,11 @@ import viaduct.api.types.Object
 import viaduct.api.types.Query
 
 class FieldExecutionContextImpl<T : Object, Q : Query, A : Arguments, O : CompositeOutput>(
-    private val executionContext: ExecutionContext,
+    private val executionContext: ResolverExecutionContext,
     override val objectValue: T,
     override val queryValue: Q,
     override val arguments: A,
     private val selections: SelectionSet<O>,
-) : FieldExecutionContext<T, Q, A, O>, ExecutionContext by executionContext, InternalContext by executionContext.internal {
+) : FieldExecutionContext<T, Q, A, O>, ResolverExecutionContext by executionContext, InternalContext by executionContext.internal {
     override fun selections() = selections
 }

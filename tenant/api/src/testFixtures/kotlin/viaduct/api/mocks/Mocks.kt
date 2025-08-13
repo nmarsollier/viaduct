@@ -6,6 +6,7 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import kotlin.reflect.KClass
 import viaduct.api.context.ExecutionContext
+import viaduct.api.context.ResolverExecutionContext
 import viaduct.api.globalid.GlobalID
 import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.InternalContext
@@ -34,6 +35,16 @@ import viaduct.graphql.schema.graphqljava.GJSchema
 val InternalContext.executionContext: ExecutionContext
     get() =
         this as? ExecutionContext ?: MockExecutionContext(this)
+
+/**
+ * Re-project this InternalContext back to an [ResolverExecutionContext].
+ * If this InternalContext was originally extracted from an ExecutionContext,
+ * then the original ExecutionContext will be returned. Otherwise, a minimal
+ * ExecutionContext will be returned.
+ */
+val InternalContext.resolverExecutionContext: ResolverExecutionContext
+    get() =
+        this as? ResolverExecutionContext ?: MockResolverExecutionContext(this)
 
 fun mkSchema(sdl: String): GraphQLSchema {
     val tdr = SchemaParser().parse(sdl)
@@ -65,7 +76,18 @@ class MockInternalContext(
     }
 }
 
-class MockExecutionContext(internalContext: InternalContext) : ExecutionContext, InternalContext by internalContext {
+open class MockExecutionContext(internalContext: InternalContext) : ExecutionContext, InternalContext by internalContext {
+    override fun <T : Object> globalIDFor(
+        type: Type<T>,
+        internalID: String
+    ) = throw UnsupportedOperationException()
+
+    companion object {
+        fun mk(schema: ViaductSchema = MockSchema.minimal): MockResolverExecutionContext = MockResolverExecutionContext(MockInternalContext.mk(schema))
+    }
+}
+
+class MockResolverExecutionContext(internalContext: InternalContext) : MockExecutionContext(internalContext), ResolverExecutionContext {
     override fun <T : CompositeOutput> selectionsFor(
         type: Type<T>,
         selections: String,
@@ -76,18 +98,13 @@ class MockExecutionContext(internalContext: InternalContext) : ExecutionContext,
 
     override fun <T : NodeObject> nodeFor(id: GlobalID<T>): T = throw UnsupportedOperationException()
 
-    override fun <T : Object> globalIDFor(
-        type: Type<T>,
-        internalID: String
-    ) = throw UnsupportedOperationException()
-
     override fun <T : Object> globalIDStringFor(
         type: Type<T>,
         internalID: String
     ): String = throw UnsupportedOperationException()
 
     companion object {
-        fun mk(schema: ViaductSchema = MockSchema.minimal): MockExecutionContext = MockExecutionContext(MockInternalContext.mk(schema))
+        fun mk(schema: ViaductSchema = MockSchema.minimal): MockResolverExecutionContext = MockResolverExecutionContext(MockInternalContext.mk(schema))
     }
 }
 

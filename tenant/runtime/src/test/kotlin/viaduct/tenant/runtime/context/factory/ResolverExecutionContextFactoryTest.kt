@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test
 import viaduct.api.internal.InternalContext
 
 @ExperimentalCoroutinesApi
-class ExecutionContextFactoryTest {
+class ResolverExecutionContextFactoryTest {
     @Test
     fun default() {
         val args = MockArgs()
-        val ctx = ExecutionContextFactory.default
+        val ctx = ResolverExecutionContextFactory.default
             .mk(args.getExecutionContextArgs())
 
         val internal = ctx as InternalContext

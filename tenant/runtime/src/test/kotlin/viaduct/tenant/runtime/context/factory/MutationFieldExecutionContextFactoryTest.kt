@@ -7,22 +7,22 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.context.MutationFieldExecutionContext
-import viaduct.api.mocks.MockExecutionContext
+import viaduct.api.mocks.MockResolverExecutionContext
 import viaduct.api.select.SelectionSet
-import viaduct.tenant.runtime.context.ExecutionContextImpl
 import viaduct.tenant.runtime.context.FieldExecutionContextImpl
+import viaduct.tenant.runtime.context.ResolverExecutionContextImpl
 import viaduct.tenant.runtime.internal.NodeReferenceFactoryImpl
 
 @ExperimentalCoroutinesApi
 class MutationFieldExecutionContextFactoryTest {
     private val args = MockArgs()
-    private val ec = MockExecutionContext(args.internalContext)
+    private val ec = MockResolverExecutionContext(args.internalContext)
     private val resolverId = "Mutation.mutate"
     private val mutationSelectionsLoaderFactory = Factory { args: SelectionsLoaderArgs ->
         args.selectionsLoaderFactory.forMutation(resolverId)
     }
     private val fieldExecutionContext = FieldExecutionContextImpl(
-        ExecutionContextImpl(
+        ResolverExecutionContextImpl(
             args.internalContext,
             args.selectionsLoaderFactory.forQuery(resolverId),
             MockArgs.selectionSetFactory,
