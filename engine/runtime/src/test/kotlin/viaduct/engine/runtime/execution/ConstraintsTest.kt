@@ -7,9 +7,11 @@ import graphql.language.Directive
 import graphql.language.Value
 import graphql.language.VariableReference
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.graphql.asSchema
 import viaduct.engine.runtime.execution.Constraints.Resolution
+import viaduct.utils.collections.MaskedSet
 
 class ConstraintsTest {
     private val schema = """
@@ -37,7 +39,7 @@ class ConstraintsTest {
 
     @Test
     fun `Drop narrowTypes is Drop`() {
-        assertEquals(Constraints.Drop, Constraints.Drop.narrowTypes(setOf(Foo)))
+        assertEquals(Constraints.Drop, Constraints.Drop.narrowTypes(MaskedSet(listOf(Foo))))
     }
 
     @Test
@@ -117,27 +119,38 @@ class ConstraintsTest {
     fun `narrowTypes -- returns Drop for unsatisfiable narrowings`() {
         assertEquals(
             Constraints.Drop,
-            Constraints.Unconstrained.narrowTypes(setOf(Foo))
-                .narrowTypes(setOf(Bar))
+            Constraints.Unconstrained.narrowTypes(MaskedSet(listOf(Foo)))
+                .narrowTypes(MaskedSet(listOf(Bar)))
         )
     }
 
     @Test
+    fun `narrowTypes -- returns same instance for same instance of types`() {
+        // this is a non-normative test that checks a performance optimization
+
+        // given the same instance of possible types, return the same instance of Constraints
+        val possibleTypes = MaskedSet(listOf(Foo))
+        val c1 = Constraints.Unconstrained.narrowTypes(possibleTypes)
+        val c2 = c1.narrowTypes(possibleTypes)
+        assertSame(c1, c2)
+    }
+
+    @Test
     fun `Collect when ctx type in possible types`() {
-        val ctx = Constraints.Ctx.empty.copy(parentTypes = setOf(Foo))
+        val ctx = Constraints.Ctx.empty.copy(parentTypes = MaskedSet(setOf(Foo)))
         assertEquals(
             Resolution.Collect,
-            Constraints.Unconstrained.narrowTypes(setOf(Foo, Bar))
+            Constraints.Unconstrained.narrowTypes(MaskedSet(listOf(Bar, Foo)))
                 .solve(ctx)
         )
     }
 
     @Test
     fun `Drop when ctx type in possible types`() {
-        val ctx = Constraints.Ctx.empty.copy(parentTypes = setOf(Foo))
+        val ctx = Constraints.Ctx.empty.copy(parentTypes = MaskedSet(setOf(Foo)))
         assertEquals(
             Resolution.Drop,
-            Constraints.Unconstrained.narrowTypes(setOf(Bar))
+            Constraints.Unconstrained.narrowTypes(MaskedSet(listOf(Bar)))
                 .solve(ctx)
         )
     }
