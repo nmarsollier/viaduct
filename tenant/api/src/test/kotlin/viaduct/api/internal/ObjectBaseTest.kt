@@ -12,6 +12,7 @@ import viaduct.api.ViaductTenantUsageException
 import viaduct.api.mocks.MockInternalContext
 import viaduct.api.mocks.executionContext
 import viaduct.api.schemautils.SchemaUtils
+import viaduct.api.testschema.E1
 import viaduct.api.testschema.I1
 import viaduct.api.testschema.O1
 import viaduct.api.testschema.O2
@@ -26,7 +27,7 @@ class ObjectBaseTest {
 
     // Use viaduct.api.testschema.E1 for the actual E1 value. This is for a regression test and represents a different version (classic)
     // of the GRT for the same GraphQL enum type.
-    private enum class E1 { A }
+    private enum class BadE1 { A }
 
     @Test
     fun `basic test with builder`() =
@@ -39,10 +40,12 @@ class ObjectBaseTest {
                             .intField(1)
                             .build()
                     )
+                    .enumField(E1.A)
                     .build()
 
             assertEquals("hello", o1.getStringField())
             assertEquals(1, o1.getObjectField()!!.getIntField())
+            assertEquals(E1.A, o1.getEnumField())
             assertThrows<ViaductTenantUsageException> {
                 runBlockingTest {
                     o1.getObjectField()!!.getObjectField()
@@ -194,7 +197,7 @@ class ObjectBaseTest {
                         .put("enumField", "A")
                         .build()
                 )
-            assertEquals(viaduct.api.testschema.E1.A, o1.getEnumField())
+            assertEquals(E1.A, o1.getEnumField())
         }
 
     @Test
@@ -204,10 +207,10 @@ class ObjectBaseTest {
                 O1(
                     internalContext,
                     EngineObjectDataBuilder.from(gqlSchema.schema.getObjectType("O1"))
-                        .put("enumField", E1.A)
+                        .put("enumField", BadE1.A)
                         .build()
                 )
-            assertEquals(viaduct.api.testschema.E1.A, o1.getEnumField())
+            assertEquals(E1.A, o1.getEnumField())
         }
 
     @Test

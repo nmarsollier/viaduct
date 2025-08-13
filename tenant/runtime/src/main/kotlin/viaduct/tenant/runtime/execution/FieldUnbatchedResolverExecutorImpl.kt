@@ -3,6 +3,7 @@ package viaduct.tenant.runtime.execution
 import javax.inject.Provider
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
+import viaduct.api.globalid.GlobalID
 import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.ObjectBase
 import viaduct.api.internal.ReflectionLoader
@@ -76,17 +77,22 @@ class FieldUnbatchedResolverExecutorImpl(
         val result = wrapResolveException(resolverId) {
             resolveFn.callSuspend(resolver, ctx)
         }
-        return unwrap(result)
+        return unwrap(result, globalIDCodec)
     }
 
     // public for testing
     fun mkResolver(): ResolverBase<*> = resolver.get()
 
     companion object {
-        internal fun unwrap(result: Any?): Any? {
+        internal fun unwrap(
+            result: Any?,
+            globalIDCodec: GlobalIDCodec
+        ): Any? {
             return when (result) {
                 is ObjectBase -> result.unwrap()
-                is List<*> -> result.map { unwrap(it) }
+                is List<*> -> result.map { unwrap(it, globalIDCodec) }
+                is GlobalID<*> -> globalIDCodec.serialize(result)
+                is Enum<*> -> result.name
                 else -> result
             }
         }

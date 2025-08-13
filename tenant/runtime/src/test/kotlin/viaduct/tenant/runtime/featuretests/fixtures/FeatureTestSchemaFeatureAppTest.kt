@@ -6,6 +6,7 @@ class FeatureTestSchemaFeatureAppTest {
 # This schema defines fixture types that are used in end-to-end tests
 
 directive @resolver on FIELD_DEFINITION
+directive @idOf(type: String!) on FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 interface Node {
   id: ID!
@@ -24,6 +25,8 @@ type Query {
   union_: Union @resolver
   boo: Boo @resolver
   node: Node @resolver
+  enumField: EnumType @resolver
+  idField: ID @idOf(type: "Baz")
 }
 
 type Mutation {
@@ -58,6 +61,8 @@ type Baz implements Node {
 type Boo {
   value: Int
 }
+
+enum EnumType { A, B }
 
 #END_SCHEMA
     """.trimIndent()
