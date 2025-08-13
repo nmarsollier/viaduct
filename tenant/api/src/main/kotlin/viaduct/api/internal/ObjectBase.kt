@@ -120,17 +120,9 @@ abstract class ObjectBase(
         // The DateTime scalar type coerces to OffsetDateTime, but we use Instant for GRTs
         if (type.name == "DateTime") {
             return when (value) {
-                is Instant -> {
-                    value
-                }
-
-                is String -> {
-                    OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()
-                }
-
-                else -> {
-                    throw RuntimeException("Could not convert $value to Instant.")
-                }
+                is Instant -> value
+                is String -> OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()
+                else -> throw RuntimeException("Could not convert $value to Instant.")
             }
         } else if (type.name == "JSON") {
             return value

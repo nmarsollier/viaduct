@@ -85,7 +85,7 @@ class FieldBatchResolverExecutorImpl(
         }
 
         try {
-            return Result.success(FieldUnbatchedResolverExecutorImpl.unwrap(fieldValue.get()))
+            return Result.success(FieldUnbatchedResolverExecutorImpl.unwrap(fieldValue.get(), globalIDCodec))
         } catch (e: Exception) {
             if (e is ViaductFrameworkException) return Result.failure(e)
             return Result.failure(ViaductTenantResolverException(e, resolverId))

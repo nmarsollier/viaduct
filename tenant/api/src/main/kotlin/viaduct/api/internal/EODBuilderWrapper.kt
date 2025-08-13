@@ -68,11 +68,18 @@ internal class EODBuilderWrapper(
                     value
                 }
 
-            is GraphQLEnumType -> value
+            is GraphQLEnumType -> unwrapEnum(value)
             is GraphQLList -> unwrapList(field, unwrappedType, value)
             is GraphQLCompositeType -> unwrapObject(value)
             else -> throw ViaductFrameworkException("Unexpected schema type ${GraphQLTypeUtil.simplePrint(unwrappedType)}")
         }
+    }
+
+    private fun unwrapEnum(value: Any): String {
+        if (value !is Enum<*>) {
+            throw IllegalArgumentException("Got non-enum value $value for enum type")
+        }
+        return value.name
     }
 
     private fun unwrapGlobalID(value: Any): String = globalIDCodec.serialize(value as GlobalID<*>)
