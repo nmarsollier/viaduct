@@ -60,7 +60,7 @@ class ExecutionContextImplTest {
         selectionSetFactory: viaduct.api.internal.select.SelectionSetFactory = SelectionSetFactoryImpl(mockk()),
         nodeReferenceFactory: NodeReferenceFactory = mockk<NodeReferenceFactory>()
     ) = FieldExecutionContextImpl(
-        ExecutionContextImpl(
+        ResolverExecutionContextImpl(
             MockInternalContext(SelectTestFeatureAppTest.schema, globalIDCodec),
             queryLoader,
             selectionSetFactory,

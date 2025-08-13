@@ -6,6 +6,7 @@ import kotlin.reflect.full.isSubclassOf
 import viaduct.api.FieldValue
 import viaduct.api.VariablesProvider
 import viaduct.api.context.FieldExecutionContext
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.internal.InternalContext
 import viaduct.api.internal.NodeResolverBase
 import viaduct.api.internal.ObjectBase
@@ -167,5 +168,5 @@ fun <A : Arguments> VariablesProviderInfo.Companion.typed(
     fn: suspend (args: A) -> Map<String, Any?>
 ): VariablesProviderInfo =
     VariablesProviderInfo(variables.toSet()) {
-        VariablesProvider { args: A -> fn(args) }
+        VariablesProvider { context: VariablesProviderContext<A> -> fn(context.args) }
     }

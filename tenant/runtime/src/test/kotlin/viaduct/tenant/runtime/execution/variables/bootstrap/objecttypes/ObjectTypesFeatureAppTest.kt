@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.api.Variables
 import viaduct.api.VariablesProvider
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 import viaduct.engine.api.GraphQLBuildError
 import viaduct.tenant.runtime.execution.variables.bootstrap.objecttypes.resolverbases.QueryResolvers
@@ -48,7 +49,7 @@ class ObjectTypesFeatureAppTest : FeatureAppTestBase() {
 
         @Variables("someVar:Book!")
         class ObjectTypeVars : VariablesProvider<Arguments> {
-            override suspend fun provide(args: Arguments): Map<String, Any?> = mapOf("someVar" to 42)
+            override suspend fun provide(context: VariablesProviderContext<Arguments>): Map<String, Any?> = mapOf("someVar" to 42)
         }
     }
 

@@ -19,6 +19,7 @@ import viaduct.api.Resolver
 import viaduct.api.Variable
 import viaduct.api.Variables
 import viaduct.api.VariablesProvider
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.internal.ResolverBase
 import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.mockReflectionLoader
@@ -92,11 +93,11 @@ class RequiredSelectionSetFactoryTest {
     class MockArguments : Arguments
 
     private class MockVariablesProvider(val vars: Map<String, Any?> = emptyMap()) : VariablesProvider<MockArguments> {
-        override suspend fun provide(args: MockArguments): Map<String, Any?> = vars
+        override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = vars
     }
 
     private class ThrowingVariablesProvider(private val exception: Exception) : VariablesProvider<MockArguments> {
-        override suspend fun provide(args: MockArguments): Map<String, Any?> {
+        override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> {
             throw exception
         }
     }
@@ -114,7 +115,7 @@ class RequiredSelectionSetFactoryTest {
         @Suppress("unused")
         @Variables("y:Int!")
         class MyVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = mapOf("y" to 2)
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = mapOf("y" to 2)
         }
     }
 
@@ -617,7 +618,7 @@ class RequiredSelectionSetFactoryTest {
     class EmptyVariablesResolver : ResolverBase<Unit> {
         @Variables("")
         class EmptyVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = emptyMap()
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = emptyMap()
         }
     }
 
@@ -625,7 +626,7 @@ class RequiredSelectionSetFactoryTest {
     class CommasOnlyVariablesResolver : ResolverBase<Unit> {
         @Variables(",,, ")
         class CommasOnlyVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = emptyMap()
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = emptyMap()
         }
     }
 
@@ -633,7 +634,7 @@ class RequiredSelectionSetFactoryTest {
     class InvalidSyntaxVariablesResolver : ResolverBase<Unit> {
         @Variables("invalidSyntax")
         class InvalidSyntaxVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = emptyMap()
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = emptyMap()
         }
     }
 
@@ -641,7 +642,7 @@ class RequiredSelectionSetFactoryTest {
     class NonExistentTypeVariablesResolver : ResolverBase<Unit> {
         @Variables("testVar:NonExistentType!")
         class NonExistentTypeVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = mapOf("testVar" to "someValue")
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = mapOf("testVar" to "someValue")
         }
     }
 
@@ -649,7 +650,7 @@ class RequiredSelectionSetFactoryTest {
     class UnionTypeVariablesResolver : ResolverBase<Unit> {
         @Variables("testVar:SearchResult!")
         class UnionTypeVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = mapOf("testVar" to mapOf("id" to "123"))
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = mapOf("testVar" to mapOf("id" to "123"))
         }
     }
 
@@ -657,7 +658,7 @@ class RequiredSelectionSetFactoryTest {
     class InterfaceTypeVariablesResolver : ResolverBase<Unit> {
         @Variables("testVar:Node!")
         class InterfaceTypeVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = mapOf("testVar" to mapOf("id" to "123"))
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = mapOf("testVar" to mapOf("id" to "123"))
         }
     }
 
@@ -665,7 +666,7 @@ class RequiredSelectionSetFactoryTest {
     class ObjectTypeVariablesResolver : ResolverBase<Unit> {
         @Variables("testVar:User!")
         class ObjectTypeVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = mapOf("testVar" to mapOf("id" to "123", "name" to "Test"))
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = mapOf("testVar" to mapOf("id" to "123", "name" to "Test"))
         }
     }
 
@@ -673,7 +674,7 @@ class RequiredSelectionSetFactoryTest {
     class ValidInputTypeVariablesResolver : ResolverBase<Unit> {
         @Variables("testVar:UserInput!")
         class ValidInputTypeVariablesProvider : VariablesProvider<MockArguments> {
-            override suspend fun provide(args: MockArguments): Map<String, Any?> = mapOf("testVar" to mapOf("name" to "Test"))
+            override suspend fun provide(context: VariablesProviderContext<MockArguments>): Map<String, Any?> = mapOf("testVar" to mapOf("name" to "Test"))
         }
     }
 

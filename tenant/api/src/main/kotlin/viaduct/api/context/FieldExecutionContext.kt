@@ -9,7 +9,7 @@ import viaduct.api.types.Query
 /**
  * An [ExecutionContext] provided to field resolvers
  */
-interface FieldExecutionContext<T : Object, Q : Query, A : Arguments, O : CompositeOutput> : ExecutionContext {
+interface FieldExecutionContext<T : Object, Q : Query, A : Arguments, O : CompositeOutput> : ResolverExecutionContext {
     /**
      * A value of [T], with any (and only) selections from [viaduct.api.Resolver.objectValueFragment]
      * populated.

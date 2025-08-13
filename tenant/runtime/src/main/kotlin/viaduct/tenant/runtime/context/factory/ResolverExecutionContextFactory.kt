@@ -1,15 +1,15 @@
 package viaduct.tenant.runtime.context.factory
 
-import viaduct.api.context.ExecutionContext
+import viaduct.api.context.ResolverExecutionContext
 import viaduct.api.internal.InternalContext
 import viaduct.api.internal.NodeReferenceFactory
 import viaduct.api.internal.select.SelectionSetFactory
 import viaduct.api.internal.select.SelectionsLoader
 import viaduct.api.types.Query
 import viaduct.engine.api.EngineExecutionContext
-import viaduct.tenant.runtime.context.ExecutionContextImpl
+import viaduct.tenant.runtime.context.ResolverExecutionContextImpl
 
-class ExecutionContextArgs(
+class ResolverExecutionContextArgs(
     val internalContext: InternalContext,
     /** A service-scoped [SelectionSetFactory] */
     val selectionSetFactory: SelectionSetFactory,
@@ -19,14 +19,14 @@ class ExecutionContextArgs(
     val selectionsLoaderFactory: SelectionsLoader.Factory,
 )
 
-object ExecutionContextFactory {
+object ResolverExecutionContextFactory {
     /** create a [Factory<Args, ExecutionContext>] assembled from the provided factories */
     fun create(
         queryLoader: Factory<SelectionsLoaderArgs, SelectionsLoader<Query>> = SelectionsLoaderFactory.forQuery,
         nodeReferenceFactory: Factory<EngineExecutionContext, NodeReferenceFactory> = NodeReferenceContextFactory.default,
-    ): Factory<ExecutionContextArgs, ExecutionContext> =
+    ): Factory<ResolverExecutionContextArgs, ResolverExecutionContext> =
         Factory { args ->
-            ExecutionContextImpl(
+            ResolverExecutionContextImpl(
                 args.internalContext,
                 queryLoader(SelectionsLoaderArgs(resolverId = args.resolverId, selectionsLoaderFactory = args.selectionsLoaderFactory)),
                 args.selectionSetFactory,
@@ -35,5 +35,5 @@ object ExecutionContextFactory {
         }
 
     /** A default `Factory<Args, ExecutionContext>` suitable for general use */
-    val default: Factory<ExecutionContextArgs, ExecutionContext> = create()
+    val default: Factory<ResolverExecutionContextArgs, ResolverExecutionContext> = create()
 }

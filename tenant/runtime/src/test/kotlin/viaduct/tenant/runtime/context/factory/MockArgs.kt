@@ -101,7 +101,7 @@ class MockArgs(
         )
 
     fun getExecutionContextArgs() =
-        ExecutionContextArgs(
+        ResolverExecutionContextArgs(
             internalContext = internalContext,
             selectionSetFactory = selectionSetFactory,
             selectionsLoaderFactory = selectionsLoaderFactory,

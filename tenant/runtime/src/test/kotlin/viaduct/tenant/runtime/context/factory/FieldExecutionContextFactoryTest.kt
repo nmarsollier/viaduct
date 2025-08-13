@@ -3,7 +3,7 @@ package viaduct.tenant.runtime.context.factory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import viaduct.api.mocks.MockExecutionContext
+import viaduct.api.mocks.MockResolverExecutionContext
 import viaduct.api.select.SelectionSet
 import viaduct.api.types.Arguments
 
@@ -12,7 +12,7 @@ class FieldExecutionContextFactoryTest {
     @Test
     fun create() {
         MockArgs().let { args ->
-            val ec = MockExecutionContext(args.internalContext)
+            val ec = MockResolverExecutionContext(args.internalContext)
 
             val obj = Foo.Builder(ec).build()
             val q = Query.Builder(ec).build()

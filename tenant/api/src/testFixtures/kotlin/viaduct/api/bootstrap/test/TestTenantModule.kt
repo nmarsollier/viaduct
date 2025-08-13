@@ -11,6 +11,7 @@ import viaduct.api.bootstrap.test.grts.TestType
 import viaduct.api.bootstrap.test.grts.TestType_ParameterizedField_Arguments
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.context.NodeExecutionContext
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.internal.NodeResolverBase
 import viaduct.api.internal.NodeResolverFor
 import viaduct.api.internal.ResolverBase
@@ -115,7 +116,7 @@ class DFieldResolver : TestTypeModernResolvers.DField() {
 
     @Variables("experiment: Boolean")
     class Vars : VariablesProvider<Arguments.NoArguments> {
-        override suspend fun provide(args: Arguments.NoArguments): Map<String, Any> {
+        override suspend fun provide(context: VariablesProviderContext<Arguments.NoArguments>): Map<String, Any> {
             return mapOf(
                 "experiment" to true
             )

@@ -47,7 +47,7 @@ class FieldExecutionContextImplTest {
             SelectionSetFactoryImpl(mkRawSelectionSetFactory(SelectTestFeatureAppTest.schema)),
         nodeReferenceFactory: NodeReferenceFactory = mockk<NodeReferenceFactory>()
     ) = FieldExecutionContextImpl(
-        ExecutionContextImpl(
+        ResolverExecutionContextImpl(
             MockInternalContext(SelectTestFeatureAppTest.schema, globalIDCodec),
             queryLoader,
             selectionSetFactory,

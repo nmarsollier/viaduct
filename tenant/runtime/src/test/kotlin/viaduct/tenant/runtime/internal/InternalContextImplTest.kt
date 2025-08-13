@@ -13,11 +13,7 @@ import viaduct.api.internal.internal
 import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.MockReflectionLoader
 import viaduct.api.reflect.Type
-import viaduct.api.select.SelectionSet
-import viaduct.api.types.CompositeOutput
-import viaduct.api.types.NodeObject
 import viaduct.api.types.Object
-import viaduct.api.types.Query
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
 
@@ -46,34 +42,14 @@ class InternalContextImplTest {
 }
 
 private open class TestExecutionContext : ExecutionContext {
-    override fun <T : CompositeOutput> selectionsFor(
-        type: Type<T>,
-        selections: String,
-        variables: Map<String, Any?>
-    ): SelectionSet<T> = TODO()
-
-    override suspend fun <T : Query> query(selections: SelectionSet<T>): T = TODO()
-
-    override fun <T : NodeObject> nodeFor(id: GlobalID<T>): T = TODO()
-
     override fun <T : Object> globalIDFor(
         type: Type<T>,
         internalID: String
     ): GlobalID<T> = TODO()
-
-    override fun <T : Object> globalIDStringFor(
-        type: Type<T>,
-        internalID: String
-    ) = TODO()
 }
 
 private open class TestCompositeContext : TestExecutionContext(), InternalContext {
     override val schema: ViaductSchema get() = TODO()
     override val globalIDCodec: GlobalIDCodec get() = TODO()
     override val reflectionLoader: ReflectionLoader get() = TODO()
-
-    override fun <T : Object> globalIDStringFor(
-        type: Type<T>,
-        internalID: String
-    ) = TODO()
 }

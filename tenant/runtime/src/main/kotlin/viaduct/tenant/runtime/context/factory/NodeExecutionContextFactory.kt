@@ -1,7 +1,7 @@
 package viaduct.tenant.runtime.context.factory
 
-import viaduct.api.context.ExecutionContext
 import viaduct.api.context.NodeExecutionContext
+import viaduct.api.context.ResolverExecutionContext
 import viaduct.api.globalid.GlobalID
 import viaduct.api.internal.InternalContext
 import viaduct.api.internal.select.SelectionsLoader
@@ -32,12 +32,12 @@ object NodeExecutionContextMetaFactory {
     fun create(
         selections: Factory<SelectionSetArgs, SelectionSet<*>>,
         globalID: Factory<GlobalIDArgs, GlobalID<*>> = GlobalIDFactory.default,
-        executionContext: Factory<ExecutionContextArgs, ExecutionContext> = ExecutionContextFactory.default,
+        executionContext: Factory<ResolverExecutionContextArgs, ResolverExecutionContext> = ResolverExecutionContextFactory.default,
     ): NodeExecutionContextFactory =
         NodeExecutionContextFactory { args ->
             NodeExecutionContextImpl(
                 executionContext(
-                    ExecutionContextArgs(
+                    ResolverExecutionContextArgs(
                         internalContext = args.internalContext,
                         selectionSetFactory = args.selectionSetFactory,
                         resolverId = args.resolverId,

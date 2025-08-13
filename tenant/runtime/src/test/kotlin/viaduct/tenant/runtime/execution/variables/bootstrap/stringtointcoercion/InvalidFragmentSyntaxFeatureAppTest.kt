@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.api.Variables
 import viaduct.api.VariablesProvider
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 import viaduct.engine.api.GraphQLBuildError
 import viaduct.tenant.runtime.execution.variables.bootstrap.stringtointcoercion.resolverbases.QueryResolvers
@@ -37,7 +38,7 @@ class InvalidFragmentSyntaxFeatureAppTest : FeatureAppTestBase() {
 
         @Variables("intVar:Int!")
         class StringToIntVars : VariablesProvider<Arguments> {
-            override suspend fun provide(args: Arguments): Map<String, Any?> = mapOf("intVar" to "not_an_integer")
+            override suspend fun provide(context: VariablesProviderContext<Arguments>): Map<String, Any?> = mapOf("intVar" to "not_an_integer")
         }
     }
 

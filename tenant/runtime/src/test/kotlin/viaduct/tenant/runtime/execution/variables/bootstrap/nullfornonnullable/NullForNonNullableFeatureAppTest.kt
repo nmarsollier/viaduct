@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.api.Variables
 import viaduct.api.VariablesProvider
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 import viaduct.engine.api.GraphQLBuildError
 import viaduct.tenant.runtime.execution.variables.bootstrap.nullfornonnullable.resolverbases.QueryResolvers
@@ -42,7 +43,7 @@ class NullForNonNullableFeatureAppTest : FeatureAppTestBase() {
 
         @Variables("intVar:Int!")
         class NullForNonNullableVars : VariablesProvider<Arguments> {
-            override suspend fun provide(args: Arguments): Map<String, Any?> = mapOf("intVar" to null)
+            override suspend fun provide(context: VariablesProviderContext<Arguments>): Map<String, Any?> = mapOf("intVar" to null)
         }
     }
 

@@ -1,5 +1,6 @@
 package viaduct.api
 
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 
 /**
@@ -28,5 +29,5 @@ fun interface VariablesProvider<T : Arguments> {
      * The map must contain exactly the keys in the [Variables] annotation on the containing
      * VariablesProvider class.
      */
-    suspend fun provide(args: T): Map<String, Any?>
+    suspend fun provide(context: VariablesProviderContext<T>): Map<String, Any?>
 }
