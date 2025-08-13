@@ -80,7 +80,7 @@ class GraphQLTypeRelationsTest : Assertions() {
             type: String,
             vararg possibleObjTypes: String
         ) {
-            val actual = rels.possibleObjectTypes(type.asCompositeType).map { it.name }
+            val actual = rels.possibleObjectTypes(type.asCompositeType).toList().map { it.name }
             assertEquals(possibleObjTypes.toSet(), actual.toSet())
         }
     }

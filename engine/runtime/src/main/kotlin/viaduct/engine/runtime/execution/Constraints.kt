@@ -6,8 +6,8 @@ import graphql.execution.CoercedVariables
 import graphql.language.BooleanValue
 import graphql.language.Directive
 import graphql.language.VariableReference
-import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLObjectType
+import viaduct.utils.collections.MaskedSet
 
 /**
  * Constraints models some different ways that GraphQL field execution can
@@ -46,9 +46,9 @@ interface Constraints {
         Unsolved
     }
 
-    data class Ctx(val variables: CoercedVariables?, val parentTypes: Set<GraphQLObjectType>) {
+    data class Ctx(val variables: CoercedVariables?, val parentTypes: MaskedSet<GraphQLObjectType>) {
         companion object {
-            val empty: Ctx = Ctx(null, emptySet())
+            val empty: Ctx = Ctx(null, MaskedSet.empty())
         }
     }
 
@@ -56,7 +56,7 @@ interface Constraints {
     fun solve(ctx: Ctx): Resolution
 
     /** narrow the current type constraints to be bounded by the provided [possibleTypes] */
-    fun narrowTypes(possibleTypes: Set<GraphQLCompositeType>): Constraints
+    fun narrowTypes(possibleTypes: MaskedSet<GraphQLObjectType>): Constraints
 
     /** add a new constraint based on the provided [directive] */
     fun withDirective(directive: Directive): Constraints
@@ -106,7 +106,7 @@ interface Constraints {
                             is VariableReference -> IfValue.Variable(v.name)
                             else ->
                                 throw IllegalArgumentException(
-                                    "`ifValue` must be either a Boolean or VariableReference"
+                                    "`ifValue` must be either a BooleanValue or VariableReference"
                                 )
                         }
 
@@ -123,7 +123,7 @@ interface Constraints {
         val Unconstrained: Constraints = object : Constraints {
             override fun solve(ctx: Ctx): Resolution = Resolution.Collect
 
-            override fun narrowTypes(possibleTypes: Set<GraphQLCompositeType>): Constraints = Impl(directives = emptyList(), possibleTypes = possibleTypes)
+            override fun narrowTypes(possibleTypes: MaskedSet<GraphQLObjectType>): Constraints = Impl(directives = emptyList(), possibleTypes = possibleTypes)
 
             override fun withDirective(directive: Directive): Constraints = Constraints(listOf(directive), null)
         }
@@ -131,7 +131,7 @@ interface Constraints {
         val Drop: Constraints = object : Constraints {
             override fun solve(ctx: Ctx): Resolution = Resolution.Drop
 
-            override fun narrowTypes(possibleTypes: Set<GraphQLCompositeType>): Constraints = this
+            override fun narrowTypes(possibleTypes: MaskedSet<GraphQLObjectType>): Constraints = this
 
             override fun withDirective(directive: Directive): Constraints = this
         }
@@ -147,7 +147,7 @@ interface Constraints {
          */
         private data class Impl(
             val directives: List<ConditionalDirective>,
-            val possibleTypes: Set<GraphQLCompositeType>?
+            val possibleTypes: MaskedSet<GraphQLObjectType>?
         ) : Constraints {
             override fun solve(ctx: Ctx): Resolution {
                 val typeResolution = solveTypes(ctx)
@@ -176,7 +176,7 @@ interface Constraints {
                 // and we can Drop if no ctx.parentType is in this.possibleTypes
                 // otherwise, the type constraint is unsolvable.
                 // This code is perf sensitive!
-                val typeMatches = ctx.parentTypes.count(possibleTypes::contains)
+                val typeMatches = ctx.parentTypes.intersect(possibleTypes).size
 
                 return when (typeMatches) {
                     // if no context types can satisfy the type constraints, then drop
@@ -191,22 +191,23 @@ interface Constraints {
                 }
             }
 
-            override fun narrowTypes(possibleTypes: Set<GraphQLCompositeType>): Constraints =
-                // A null value for `this.possibleTypes` indicates no type constraints.
-                // In this case, narrowing to the provided possibleTypes is the same as
-                // copying them.
+            override fun narrowTypes(possibleTypes: MaskedSet<GraphQLObjectType>): Constraints =
                 if (this.possibleTypes == null) {
+                    // A null value for `this.possibleTypes` indicates no type constraints.
+                    // In this case, narrowing to the provided possibleTypes is the same as
+                    // copying them.
                     copy(possibleTypes = possibleTypes)
                 } else {
-                    (this.possibleTypes.intersect(possibleTypes)).let { newPossibleTypes ->
-                        // if narrowing to the provided possibleTypes produces an emptySet, then
+                    val newPossibleTypes = this.possibleTypes.intersect(possibleTypes)
+                    if (newPossibleTypes.isEmpty()) {
+                        // if narrowing to the provided possibleTypes produces an empty TypeSet, then
                         // there are no types that satisfy our type constraints and we can
                         // always drop
-                        if (newPossibleTypes.isEmpty()) {
-                            Drop
-                        } else {
-                            copy(possibleTypes = newPossibleTypes)
-                        }
+                        Drop
+                    } else if (newPossibleTypes == this.possibleTypes) {
+                        this
+                    } else {
+                        copy(possibleTypes = newPossibleTypes)
                     }
                 }
 
@@ -232,7 +233,13 @@ interface Constraints {
         /** create a new [Constraints] derived from the provided properties */
         operator fun invoke(
             directives: List<Directive>,
-            possibleTypes: Set<GraphQLCompositeType>?
+            possibleTypes: Iterable<GraphQLObjectType>
+        ): Constraints = Constraints(directives, MaskedSet(possibleTypes))
+
+        /** create a new [Constraints] derived from the provided properties */
+        operator fun invoke(
+            directives: List<Directive>,
+            possibleTypes: MaskedSet<GraphQLObjectType>?
         ): Constraints {
             val cds = directives.mapNotNull(ConditionalDirective::fromDirective)
             return if (cds.isEmpty() && possibleTypes == null) {

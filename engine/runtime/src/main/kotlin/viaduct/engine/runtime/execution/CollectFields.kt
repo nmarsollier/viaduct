@@ -12,6 +12,7 @@ import viaduct.engine.runtime.execution.QueryPlan.Fragments
 import viaduct.engine.runtime.execution.QueryPlan.InlineFragment
 import viaduct.engine.runtime.execution.QueryPlan.Selection
 import viaduct.engine.runtime.execution.QueryPlan.SelectionSet
+import viaduct.utils.collections.MaskedSet
 
 object CollectFields {
     /**
@@ -33,7 +34,7 @@ object CollectFields {
                 pending = selectionSet.selections,
                 spreadFragments = emptySet(),
                 fragments = fragments,
-                constraintsCtx = Constraints.Ctx(variables, setOf(parentType))
+                constraintsCtx = Constraints.Ctx(variables, MaskedSet(listOf(parentType)))
             )
         )
         return result.asSelectionSet()

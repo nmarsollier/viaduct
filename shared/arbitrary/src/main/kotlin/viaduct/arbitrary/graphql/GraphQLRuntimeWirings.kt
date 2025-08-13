@@ -69,7 +69,7 @@ private class ArbRuntimeWiringGen(sdl: String, private val seed: Long, private v
             b.typeResolver { env: TypeResolutionEnvironment ->
                 val rs = saltedRandom(env.hash)
                 maybeThrowResolverException(rs)
-                val objectType = Arb.of(schema.rels.possibleObjectTypes(type)).next(rs)
+                val objectType = Arb.of(schema.rels.possibleObjectTypes(type).toList()).next(rs)
 
                 // rels was built from a schema before it was wired up. The types may have been
                 // transformed during wiring, which may cause the actual type that was returned

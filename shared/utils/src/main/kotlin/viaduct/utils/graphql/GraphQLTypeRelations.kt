@@ -8,6 +8,7 @@ import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLType
 import graphql.schema.GraphQLTypeUtil
 import graphql.schema.GraphQLUnionType
+import viaduct.utils.collections.MaskedSet
 
 /**
  * GraphQLTypeRelations computes relationships between GraphQL types.
@@ -18,7 +19,7 @@ class GraphQLTypeRelations(schemaTypes: List<GraphQLType>) {
 
     // parent interface/union type -> child object/interface types
     private val possibleTypes: MutableMap<GraphQLCompositeType, Set<GraphQLCompositeType>> = mutableMapOf()
-    private val possibleObjectTypes: Map<GraphQLCompositeType, Set<GraphQLObjectType>>
+    private val possibleObjectTypes: Map<GraphQLCompositeType, MaskedSet<GraphQLObjectType>>
     private val spreadableTypes: MutableMap<GraphQLCompositeType, Set<GraphQLCompositeType>> = mutableMapOf()
 
     // time-wise, it is more efficient to compute possible types for all types up front rather than doing them
@@ -102,7 +103,9 @@ class GraphQLTypeRelations(schemaTypes: List<GraphQLType>) {
             }
         }
 
-        possibleObjectTypes = possibleTypes.mapValues { (_, values) -> values.filterIsInstance<GraphQLObjectType>().toSet() }
+        possibleObjectTypes = possibleTypes.mapValues { (_, values) ->
+            MaskedSet(values.filterIsInstance<GraphQLObjectType>())
+        }.toMap()
     }
 
     private fun collectInterfaces(type: GraphQLImplementingType): Set<GraphQLInterfaceType> {
@@ -206,7 +209,7 @@ class GraphQLTypeRelations(schemaTypes: List<GraphQLType>) {
     }
 
     /** Return all possible concrete object types that may be an instance of the provided type */
-    fun possibleObjectTypes(type: GraphQLCompositeType): Set<GraphQLObjectType> = possibleObjectTypes[type] ?: emptySet()
+    fun possibleObjectTypes(type: GraphQLCompositeType): MaskedSet<GraphQLObjectType> = possibleObjectTypes[type]!!
 }
 
 /** A relationship between 2 GraphQL types */
