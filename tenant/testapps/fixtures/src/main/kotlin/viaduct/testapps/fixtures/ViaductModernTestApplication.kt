@@ -2,18 +2,13 @@
 
 package viaduct.testapps.fixtures
 
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
-import com.google.inject.Provides
 import graphql.ExecutionResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import viaduct.service.api.ExecutionInput
-import viaduct.service.api.Viaduct
 import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
-import viaduct.service.runtime.MTDViaduct
 import viaduct.service.runtime.StandardViaduct
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
@@ -32,7 +27,7 @@ import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
  * @param customSchemaRegistration The custom schema registration function to use for the test application.
  */
 @ExperimentalCoroutinesApi
-class ViaductModernTestApplication(
+open class ViaductModernTestApplication(
     scopedSchemaInfo: Set<ScopedSchemaInfo>,
     fullSchemaRegex: String? = null,
     private val tenantPackageFinder: TenantPackageFinder,
@@ -40,7 +35,7 @@ class ViaductModernTestApplication(
 ) {
     private val flagManager = MockFlagManager(Flags.useModernExecutionStrategyFlags + Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY)
 
-    private fun commonTenantPrefix() = tenantPackageFinder.tenantPackages().reduce { p, tenant -> p.commonPrefixWith(tenant) }
+    protected fun commonTenantPrefix() = tenantPackageFinder.tenantPackages().reduce { p, tenant -> p.commonPrefixWith(tenant) }
 
     private val viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().apply {
         if (customSchemaRegistration != null) {
@@ -54,23 +49,12 @@ class ViaductModernTestApplication(
     }
 
     @Suppress("DEPRECATION")
-    private val standardViaduct = StandardViaduct.Builder()
+    protected val standardViaduct = StandardViaduct.Builder()
         .withFlagManager(flagManager)
         .withTenantAPIBootstrapperBuilder(ViaductTenantAPIBootstrapper.Builder().tenantPackageFinder(tenantPackageFinder))
         .withCheckerExecutorFactoryCreator { schema -> TestAppCheckerExecutorFactoryImpl(schema) }
         .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
         .build()
-
-    private val injector = Guice.createInjector(object : AbstractModule() {
-        @Provides
-        fun providesViaduct(mtdViaduct: MTDViaduct): Viaduct = mtdViaduct.routeUseWithCaution()
-    })
-
-    private val mtdViaduct = injector.getInstance(MTDViaduct::class.java)
-
-    init {
-        mtdViaduct.init(standardViaduct)
-    }
 
     /**
      * Executes a query against the test application.
@@ -81,7 +65,7 @@ class ViaductModernTestApplication(
      *
      * @return The result of the query execution.
      */
-    fun execute(
+    open fun execute(
         scopeId: String,
         query: String,
         variables: Map<String, Any?> = mapOf()
@@ -93,26 +77,8 @@ class ViaductModernTestApplication(
                 requestContext = object {},
                 schemaId = scopeId
             )
-            mtdViaduct.executeAsync(executionInput).await()
+            standardViaduct.executeAsync(executionInput).await()
         }
-
-    fun beginHotSwap(
-        scopedSchemaInfo: Set<ScopedSchemaInfo>,
-        fullSchemaRegex: String,
-    ) {
-        val nextViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().apply {
-            withFullSchemaFromResources(commonTenantPrefix(), fullSchemaRegex)
-            scopedSchemaInfo.forEach { (schemaId, scopesIds) ->
-                registerScopedSchema(schemaId, scopesIds)
-            }
-        }
-        val nextStandardViaduct = standardViaduct.newForSchema(nextViaductSchemaRegistryBuilder)
-        mtdViaduct.beginHotSwap(nextStandardViaduct)
-    }
-
-    fun endHotSwap() {
-        mtdViaduct.endHotSwap()
-    }
 }
 
 data class ScopedSchemaInfo(

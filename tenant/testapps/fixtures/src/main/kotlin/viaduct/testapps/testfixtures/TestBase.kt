@@ -26,10 +26,10 @@ abstract class TestBase(
     private val tenantPackageFinder: TenantPackageFinder,
     private val customSchemaRegistration: ((builder: ViaductSchemaRegistryBuilder) -> Unit)? = null
 ) {
-    private lateinit var testApp: ViaductModernTestApplication
+    protected lateinit var testApp: ViaductModernTestApplication
 
     @BeforeEach
-    fun beforeEach() {
+    open fun beforeEach() {
         testApp = ViaductModernTestApplication(scopeSchemaInfo, fullSchemaRegex, tenantPackageFinder, customSchemaRegistration)
     }
 
@@ -47,15 +47,4 @@ abstract class TestBase(
         query: String,
         variables: Map<String, Any?> = mapOf()
     ) = testApp.execute(schemaId, query, variables)
-
-    protected fun beginHotSwap(
-        scopedSchemaInfo: Set<ScopedSchemaInfo>,
-        overrideFullSchemaRegex: String,
-    ) {
-        testApp.beginHotSwap(scopedSchemaInfo, overrideFullSchemaRegex)
-    }
-
-    protected fun endHotSwap() {
-        testApp.endHotSwap()
-    }
 }

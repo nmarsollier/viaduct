@@ -5,9 +5,6 @@ package viaduct.tenant.runtime.featuretests.fixtures
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
-import com.google.inject.Provides
 import graphql.ExecutionResult
 import io.mockk.mockk
 import java.util.concurrent.CompletableFuture
@@ -16,10 +13,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import viaduct.service.api.ExecutionInput
-import viaduct.service.api.Viaduct
-import viaduct.service.runtime.MTDViaduct
 import viaduct.service.runtime.StandardViaduct
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 /**
  * Test harness for the Viaduct Modern engine configured with in-memory resolvers.
@@ -42,20 +36,9 @@ import viaduct.service.runtime.ViaductSchemaRegistryBuilder
  * ```
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class FeatureTest(
+open class FeatureTest(
     val standardViaduct: StandardViaduct,
 ) {
-    private val injector = Guice.createInjector(object : AbstractModule() {
-        @Provides
-        fun providesViaduct(mtdViaduct: MTDViaduct): Viaduct = mtdViaduct.routeUseWithCaution()
-    })
-
-    private val mtdViaduct = injector.getInstance(MTDViaduct::class.java)
-
-    init {
-        mtdViaduct.init(standardViaduct)
-    }
-
     private fun executeAsync(
         query: String,
         variables: Map<String, Any?> = mapOf()
@@ -66,10 +49,10 @@ class FeatureTest(
             requestContext = mockk(),
             schemaId = FeatureTestBuilder.SCHEMA_ID
         )
-        return mtdViaduct.executeAsync(executionInput)
+        return standardViaduct.executeAsync(executionInput)
     }
 
-    fun execute(
+    open fun execute(
         query: String,
         variables: Map<String, Any?> = mapOf(),
     ): ExecutionResult {
@@ -85,24 +68,6 @@ class FeatureTest(
         query: String,
         variables: Map<String, Any?> = mapOf(),
     ): Unit = execute(query, variables).assertJson(expectedJson)
-
-    fun changeSchema(
-        fullSchemaSdl: String,
-        scopedSchemaSdl: String? = null
-    ): FeatureTest {
-        val nextViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(fullSchemaSdl)
-            .apply {
-                if (scopedSchemaSdl != null) {
-                    registerSchemaFromSdl(FeatureTestBuilder.SCHEMA_ID, scopedSchemaSdl)
-                } else {
-                    registerFullSchema(FeatureTestBuilder.SCHEMA_ID)
-                }
-            }
-        val nextViaduct = standardViaduct.newForSchema(nextViaductSchemaRegistryBuilder)
-        mtdViaduct.beginHotSwap(nextViaduct)
-        // Calling endHotSwap or not doesn't make a difference at the moment, thus skip for now
-        return this
-    }
 }
 
 /**
