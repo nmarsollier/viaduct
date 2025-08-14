@@ -1,13 +1,14 @@
 package viaduct.demoapp.starwars.data
 
 import java.time.Instant
+import viaduct.demoapp.starwars.Constants.UNKNOWN_DIAMETER
 
 /**
  * In-memory data store for Star Wars characters and related entities.
  * This serves as the backing data source for the GraphQL API.
  */
 object StarWarsData {
-    data class Person(
+    data class Character(
         val id: String,
         val name: String,
         val birthYear: String?,
@@ -16,7 +17,6 @@ object StarWarsData {
         val hairColor: String?,
         val height: Int?,
         val mass: Float?,
-        val skinColor: String?,
         val homeworldId: String?,
         val speciesId: String?,
         val created: Instant = Instant.now(),
@@ -59,11 +59,19 @@ object StarWarsData {
         val averageLifespan: Int?,
         val eyeColors: List<String>,
         val hairColors: List<String>,
-        val skinColors: List<String>,
         val language: String?,
         val homeworldId: String?,
         val created: Instant = Instant.now(),
-        val edited: Instant = Instant.now()
+        val edited: Instant = Instant.now(),
+        // Extra fields for "extras" scope
+        val extrasData: SpeciesExtrasData = SpeciesExtrasData()
+    )
+
+    data class SpeciesExtrasData(
+        val culturalNotes: String? = null,
+        val rarityLevel: String? = null,
+        val specialAbilities: List<String> = emptyList(),
+        val technologicalLevel: String? = null
     )
 
     data class Starship(
@@ -103,8 +111,8 @@ object StarWarsData {
     )
 
     // Main characters from Star Wars
-    val people = listOf(
-        Person(
+    val characters = listOf(
+        Character(
             id = "1",
             name = "Luke Skywalker",
             birthYear = "19BBY",
@@ -113,11 +121,10 @@ object StarWarsData {
             hairColor = "blond",
             height = 172,
             mass = 77f,
-            skinColor = "fair",
             homeworldId = "1",
             speciesId = "1"
         ),
-        Person(
+        Character(
             id = "2",
             name = "Princess Leia",
             birthYear = "19BBY",
@@ -126,11 +133,10 @@ object StarWarsData {
             hairColor = "brown",
             height = 150,
             mass = 49f,
-            skinColor = "light",
             homeworldId = "2",
             speciesId = "1"
         ),
-        Person(
+        Character(
             id = "3",
             name = "Han Solo",
             birthYear = "29BBY",
@@ -139,11 +145,10 @@ object StarWarsData {
             hairColor = "brown",
             height = 180,
             mass = 80f,
-            skinColor = "fair",
             homeworldId = "3",
             speciesId = "1"
         ),
-        Person(
+        Character(
             id = "4",
             name = "Darth Vader",
             birthYear = "41.9BBY",
@@ -152,11 +157,10 @@ object StarWarsData {
             hairColor = "none",
             height = 202,
             mass = 136f,
-            skinColor = "white",
             homeworldId = "1",
             speciesId = "1"
         ),
-        Person(
+        Character(
             id = "5",
             name = "Obi-Wan Kenobi",
             birthYear = "57BBY",
@@ -165,7 +169,6 @@ object StarWarsData {
             hairColor = "auburn, white",
             height = 182,
             mass = 77f,
-            skinColor = "fair",
             homeworldId = "4",
             speciesId = "1"
         )
@@ -262,7 +265,7 @@ object StarWarsData {
         Planet(
             id = "4",
             name = "Stewjon",
-            diameter = 0,
+            diameter = UNKNOWN_DIAMETER,
             rotationPeriod = null,
             orbitalPeriod = null,
             gravity = 1f,
@@ -283,9 +286,14 @@ object StarWarsData {
             averageLifespan = 120,
             eyeColors = listOf("brown", "blue", "green", "hazel", "grey", "amber"),
             hairColors = listOf("blonde", "brown", "black", "red"),
-            skinColors = listOf("caucasian", "black", "asian", "hispanic"),
             language = "Galactic Basic",
-            homeworldId = "9"
+            homeworldId = "9",
+            extrasData = SpeciesExtrasData(
+                culturalNotes = "Diverse species with strong adaptability and technological advancement",
+                rarityLevel = "Common",
+                specialAbilities = listOf("Force sensitivity (rare)", "Adaptability", "Innovation"),
+                technologicalLevel = "Advanced"
+            )
         )
     )
 
@@ -342,7 +350,7 @@ object StarWarsData {
     )
 
     // Relationship mappings
-    val personFilmRelations = mapOf(
+    val characterFilmRelations = mapOf(
         "1" to listOf("1", "2", "3"), // Luke in all three films
         "2" to listOf("1", "2", "3"), // Leia in all three films
         "3" to listOf("1", "2", "3"), // Han in all three films
@@ -356,7 +364,7 @@ object StarWarsData {
         "3" to listOf("1", "2", "3", "4", "5") // Return of the Jedi characters
     )
 
-    val personStarshipRelations = mapOf(
+    val characterStarshipRelations = mapOf(
         "1" to listOf("2"), // Luke flies X-wing
         "3" to listOf("1") // Han flies Millennium Falcon
     )

@@ -2,6 +2,7 @@ package viaduct.demoapp.starwars
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import kotlin.reflect.KClass
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -14,6 +15,13 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import viaduct.api.grts.Character
+import viaduct.api.grts.Film
+import viaduct.api.reflect.Type
+import viaduct.api.types.CompositeOutput
+import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
+import viaduct.tenant.runtime.globalid.GlobalIDImpl
+import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 
 /**
  * Integration tests for all resolvers in the Star Wars GraphQL API.
@@ -28,6 +36,21 @@ class ResolverIntegrationTest {
     private var port: Int = 0
 
     private val objectMapper = ObjectMapper()
+
+    // Setup GlobalID codec for creating expected GlobalID values in tests
+    private val mirror = ReflectionLoaderImpl { name ->
+        Class.forName("viaduct.api.grts.$name").kotlin
+    }
+    private val globalIDCodec = GlobalIDCodecImpl(mirror)
+
+    private fun createEncodedGlobalID(
+        typeClass: KClass<*>,
+        internalId: String
+    ): String {
+        val type = mirror.reflectionFor(typeClass.simpleName!!) as Type<CompositeOutput>
+        val globalId = GlobalIDImpl(type, internalId)
+        return globalIDCodec.serialize(globalId)
+    }
 
     private fun executeGraphQLQuery(query: String): JsonNode {
         val headers = HttpHeaders()
@@ -48,10 +71,11 @@ class ResolverIntegrationTest {
     @Nested
     inner class QueryResolvers {
         @Test
-        fun `should resolve person query`() {
+        fun `should resolve character query`() {
+            val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
             val query = """
                 query {
-                    person(id: "1") {
+                    character(id: "$encodedCharacterId") {
                         id
                         name
                     }
@@ -60,20 +84,22 @@ class ResolverIntegrationTest {
 
             val response = executeGraphQLQuery(query)
             println("DEBUG: Full GraphQL response: $response")
-            val personId = response.path("data").path("person").path("id").asText()
-            val personName = response.path("data").path("person").path("name").asText()
-            println("DEBUG: personId = '$personId', personName = '$personName'")
+            val characterId = response.path("data").path("character").path("id").asText()
+            val characterName = response.path("data").path("character").path("name").asText()
+            println("DEBUG: characterId = '$characterId', characterName = '$characterName'")
 
-            assertEquals("1", personId)
-            assertNotNull(personName)
+            // With Node interface, id field returns encoded GlobalID
+            assertNotNull(characterId)
+            assertTrue(characterId.isNotEmpty(), "Expected non-empty GlobalID, got: '$characterId'")
+            assertNotNull(characterName)
         }
 
         @Test
-        fun `should resolve allPeople connection`() {
+        fun `should resolve allCharacters connection`() {
             val query = """
                 query {
-                    allPeople(first: 5) {
-                        people {
+                    allCharacters(first: 5) {
+                        characters {
                             id
                             name
                         }
@@ -84,19 +110,20 @@ class ResolverIntegrationTest {
 
             val response = executeGraphQLQuery(query)
             println("DEBUG: AllPeople GraphQL response: $response")
-            val people = response.path("data").path("allPeople").path("people")
-            val totalCount = response.path("data").path("allPeople").path("totalCount").asInt()
-            println("DEBUG: people.size() = ${people.size()}, totalCount = $totalCount")
+            val characters = response.path("data").path("allCharacters").path("characters")
+            val totalCount = response.path("data").path("allCharacters").path("totalCount").asInt()
+            println("DEBUG: characters.size() = ${characters.size()}, totalCount = $totalCount")
 
-            assertTrue(people.size() > 0)
+            assertTrue(characters.size() > 0)
             assertTrue(totalCount > 0)
         }
 
         @Test
         fun `should resolve film query`() {
+            val encodedFilmId = createEncodedGlobalID(Film::class, "1")
             val query = """
                 query {
-                    film(id: "1") {
+                    film(id: "$encodedFilmId") {
                         id
                         title
                         director
@@ -108,7 +135,9 @@ class ResolverIntegrationTest {
             val filmId = response.path("data").path("film").path("id").asText()
             val filmTitle = response.path("data").path("film").path("title").asText()
 
-            assertEquals("1", filmId)
+            // Film now uses GlobalID format (implements Node interface)
+            val expectedGlobalId = createEncodedGlobalID(Film::class, "1")
+            assertEquals(expectedGlobalId, filmId)
             assertNotNull(filmTitle)
         }
 
@@ -133,10 +162,10 @@ class ResolverIntegrationTest {
         }
 
         @Test
-        fun `should resolve searchPerson query`() {
+        fun `should resolve searchCharacter query`() {
             val query = """
                 query {
-                    searchPerson(search: { byName: "Luke" }) {
+                    searchCharacter(search: { byName: "Luke" }) {
                         id
                         name
                     }
@@ -144,9 +173,14 @@ class ResolverIntegrationTest {
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val personName = response.path("data").path("searchPerson").path("name").asText()
+            println("DEBUG: searchCharacter GraphQL response: $response")
+            val searchCharacterData = response.path("data").path("searchCharacter")
+            println("DEBUG: searchCharacter data: $searchCharacterData")
+            val characterName = searchCharacterData.path("name").asText()
+            println("DEBUG: characterName = '$characterName'")
 
-            assertTrue(personName.contains("Luke"))
+            assertNotNull(characterName)
+            assertTrue(characterName.contains("Luke"), "Expected person name to contain 'Luke', got: '$characterName'")
         }
     }
 
@@ -154,9 +188,10 @@ class ResolverIntegrationTest {
     inner class FilmResolvers {
         @Test
         fun `should resolve all film fields`() {
+            val encodedFilmId = createEncodedGlobalID(Film::class, "1")
             val query = """
                 query {
-                    film(id: "1") {
+                    film(id: "$encodedFilmId") {
                         id
                         title
                         episodeID
@@ -175,19 +210,21 @@ class ResolverIntegrationTest {
             val filmTitle = response.path("data").path("film").path("title").asText()
             val filmDirector = response.path("data").path("film").path("director").asText()
 
-            assertEquals("1", filmId)
+            val expectedGlobalId = createEncodedGlobalID(Film::class, "1")
+            assertEquals(expectedGlobalId, filmId)
             assertNotNull(filmTitle)
             assertNotNull(filmDirector)
         }
     }
 
     @Nested
-    inner class PersonResolvers {
+    inner class CharacterResolvers {
         @Test
-        fun `should resolve all person fields`() {
+        fun `should resolve all character fields`() {
+            val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
             val query = """
                 query {
-                    person(id: "1") {
+                    character(id: "$encodedCharacterId") {
                         id
                         name
                         birthYear
@@ -196,7 +233,6 @@ class ResolverIntegrationTest {
                         hairColor
                         height
                         mass
-                        skinColor
                         homeworld {
                             id
                             name
@@ -212,20 +248,23 @@ class ResolverIntegrationTest {
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val personId = response.path("data").path("person").path("id").asText()
-            val personName = response.path("data").path("person").path("name").asText()
-            val homeworld = response.path("data").path("person").path("homeworld")
+            val characterId = response.path("data").path("character").path("id").asText()
+            val characterName = response.path("data").path("character").path("name").asText()
+            val homeworld = response.path("data").path("character").path("homeworld")
 
-            assertEquals("1", personId)
-            assertNotNull(personName)
+            // With Node interface, id field returns encoded GlobalID
+            assertNotNull(characterId)
+            assertTrue(characterId.isNotEmpty(), "Expected non-empty GlobalID, got: '$characterId'")
+            assertNotNull(characterName)
             assertNotNull(homeworld)
         }
 
         @Test
         fun `should resolve person homeworld relationship`() {
+            val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
             val query = """
                 query {
-                    person(id: "1") {
+                    character(id: "$encodedCharacterId") {
                         id
                         name
                         homeworld {
@@ -237,16 +276,17 @@ class ResolverIntegrationTest {
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val homeworld = response.path("data").path("person").path("homeworld")
+            val homeworld = response.path("data").path("character").path("homeworld")
 
             assertNotNull(homeworld.path("id").asText())
         }
 
         @Test
         fun `should resolve person species relationship`() {
+            val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
             val query = """
                 query {
-                    person(id: "1") {
+                    character(id: "$encodedCharacterId") {
                         id
                         name
                         species {
@@ -258,7 +298,7 @@ class ResolverIntegrationTest {
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val species = response.path("data").path("person").path("species")
+            val species = response.path("data").path("character").path("species")
 
             assertNotNull(species)
         }
@@ -268,32 +308,39 @@ class ResolverIntegrationTest {
     inner class CrossResolverIntegrationTests {
         @Test
         fun `should handle multi-type queries across all resolvers`() {
+            val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
+            val encodedFilmId = createEncodedGlobalID(Film::class, "1")
             val query = """
                 query {
-                    person(id: "1") {
+                    character(id: "$encodedCharacterId") {
                         id
                         name
                     }
-                    film(id: "1") {
-                        id  
+                    film(id: "$encodedFilmId") {
+                        id
                         title
                     }
                 }
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val personId = response.path("data").path("person").path("id").asText()
+            val characterId = response.path("data").path("character").path("id").asText()
             val filmId = response.path("data").path("film").path("id").asText()
 
-            assertEquals("1", personId)
-            assertEquals("1", filmId)
+            // With Node interface, person id returns encoded GlobalID
+            val expectedCharacterGlobalId = createEncodedGlobalID(Character::class, "1")
+            assertEquals(expectedCharacterGlobalId, characterId)
+            // Film now also uses GlobalID format (implements Node interface)
+            val expectedFilmGlobalId = createEncodedGlobalID(Film::class, "1")
+            assertEquals(expectedFilmGlobalId, filmId)
         }
 
         @Test
         fun `should handle invalid IDs gracefully`() {
+            val encodedInvalidId = createEncodedGlobalID(Character::class, "invalid")
             val query = """
                 query {
-                    person(id: "invalid") {
+                    character(id: "$encodedInvalidId") {
                         id
                         name
                     }
@@ -301,16 +348,18 @@ class ResolverIntegrationTest {
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val person = response.path("data").path("person")
+            val person = response.path("data").path("character")
 
             assertTrue(person.isNull)
         }
 
         @Test
         fun `should resolve complex nested relationships across resolvers`() {
+            val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
+            val encodedFilmId = createEncodedGlobalID(Film::class, "1")
             val query = """
                 query {
-                    person(id: "1") {
+                    character(id: "$encodedCharacterId") {
                         id
                         name
                         homeworld {
@@ -318,7 +367,7 @@ class ResolverIntegrationTest {
                             name
                         }
                     }
-                    film(id: "1") {
+                    film(id: "$encodedFilmId") {
                         id
                         title
                         director
@@ -327,7 +376,7 @@ class ResolverIntegrationTest {
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val personHomeworld = response.path("data").path("person").path("homeworld")
+            val personHomeworld = response.path("data").path("character").path("homeworld")
             val filmDirector = response.path("data").path("film").path("director").asText()
 
             assertNotNull(personHomeworld)

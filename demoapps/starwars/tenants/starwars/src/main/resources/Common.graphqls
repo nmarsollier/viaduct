@@ -1,7 +1,17 @@
 """
+Node interface for objects that can be uniquely identified with a GlobalID.
+"""
+interface Node @scope(to: ["default"]) {
+  """
+  The GlobalID of the object (internal use only)
+  """
+  id: ID!
+}
+
+"""
 Information about pagination in a connection.
 """
-type PageInfo @scope(to: ["publicScope"]) {
+type PageInfo @scope(to: ["default"]) {
   """
   When paginating forwards, are there more items?
   """
@@ -27,11 +37,11 @@ type PageInfo @scope(to: ["publicScope"]) {
 A large mass, planet or planetoid in the Star Wars Universe, at the time of
 0 ABY.
 """
-type Planet @resolver @scope(to: ["publicScope"]) {
+type Planet implements Node @resolver @scope(to: ["default"]) {
   """
   The ID of an object
   """
-  id: String! @resolver
+  id: ID!
 
   """
   The name of this planet.
@@ -108,11 +118,11 @@ type Planet @resolver @scope(to: ["publicScope"]) {
 """
 A type of person or character within the Star Wars Universe.
 """
-type Species @resolver @scope(to: ["publicScope"]) {
+type Species implements Node @resolver @scope(to: ["default", "extras"]) {
   """
   The ID of an object
   """
-  id: String! @resolver
+  id: ID!
 
   """
   The name of this species.
@@ -152,12 +162,6 @@ type Species @resolver @scope(to: ["publicScope"]) {
   hairColors: [String]
 
   """
-  The common skin colors for this species, empty if this species does not
-  typically have skin.
-  """
-  skinColors: [String]
-
-  """
   The language commonly spoken by this species.
   """
   language: String
@@ -171,7 +175,7 @@ type Species @resolver @scope(to: ["publicScope"]) {
   The people that are a part of this species.
   """
   personConnection(first: Int, after: String, last: Int, before: String): SpeciesPeopleConnection
-    @backingData(class: "starwars.species.PersonConnection")
+    @backingData(class: "starwars.species.CharacterConnection")
 
   """
   The films that this species has appeared in.
@@ -193,11 +197,11 @@ type Species @resolver @scope(to: ["publicScope"]) {
 """
 A single transport craft that does not have hyperdrive capability
 """
-type Vehicle @resolver @scope(to: ["publicScope"]) {
+type Vehicle implements Node @resolver @scope(to: ["default"]) {
   """
   The ID of an object
   """
-  id: String! @resolver
+  id: ID!
 
   """
   The name of this vehicle. The common name, such as "Sand Crawler" or "Speeder
@@ -283,74 +287,74 @@ type Vehicle @resolver @scope(to: ["publicScope"]) {
 """
 Connection types for relationships
 """
-type PlanetResidentsConnection @scope(to: ["publicScope"]) {
+type PlanetResidentsConnection @scope(to: ["default"]) {
   pageInfo: PageInfo!
   edges: [PlanetResidentsEdge]
   totalCount: Int
-  residents: [Person]
+  residents: [Character]
 }
 
-type PlanetResidentsEdge @scope(to: ["publicScope"]) {
-  node: Person
+type PlanetResidentsEdge @scope(to: ["default"]) {
+  node: Character
   cursor: String!
 }
 
-type PlanetFilmsConnection @scope(to: ["publicScope"]) {
+type PlanetFilmsConnection @scope(to: ["default"]) {
   pageInfo: PageInfo!
   edges: [PlanetFilmsEdge]
   totalCount: Int
   films: [Film]
 }
 
-type PlanetFilmsEdge @scope(to: ["publicScope"]) {
+type PlanetFilmsEdge @scope(to: ["default"]) {
   node: Film
   cursor: String!
 }
 
-type SpeciesPeopleConnection @scope(to: ["publicScope"]) {
+type SpeciesPeopleConnection @scope(to: ["default"]) {
   pageInfo: PageInfo!
   edges: [SpeciesPeopleEdge]
   totalCount: Int
-  people: [Person]
+  people: [Character]
 }
 
-type SpeciesPeopleEdge @scope(to: ["publicScope"]) {
-  node: Person
+type SpeciesPeopleEdge @scope(to: ["default"]) {
+  node: Character
   cursor: String!
 }
 
-type SpeciesFilmsConnection @scope(to: ["publicScope"]) {
+type SpeciesFilmsConnection @scope(to: ["default"]) {
   pageInfo: PageInfo!
   edges: [SpeciesFilmsEdge]
   totalCount: Int
   films: [Film]
 }
 
-type SpeciesFilmsEdge @scope(to: ["publicScope"]) {
+type SpeciesFilmsEdge @scope(to: ["default"]) {
   node: Film
   cursor: String!
 }
 
-type VehicleFilmsConnection @scope(to: ["publicScope"]) {
+type VehicleFilmsConnection @scope(to: ["default"]) {
   pageInfo: PageInfo!
   edges: [VehicleFilmsEdge]
   totalCount: Int
   films: [Film]
 }
 
-type VehicleFilmsEdge @scope(to: ["publicScope"]) {
+type VehicleFilmsEdge @scope(to: ["default"]) {
   node: Film
   cursor: String!
 }
 
-type VehiclePilotsConnection @scope(to: ["publicScope"]) {
+type VehiclePilotsConnection @scope(to: ["default"]) {
   pageInfo: PageInfo!
   edges: [VehiclePilotsEdge]
   totalCount: Int
-  pilots: [Person]
+  pilots: [Character]
 }
 
-type VehiclePilotsEdge @scope(to: ["publicScope"]) {
-  node: Person
+type VehiclePilotsEdge @scope(to: ["default"]) {
+  node: Character
   cursor: String!
 }

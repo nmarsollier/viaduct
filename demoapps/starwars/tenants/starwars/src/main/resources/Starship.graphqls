@@ -1,11 +1,11 @@
 """
 A single transport craft that has hyperdrive capability.
 """
-type Starship @resolver @scope(to: ["publicScope"]) {
+type Starship implements Node @resolver @scope(to: ["default"]) {
   """
   The ID of an object
   """
-  id: String! @resolver
+  id: ID!
 
   """
   The name of this starship. The common name, such as "Death Star".
@@ -106,7 +106,7 @@ type Starship @resolver @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type StarshipFilmsConnection @scope(to: ["publicScope"]) {
+type StarshipFilmsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -131,7 +131,7 @@ type StarshipFilmsConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type StarshipFilmsEdge @scope(to: ["publicScope"]) {
+type StarshipFilmsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -146,7 +146,7 @@ type StarshipFilmsEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type StarshipPilotsConnection @scope(to: ["publicScope"]) {
+type StarshipPilotsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -165,17 +165,17 @@ type StarshipPilotsConnection @scope(to: ["publicScope"]) {
   """
   A list of all of the objects returned in the connection.
   """
-  pilots: [Person]
+  pilots: [Character]
 }
 
 """
 An edge in a connection.
 """
-type StarshipPilotsEdge @scope(to: ["publicScope"]) {
+type StarshipPilotsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
-  node: Person
+  node: Character
 
   """
   A cursor for use in pagination

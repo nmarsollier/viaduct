@@ -1,56 +1,51 @@
 """
 An individual person or character within the Star Wars universe.
 """
-type Person @scope(to: ["*"]) {
+type Character implements Node @resolver @scope(to: ["default"]) {
   """
-  The ID of an object
+  The GlobalID of this character - uniquely identifies this Character in the graph (internal use only)
   """
-  id: String! @resolver
+  id: ID!
 
   """
-  The name of this person.
+  The name of this character.
   """
   name: String
 
   """
-  The birth year of the person, using the in-universe standard of BBY or ABY -
+  The birth year of the character, using the in-universe standard of BBY or ABY -
   Before the Battle of Yavin or After the Battle of Yavin. The Battle of Yavin is
   a battle that occurs at the end of Star Wars episode IV: A New Hope.
   """
   birthYear: String
 
   """
-  The eye color of this person. Will be "unknown" if not known or "n/a" if the
-  person does not have an eye.
+  The eye color of this character. Will be "unknown" if not known or "n/a" if the
+  character does not have an eye.
   """
   eyeColor: String
 
   """
-  The gender of this person. Either "Male", "Female" or "unknown",
-  "n/a" if the person does not have a gender.
+  The gender of this character. Either "Male", "Female" or "unknown",
+  "n/a" if the character does not have a gender.
   """
   gender: String
 
   """
-  The hair color of this person. Will be "unknown" if not known or "n/a" if the
-  person does not have hair.
+  The hair color of this character. Will be "unknown" if not known or "n/a" if the
+  character does not have hair.
   """
   hairColor: String
 
   """
-  The height of the person in centimeters.
+  The height of the character in centimeters.
   """
   height: Int
 
   """
-  The mass of the person in kilograms.
+  The mass of the character in kilograms.
   """
   mass: Float
-
-  """
-  The skin color of this person.
-  """
-  skinColor: String
 
   """
   The ISO 8601 date format of the time that this resource was created.
@@ -63,45 +58,45 @@ type Person @scope(to: ["*"]) {
   edited: String
 
   """
-  A planet that this person was born on or inhabits.
+  A planet that this character was born on or inhabits.
   """
   homeworld: Planet @resolver
 
   """
-  The films that this person has been in.
+  The films that this character has been in.
   """
-  filmConnection(first: Int, after: String, last: Int, before: String): PersonFilmsConnection
-    @backingData(class: "starwars.person.FilmConnection")
+  filmConnection(first: Int, after: String, last: Int, before: String): CharacterFilmsConnection
+    @backingData(class: "starwars.character.FilmConnection")
 
   """
-  The species that this person belongs to, or null if unknown.
+  The species that this character belongs to, or null if unknown.
   """
   species: Species @resolver
 
   """
-  The starships that this person has piloted, or an empty list if none.
+  The starships that this character has piloted, or an empty list if none.
   """
-  starshipConnection(first: Int, after: String, last: Int, before: String): PersonStarshipsConnection
-    @backingData(class: "starwars.person.StarshipConnection")
+  starshipConnection(first: Int, after: String, last: Int, before: String): CharacterStarshipsConnection
+    @backingData(class: "starwars.character.StarshipConnection")
 
   """
-  The vehicles that this person has piloted, or an empty list if none.
+  The vehicles that this character has piloted, or an empty list if none.
   """
-  vehicleConnection(first: Int, after: String, last: Int, before: String): PersonVehiclesConnection
-    @backingData(class: "starwars.person.VehicleConnection")
+  vehicleConnection(first: Int, after: String, last: Int, before: String): CharacterVehiclesConnection
+    @backingData(class: "starwars.character.VehicleConnection")
 
   """
-  Display name for the person (demonstrates shorthand fragment syntax)
+  Display name for the character (demonstrates shorthand fragment syntax)
   """
   displayName: String @resolver
 
   """
-  Summary of person with name and birth year (demonstrates full fragment syntax)
+  Summary of character with name and birth year (demonstrates full fragment syntax)
   """
   displaySummary: String @resolver
 
   """
-  Description of person's appearance (demonstrates full fragment syntax with multiple fields)
+  Description of character's appearance (demonstrates full fragment syntax with multiple fields)
   """
   appearanceDescription: String @resolver
 }
@@ -109,7 +104,7 @@ type Person @scope(to: ["*"]) {
 """
 A connection to a list of items.
 """
-type PersonFilmsConnection @scope(to: ["publicScope"]) {
+type CharacterFilmsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -118,7 +113,7 @@ type PersonFilmsConnection @scope(to: ["publicScope"]) {
   """
   A list of edges.
   """
-  edges: [PersonFilmsEdge]
+  edges: [CharacterFilmsEdge]
 
   """
   A count of the total number of objects in this connection, ignoring pagination.
@@ -134,7 +129,7 @@ type PersonFilmsConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type PersonFilmsEdge @scope(to: ["publicScope"]) {
+type CharacterFilmsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -149,7 +144,7 @@ type PersonFilmsEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type PersonStarshipsConnection @scope(to: ["publicScope"]) {
+type CharacterStarshipsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -158,7 +153,7 @@ type PersonStarshipsConnection @scope(to: ["publicScope"]) {
   """
   A list of edges.
   """
-  edges: [PersonStarshipsEdge]
+  edges: [CharacterStarshipsEdge]
 
   """
   A count of the total number of objects in this connection, ignoring pagination.
@@ -174,7 +169,7 @@ type PersonStarshipsConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type PersonStarshipsEdge @scope(to: ["publicScope"]) {
+type CharacterStarshipsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -189,7 +184,7 @@ type PersonStarshipsEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type PersonVehiclesConnection @scope(to: ["publicScope"]) {
+type CharacterVehiclesConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -198,7 +193,7 @@ type PersonVehiclesConnection @scope(to: ["publicScope"]) {
   """
   A list of edges.
   """
-  edges: [PersonVehiclesEdge]
+  edges: [CharacterVehiclesEdge]
 
   """
   A count of the total number of objects in this connection, ignoring pagination.
@@ -214,7 +209,7 @@ type PersonVehiclesConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type PersonVehiclesEdge @scope(to: ["publicScope"]) {
+type CharacterVehiclesEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
