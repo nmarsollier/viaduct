@@ -4,6 +4,7 @@ package viaduct.engine.runtime.tenantloading
 
 import graphql.language.AstPrinter
 import kotlin.collections.count
+import kotlin.collections.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -51,7 +52,14 @@ class DispatcherRegistryTest {
                 Pair("TestType", "bIntField") to MockCheckerExecutor()
             ),
             mapOf(
-                "TestNode" to MockCheckerExecutor()
+                "TestNode" to MockCheckerExecutor(
+                    requiredSelectionSets = mapOf(
+                        "key" to RequiredSelectionSet(
+                            SelectionsParser.parse("TestNode", "id"),
+                            emptyList()
+                        )
+                    )
+                )
             )
         )
     }
@@ -155,6 +163,26 @@ class DispatcherRegistryTest {
             AstPrinter
                 .printAstCompact(rss[0].selections.toDocument())
                 .contains("{dField}")
+        )
+    }
+
+    @Test
+    fun `test getRequiredSelectionSetsForType with executeAccessChecksInModstrat off`() {
+        val dispatcherRegistry = createDispatcherRegistry()
+        assertTrue(dispatcherRegistry.getRequiredSelectionSetsForType("TestNode", false).isEmpty())
+    }
+
+    @Test
+    fun `test getRequiredSelectionSetsForType with executeAccessChecksInModstrat on`() {
+        val dispatcherRegistry = createDispatcherRegistry()
+        val rss = dispatcherRegistry.getRequiredSelectionSetsForType("TestNode", true)
+        assertTrue(rss.isNotEmpty())
+        assertEquals(1, rss.size)
+        assertEquals("TestNode", rss[0].selections.typeName)
+        assertTrue(
+            AstPrinter
+                .printAstCompact(rss[0].selections.toDocument())
+                .contains("{id}")
         )
     }
 

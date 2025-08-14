@@ -547,7 +547,9 @@ class RequiredSelectionsAreAcyclicTest {
         )
         val validator = RequiredSelectionsAreAcyclic(schema)
 
-        val coordToValidate = registry.entries.map { it.coord }.toSet()
+        val coordToValidate = registry.entries
+            .filterIsInstance<MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.EntryForField>()
+            .map { it.coord }.filterNotNull().toSet()
         coordToValidate.map { coord ->
             val ctx = RequiredSelectionsValidationCtx(
                 coord,

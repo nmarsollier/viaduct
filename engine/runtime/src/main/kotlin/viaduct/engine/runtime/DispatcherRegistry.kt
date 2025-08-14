@@ -49,6 +49,16 @@ class DispatcherRegistry(
             }
         }
 
+    override fun getRequiredSelectionSetsForType(
+        typeName: String,
+        executeAccessChecksInModstrat: Boolean
+    ): List<RequiredSelectionSet> =
+        buildList {
+            if (executeAccessChecksInModstrat) {
+                getTypeCheckerDispatcher(typeName)?.requiredSelectionSets?.values?.filterNotNull()?.let { addAll(it) }
+            }
+        }
+
     override fun getFieldCheckerDispatcher(
         typeName: String,
         fieldName: String

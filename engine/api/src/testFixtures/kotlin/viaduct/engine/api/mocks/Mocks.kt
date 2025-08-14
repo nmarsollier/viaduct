@@ -89,9 +89,33 @@ fun mkRSS(
 ) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders)
 
 class MockRequiredSelectionSetRegistry private constructor(
-    val entries: List<Entry> = emptyList()
+    val entries: List<RequiredSelectionSetEntry> = emptyList()
 ) : RequiredSelectionSetRegistry {
-    data class Entry(val coord: Coordinate, val selectionsType: String, val selectionsString: String, val variableProviders: List<VariablesResolver>)
+    sealed class RequiredSelectionSetEntry {
+        abstract val selectionsType: String
+        abstract val selectionsString: String
+        abstract val variableProviders: List<VariablesResolver>
+
+        /**
+         * A RequiredSelectionSet entry for a specific coordinate.
+         */
+        data class EntryForField(
+            val coord: Coordinate,
+            override val selectionsType: String,
+            override val selectionsString: String,
+            override val variableProviders: List<VariablesResolver>
+        ) : RequiredSelectionSetEntry()
+
+        /**
+         * A RequiredSelectionSet entry for a specific type.
+         */
+        data class EntryForType(
+            val typeName: String,
+            override val selectionsType: String,
+            override val selectionsString: String,
+            override val variableProviders: List<VariablesResolver>
+        ) : RequiredSelectionSetEntry()
+    }
 
     /** merge this registry with the provided registry */
     operator fun plus(other: MockRequiredSelectionSetRegistry): MockRequiredSelectionSetRegistry = MockRequiredSelectionSetRegistry(other.entries + entries)
@@ -104,18 +128,34 @@ class MockRequiredSelectionSetRegistry private constructor(
          *
          * This method be used to compactly initialize a registry.
          *
+         * When fieldName is `null`, it will be interpreted as a selection on the type itself.
+         *
          * Example:
          * ```
          *   MockRequiredSelectionSetRegistry.mk(
          *     "Type" to "foo" to "requiredSelection",
-         *     "Type" to "bar" to "requiredSelection"
+         *     "Type" to "bar" to "requiredSelection",
+         *     "Type" to null to "requiredSelection"
          *   )
          * ```
          */
-        fun mk(vararg entries: Pair<Coordinate, String>): MockRequiredSelectionSetRegistry =
+        fun mk(vararg entries: Pair<Pair<String, String?>, String>): MockRequiredSelectionSetRegistry =
             MockRequiredSelectionSetRegistry(
-                entries.map {
-                    Entry(it.first, it.first.first, it.second, emptyList())
+                entries.map { it ->
+                    val coordPair = it.first
+                    coordPair.second?.let { fieldName ->
+                        RequiredSelectionSetEntry.EntryForField(
+                            coord = Coordinate(coordPair.first, fieldName),
+                            selectionsType = coordPair.first,
+                            selectionsString = it.second,
+                            variableProviders = emptyList()
+                        )
+                    } ?: RequiredSelectionSetEntry.EntryForType(
+                        typeName = coordPair.first,
+                        selectionsType = coordPair.first,
+                        selectionsString = it.second,
+                        variableProviders = emptyList()
+                    )
                 }
             )
 
@@ -127,17 +167,26 @@ class MockRequiredSelectionSetRegistry private constructor(
          * ```
          *   MockRequiredSelectionSetRegistry.mk(
          *     "Type" to "foo" to "requiredSelection" to variablesResolver,
-         *     "Type" to "bar" to "requiredSelection" to variablesResolver
+         *     "Type" to "bar" to "requiredSelection" to variablesResolver,
+         *     "Type" to null to "requiredSelection" to variablesResolver
          *   )
          * ```
          */
         @JvmName("mkWithVariables1")
-        fun mk(vararg entries: Pair<Pair<Coordinate, String>, VariablesResolver>): MockRequiredSelectionSetRegistry =
+        fun mk(vararg entries: Pair<Pair<Pair<String, String?>, String>, VariablesResolver>): MockRequiredSelectionSetRegistry =
             MockRequiredSelectionSetRegistry(
                 entries.map {
-                    Entry(
-                        coord = it.first.first,
-                        selectionsType = it.first.first.first,
+                    val coordPair = it.first.first
+                    coordPair.second?.let { fieldName ->
+                        RequiredSelectionSetEntry.EntryForField(
+                            coord = Coordinate(coordPair.first, fieldName),
+                            selectionsType = coordPair.first,
+                            selectionsString = it.first.second,
+                            variableProviders = listOf(it.second)
+                        )
+                    } ?: RequiredSelectionSetEntry.EntryForType(
+                        typeName = coordPair.first,
+                        selectionsType = coordPair.first,
                         selectionsString = it.first.second,
                         variableProviders = listOf(it.second)
                     )
@@ -152,14 +201,16 @@ class MockRequiredSelectionSetRegistry private constructor(
          * ```
          *   MockRequiredSelectionSetRegistry.mk(
          *     "Type" to "foo" to "requiredSelection" to variablesResolvers,
-         *     "Type" to "bar" to "requiredSelection" to variablesResolvers
+         *     "Type" to "bar" to "requiredSelection" to variablesResolvers,
+         *     "Type" to null to "requiredSelection" to variablesResolvers
          *   )
          * ```
          */
         @JvmName("mkWithVariables2")
-        fun mk(vararg entries: Pair<Pair<Coordinate, String>, List<VariablesResolver>>): MockRequiredSelectionSetRegistry =
+        fun mk(vararg entries: Pair<Pair<Pair<String, String?>, String>, List<VariablesResolver>>): MockRequiredSelectionSetRegistry =
             entries.fold(empty) { acc, e ->
-                acc + mkForSelectedType(e.first.first.first, e)
+                val coordPair = e.first.first
+                acc + mkForSelectedType(coordPair.first, e)
             }
 
         /**
@@ -170,17 +221,31 @@ class MockRequiredSelectionSetRegistry private constructor(
          * ```
          *   MockRequiredSelectionSetRegistry.mkForType(
          *     "Query",
-         *     "Type" to "foo" to "fieldOnQuery"
+         *     "Type" to "foo" to "fieldOnQuery",
+         *     "Type" to null to "fieldOnQuery",
          *   )
          * ```
          */
         fun mkForSelectedType(
             typeName: String,
-            vararg entries: Pair<Coordinate, String>
+            vararg entries: Pair<Pair<String, String?>, String>
         ): MockRequiredSelectionSetRegistry =
             MockRequiredSelectionSetRegistry(
                 entries.map {
-                    Entry(it.first, selectionsType = typeName, it.second, variableProviders = emptyList())
+                    val coordPair = it.first
+                    coordPair.second?.let { fieldName ->
+                        RequiredSelectionSetEntry.EntryForField(
+                            coord = Coordinate(coordPair.first, fieldName),
+                            selectionsType = typeName,
+                            selectionsString = it.second,
+                            variableProviders = emptyList()
+                        )
+                    } ?: RequiredSelectionSetEntry.EntryForType(
+                        typeName = coordPair.first,
+                        selectionsType = typeName,
+                        selectionsString = it.second,
+                        variableProviders = emptyList()
+                    )
                 }
             )
 
@@ -193,17 +258,31 @@ class MockRequiredSelectionSetRegistry private constructor(
          *   MockRequiredSelectionSetRegistry.mkForType(
          *     "Query",
          *     "Type" to "foo" to "fieldOnQuery" to variablesResolvers,
+         *     "Type" to null to "fieldOnQuery" to variablesResolvers,
          *   )
          * ```
          */
         @JvmName("mkForTypeWithVariables")
         fun mkForSelectedType(
             typeName: String,
-            vararg entries: Pair<Pair<Coordinate, String>, List<VariablesResolver>>
+            vararg entries: Pair<Pair<Pair<String, String?>, String>, List<VariablesResolver>>
         ): MockRequiredSelectionSetRegistry =
             MockRequiredSelectionSetRegistry(
                 entries.map {
-                    Entry(it.first.first, selectionsType = typeName, it.first.second, variableProviders = it.second)
+                    val coordPair = it.first.first
+                    coordPair.second?.let { fieldName ->
+                        RequiredSelectionSetEntry.EntryForField(
+                            coord = Coordinate(coordPair.first, fieldName),
+                            selectionsType = typeName,
+                            selectionsString = it.first.second,
+                            variableProviders = it.second
+                        )
+                    } ?: RequiredSelectionSetEntry.EntryForType(
+                        typeName = coordPair.first,
+                        selectionsType = typeName,
+                        selectionsString = it.first.second,
+                        variableProviders = it.second
+                    )
                 }
             )
     }
@@ -218,12 +297,28 @@ class MockRequiredSelectionSetRegistry private constructor(
         executeAccessChecksInModstrat: Boolean
     ): List<RequiredSelectionSet> = getRequiredSelectionSets(typeName, fieldName)
 
+    /**
+     * Final override the original getRequiredSelectionSetsForType method and expose a new one without
+     * `executeAccessChecksInModstrat` as it is not relevant for the mock implementation.
+     */
+    final override fun getRequiredSelectionSetsForType(
+        typeName: String,
+        executeAccessChecksInModstrat: Boolean
+    ): List<RequiredSelectionSet> = getRequiredSelectionSetsForType(typeName)
+
     fun getRequiredSelectionSets(
         typeName: String,
         fieldName: String
     ): List<RequiredSelectionSet> =
         entries
+            .filterIsInstance<RequiredSelectionSetEntry.EntryForField>()
             .filter { it.coord == (typeName to fieldName) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
+
+    fun getRequiredSelectionSetsForType(typeName: String): List<RequiredSelectionSet> =
+        entries
+            .filterIsInstance<RequiredSelectionSetEntry.EntryForType>()
+            .filter { it.typeName == typeName }
             .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
 }
 
