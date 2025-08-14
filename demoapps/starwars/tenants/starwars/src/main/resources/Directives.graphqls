@@ -21,13 +21,13 @@ The @resolver directive supports two types of fragment syntax for efficient fiel
    - Specifies exactly which fields to fetch from the object
    - Enables computed fields that depend on multiple other fields
    - Optimizes GraphQL execution by fetching only required fields
-   - Example: @Resolver("fragment _ on Person { name birthYear }")
+   - Example: @Resolver("fragment _ on Character { name birthYear }")
 
 Example:
-type Person {
+type Character {
   name: String @resolver
   displayName: String @resolver  # Can use shorthand: @Resolver("name")
-  summary: String @resolver       # Can use full fragment: @Resolver("fragment _ on Person { name birthYear }")
+  summary: String @resolver       # Can use full fragment: @Resolver("fragment _ on Character { name birthYear }")
 }
 """
 directive @resolver on FIELD_DEFINITION | OBJECT
@@ -39,13 +39,13 @@ complex data handling. The class parameter specifies the fully-qualified name
 of the backing data implementation.
 
 Usage:
-- class: String! - The backing data class name (e.g., "starwars.person.FilmConnection")
+- class: String! - The backing data class name (e.g., "starwars.character.FilmConnection")
 
 Example:
-type Person {
-  filmConnection(first: Int, after: String): PersonFilmsConnection
+type Character {
+  filmConnection(first: Int, after: String): CharacterFilmsConnection
     @resolver
-    @backingData(class: "starwars.person.FilmConnection")
+    @backingData(class: "starwars.character.FilmConnection")
 }
 """
 directive @backingData(class: String!) on FIELD_DEFINITION
@@ -56,15 +56,15 @@ Used to indicate that a field represents a global identifier for a specific type
 This enables proper ID validation and type checking across the GraphQL schema.
 
 Usage:
-- type: String! - The GraphQL type this ID represents (e.g., "Person", "Film")
+- type: String! - The GraphQL type this ID represents (e.g., "Character", "Film")
 
 Example:
 type Query {
-  person(id: ID! @idOf(type: "Person")): Person
+  character(id: ID! @idOf(type: "Character")): Character
 }
 
-type Person {
-  id: ID! @idOf(type: "Person")
+type Character {
+  id: ID! @idOf(type: "Character")
 }
 """
 directive @idOf(type: String!) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
@@ -81,14 +81,14 @@ Usage:
 
 Example:
 type Query @scope(to: ["publicScope"]) {
-  allPeople: [Person]
+  allCharacters: [Character]
 }
 
-type Person @scope(to: ["starwars", "admin"]) {
+type Character @scope(to: ["starwars", "admin"]) {
   name: String
 }
 """
-directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION | FIELD_DEFINITION
 
 """
 @oneOf directive: Input validation for exactly-one-field semantics.

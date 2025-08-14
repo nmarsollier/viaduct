@@ -1,15 +1,15 @@
 """
 Search input demonstrating @oneOf directive for exactly-one-field semantics
 """
-input PersonSearchInput @oneOf {
+input CharacterSearchInput @oneOf @scope(to: ["default"]) {
   """
-  Search by person name
+  Search by character name
   """
   byName: String
   """
-  Search by person ID
+  Search by character ID
   """
-  byId: ID
+  byId: ID @idOf(type: "Character")
   """
   Search by birth year
   """
@@ -19,16 +19,16 @@ input PersonSearchInput @oneOf {
 """
 The root query object
 """
-type Query @scope(to: ["publicScope"]) {
+type Query @scope(to: ["default"]) {
   """
-  Search for a person using exactly one search criteria
+  Search for a character using exactly one search criteria
   """
-  searchPerson(
+  searchCharacter(
     """
     Search input - exactly one field must be provided
     """
-    search: PersonSearchInput!
-  ): Person @resolver
+    search: CharacterSearchInput!
+  ): Character @resolver
 
   """
   All films
@@ -38,11 +38,11 @@ type Query @scope(to: ["publicScope"]) {
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllFilmsResolver")
 
   """
-  All people
+  All characters
   """
-  allPeople(first: Int, after: String, last: Int, before: String): PeopleConnection
+  allCharacters(first: Int, after: String, last: Int, before: String): CharactersConnection
     @resolver
-    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllPeopleResolver")
+    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllCharactersResolver")
 
   """
   All planets
@@ -75,38 +75,38 @@ type Query @scope(to: ["publicScope"]) {
   """
   A specific film
   """
-  film(id: ID, filmID: ID): Film @resolver
+  film(id: ID! @idOf(type: "Film")): Film @resolver
 
   """
-  A specific person
+  A specific character
   """
-  person(id: ID, personID: ID): Person @resolver
+  character(id: ID! @idOf(type: "Character")): Character @resolver
 
   """
   A specific planet
   """
-  planet(id: ID @idOf(type: "Planet"), planetID: ID @idOf(type: "Planet")): Planet @resolver
+  planet(id: ID! @idOf(type: "Planet")): Planet @resolver
 
   """
   A specific species
   """
-  species(id: ID @idOf(type: "Species"), speciesID: ID @idOf(type: "Species")): Species @resolver
+  species(id: ID! @idOf(type: "Species")): Species @resolver
 
   """
   A specific starship
   """
-  starship(id: ID @idOf(type: "Starship"), starshipID: ID @idOf(type: "Starship")): Starship @resolver
+  starship(id: ID! @idOf(type: "Starship")): Starship @resolver
 
   """
   A specific vehicle
   """
-  vehicle(id: ID @idOf(type: "Vehicle"), vehicleID: ID @idOf(type: "Vehicle")): Vehicle @resolver
+  vehicle(id: ID! @idOf(type: "Vehicle")): Vehicle @resolver
 }
 
 """
 A connection to a list of items.
 """
-type FilmsConnection @scope(to: ["publicScope"]) {
+type FilmsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -131,7 +131,7 @@ type FilmsConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type FilmsEdge @scope(to: ["publicScope"]) {
+type FilmsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -146,7 +146,7 @@ type FilmsEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type PeopleConnection @scope(to: ["publicScope"]) {
+type CharactersConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -155,7 +155,7 @@ type PeopleConnection @scope(to: ["publicScope"]) {
   """
   A list of edges.
   """
-  edges: [PeopleEdge]
+  edges: [CharactersEdge]
 
   """
   A count of the total number of objects in this connection, ignoring pagination.
@@ -165,17 +165,17 @@ type PeopleConnection @scope(to: ["publicScope"]) {
   """
   A list of all of the objects returned in the connection.
   """
-  people: [Person]
+  characters: [Character]
 }
 
 """
 An edge in a connection.
 """
-type PeopleEdge @scope(to: ["publicScope"]) {
+type CharactersEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
-  node: Person
+  node: Character
 
   """
   A cursor for use in pagination
@@ -186,7 +186,7 @@ type PeopleEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type PlanetsConnection @scope(to: ["publicScope"]) {
+type PlanetsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -211,7 +211,7 @@ type PlanetsConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type PlanetsEdge @scope(to: ["publicScope"]) {
+type PlanetsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -226,7 +226,7 @@ type PlanetsEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type SpeciesConnection @scope(to: ["publicScope"]) {
+type SpeciesConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -251,7 +251,7 @@ type SpeciesConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type SpeciesEdge @scope(to: ["publicScope"]) {
+type SpeciesEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -266,7 +266,7 @@ type SpeciesEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type StarshipsConnection @scope(to: ["publicScope"]) {
+type StarshipsConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -291,7 +291,7 @@ type StarshipsConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type StarshipsEdge @scope(to: ["publicScope"]) {
+type StarshipsEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """
@@ -306,7 +306,7 @@ type StarshipsEdge @scope(to: ["publicScope"]) {
 """
 A connection to a list of items.
 """
-type VehiclesConnection @scope(to: ["publicScope"]) {
+type VehiclesConnection @scope(to: ["default"]) {
   """
   Information to aid in pagination.
   """
@@ -331,7 +331,7 @@ type VehiclesConnection @scope(to: ["publicScope"]) {
 """
 An edge in a connection.
 """
-type VehiclesEdge @scope(to: ["publicScope"]) {
+type VehiclesEdge @scope(to: ["default"]) {
   """
   The item at the end of the edge
   """

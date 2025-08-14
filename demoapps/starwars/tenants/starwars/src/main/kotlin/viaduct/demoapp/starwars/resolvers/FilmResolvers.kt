@@ -10,43 +10,9 @@ import viaduct.demoapp.starwars.data.StarWarsData
  */
 
 /**
- * Resolver for the id field - required for Node interface implementation.
- * Using String instead of GlobalID to avoid complexity for now.
- */
-@org.springframework.stereotype.Component
-@Resolver("fragment _ on Film { title }")
-class FilmIdResolver : viaduct.demoapp.starwars.resolverbases.FilmResolvers.Id() {
-    override suspend fun resolve(ctx: Context): String {
-        println("DEBUG: FilmIdResolver.resolve() called!")
-
-        // The ID resolver should return the ID of the film object
-        // Since this is a field resolver for Film.id, we need to access the underlying data
-        // For now, let's try to access other fields that might be available or use backing data
-
-        try {
-            // Try to access the title field to identify which film this is
-            val title = ctx.objectValue.getTitle()
-            println("DEBUG: FilmIdResolver got title: '$title'")
-
-            // Look up the ID based on the title
-            val film = StarWarsData.films.find { it.title == title }
-            val id = film?.id ?: "UNKNOWN"
-            println("DEBUG: FilmIdResolver returning: '$id'")
-            return id
-        } catch (e: Exception) {
-            println("DEBUG: FilmIdResolver caught exception accessing title: $e")
-            // Fallback: just return a hardcoded value for now
-            println("DEBUG: FilmIdResolver fallback to hardcoded '1'")
-            return "1"
-        }
-    }
-}
-
-/**
  * Resolver for the openingCrawl field - large data field that requires custom resolution.
  * Updated to extend generated base class.
  */
-@org.springframework.stereotype.Component
 @Resolver
 class FilmOpeningCrawlResolver : viaduct.demoapp.starwars.resolverbases.FilmResolvers.OpeningCrawl() {
     override suspend fun resolve(ctx: Context): String? {
@@ -60,8 +26,7 @@ class FilmOpeningCrawlResolver : viaduct.demoapp.starwars.resolverbases.FilmReso
  * @resolver("title"): Shorthand fragment syntax for simple field delegation
  * Updated to extend generated base class.
  */
-@org.springframework.stereotype.Component
-@Resolver("fragment _ on Film { title }")
+@Resolver("title")
 class FilmDisplayTitleResolver : viaduct.demoapp.starwars.resolverbases.FilmResolvers.DisplayTitle() {
     override suspend fun resolve(ctx: Context): String? {
         // Access the source Film from the context
@@ -74,8 +39,7 @@ class FilmDisplayTitleResolver : viaduct.demoapp.starwars.resolverbases.FilmReso
  * @resolver("title episodeID director"): Shorthand syntax accessing multiple fields
  * Updated to extend generated base class.
  */
-@org.springframework.stereotype.Component
-@Resolver("fragment _ on Film { title episodeID director }")
+@Resolver("title episodeID director")
 class FilmSummaryResolver : viaduct.demoapp.starwars.resolverbases.FilmResolvers.Summary() {
     override suspend fun resolve(ctx: Context): String? {
         // Access the source Film from the context
@@ -90,7 +54,6 @@ class FilmSummaryResolver : viaduct.demoapp.starwars.resolverbases.FilmResolvers
  *          Fragment syntax fetching production details to create a detailed description
  * Updated to extend generated base class.
  */
-@org.springframework.stereotype.Component
 @Resolver(
     """
     fragment _ on Film {
@@ -116,7 +79,6 @@ class FilmProductionDetailsResolver : viaduct.demoapp.starwars.resolverbases.Fil
  *          that includes both simple fields and connection fields
  * Updated to extend generated base class.
  */
-@org.springframework.stereotype.Component
 @Resolver(
     """
     fragment _ on Film {
@@ -133,7 +95,8 @@ class FilmCharacterCountSummaryResolver : viaduct.demoapp.starwars.resolverbases
         // Access the source Film from the context
         val film = ctx.objectValue
         // We need to access the film ID to look up character relationships
-        val filmId = film.getId()
+        val filmGlobalId = film.getId()
+        val filmId = filmGlobalId.internalID
         val characterCount = StarWarsData.filmCharacterRelations[filmId]?.size ?: 0
         return "${film.getTitle()} features $characterCount main characters"
     }
