@@ -11,11 +11,25 @@ interface RequiredSelectionSetRegistry {
         executeAccessChecksInModstrat: Boolean
     ): List<RequiredSelectionSet>
 
+    /**
+     * Get a list of [RequiredSelectionSet] for the provided typeName.
+     * If the type has no RequiredSelectionSet, it'll be an empty list.
+     */
+    fun getRequiredSelectionSetsForType(
+        typeName: String,
+        executeAccessChecksInModstrat: Boolean
+    ): List<RequiredSelectionSet>
+
     /** A [RequiredSelectionSetRegistry] that returns empty list for every request */
     object Empty : RequiredSelectionSetRegistry {
         override fun getRequiredSelectionSets(
             typeName: String,
             fieldName: String,
+            executeAccessChecksInModstrat: Boolean
+        ): List<RequiredSelectionSet> = emptyList()
+
+        override fun getRequiredSelectionSetsForType(
+            typeName: String,
             executeAccessChecksInModstrat: Boolean
         ): List<RequiredSelectionSet> = emptyList()
     }
