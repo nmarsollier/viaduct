@@ -17,14 +17,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
+import viaduct.service.api.spi.FlagManager
 
 class NextTickDispatcherTest {
     private fun nextTickDispatcher() =
         NextTickDispatcher(
             Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
             Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
-            flagManager = NoOpFlagManager,
+            flagManager = FlagManager.disabled,
         )
 
     @Test

@@ -29,7 +29,7 @@ import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeQuery
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeViaductModernGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.runExecutionTest
 import viaduct.engine.runtime.getLocalContextForType
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
+import viaduct.service.api.spi.FlagManager
 import viaduct.utils.slf4j.logger
 
 /**
@@ -56,7 +56,7 @@ class ViaductExecutionStrategyTest {
         private val log by logger()
     }
 
-    val nextTickDispatcher = NextTickDispatcher(flagManager = NoOpFlagManager)
+    val nextTickDispatcher = NextTickDispatcher(flagManager = FlagManager.disabled)
 
     @Test
     fun `instrumentation failure during field completion is contained at field level`() =

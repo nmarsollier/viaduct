@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import viaduct.dataloader.InternalDataLoader.Companion.genericBatchLoadFn
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
+import viaduct.service.api.spi.FlagManager
 import viaduct.utils.collections.parallelMap
 
 /**
@@ -68,7 +68,7 @@ class InternalDataLoaderTest {
         NextTickDispatcher(
             Dispatchers.Default,
             Executors.newCachedThreadPool().asCoroutineDispatcher(),
-            flagManager = NoOpFlagManager
+            flagManager = FlagManager.disabled
         )
 
     /**
@@ -78,7 +78,7 @@ class InternalDataLoaderTest {
         NextTickDispatcher(
             Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
             Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
-            flagManager = NoOpFlagManager,
+            flagManager = FlagManager.disabled,
         )
 
     @ParameterizedTest

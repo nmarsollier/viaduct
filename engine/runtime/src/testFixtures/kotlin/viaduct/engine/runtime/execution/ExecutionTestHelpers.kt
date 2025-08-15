@@ -59,7 +59,7 @@ object ExecutionTestHelpers {
         typeResolvers: Map<String, TypeResolver> = emptyMap(),
         requiredSelectionSetRegistry: RequiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
         instrumentations: List<ViaductModernInstrumentation> = emptyList(),
-        flagManager: FlagManager = FlagManager.Companion.DefaultFlagManager
+        flagManager: FlagManager = FlagManager.default
     ): ExecutionResult {
         val schema = createSchema(sdl, resolvers, typeResolvers)
         val modernGraphQL = createViaductGraphQL(
@@ -124,7 +124,7 @@ object ExecutionTestHelpers {
         fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry = FieldCheckerDispatcherRegistry.Empty,
         typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry = TypeCheckerDispatcherRegistry.Empty,
         coroutineInterop: CoroutineInterop = DefaultCoroutineInterop,
-        flagManager: FlagManager = FlagManager.Companion.DefaultFlagManager
+        flagManager: FlagManager = FlagManager.default
     ): GraphQL {
         val execParamFactory = ExecutionParameters.Factory(
             requiredSelectionSetRegistry,
@@ -229,7 +229,7 @@ object ExecutionTestHelpers {
     fun createLocalContext(schema: ViaductSchema): CompositeLocalContext =
         ContextMocks(
             myFullSchema = schema,
-            myFlagManager = FlagManager.Companion.DefaultFlagManager,
+            myFlagManager = FlagManager.default,
         ).localContext
 
     fun <T> runExecutionTest(block: suspend CoroutineScope.() -> T): T =

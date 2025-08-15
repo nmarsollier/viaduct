@@ -22,7 +22,6 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import viaduct.service.api.spi.Flag
 import viaduct.service.api.spi.FlagManager
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
 
 /**
  * A custom [CoroutineDispatcher] which wraps another [CoroutineDispatcher] (most likely a built-in
@@ -71,7 +70,7 @@ open class NextTickDispatcher(
     private val wrappedDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val nextTickQueueDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val nextTickExceptionHandler: CoroutineExceptionHandler? = null,
-    flagManager: FlagManager = NoOpFlagManager,
+    flagManager: FlagManager = FlagManager.disabled,
 ) : CoroutineDispatcher() {
     /*** Feature flags ***/
     enum class Flags(override val flagName: String) : Flag {
