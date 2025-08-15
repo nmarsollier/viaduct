@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.DelayController
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import viaduct.dataloader.NextTickDispatcher
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
+import viaduct.service.api.spi.FlagManager
 
 /**
  * This class is a combination of [TestCoroutineDispatcher] and [NextTickDispatcher]
@@ -26,7 +26,7 @@ import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
 class MockNextTickDispatcher constructor(
     private val internalDispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher(),
     private val batchQueueDispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher()
-) : NextTickDispatcher(internalDispatcher, batchQueueDispatcher, flagManager = NoOpFlagManager), Delay, DelayController {
+) : NextTickDispatcher(internalDispatcher, batchQueueDispatcher, flagManager = FlagManager.disabled), Delay, DelayController {
     @ExperimentalCoroutinesApi
     override val currentTime: Long
         get() = internalDispatcher.currentTime

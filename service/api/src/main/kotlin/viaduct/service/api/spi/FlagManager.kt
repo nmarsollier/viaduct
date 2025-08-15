@@ -16,22 +16,20 @@ interface FlagManager {
      */
     fun isEnabled(flag: Flag): Boolean
 
-    companion object {
-        object NoOpFlagManager : FlagManager {
-            override fun isEnabled(flag: Flag): Boolean = false
-        }
+    object disabled : FlagManager {
+        override fun isEnabled(flag: Flag): Boolean = false
+    }
 
-        object DefaultFlagManager : FlagManager {
-            override fun isEnabled(flag: Flag): Boolean =
-                when (flag) {
-                    USE_MODERN_EXECUTION_STRATEGY_QUERY,
-                    USE_MODERN_EXECUTION_STRATEGY_MUTATION,
-                    USE_MODERN_EXECUTION_STRATEGY_SUBSCRIPTION,
-                    USE_MODERN_EXECUTION_STRATEGY_FOR_MODERN_FIELDS,
-                    EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY -> true
+    object default : FlagManager {
+        override fun isEnabled(flag: Flag): Boolean =
+            when (flag) {
+                USE_MODERN_EXECUTION_STRATEGY_QUERY,
+                USE_MODERN_EXECUTION_STRATEGY_MUTATION,
+                USE_MODERN_EXECUTION_STRATEGY_SUBSCRIPTION,
+                USE_MODERN_EXECUTION_STRATEGY_FOR_MODERN_FIELDS,
+                EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY -> true
 
-                    else -> false
-                }
-        }
+                else -> false
+            }
     }
 }

@@ -99,7 +99,7 @@ class StandardViaductTest {
             fragmentLoader = ViaductFragmentLoader(ViaductExecutableFragmentParser()),
             tenantNameResolver = TenantNameResolver(),
             resolverInstrumentation = mockk<ResolverInstrumentation>(),
-            flagManager = FlagManager.Companion.DefaultFlagManager
+            flagManager = FlagManager.default
         )
     }
 

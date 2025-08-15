@@ -13,7 +13,7 @@ import viaduct.dataloader.NextTickDispatcher
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeViaductModernGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.runExecutionTest
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
+import viaduct.service.api.spi.FlagManager
 
 /**
  * Tests for ViaductExecutionStrategy child plan functionality.
@@ -39,7 +39,7 @@ import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
  */
 @ExperimentalCoroutinesApi
 class ViaductExecutionStrategyChildPlanTest {
-    val nextTickDispatcher = NextTickDispatcher(flagManager = NoOpFlagManager)
+    val nextTickDispatcher = NextTickDispatcher(flagManager = FlagManager.disabled)
 
     @Test
     fun `child plans execute with fresh root path and correct object type`() {

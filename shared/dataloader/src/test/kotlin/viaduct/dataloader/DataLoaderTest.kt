@@ -9,14 +9,14 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import viaduct.service.api.spi.FlagManager.Companion.NoOpFlagManager
+import viaduct.service.api.spi.FlagManager
 
 class DataLoaderTest {
     private fun nextTickDispatcher() =
         NextTickDispatcher(
             Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
             Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
-            flagManager = NoOpFlagManager
+            flagManager = FlagManager.disabled
         )
 
     private val dataLoaderStatsCollectorMock = mockk<DataLoaderStatsCollector>(relaxed = true)

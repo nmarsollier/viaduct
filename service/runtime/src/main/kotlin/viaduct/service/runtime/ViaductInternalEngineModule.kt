@@ -41,7 +41,7 @@ internal class ViaductInternalEngineModule(
     @Provides
     @Singleton
     fun providesFlagManager(): FlagManager {
-        return flagManager ?: FlagManager.Companion.DefaultFlagManager
+        return flagManager ?: FlagManager.default
     }
 
     @Provides
