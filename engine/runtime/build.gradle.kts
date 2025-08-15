@@ -31,13 +31,28 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core.jvm)
     implementation(libs.kotlinx.coroutines.jdk8)
 
-    testFixturesImplementation(testFixtures(project(":service:service-api")))
-    testFixturesImplementation(project(":engine:engine-api"))
-    testFixturesImplementation(project(":service:service-api"))
+    testFixturesImplementation(libs.caffeine)
     testFixturesImplementation(libs.graphql.java)
+    testFixturesImplementation(libs.graphql.java.extension)
     testFixturesImplementation(libs.io.mockk.jvm)
+    testFixturesImplementation(libs.kotest.property.jvm)
+    testFixturesImplementation(libs.kotlinx.coroutines.core.jvm)
+    testFixturesImplementation(libs.kotlinx.coroutines.jdk8)
+    testFixturesImplementation(project(":engine:engine-api"))
+    testFixturesImplementation(project(":engine:engine-runtime"))
+    testFixturesImplementation(project(":service:service-api"))
+    testFixturesImplementation(project(":shared:arbitrary"))
+    testFixturesImplementation(testFixtures(project(":service:service-api")))
 
     jmhAnnotationProcessor(libs.jmh.annotation.processor)
+
+    // JMH dependencies to access main and test sources
+    jmhImplementation(project(":shared:arbitrary"))
+    jmhImplementation(libs.kotlinx.coroutines.core.jvm)
+    jmhImplementation(libs.kotlinx.coroutines.jdk8)
+    jmhImplementation(libs.graphql.java)
+    jmhImplementation(project(":engine:engine-runtime"))
+    jmhImplementation(testFixtures(project(":engine:engine-runtime")))
 
     testImplementation(testFixtures(project(":engine:engine-api")))
     testImplementation(testFixtures(project(":engine:engine-runtime")))

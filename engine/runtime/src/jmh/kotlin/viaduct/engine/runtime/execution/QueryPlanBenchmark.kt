@@ -1,10 +1,9 @@
 @file:Suppress("ForbiddenImport")
 
-package viaduct.engine.runtime.execution.benchmark
+package viaduct.engine.runtime.execution
 
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
-import org.openjdk.jmh.Main
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Fork
@@ -18,7 +17,6 @@ import org.openjdk.jmh.annotations.Warmup
 import org.openjdk.jmh.infra.Blackhole
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.parse.CachedDocumentParser.parseDocument
-import viaduct.engine.runtime.execution.QueryPlan
 import viaduct.engine.runtime.mkSchema
 
 @State(Scope.Benchmark)
@@ -110,12 +108,5 @@ open class QueryPlanBenchmark {
     fun extraLarge3(blackhole: Blackhole) {
         val plan = extraLarge3.toQueryPlan()
         blackhole.consume(plan)
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            Main.main(args)
-        }
     }
 }

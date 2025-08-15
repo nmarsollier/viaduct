@@ -46,15 +46,11 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ViaductModernInstrumentation
 import viaduct.engine.runtime.CompositeLocalContext
-import viaduct.engine.runtime.execution.ExecutionTestHelpers.createLocalContext
 import viaduct.engine.runtime.instrumentation.ChainedViaductModernInstrumentation
 import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.service.api.spi.FlagManager
-import viaduct.utils.slf4j.logger
 
 object ExecutionTestHelpers {
-    private val log by logger()
-
     suspend fun executeViaductModernGraphQL(
         sdl: String,
         resolvers: Map<String, Map<String, DataFetcher<*>>>,
@@ -137,16 +133,22 @@ object ExecutionTestHelpers {
             flagManager
         )
         val accessCheckRunner = AccessCheckRunner(coroutineInterop)
+        val executionStrategyFactory = ViaductExecutionStrategy.Factory.Impl(
+            dataFetcherExceptionHandler = ExceptionHandlerWithFuture(),
+            executionParametersFactory = execParamFactory,
+            accessCheckRunner = accessCheckRunner,
+            coroutineInterop = coroutineInterop
+        )
         return GraphQL.newGraphQL(schema.schema)
             .preparsedDocumentProvider(preparsedDocumentProvider)
             .queryExecutionStrategy(
-                ViaductExecutionStrategy(ExceptionHandlerWithFuture(), execParamFactory, accessCheckRunner, isSerial = false, coroutineInterop)
+                executionStrategyFactory.create(isSerial = false)
             )
             .mutationExecutionStrategy(
-                ViaductExecutionStrategy(ExceptionHandlerWithFuture(), execParamFactory, accessCheckRunner, isSerial = true, coroutineInterop)
+                executionStrategyFactory.create(isSerial = true)
             )
             .subscriptionExecutionStrategy(
-                ViaductExecutionStrategy(ExceptionHandlerWithFuture(), execParamFactory, accessCheckRunner, isSerial = true, coroutineInterop)
+                executionStrategyFactory.create(isSerial = false)
             )
             .instrumentation(mkInstrumentation(instrumentations, gjInstrumentations))
             .build()
@@ -196,7 +198,7 @@ object ExecutionTestHelpers {
         variables: Map<String, Any?>
     ): ExecutionResult {
         // clear query plan cache
-        QueryPlan.resetCache()
+        QueryPlan.Companion.resetCache()
         val executionInput = createExecutionInput(schema, query, variables)
         return graphQL.executeAsync(executionInput).await()
     }
@@ -266,7 +268,7 @@ object DataFetchers {
 }
 
 /** generate an [Arb] of [ExecutionInput] that is configured for running on viaduct */
-internal fun Arb.Companion.viaductExecutionInput(
+fun Arb.Companion.viaductExecutionInput(
     schema: ViaductSchema,
     cfg: Config = Config.default,
 ): Arb<ExecutionInput> = Arb.graphQLExecutionInput(schema.schema, cfg).asViaductExecutionInput(schema)
@@ -274,7 +276,7 @@ internal fun Arb.Companion.viaductExecutionInput(
 fun Arb<ExecutionInput>.asViaductExecutionInput(schema: ViaductSchema): Arb<ExecutionInput> =
     map { input ->
         input.transform {
-            it.localContext(createLocalContext(schema))
+            it.localContext(ExecutionTestHelpers.createLocalContext(schema))
             it.graphQLContext(
                 mapOf(
                     // to enable testing very large queries, use the "sdl" parser options, which
@@ -285,7 +287,7 @@ fun Arb<ExecutionInput>.asViaductExecutionInput(schema: ViaductSchema): Arb<Exec
         }
     }
 
-internal fun ExecutionInput.dump(): String =
+fun ExecutionInput.dump(): String =
     """
        |OperationName: $operationName
        |Variables: $variables

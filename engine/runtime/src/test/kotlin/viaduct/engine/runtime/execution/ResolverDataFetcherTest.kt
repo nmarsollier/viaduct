@@ -18,7 +18,6 @@ import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectDataBuilder
 import viaduct.engine.api.FieldResolverExecutor
-import viaduct.engine.api.FieldResolverExecutor.Selector
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.FromArgumentVariable
 import viaduct.engine.api.ObjectEngineResult

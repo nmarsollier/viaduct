@@ -1,4 +1,6 @@
-package viaduct.engine.runtime.execution.benchmark
+@file:Suppress("EnumNaming", "VariableNaming")
+
+package viaduct.utils.collections
 
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,7 +16,6 @@ import org.openjdk.jmh.annotations.Setup
 import org.openjdk.jmh.annotations.State
 import org.openjdk.jmh.annotations.Warmup
 import org.openjdk.jmh.infra.Blackhole
-import viaduct.utils.collections.MaskedSet
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
