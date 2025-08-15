@@ -1,10 +1,9 @@
-package viaduct.engine.runtime.execution.benchmark
+package viaduct.engine.runtime.execution
 
 import graphql.schema.DataFetcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import viaduct.engine.runtime.execution.Conformer
 
 class JSONScalarConformanceTest {
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -17,7 +16,7 @@ class JSONScalarConformanceTest {
             resolvers = mapOf("Query" to mapOf("x" to DataFetcher { jsonValue }))
         ) {
             check("{ x }") { _, (act) ->
-                assertEquals(mapOf("x" to jsonValue), act.getData())
+                Assertions.assertEquals(mapOf("x" to jsonValue), act.getData())
             }
         }
     }

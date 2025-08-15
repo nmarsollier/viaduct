@@ -1,4 +1,4 @@
-package viaduct.engine.runtime.execution.benchmark
+package viaduct.engine.runtime.execution
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import graphql.Directives

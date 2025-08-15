@@ -141,7 +141,7 @@ data class QueryPlan(
 
         private data class QueryPlanCacheKey(val documentText: String, val documentKey: DocumentKey, val schemaHashCode: Int, val executeAccessChecksInModstrat: Boolean)
 
-        internal fun resetCache() {
+        fun resetCache() {
             queryPlanCache.synchronous().invalidateAll()
         }
 

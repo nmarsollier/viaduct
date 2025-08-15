@@ -1,9 +1,8 @@
-package viaduct.engine.runtime.execution.benchmark
+package viaduct.engine.runtime.execution
 
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
-import org.openjdk.jmh.Main
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Fork
@@ -78,13 +77,6 @@ open class ValueBenchmark {
         if (type == Type.Value) {
             val result = completedValue.map { it + 1 }
             blackhole.consume(result)
-        }
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            Main.main(args)
         }
     }
 }

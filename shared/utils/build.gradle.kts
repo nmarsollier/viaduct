@@ -1,5 +1,6 @@
 plugins {
     id("kotlin-static-analysis")
+    id("me.champeau.jmh").version("0.7.3")
 }
 
 dependencies {
@@ -13,4 +14,7 @@ dependencies {
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.kotest.assertions.core.jvm)
     testImplementation(libs.konsist)
+
+    jmh(libs.jmh.annotation.processor)
+    jmh(libs.jmh.core)
 }

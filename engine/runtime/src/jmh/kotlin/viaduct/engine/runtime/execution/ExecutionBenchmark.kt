@@ -1,10 +1,9 @@
-package viaduct.engine.runtime.execution.benchmark
+package viaduct.engine.runtime.execution
 
 import graphql.ExecutionResult
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
-import org.openjdk.jmh.Main
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Fork
@@ -79,12 +78,5 @@ open class ExecutionBenchmark {
     @Benchmark
     fun extraLarge2(blackHole: Blackhole) {
         blackHole.consume(extraLarge2.execute())
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            Main.main(args)
-        }
     }
 }
