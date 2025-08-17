@@ -2,12 +2,13 @@ package viaduct.engine.runtime.execution
 
 import graphql.schema.DataFetcher
 import graphql.schema.TypeResolver
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import viaduct.dataloader.NextTickDispatcher
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
@@ -45,7 +46,7 @@ class ViaductExecutionStrategyChildPlanTest {
     fun `child plans execute with fresh root path and correct object type`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
-                val childPlanExecutionStepInfos = mutableListOf<graphql.execution.ExecutionStepInfo>()
+                val childPlanExecutionStepInfos = ConcurrentLinkedQueue<graphql.execution.ExecutionStepInfo>()
 
                 val sdl = """
                     type Query {
@@ -166,7 +167,7 @@ class ViaductExecutionStrategyChildPlanTest {
     fun `child plans for object field checkers use fresh root path - reproduces original bug`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
-                val capturedPaths = mutableListOf<String>()
+                val capturedPaths = ConcurrentLinkedQueue<String>()
 
                 val sdl = """
                     type Query {
@@ -250,7 +251,7 @@ class ViaductExecutionStrategyChildPlanTest {
     fun `mixed child plans - Query and Object types in same execution`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
-                val capturedPaths = mutableListOf<Pair<String, String>>()
+                val capturedPaths = ConcurrentLinkedQueue<Pair<String, String>>()
 
                 val sdl = """
                     type Query {
@@ -333,11 +334,11 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
-    @Disabled("flaky")
+    @RepeatedTest(10000)
     fun `nested object types with RSS at multiple levels maintain correct paths`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
-                val capturedPaths = mutableListOf<Pair<String, String>>()
+                val capturedPaths = ConcurrentLinkedQueue<Pair<String, String>>()
 
                 val sdl = """
                     type Query {
@@ -442,11 +443,11 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
-    @Disabled("Flaky, disabling until fix")
+    @RepeatedTest(10000)
     fun `list fields with RSS execute child plans with correct paths for each item`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
-                val capturedPaths = mutableListOf<Pair<String, String>>()
+                val capturedPaths = ConcurrentLinkedQueue<Pair<String, String>>()
 
                 val sdl = """
                     type Query {
@@ -505,12 +506,12 @@ class ViaductExecutionStrategyChildPlanTest {
                 val data = executionResult.getData<Map<String, Any?>>()
                 assertNotNull(data)
                 val items = data["items"] as List<Map<String, Any?>>
-                assertEquals(3, items.size) // gokhan: flaky with "expected: <3> but was: <2>"
+                assertEquals(3, items.size)
                 assertEquals("restricted-item-1", items[0]["restricted"])
                 assertEquals("restricted-item-2", items[1]["restricted"])
                 assertEquals("restricted-item-3", items[2]["restricted"])
 
-                assertEquals(3, capturedPaths.size, "Expected RSS for each list item")
+                assertEquals(3, capturedPaths.size, "Expected 3 captured paths, got ${capturedPaths.size}: $capturedPaths")
 
                 val item1Path = capturedPaths.find { it.first == "item-1" }?.second
                 assertEquals("/items[0]/id", item1Path, "First list item RSS should have correct index path")
@@ -528,7 +529,7 @@ class ViaductExecutionStrategyChildPlanTest {
     fun `interface types with RSS use correct parent type for child plans`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
-                val capturedTypes = mutableListOf<Pair<String, String?>>()
+                val capturedTypes = ConcurrentLinkedQueue<Pair<String, String?>>()
 
                 val sdl = """
                     type Query {
