@@ -31,7 +31,7 @@ class AccessCheckRunner(
      */
     fun fieldCheck(
         parameters: ExecutionParameters,
-        dataFetchingEnvironmentProvider: Supplier<DataFetchingEnvironment>
+        dataFetchingEnvironmentSupplier: Supplier<DataFetchingEnvironment>
     ): Value<out CheckerResult?> {
         val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
@@ -39,14 +39,11 @@ class AccessCheckRunner(
         val field = checkNotNull(parameters.field) { "Expected field to be non-null." }
         val fieldName = field.fieldName
         val parentTypeName = parameters.executionStepInfo.objectType.name
-        val localExecutionContext = engineExecutionContext.copy(
-            dataFetchingEnvironment = dataFetchingEnvironmentProvider.get()
-        )
-        val fieldChecker = localExecutionContext.dispatcherRegistry.getFieldCheckerDispatcher(parentTypeName, fieldName)
+        val checkerDispatcher = engineExecutionContext.dispatcherRegistry.getFieldCheckerDispatcher(parentTypeName, fieldName)
             ?: return Value.nullValue // No access check for this field, return immediately
 
         // We're fetching an individual field; the current engine result will always be an ObjectEngineResult
-        return executeChecker(parameters, fieldChecker, localExecutionContext, parameters.parentEngineResult, parameters.executionStepInfo.arguments)
+        return executeChecker(parameters, dataFetchingEnvironmentSupplier, checkerDispatcher, parameters.parentEngineResult, parameters.executionStepInfo.arguments)
     }
 
     /**
@@ -57,55 +54,20 @@ class AccessCheckRunner(
      */
     fun typeCheck(
         parameters: ExecutionParameters,
+        dataFetchingEnvironmentSupplier: Supplier<DataFetchingEnvironment>,
         objectEngineResult: ObjectEngineResultImpl,
     ): Value<out CheckerResult?> {
         val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
 
         val typeName = objectEngineResult.graphQLObjectType.name
-        val typeChecker = engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(typeName)
-        if (typeChecker == null) {
+        val checkerDispatcher = engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(typeName)
+        if (checkerDispatcher == null) {
             // No access check for this field, return immediately
             return Value.nullValue
         }
 
-        // TODO: make this work for shimmed checkers with RSS -- the DFE doesn't work for type checks on list items
-        return executeChecker(parameters, typeChecker, engineExecutionContext, objectEngineResult, emptyMap())
-    }
-
-    private fun executeChecker(
-        parameters: ExecutionParameters,
-        dispatcher: CheckerDispatcher,
-        engineExecutionContext: EngineExecutionContextImpl,
-        objectEngineResult: ObjectEngineResultImpl,
-        arguments: Map<String, Any?>,
-    ): Value<out CheckerResult?> {
-        val instrumentedDispatcher = parameters.instrumentation.instrumentAccessCheck(
-            dispatcher,
-            InstrumentationExecutionStrategyParameters(parameters.executionContext, parameters.gjParameters),
-            parameters.executionContext.instrumentationState
-        )
-
-        val deferred = coroutineInterop.scopedAsync {
-            val rssMap = instrumentedDispatcher.requiredSelectionSets
-            val proxyEODMap = rssMap.mapValues { (_, rss) ->
-                val selectionSet = rss?.let {
-                    engineExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, emptyMap())
-                }
-                ProxyEngineObjectData(
-                    objectEngineResult,
-                    selectionSet,
-                    // Bypass access checks for checker required selection sets
-                    applyAccessChecks = false
-                )
-            }
-            instrumentedDispatcher.execute(
-                arguments,
-                proxyEODMap,
-                engineExecutionContext
-            )
-        }
-        return Value.fromDeferred(deferred)
+        return executeChecker(parameters, dataFetchingEnvironmentSupplier, checkerDispatcher, objectEngineResult, emptyMap())
     }
 
     /**
@@ -117,6 +79,7 @@ class AccessCheckRunner(
      */
     fun combineWithTypeCheck(
         parameters: ExecutionParameters,
+        dataFetchingEnvironmentSupplier: Supplier<DataFetchingEnvironment>,
         fieldCheckerResultValue: Value<out CheckerResult?>,
         fieldType: GraphQLOutputType,
         fieldResolutionResultValue: Value<FieldResolutionResult>,
@@ -135,7 +98,7 @@ class AccessCheckRunner(
                 val oer = checkNotNull(engineResult as? ObjectEngineResultImpl) {
                     "Expected engineResult to be instance of ObjectEngineResultImpl, got ${engineResult.javaClass}"
                 }
-                val typeCheckerResultValue = typeCheck(parameters, oer)
+                val typeCheckerResultValue = typeCheck(parameters, dataFetchingEnvironmentSupplier, oer)
                 when {
                     typeCheckerResultValue == Value.nullValue -> fieldCheckerResultValue
                     fieldCheckerResultValue == Value.nullValue -> typeCheckerResultValue
@@ -154,5 +117,46 @@ class AccessCheckRunner(
                 fieldCheckerResultValue
             }
         }
+    }
+
+    private fun executeChecker(
+        parameters: ExecutionParameters,
+        dataFetchingEnvironmentSupplier: Supplier<DataFetchingEnvironment>,
+        dispatcher: CheckerDispatcher,
+        objectEngineResult: ObjectEngineResultImpl,
+        arguments: Map<String, Any?>,
+    ): Value<out CheckerResult?> {
+        val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+        // Temporary hack to enable shimmed checkers to work on modern engine.
+        // See: https://git.musta.ch/airbnb/treehouse/pull/879484 for more details
+        val localExecutionContext = engineExecutionContext.copy(
+            dataFetchingEnvironment = dataFetchingEnvironmentSupplier.get()
+        )
+        val instrumentedDispatcher = parameters.instrumentation.instrumentAccessCheck(
+            dispatcher,
+            InstrumentationExecutionStrategyParameters(parameters.executionContext, parameters.gjParameters),
+            parameters.executionContext.instrumentationState
+        )
+
+        val deferred = coroutineInterop.scopedAsync {
+            val rssMap = instrumentedDispatcher.requiredSelectionSets
+            val proxyEODMap = rssMap.mapValues { (_, rss) ->
+                val selectionSet = rss?.let {
+                    localExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, emptyMap())
+                }
+                ProxyEngineObjectData(
+                    objectEngineResult,
+                    selectionSet,
+                    // Bypass access checks for checker required selection sets
+                    applyAccessChecks = false
+                )
+            }
+            instrumentedDispatcher.execute(
+                arguments,
+                proxyEODMap,
+                localExecutionContext
+            )
+        }
+        return Value.fromDeferred(deferred)
     }
 }

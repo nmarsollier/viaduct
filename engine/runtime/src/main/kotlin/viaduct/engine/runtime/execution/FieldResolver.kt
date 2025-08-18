@@ -271,6 +271,7 @@ class FieldResolver(
 
             val checkerResult = accessCheckRunner.combineWithTypeCheck(
                 parameters,
+                dataFetchingEnvironmentProvider,
                 fieldCheckerResultValue,
                 fieldType,
                 result,
@@ -344,7 +345,7 @@ class FieldResolver(
                 "Expected data to be an Iterable, was ${data.javaClass}."
             }
             return FieldResolutionResult.fromFetchedValue(
-                resultIterable.map {
+                resultIterable.mapIndexed { index, it ->
                     // Data could be a list of objects or DataFetcherResults, so unwrap them as we loop over
                     val itemFV = maybeUnwrapDataFetcherResult(parameters, it)
                     ObjectEngineResultImpl.newCell { slotSetter ->
@@ -360,7 +361,11 @@ class FieldResolver(
                         val typeCheckerResult = if (oer == null) {
                             Value.nullValue
                         } else {
-                            accessCheckRunner.typeCheck(parameters, oer)
+                            val mergedField = checkNotNull(parameters.field?.mergedField)
+                            val newParams = updateListItemParameters(parameters, index)
+                            val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, mergedField, parameters.parentEngineResult) }
+
+                            accessCheckRunner.typeCheck(parameters, itemDfeSupplier, oer)
                         }
                         slotSetter.setCheckerValue(typeCheckerResult)
                     }
@@ -482,13 +487,7 @@ class FieldResolver(
                     val frr = checkNotNull(item.getValue(RAW_VALUE_SLOT) as? Value.Sync<FieldResolutionResult>) {
                         "Expected the raw value slot to contain a Value.Sync<FieldResolutionResult>"
                     }.getOrThrow()
-                    val indexedPath = parameters.path.segment(i)
-                    val execStepInfoForItem =
-                        executionStepInfoFactory.newExecutionStepInfoForListElement(
-                            parameters.executionStepInfo,
-                            indexedPath
-                        )
-                    val newParams = parameters.copy(executionStepInfo = execStepInfoForItem)
+                    val newParams = updateListItemParameters(parameters, i)
                     maybeFetchNestedObject(frr, GraphQLTypeUtil.unwrapOneAs(outputType), field, newParams)
                 }
             }
@@ -501,6 +500,22 @@ class FieldResolver(
                 )
             }
         }
+    }
+
+    /**
+     * Updates ExecutionParameter executionStepInfo for list items
+     */
+    private fun updateListItemParameters(
+        parameters: ExecutionParameters,
+        itemIndex: Int
+    ): ExecutionParameters {
+        val indexedPath = parameters.path.segment(itemIndex)
+        val execStepInfoForItem =
+            executionStepInfoFactory.newExecutionStepInfoForListElement(
+                parameters.executionStepInfo,
+                indexedPath
+            )
+        return parameters.copy(executionStepInfo = execStepInfoForItem)
     }
 
     /**
