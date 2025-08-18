@@ -99,7 +99,7 @@ class FeatureTest(
      * @param expectedJson a JSON string. The string may use some short-hand conventions,
      *  including unquoted object keys, trailing commas, and comments
      */
-    fun ExecutionResult.assertJson(expectedJson: String,): Unit = this.realAssertJson(expectedJson)
+    fun ExecutionResult.assertJson(expectedJson: String): Unit = this.realAssertJson(expectedJson)
 }
 
 suspend inline fun <reified T : Any?> EngineObjectData.fetchAs(selection: String) = this.fetch(selection) as T
