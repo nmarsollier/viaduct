@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.instrumentation.IViaductInstrumentation
 import viaduct.engine.api.instrumentation.ViaductInstrumentationAdapter
 import viaduct.engine.api.instrumentation.ViaductInstrumentationBase
@@ -84,6 +85,36 @@ class OptimizedChainedInstrumentationTest {
         val context = optimized.beginCompleteObject(params, state)
         assertNotNull(context)
         assert(beginCompleteObjectInstrumentation.called)
+        verify { noInteractionInstrumentation wasNot Called }
+    }
+
+    class TestInstrumentAccessCheckInstrumentation :
+        ViaductInstrumentationBase(),
+        IViaductInstrumentation.WithInstrumentAccessCheck {
+        var called = false
+
+        override fun instrumentAccessCheck(
+            checkerDispatcher: CheckerDispatcher,
+            parameters: InstrumentationExecutionStrategyParameters,
+            state: InstrumentationState?
+        ): CheckerDispatcher {
+            called = true
+            return checkerDispatcher
+        }
+    }
+
+    @Test
+    fun `test instrumentAccessCheck optimization`() {
+        val instrumentAccessCheckInstrumentation = TestInstrumentAccessCheckInstrumentation()
+        val optimized = OptimizedChainedInstrumentation(
+            listOf(instrumentAccessCheckInstrumentation, noInteractionInstrumentationBase)
+        )
+        val params = mockk<InstrumentationExecutionStrategyParameters>()
+        val state = mockk<InstrumentationState>()
+        val checkerDispatcher = mockk<CheckerDispatcher>()
+        val result = optimized.instrumentAccessCheck(checkerDispatcher, params, state)
+        assertNotNull(result)
+        assert(instrumentAccessCheckInstrumentation.called)
         verify { noInteractionInstrumentation wasNot Called }
     }
 }

@@ -1,5 +1,6 @@
 package viaduct.engine.runtime.execution
 
+import graphql.execution.instrumentation.parameters.InstrumentationExecutionStrategyParameters
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLObjectType
@@ -45,7 +46,7 @@ class AccessCheckRunner(
             ?: return Value.nullValue // No access check for this field, return immediately
 
         // We're fetching an individual field; the current engine result will always be an ObjectEngineResult
-        return executeChecker(fieldChecker, localExecutionContext, parameters.parentEngineResult, parameters.executionStepInfo.arguments)
+        return executeChecker(parameters, fieldChecker, localExecutionContext, parameters.parentEngineResult, parameters.executionStepInfo.arguments)
     }
 
     /**
@@ -55,9 +56,10 @@ class AccessCheckRunner(
      * @return [Value] of the [CheckerResult] from executing the checker, or [Value] of null if there is no checker
      */
     fun typeCheck(
-        engineExecutionContext: EngineExecutionContextImpl,
+        parameters: ExecutionParameters,
         objectEngineResult: ObjectEngineResultImpl,
     ): Value<out CheckerResult?> {
+        val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
 
         val typeName = objectEngineResult.graphQLObjectType.name
@@ -68,17 +70,24 @@ class AccessCheckRunner(
         }
 
         // TODO: make this work for shimmed checkers with RSS -- the DFE doesn't work for type checks on list items
-        return executeChecker(typeChecker, engineExecutionContext, objectEngineResult, emptyMap())
+        return executeChecker(parameters, typeChecker, engineExecutionContext, objectEngineResult, emptyMap())
     }
 
     private fun executeChecker(
+        parameters: ExecutionParameters,
         dispatcher: CheckerDispatcher,
         engineExecutionContext: EngineExecutionContextImpl,
         objectEngineResult: ObjectEngineResultImpl,
         arguments: Map<String, Any?>,
     ): Value<out CheckerResult?> {
+        val instrumentedDispatcher = parameters.instrumentation.instrumentAccessCheck(
+            dispatcher,
+            InstrumentationExecutionStrategyParameters(parameters.executionContext, parameters.gjParameters),
+            parameters.executionContext.instrumentationState
+        )
+
         val deferred = coroutineInterop.scopedAsync {
-            val rssMap = dispatcher.requiredSelectionSets
+            val rssMap = instrumentedDispatcher.requiredSelectionSets
             val proxyEODMap = rssMap.mapValues { (_, rss) ->
                 val selectionSet = rss?.let {
                     engineExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, emptyMap())
@@ -90,7 +99,7 @@ class AccessCheckRunner(
                     applyAccessChecks = false
                 )
             }
-            dispatcher.execute(
+            instrumentedDispatcher.execute(
                 arguments,
                 proxyEODMap,
                 engineExecutionContext
@@ -107,11 +116,12 @@ class AccessCheckRunner(
      * @return [Value] of the combined field and type [CheckerResult]s
      */
     fun combineWithTypeCheck(
+        parameters: ExecutionParameters,
         fieldCheckerResultValue: Value<out CheckerResult?>,
         fieldType: GraphQLOutputType,
         fieldResolutionResultValue: Value<FieldResolutionResult>,
-        engineExecutionContext: EngineExecutionContextImpl
     ): Value<out CheckerResult?> {
+        val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         // Exit early if there is definitely no type check
         if (fieldType !is GraphQLCompositeType ||
             (fieldType is GraphQLObjectType && engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(fieldType.name) == null)
@@ -125,7 +135,7 @@ class AccessCheckRunner(
                 val oer = checkNotNull(engineResult as? ObjectEngineResultImpl) {
                     "Expected engineResult to be instance of ObjectEngineResultImpl, got ${engineResult.javaClass}"
                 }
-                val typeCheckerResultValue = typeCheck(engineExecutionContext, oer)
+                val typeCheckerResultValue = typeCheck(parameters, oer)
                 when {
                     typeCheckerResultValue == Value.nullValue -> fieldCheckerResultValue
                     fieldCheckerResultValue == Value.nullValue -> typeCheckerResultValue

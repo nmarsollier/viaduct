@@ -20,12 +20,12 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.runtime.CheckerDispatcherImpl
-import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.Value
+import viaduct.engine.runtime.getLocalContextForType
 import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.engine.runtime.objectEngineResult
 
@@ -104,23 +104,24 @@ class AccessCheckRunnerTest {
     @Test
     fun `combineWithTypeCheck - scalar field`() {
         val result = runner.combineWithTypeCheck(
+            createMockExecutionParameters(mockk<EngineExecutionContextImpl>()),
             Value.fromValue(CheckerResult.Success),
             mockk<GraphQLScalarType>(),
             Value.fromValue(mockk<FieldResolutionResult>()),
-            mockk<EngineExecutionContextImpl>()
         )
         assertEquals(Value.fromValue(CheckerResult.Success), result)
     }
 
     @Test
     fun `combineWithTypeCheck - no type check`() {
+        val engineExecutionContext = ContextMocks(
+            myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), emptyMap())
+        ).engineExecutionContext as EngineExecutionContextImpl
         val result = runner.combineWithTypeCheck(
+            createMockExecutionParameters(engineExecutionContext),
             Value.fromValue(CheckerResult.Success),
             fooObjectType,
             Value.fromValue(mockk<FieldResolutionResult>()),
-            ContextMocks(
-                myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), emptyMap())
-            ).engineExecutionContext as EngineExecutionContextImpl
         )
         assertEquals(Value.fromValue(CheckerResult.Success), result)
     }
@@ -140,13 +141,14 @@ class AccessCheckRunnerTest {
                     null
                 )
                 val typeChecks = mapOf("Foo" to CheckerDispatcherImpl(errorCheckerExecutor))
+                val engineExecutionContext = ContextMocks(
+                    myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), typeChecks)
+                ).engineExecutionContext as EngineExecutionContextImpl
                 val result = runner.combineWithTypeCheck(
+                    createMockExecutionParameters(engineExecutionContext),
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
                     Value.fromValue(frr),
-                    ContextMocks(
-                        myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), typeChecks)
-                    ).engineExecutionContext as EngineExecutionContextImpl
                 )
                 val error = result.await()?.asError?.error
                 assertTrue(error is IllegalAccessException)
@@ -166,13 +168,14 @@ class AccessCheckRunnerTest {
                     null
                 )
                 val typeChecks = mapOf("Foo" to CheckerDispatcherImpl(errorCheckerExecutor))
+                val engineExecutionContext = ContextMocks(
+                    myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), typeChecks)
+                ).engineExecutionContext as EngineExecutionContextImpl
                 val result = runner.combineWithTypeCheck(
+                    createMockExecutionParameters(engineExecutionContext),
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
                     Value.fromValue(frr),
-                    ContextMocks(
-                        myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), typeChecks)
-                    ).engineExecutionContext as EngineExecutionContextImpl
                 )
                 assertEquals(CheckerResult.Success, result.await())
             }
@@ -194,7 +197,8 @@ class AccessCheckRunnerTest {
             type = mockk { every { name } returns "Foo" }
             data = emptyMap()
         }
-        return runner.typeCheck(engineExecutionContext, oer)
+        val params = createMockExecutionParameters(engineExecutionContext)
+        return runner.typeCheck(params, oer)
     }
 
     private fun checkField(
@@ -211,20 +215,33 @@ class AccessCheckRunnerTest {
                 every { copy(any(), any()) } returns this
                 every { executeAccessChecksInModstrat } returns isEnabled
             }
-        ).localContext
-        val params = mockk<ExecutionParameters> {
-            every { executionStepInfo } returns mockk {
-                every { objectType.name } returns "Foo"
-                every { arguments } returns mapOf()
-            }
-            every { field?.fieldName } returns "bar"
-            every { executionContext.getLocalContext<CompositeLocalContext>() } returns context
-            every { parentEngineResult } returns mockk<ObjectEngineResultImpl>()
+        ).engineExecutionContext as? EngineExecutionContextImpl
+        val params = createMockExecutionParameters(context)
+
+        // Override field-check specific properties
+        every { params.executionStepInfo } returns mockk {
+            every { objectType.name } returns "Foo"
+            every { arguments } returns mapOf()
         }
+        every { params.field?.fieldName } returns "bar"
+        every { params.parentEngineResult } returns mockk<ObjectEngineResultImpl>()
         val dataFetchingEnvironmentProvider = mockk<Supplier<DataFetchingEnvironment>> {
             every { get() } returns mockk()
         }
         return exec.fieldCheck(params, dataFetchingEnvironmentProvider)
+    }
+
+    private fun createMockExecutionParameters(engineExecutionContext: EngineExecutionContextImpl?): ExecutionParameters {
+        return mockk<ExecutionParameters> {
+            every { instrumentation } returns mockk {
+                every { instrumentAccessCheck(any(), any(), any()) } answers { firstArg() }
+            }
+            every { executionContext } returns mockk {
+                every { instrumentationState } returns mockk()
+                engineExecutionContext?.let { every { getLocalContextForType<EngineExecutionContextImpl>() } returns it }
+            }
+            every { gjParameters } returns mockk()
+        }
     }
 
     companion object {

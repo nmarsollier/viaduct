@@ -269,12 +269,11 @@ class FieldResolver(
                     Value.fromThrowable(wrappedException)
                 }
 
-            val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
             val checkerResult = accessCheckRunner.combineWithTypeCheck(
+                parameters,
                 fieldCheckerResultValue,
                 fieldType,
                 result,
-                engineExecutionContext
             )
 
             slotSetter.setRawValue(result)
@@ -361,8 +360,7 @@ class FieldResolver(
                         val typeCheckerResult = if (oer == null) {
                             Value.nullValue
                         } else {
-                            val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
-                            accessCheckRunner.typeCheck(engineExecutionContext, oer)
+                            accessCheckRunner.typeCheck(parameters, oer)
                         }
                         slotSetter.setCheckerValue(typeCheckerResult)
                     }

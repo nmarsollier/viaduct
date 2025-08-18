@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.instrumentation.ChainedModernGJInstrumentation
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 
@@ -64,5 +65,28 @@ class ChainedModernGJInstrumentationTest {
         assertNotNull(result)
         verify { instr1.beginCompleteObject(parameters, state) }
         verify { instr2.beginCompleteObject(parameters, state) }
+    }
+
+    @Test
+    fun `instrumentAccessCheck chains all instrumentations`() {
+        val parameters = mockk<InstrumentationExecutionStrategyParameters>()
+        val state = mockk<InstrumentationState>()
+        val initialChecker = mockk<CheckerDispatcher>()
+        val intermediateChecker = mockk<CheckerDispatcher>()
+        val finalChecker = mockk<CheckerDispatcher>()
+
+        val instr1 = mockk<ViaductModernGJInstrumentation> {
+            every { instrumentAccessCheck(initialChecker, parameters, state) } returns intermediateChecker
+        }
+        val instr2 = mockk<ViaductModernGJInstrumentation> {
+            every { instrumentAccessCheck(intermediateChecker, parameters, state) } returns finalChecker
+        }
+
+        val chained = ChainedModernGJInstrumentation(listOf(instr1, instr2))
+        val result = chained.instrumentAccessCheck(initialChecker, parameters, state)
+
+        assertNotNull(result)
+        verify { instr1.instrumentAccessCheck(initialChecker, parameters, state) }
+        verify { instr2.instrumentAccessCheck(intermediateChecker, parameters, state) }
     }
 }
