@@ -99,6 +99,15 @@ type Character implements Node @resolver @scope(to: ["default"]) {
   Description of character's appearance (demonstrates full fragment syntax with multiple fields)
   """
   appearanceDescription: String @resolver
+  """
+  Number of films this character appears in (batch resolver example)
+  """
+  filmCount: Int @resolver
+
+  """
+  Rich summary combining character data with relationships (batch resolver example)
+  """
+  richSummary: String @resolver
 }
 
 """

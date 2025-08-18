@@ -1,6 +1,6 @@
 # Star Wars GraphQL Demo
 
-This demo application showcases a comprehensive GraphQL API implementation using Viaduct's custom directives. The demo features Star Wars characters, films, planets, and other entities with full relationship mapping.
+This demo application showcases a comprehensive GraphQL API implementation using Viaduct's custom directives and batch resolvers. The demo features Star Wars characters, films, planets, and other entities with full relationship mapping and optimized N+1 query prevention.
 
 ## Custom Directives Demonstrated
 
@@ -15,10 +15,10 @@ This demo application showcases a comprehensive GraphQL API implementation using
 ```kotlin
 @Resolver("fieldName")
 class MyFieldResolver {
-    fun resolve(obj: MyType): String {
-        // Automatically delegates to the specified field
-        return obj.fieldName
-    }
+  override suspend fun resolve(ctx: Context): String {
+    // Automatically delegates to the specified field
+    return ctx.objectValue.getFieldName()
+  }
 }
 ```
 
@@ -30,7 +30,7 @@ class MyFieldResolver {
 #### 2. Full Fragment Syntax
 ```kotlin
 @Resolver(
-    """
+  """
     fragment _ on MyType {
         field1
         field2
@@ -39,10 +39,11 @@ class MyFieldResolver {
     """
 )
 class MyComputedFieldResolver {
-    fun resolve(obj: MyType): String {
-        // Can access all specified fields
-        return "${obj.field1} - ${obj.field2} (${obj.field3})"
-    }
+  override suspend fun resolve(ctx: Context): String {
+    val obj = ctx.objectValue
+    // Can access all specified fields
+    return "${obj.getField1()} - ${obj.getField2()} (${obj.getField3()})"
+  }
 }
 ```
 
@@ -51,18 +52,36 @@ class MyComputedFieldResolver {
 - Performance optimization by specifying exact field requirements
 - Complex business logic combining multiple attributes
 
-**Example**:
-```graphql
-type Person {
-  name: String @resolver
-  homeworld: Planet @resolver      # Standard resolver
-  displayName: String @resolver    # Shorthand fragment: @Resolver("name")
-  summary: String @resolver         # Full fragment: @Resolver("fragment _ on Person { name birthYear }")
-  appearanceDescription: String @resolver  # Full fragment with multiple fields
+#### 3. Batch Resolver Fragment Syntax
+```kotlin
+@Resolver(objectValueFragment = "fragment _ on Character { id name }")
+class CharacterBatchResolver : CharacterResolvers.SomeField() {
+  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<String>> {
+    // Process multiple contexts efficiently in one batch
+    return contexts.map { ctx ->
+      val character = ctx.objectValue
+      FieldValue.ofValue("${character.getName()} processed in batch")
+    }
+  }
 }
 ```
 
-**Implementation**: Each `@resolver` field has a corresponding resolver class with optional fragment syntax for efficient field access.
+**Use cases**:
+- Preventing N+1 query problems
+- Efficient batch processing of multiple field requests
+- Performance optimization for list queries
+
+**Example**:
+```graphql
+type Character {
+  name: String @resolver
+  homeworld: Planet @resolver      # Standard resolver (or batch resolver)
+  displayName: String @resolver    # Shorthand fragment: @Resolver("name")
+  summary: String @resolver        # Full fragment: @Resolver("fragment _ on Character { name birthYear }")
+  filmCount: Int @resolver         # Batch resolver for efficient counting
+  richSummary: String @resolver    # Batch resolver with complex logic
+}
+```
 
 ### @backingData
 **Purpose**: Specifies a backing data class for complex field resolution, particularly useful for connection fields requiring pagination.
@@ -71,10 +90,10 @@ type Person {
 
 **Example**:
 ```graphql
-type Person {
-  filmConnection(first: Int, after: String): PersonFilmsConnection
-    @resolver
-    @backingData(class: "starwars.person.FilmConnection")
+type Character {
+  filmConnection(first: Int, after: String): CharacterFilmsConnection
+  @resolver
+  @backingData(class: "starwars.character.FilmConnection")
 }
 ```
 
@@ -87,16 +106,17 @@ type Person {
 
 **Example**:
 ```graphql
-type Query @scope(to: ["starwars"]) {
-  allPeople: [Person]
+type Query @scope(to: ["default"]) {
+  allCharacters: [Character]
 }
 
-type Person @scope(to: ["starwars", "admin"]) {
+type Species @scope(to: ["default", "extras"]) {
   name: String
+  culturalNotes: String @scope(to: ["extras"])  # Only available with "extras" scope
 }
 ```
 
-**Implementation**: The entire demo is scoped to "starwars" tenant, demonstrating isolated schema access.
+**Implementation**: The demo demonstrates both default scope access and restricted "extras" scope fields.
 
 ### @idOf
 **Purpose**: Specifies global ID type association and validation for proper type checking.
@@ -106,15 +126,15 @@ type Person @scope(to: ["starwars", "admin"]) {
 **Example**:
 ```graphql
 type Query {
-  person(id: ID! @idOf(type: "Person")): Person
+  character(id: ID! @idOf(type: "Character")): Character
 }
 
-type Person {
-  id: ID! @idOf(type: "Person")
+type Character {
+  id: ID! @idOf(type: "Character")
 }
 ```
 
-**Implementation**: Enables type-safe ID handling and validation across the GraphQL schema.
+**Implementation**: Enables type-safe GlobalID handling and validation across the GraphQL schema.
 
 ### @oneOf
 **Purpose**: Ensures input objects have exactly one non-null field, useful for union-like input types.
@@ -123,29 +143,63 @@ type Person {
 
 **Example**:
 ```graphql
-input PersonSearchInput @oneOf {
+input CharacterSearchInput @oneOf {
   byName: String
   byId: ID
   byBirthYear: String
 }
 
 type Query {
-  searchPerson(search: PersonSearchInput!): Person
+  searchCharacter(search: CharacterSearchInput!): Character
 }
 ```
 
 **Implementation**: Validates that exactly one search criterion is provided, preventing ambiguous queries.
 
+## Batch Resolvers: Performance Optimization
+
+### The N+1 Problem
+Without batch resolvers, querying multiple characters with homeworlds results in N+1 database calls:
+```
+1 query for characters + N queries for homeworlds = inefficient
+```
+
+### Batch Resolver Solution
+With batch resolvers, the same query becomes highly efficient:
+```
+1 query for characters + 1 batch query for all homeworlds = optimal
+```
+
+### Example Implementation
+```kotlin
+@Resolver(objectValueFragment = "fragment _ on Character { id }")
+class CharacterHomeworldBatchResolver : CharacterResolvers.Homeworld() {
+  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Planet?>> {
+    // Extract all character IDs
+    val characterIds = contexts.map { it.objectValue.getId().internalID }
+
+    // Single batch lookup for all homeworlds
+    val homeworlds = lookupHomeworlds(characterIds)
+
+    // Return results in same order as contexts
+    return contexts.map { ctx ->
+      val homeworld = homeworlds[ctx.objectValue.getId().internalID]
+      FieldValue.ofValue(homeworld)
+    }
+  }
+}
+```
+
 ## Data Model
 
 The demo includes comprehensive Star Wars data:
 
-### Characters (People)
-- Luke Skywalker
-- Princess Leia
-- Han Solo
-- Darth Vader
-- Obi-Wan Kenobi
+### Characters
+- Luke Skywalker (Tatooine, Human, pilots X-wing)
+- Princess Leia (Alderaan, Human)
+- Han Solo (Corellia, Human, pilots Millennium Falcon)
+- Darth Vader (Tatooine, Human)
+- Obi-Wan Kenobi (Stewjon, Human)
 
 ### Films
 - A New Hope (Episode IV)
@@ -153,68 +207,136 @@ The demo includes comprehensive Star Wars data:
 - Return of the Jedi (Episode VI)
 
 ### Planets
-- Tatooine
-- Alderaan
-- Corellia
-- Stewjon
+- Tatooine (desert world)
+- Alderaan (destroyed planet)
+- Corellia (industrial world)
+- Stewjon (Obi-Wan's homeworld)
+
+### Species
+- Human (with extras scope: cultural notes, rarity level, special abilities)
 
 ### Starships & Vehicles
-- Millennium Falcon
-- X-wing
+- Millennium Falcon (Han's ship)
+- X-wing (Luke's fighter)
 - Speeder bikes
 
 ## Architecture
 
 ### In-Memory Storage
-The demo uses `StarWarsData` object for in-memory data storage, making it easy to understand and modify without database dependencies.
+The demo uses `StarWarsData` object for in-memory data storage with relationship mappings:
+```kotlin
+val characterFilmRelations = mapOf(
+  "1" to listOf("1", "2", "3"), // Luke in all three films
+  // ...
+)
+```
 
-### Resolver Pattern
-Each `@resolver` field has a dedicated resolver class:
-- `PersonNameResolver` for `Person.name`
-- `PersonHomeworldResolver` for `Person.homeworld`
-- `AllPeopleResolver` for `Query.allPeople`
+### Single vs Batch Resolvers
+The demo includes both patterns:
+
+**Single Resolvers** (traditional approach):
+```kotlin
+@Resolver("id")
+class CharacterHomeworldResolver : CharacterResolvers.Homeworld() {
+  override suspend fun resolve(ctx: Context): Planet? {
+    // Resolves one character's homeworld
+  }
+}
+```
+
+**Batch Resolvers** (optimized approach):
+```kotlin
+@Resolver(objectValueFragment = "fragment _ on Character { id }")
+class CharacterHomeworldBatchResolver : CharacterResolvers.Homeworld() {
+  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Planet?>> {
+    // Resolves multiple characters' homeworlds efficiently
+  }
+}
+```
 
 ### Connection Implementation
 GraphQL connections are implemented using backing data classes that handle pagination:
-- `PeopleConnection` for paginated people queries
-- `FilmConnection` for person-film relationships
-- `StarshipConnection` for person-starship relationships
+- `CharactersConnection` for paginated character queries
+- `FilmsConnection` for paginated film queries
+- Relationship connections for character-film, character-starship mappings
 
 ## Key Features
 
-1. **Multi-tenant Schema**: Demonstrates `@scope` directive for tenant isolation
-2. **Type-safe IDs**: Uses `@idOf` for proper ID validation
-3. **Complex Relationships**: Shows related entities with proper resolution
-4. **Pagination Support**: Implements GraphQL connection pattern
-5. **Input Validation**: Demonstrates `@oneOf` for exactly-one-field semantics
-6. **Comprehensive Documentation**: All directives are thoroughly documented
+1. **Batch Resolver Optimization**: Prevents N+1 queries with automatic batching
+2. **Multi-tenant Schema**: Demonstrates `@scope` directive for tenant isolation
+3. **Type-safe GlobalIDs**: Uses `@idOf` with encoded GlobalID system
+4. **Complex Relationships**: Shows related entities with efficient resolution
+5. **Pagination Support**: Implements GraphQL connection pattern
+6. **Input Validation**: Demonstrates `@oneOf` for exactly-one-field semantics
+7. **Fragment Optimization**: Specifies exact field requirements for performance
+
+## Batch Resolver Examples
+
+### Simple Batch Counting
+```kotlin
+// Efficiently count films for multiple characters
+@Resolver(objectValueFragment = "fragment _ on Character { id }")
+class CharacterFilmCountResolver : CharacterResolvers.FilmCount() {
+  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Int>> {
+    val counts = batchCountFilms(contexts.map { it.objectValue.getId().internalID })
+    return contexts.map { FieldValue.ofValue(counts[it.objectValue.getId().internalID] ?: 0) }
+  }
+}
+```
+
+### Complex Multi-Source Batching
+```kotlin
+// Combine data from multiple sources efficiently
+@Resolver(objectValueFragment = "fragment _ on Character { id name birthYear }")
+class CharacterRichSummaryResolver : CharacterResolvers.RichSummary() {
+  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<String>> {
+    // Batch lookup homeworlds, species, film counts
+    val summaries = createRichSummaries(contexts)
+    return contexts.map { FieldValue.ofValue(summaries[it]) }
+  }
+}
+```
 
 ## Example Queries
 
-### Basic Person Query
+### Basic Character Query (with batch optimization)
 ```graphql
 query {
-  person(id: "1") {
-    name
-    birthYear
-    homeworld {
+  allCharacters(first: 5) {
+    characters {
       name
+      homeworld { name }  # Batch resolved efficiently
+      filmCount          # Batch calculated
     }
   }
 }
 ```
 
-### Paginated People Query
+### Complex Batch Query
 ```graphql
 query {
-  allPeople(first: 5) {
-    people {
+  allCharacters(first: 10) {
+    characters {
       name
-      eyeColor
+      richSummary      # Combines multiple data sources
+      homeworld { name }
+      species { name }
+      filmCount
     }
-    totalCount
-    pageInfo {
-      hasNextPage
+  }
+}
+```
+
+### Film with Batch Character Resolution
+```graphql
+query {
+  allFilms {
+    films {
+      title
+      mainCharacters {  # Batch resolved
+        name
+        homeworld { name }
+      }
     }
   }
 }
@@ -223,81 +345,57 @@ query {
 ### Search with @oneOf
 ```graphql
 query {
-  searchPerson(search: { byName: "Luke" }) {
+  searchCharacter(search: { byName: "Luke" }) {
     name
     birthYear
+    homeworld { name }
   }
 }
 ```
 
-### Complex Relationships
+### Scoped Species Query
 ```graphql
+# Basic query (default scope)
 query {
-  person(id: "1") {
+  species(id: "1") {
     name
-    filmConnection(first: 3) {
-      films {
-        title
-        director
-      }
-    }
-    starshipConnection(first: 2) {
-      starships {
-        name
-        model
-      }
-    }
+    classification
   }
 }
-```
 
-### Fragment Syntax Examples
-```graphql
+# Extended query (requires "extras" scope header)
 query {
-  person(id: "1") {
-    # Standard resolved field
+  species(id: "1") {
     name
-    
-    # Shorthand fragment syntax - delegates to name field
-    displayName
-    
-    # Full fragment syntax - combines name and birthYear
-    displaySummary
-    
-    # Full fragment syntax - combines multiple appearance fields
-    appearanceDescription
+    culturalNotes      # Only available with extras scope
+    specialAbilities
   }
 }
 ```
 
-### Film Fragment Examples
-```graphql
-query {
-  allFilms(first: 2) {
-    films {
-      # Standard fields
-      title
-      director
-      
-      # Shorthand fragment - delegates to title
-      displayTitle
-      
-      # Full fragment - combines episode, title, director
-      summary
-      
-      # Full fragment - production details
-      productionDetails
-      
-      # Full fragment with connection data
-      characterCountSummary
-    }
-  }
-}
+## Performance Benefits
+
+### Without Batch Resolvers
 ```
+Query: 100 characters with homeworlds
+- 1 query for characters
+- 100 individual homeworld queries
+Total: 101 database calls 😰
+```
+
+### With Batch Resolvers
+```
+Query: 100 characters with homeworlds
+- 1 query for characters
+- 1 batch query for homeworlds
+Total: 2 database calls 🚀
+```
+
+**Result**: 50x performance improvement!
 
 ## Building and Running
 
-This demo is part of the Treehouse monorepo and uses Bazel for building:
+This demo is part of the Viaduct framework:
 
 ```bash
 # Build the demo
@@ -305,6 +403,24 @@ bazel build //projects/viaduct/oss/demoapps/starwars:starwars_demo
 
 # Run tests
 bazel test //projects/viaduct/oss/demoapps/starwars/...
+
+# Run batch resolver tests
+bazel test //projects/viaduct/oss/demoapps/starwars:BatchResolverDemoTest
 ```
 
-The implementation demonstrates how Viaduct's custom directives enable powerful GraphQL schema capabilities while maintaining clean, understandable code organization.
+## Testing
+
+The demo includes comprehensive tests:
+- **Integration tests** for all resolvers
+- **Batch resolver performance tests**
+- **Scope isolation tests**
+- **GlobalID encoding/decoding tests**
+- **@oneOf input validation tests**
+
+Key test files:
+- `ResolverIntegrationTest.kt` - Tests all standard resolvers
+- `BatchResolverDemoTest.kt` - Tests batch resolver efficiency
+- `ExtrasScopeTest.kt` - Tests multi-tenant scoping
+- `GlobalIDDemoTest.kt` - Tests GlobalID functionality
+
+The implementation demonstrates how Viaduct's custom directives and batch resolvers enable powerful GraphQL schema capabilities while maintaining optimal performance and clean, understandable code organization.
