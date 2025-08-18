@@ -25,6 +25,7 @@ import graphql.schema.DataFetcher
 import graphql.schema.GraphQLSchema
 import graphql.validation.ValidationError
 import java.util.concurrent.CompletableFuture
+import viaduct.engine.api.CheckerDispatcher
 
 /**
  * ViaductModernInstrumentation is an interface representing the instrumentation methods that are available in
@@ -115,6 +116,17 @@ interface ViaductModernInstrumentation {
                         return viaductInstrumentation.beginCompleteObject(parameters, state)
                     }
                     return noOp()
+                }
+
+                override fun instrumentAccessCheck(
+                    checkerDispatcher: CheckerDispatcher,
+                    parameters: InstrumentationExecutionStrategyParameters,
+                    state: InstrumentationState?
+                ): CheckerDispatcher {
+                    if (viaductInstrumentation is WithInstrumentAccessCheck) {
+                        return viaductInstrumentation.instrumentAccessCheck(checkerDispatcher, parameters, state)
+                    }
+                    return checkerDispatcher
                 }
 
                 override fun beginFieldCompletion(
@@ -316,6 +328,14 @@ interface ViaductModernInstrumentation {
         ): DataFetcher<*>
     }
 
+    interface WithInstrumentAccessCheck : ViaductModernInstrumentation {
+        fun instrumentAccessCheck(
+            checkerDispatcher: CheckerDispatcher,
+            parameters: InstrumentationExecutionStrategyParameters,
+            state: InstrumentationState?
+        ): CheckerDispatcher
+    }
+
     fun instrumentDocumentAndVariables(
         documentAndVariables: DocumentAndVariables,
         parameters: InstrumentationExecutionParameters,
@@ -506,7 +526,9 @@ interface ViaductModernGJInstrumentation : Instrumentation {
             }
     }
 
-    // the two extra methods we provide for modern
+    // Modern-only methods that are not part of the standard GraphQL Java Instrumentation interface, but for instrumentation that is running
+    // on both modern + classic, we may want to have instrumentation running on both.
+
     fun beginFetchObject(
         parameters: InstrumentationExecutionStrategyParameters,
         state: InstrumentationState?
@@ -519,5 +541,13 @@ interface ViaductModernGJInstrumentation : Instrumentation {
         state: InstrumentationState?
     ): InstrumentationContext<Any>? {
         return noOp()
+    }
+
+    fun instrumentAccessCheck(
+        checkerDispatcher: CheckerDispatcher,
+        parameters: InstrumentationExecutionStrategyParameters,
+        state: InstrumentationState?
+    ): CheckerDispatcher {
+        return checkerDispatcher
     }
 }

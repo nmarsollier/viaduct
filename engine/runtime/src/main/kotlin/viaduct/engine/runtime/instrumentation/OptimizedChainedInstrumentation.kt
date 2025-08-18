@@ -7,6 +7,7 @@ import graphql.execution.instrumentation.parameters.InstrumentationFieldComplete
 import graphql.execution.instrumentation.parameters.InstrumentationFieldFetchParameters
 import graphql.execution.instrumentation.parameters.InstrumentationFieldParameters
 import graphql.schema.DataFetcher
+import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.instrumentation.ChainedModernGJInstrumentation
 import viaduct.engine.api.instrumentation.IViaductInstrumentation
 import viaduct.engine.api.instrumentation.ViaductInstrumentationBase
@@ -123,6 +124,23 @@ class OptimizedChainedInstrumentation(
                 instr.beginCompleteObject(parameters, getState(instr, state))
             }
         )
+
+    private val instrumentAccessCheckInstrumentations by lazy {
+        mapInstrumentations<IViaductInstrumentation.WithInstrumentAccessCheck>()
+    }
+
+    override fun instrumentAccessCheck(
+        checkerDispatcher: CheckerDispatcher,
+        parameters: InstrumentationExecutionStrategyParameters,
+        state: InstrumentationState?
+    ): CheckerDispatcher {
+        var instrumentedChecker = checkerDispatcher
+        for (instr in instrumentAccessCheckInstrumentations) {
+            instrumentedChecker = instr.instrumentAccessCheck(instrumentedChecker, parameters, getState(instr, state))
+        }
+
+        return instrumentedChecker
+    }
 
     private inline fun <reified T : IViaductInstrumentation> mapInstrumentations() =
         linkedInstrumentations

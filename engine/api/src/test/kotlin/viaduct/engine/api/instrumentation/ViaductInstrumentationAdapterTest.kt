@@ -15,6 +15,7 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.CheckerDispatcher
 
 class ViaductInstrumentationAdapterTest {
     class TestModernInstrumentation :
@@ -24,13 +25,17 @@ class ViaductInstrumentationAdapterTest {
         IViaductInstrumentation.WithInstrumentDataFetcher,
         IViaductInstrumentation.WithBeginFieldFetch,
         IViaductInstrumentation.WithBeginFieldExecution,
-        IViaductInstrumentation.WithBeginFieldCompletion {
+        IViaductInstrumentation.WithBeginFieldCompletion,
+        IViaductInstrumentation.WithBeginFieldListCompletion,
+        IViaductInstrumentation.WithInstrumentAccessCheck {
         var beginFetchObjectCalled = false
         var beginCompleteObjectCalled = false
         var instrumentDataFetcherCalled = false
         var beginFieldFetchCalled = false
         var beginFieldExecutionCalled = false
         var beginFieldCompletionCalled = false
+        var beginFieldListCompletionCalled = false
+        var instrumentAccessCheckCalled = false
 
         override fun beginFetchObject(
             parameters: InstrumentationExecutionStrategyParameters,
@@ -79,6 +84,23 @@ class ViaductInstrumentationAdapterTest {
         ): InstrumentationContext<Any>? {
             beginFieldCompletionCalled = true
             return noOp()
+        }
+
+        override fun beginFieldListCompletion(
+            parameters: InstrumentationFieldCompleteParameters,
+            state: InstrumentationState?
+        ): InstrumentationContext<Any>? {
+            beginFieldListCompletionCalled = true
+            return noOp()
+        }
+
+        override fun instrumentAccessCheck(
+            checkerDispatcher: CheckerDispatcher,
+            parameters: InstrumentationExecutionStrategyParameters,
+            state: InstrumentationState?
+        ): CheckerDispatcher {
+            instrumentAccessCheckCalled = true
+            return checkerDispatcher
         }
     }
 
@@ -157,5 +179,11 @@ class ViaductInstrumentationAdapterTest {
 
         instrumentation.beginFieldCompletion(mockk(), mockk())
         assert(instrumentationBase.beginFieldCompletionCalled)
+
+        instrumentation.beginFieldListCompletion(mockk(), mockk())
+        assert(instrumentationBase.beginFieldListCompletionCalled)
+
+        instrumentation.instrumentAccessCheck(mockk(), mockk(), mockk())
+        assert(instrumentationBase.instrumentAccessCheckCalled)
     }
 }
