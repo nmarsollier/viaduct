@@ -11,6 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerResult
@@ -32,6 +33,14 @@ import viaduct.engine.runtime.objectEngineResult
 @OptIn(ExperimentalCoroutinesApi::class)
 class AccessCheckRunnerTest {
     val runner = AccessCheckRunner(DefaultCoroutineInterop)
+
+    val mockSupplier = mockk<Supplier<DataFetchingEnvironment>>()
+    val mockDataFetchingEnvironment = mockk<DataFetchingEnvironment>()
+
+    @BeforeEach
+    fun setUp() {
+        every { mockSupplier.get() } returns mockDataFetchingEnvironment
+    }
 
     @Test
     fun `fieldCheck - flag disabled`() =
@@ -105,6 +114,7 @@ class AccessCheckRunnerTest {
     fun `combineWithTypeCheck - scalar field`() {
         val result = runner.combineWithTypeCheck(
             createMockExecutionParameters(mockk<EngineExecutionContextImpl>()),
+            mockSupplier,
             Value.fromValue(CheckerResult.Success),
             mockk<GraphQLScalarType>(),
             Value.fromValue(mockk<FieldResolutionResult>()),
@@ -119,6 +129,7 @@ class AccessCheckRunnerTest {
         ).engineExecutionContext as EngineExecutionContextImpl
         val result = runner.combineWithTypeCheck(
             createMockExecutionParameters(engineExecutionContext),
+            mockSupplier,
             Value.fromValue(CheckerResult.Success),
             fooObjectType,
             Value.fromValue(mockk<FieldResolutionResult>()),
@@ -146,6 +157,7 @@ class AccessCheckRunnerTest {
                 ).engineExecutionContext as EngineExecutionContextImpl
                 val result = runner.combineWithTypeCheck(
                     createMockExecutionParameters(engineExecutionContext),
+                    mockSupplier,
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
                     Value.fromValue(frr),
@@ -173,6 +185,7 @@ class AccessCheckRunnerTest {
                 ).engineExecutionContext as EngineExecutionContextImpl
                 val result = runner.combineWithTypeCheck(
                     createMockExecutionParameters(engineExecutionContext),
+                    mockSupplier,
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
                     Value.fromValue(frr),
@@ -198,7 +211,7 @@ class AccessCheckRunnerTest {
             data = emptyMap()
         }
         val params = createMockExecutionParameters(engineExecutionContext)
-        return runner.typeCheck(params, oer)
+        return runner.typeCheck(params, mockSupplier, oer)
     }
 
     private fun checkField(
