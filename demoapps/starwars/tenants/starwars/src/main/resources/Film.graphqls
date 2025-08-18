@@ -96,6 +96,10 @@ type Film implements Node @resolver @scope(to: ["default"]) {
   Character count summary (demonstrates relationship computation)
   """
   characterCountSummary: String @resolver
+  """
+  Main characters in this film (batch resolver example)
+  """
+  mainCharacters: [Character] @resolver
 }
 
 """
