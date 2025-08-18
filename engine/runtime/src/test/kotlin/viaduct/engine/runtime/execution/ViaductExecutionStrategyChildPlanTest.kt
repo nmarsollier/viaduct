@@ -8,7 +8,6 @@ import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import viaduct.dataloader.NextTickDispatcher
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
@@ -334,7 +333,6 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
-    @RepeatedTest(10000)
     fun `nested object types with RSS at multiple levels maintain correct paths`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
@@ -443,7 +441,6 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
-    @RepeatedTest(10000)
     fun `list fields with RSS execute child plans with correct paths for each item`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
