@@ -34,16 +34,20 @@ internal class EODBuilderWrapper(
      * builders, which type checking has been done at the call site. Therefore,
      * we only use the minimum type checking needed for `unwrap` here for
      * efficiency reason.
+     *
+     * @param alias - Only used for use cases of unit tests needing to mock aliased results.
+     *                Not to be used for production code or normal engine usage!
      */
     fun put(
         fieldName: String,
-        value: Any?
+        value: Any?,
+        alias: String? = null
     ) {
         val field = graphQLObjectType.getField(fieldName)
         val type = field.type ?: throw IllegalArgumentException(
             "Field ${field.name} not found on type ${graphQLObjectType.name}"
         )
-        engineObjectDataBuilder.put(fieldName, unwrap(field, type, value))
+        engineObjectDataBuilder.put(alias ?: fieldName, unwrap(field, type, value))
     }
 
     private fun unwrap(
