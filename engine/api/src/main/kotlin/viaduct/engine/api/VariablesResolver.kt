@@ -80,22 +80,27 @@ interface VariablesResolver {
             private val bindings: MutableMap<String, VariablesResolver> = mutableMapOf()
 
             fun buildAll(): List<VariablesResolver> {
-                variables.forEach(::buildOne)
+                variables.forEach { v -> buildOne(emptySet(), v) }
                 return bindings.values.distinct()
             }
 
-            private fun buildOne(v: SelectionSetVariable): VariablesResolver {
+            private fun buildOne(
+                building: Set<String>,
+                v: SelectionSetVariable
+            ): VariablesResolver {
                 val extant = bindings[v.name]
                 if (extant != null) return extant
 
                 val vr = when (v) {
                     is FromArgumentVariable -> mkFromArgument(v)
                     is FromObjectFieldVariable -> mkFromField(
+                        building,
                         v,
                         objectSelections ?: throw IllegalStateException("No object selections provided, can't resolve variable `${v.name}` from object field `${v.valueFromPath}`")
                     )
 
                     is FromQueryFieldVariable -> mkFromField(
+                        building,
                         v,
                         querySelections ?: throw IllegalStateException("No query selections provided, can't resolve variable `${v.name}` from query field `${v.valueFromPath}`")
                     )
@@ -110,6 +115,7 @@ interface VariablesResolver {
             }
 
             private fun mkFromField(
+                building: Set<String>,
                 v: FromFieldVariable,
                 selections: ParsedSelections
             ): VariablesResolver {
@@ -124,15 +130,23 @@ interface VariablesResolver {
                 val view = requireNotNull(selections.filterToPath(path)) {
                     val selectionsStr = AstPrinter.printAst(selections.selections)
                     """
-                |No selections found for path `$path` in selection set:
-                |$selectionsStr
+                        |No selections found for path `$path` in selection set:
+                        |$selectionsStr
                     """.trimMargin()
                 }
-                val nestedVariablesResolvers = view.selections.collectVariableReferences().map { vname ->
-                    val v = checkNotNull(variablesByName[vname]) {
+                val nestedVarRefs = view.selections.collectVariableReferences()
+                if (v.name in building) {
+                    // if v.name is in `building`, then this variables selection set somehow includes itself
+                    // For example, given required selection set "x(a:$a)", a variable cycle is formed
+                    // if $a is the value of x
+                    throw VariableCycleException(v.name, selections)
+                }
+                val nestedVariablesResolvers = nestedVarRefs.map { vname ->
+                    val nestedVar = checkNotNull(variablesByName[vname]) {
                         "Unknown variable $vname"
                     }
-                    buildOne(v)
+                    // add the current variable to the `building` set and recurse
+                    buildOne(building + v.name, nestedVar)
                 }
 
                 val requiredSelectionSet = RequiredSelectionSet(
@@ -226,5 +240,15 @@ fun List<VariablesResolver>.checkDisjoint() {
             }
             seenNames + name
         }
+    }
+}
+
+class VariableCycleException(val varName: String, val selections: ParsedSelections) : Exception() {
+    override val message: String get() {
+        val selectionsStr = AstPrinter.printAst(selections.selections)
+        return """
+            |Detected cycle for variable `$varName` in selection set:
+            |$selectionsStr
+            """.trimMargin()
     }
 }

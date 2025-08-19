@@ -21,12 +21,15 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
-import strikt.assertions.map
 import viaduct.arbitrary.graphql.asDocument
 import viaduct.arbitrary.graphql.asSchema
+import viaduct.engine.api.FromObjectFieldVariable
+import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
+import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeViaductModernGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.runExecutionTest
 import viaduct.engine.runtime.execution.QueryPlan.CollectedField
@@ -60,7 +63,8 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
-                        query
+                        query,
+                        emptyList()
                     )
                 )
             }
@@ -91,7 +95,8 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
-                        query
+                        query,
+                        emptyList(),
                     )
                 )
             }
@@ -130,7 +135,8 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
-                        query
+                        query,
+                        emptyList(),
                     )
                 )
             }
@@ -163,7 +169,8 @@ class QueryPlanTest {
                         ),
                         Fragments.empty,
                         emptyList(),
-                        query
+                        query,
+                        emptyList(),
                     )
                 )
             }
@@ -205,7 +212,102 @@ class QueryPlanTest {
                             )
                         ),
                         emptyList(),
-                        query
+                        query,
+                        emptyList(),
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `QueryPlanBuilder -- builds child plans for field required selection sets`() {
+        Fixture(
+            "type Query { x:Int, y:Int }",
+            MockRequiredSelectionSetRegistry.mk(
+                "Query" to "x" to "y"
+            )
+        ) {
+            val plan = mkPlan("{x}")
+            expectThat(plan) {
+                checkEquals(
+                    QueryPlan(
+                        SelectionSet(
+                            listOf(
+                                Field(
+                                    "x",
+                                    Constraints(emptyList(), listOf(query)),
+                                    GJField("x"),
+                                    null,
+                                    childPlans = listOf(mkPlan("{y}"))
+                                )
+                            )
+                        ),
+                        Fragments.empty,
+                        variablesResolvers = emptyList(),
+                        query,
+                        emptyList()
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `QueryPlanBuilder -- builds child plans for variables with required selection sets`() {
+        val varResolvers = VariablesResolver.fromSelectionSetVariables(
+            SelectionsParser.parse("Query", "z"),
+            ParsedSelections.empty("Query"),
+            listOf(
+                FromObjectFieldVariable("vara", "z")
+            )
+        )
+        val reg = MockRequiredSelectionSetRegistry.mk("Query" to "x" to "y(a:\$vara)" to varResolvers)
+        Fixture("type Query { x:Int, y(a:Int):Int, z:Int }", reg) {
+            val plan = mkPlan("{x}")
+            expectThat(plan) {
+                checkEquals(
+                    QueryPlan(
+                        SelectionSet(
+                            listOf(
+                                Field(
+                                    "x",
+                                    Constraints(emptyList(), listOf(query)),
+                                    GJField("x"),
+                                    null,
+                                    childPlans = listOf(
+                                        QueryPlan(
+                                            SelectionSet(
+                                                listOf(
+                                                    Field(
+                                                        "y",
+                                                        Constraints(emptyList(), listOf(query)),
+                                                        GJField(
+                                                            "y",
+                                                            listOf(
+                                                                Argument("a", VariableReference("vara"))
+                                                            )
+                                                        ),
+                                                        null,
+                                                        childPlans = emptyList()
+                                                    )
+                                                )
+                                            ),
+                                            Fragments.empty,
+                                            variablesResolvers = varResolvers,
+                                            query,
+                                            listOf(
+                                                mkPlan("{z}")
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        Fragments.empty,
+                        variablesResolvers = emptyList(),
+                        query,
+                        emptyList()
                     )
                 )
             }
@@ -239,7 +341,11 @@ class QueryPlanTest {
         assertEquals(0, QueryPlan.cacheSize)
     }
 
-    private class Fixture(sdl: String, fn: Fixture.() -> Unit) {
+    private class Fixture(
+        sdl: String,
+        val requiredSelectionSetRegistry: RequiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
+        fn: Fixture.() -> Unit
+    ) {
         val schema = sdl.asSchema
         val query: GraphQLObjectType = schema.queryType
 
@@ -247,7 +353,7 @@ class QueryPlanTest {
             fn(this)
         }
 
-        fun mkPlan(doc: String): QueryPlan = mkPlan(doc, ViaductSchema(schema))
+        fun mkPlan(doc: String): QueryPlan = mkPlan(doc, ViaductSchema(schema), requiredSelectionSetRegistry)
     }
 }
 
@@ -349,13 +455,9 @@ internal fun <T : Selection> Assertion.Builder<T>.checkEquals(exp: T): Assertion
 internal fun Assertion.Builder<List<QueryPlan>>.checkEquals(exp: List<QueryPlan>): Assertion.Builder<List<QueryPlan>> =
     and {
         hasSize(exp.size)
-        if (exp.isNotEmpty()) {
-            with({ exp.zip(subject) }) {
-                map { (expCp, actCp) ->
-                    with({ actCp }) {
-                        checkEquals(expCp)
-                    }
-                }
+        exp.zip(subject).forEach { (expCp, actCp) ->
+            with({ actCp }) {
+                checkEquals(expCp)
             }
         }
     }
@@ -373,9 +475,10 @@ internal fun <T : Node<*>> Assertion.Builder<T>.checkEquals(exp: T): Assertion.B
 internal fun mkPlan(
     doc: String,
     schema: ViaductSchema,
+    requiredSelectionSetRegistry: RequiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
 ): QueryPlan =
     runExecutionTest {
-        mkQPParameters(doc, schema).let { params ->
+        mkQPParameters(doc, schema, requiredSelectionSetRegistry).let { params ->
             QueryPlan.build(params, doc.asDocument)
         }
     }
@@ -383,11 +486,12 @@ internal fun mkPlan(
 internal fun mkQPParameters(
     doc: String,
     schema: ViaductSchema,
+    requiredSelectionSetRegistry: RequiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
 ): QueryPlan.Parameters =
     QueryPlan.Parameters(
         doc,
         schema,
-        RequiredSelectionSetRegistry.Empty,
+        requiredSelectionSetRegistry,
         // passing false here as it is not relevant for the tests we are running here given empty RSS registry
         executeAccessChecksInModstrat = false
     )
