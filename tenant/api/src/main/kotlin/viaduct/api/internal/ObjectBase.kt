@@ -1,5 +1,6 @@
 package viaduct.api.internal
 
+import com.google.common.annotations.VisibleForTesting
 import graphql.GraphQLContext
 import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLEnumType
@@ -214,15 +215,38 @@ abstract class ObjectBase(
          */
         final override fun put(
             name: String,
-            value: Any?
+            value: Any?,
         ): Builder<T> {
-            val fieldDefinition = graphQLObjectType.getField(name) ?: throw IllegalArgumentException("Field $name not found on type ${graphQLObjectType.name}")
-            val fieldContext = DynamicValueBuilderTypeChecker.FieldContext(fieldDefinition, graphQLObjectType)
-            DynamicValueBuilderTypeChecker(context)
-                .checkType(fieldDefinition.type, value, fieldContext)
+            typeCheck(name, value)
 
             wrapper.put(name, value)
             return this
+        }
+
+        /**
+         * Dynamic builder function with type check and alias support.
+         * Only used for unit tests, where we need to associate data with an alias.
+         */
+        @VisibleForTesting
+        internal fun put(
+            name: String,
+            value: Any?,
+            alias: String? = null
+        ): Builder<T> {
+            typeCheck(name, value)
+
+            wrapper.put(name, value, alias)
+            return this
+        }
+
+        private fun typeCheck(
+            fieldName: String,
+            value: Any?
+        ) {
+            val fieldDefinition = graphQLObjectType.getField(fieldName)
+                ?: throw IllegalArgumentException("Field $fieldName not found on type ${graphQLObjectType.name}")
+            val fieldContext = DynamicValueBuilderTypeChecker.FieldContext(fieldDefinition, graphQLObjectType)
+            DynamicValueBuilderTypeChecker(context).checkType(fieldDefinition.type, value, fieldContext)
         }
     }
 
