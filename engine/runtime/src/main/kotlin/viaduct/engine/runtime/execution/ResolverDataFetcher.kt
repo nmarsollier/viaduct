@@ -131,14 +131,26 @@ class ResolverDataFetcher(
     ): EngineObjectData {
         val selectionSetFactory = localExecutionContext.rawSelectionSetFactory
         val fieldResolverDispatcherEOD = fieldResolverDispatcher.objectSelectionSet?.let { rss ->
-            val variables = resolveVariables(engineResults.parentResult, rss, environment.arguments, localExecutionContext)
+            val variables = resolveVariables(
+                variablesResolvers = rss.variablesResolvers,
+                arguments = environment.arguments,
+                currentEngineData = engineResults.parentResult,
+                queryEngineData = engineResults.queryResult,
+                engineExecutionContext = localExecutionContext
+            )
             ProxyEngineObjectData(
                 engineResults.parentResult,
                 selectionSetFactory.rawSelectionSet(rss.selections, variables)
             )
         } ?: ProxyEngineObjectData(engineResults.parentResult)
         val queryProxyEOD = fieldResolverDispatcher.querySelectionSet?.let { rss ->
-            val variables = resolveVariables(engineResults.queryResult, rss, environment.arguments, localExecutionContext)
+            val variables = resolveVariables(
+                variablesResolvers = rss.variablesResolvers,
+                arguments = environment.arguments,
+                currentEngineData = engineResults.queryResult,
+                queryEngineData = engineResults.queryResult,
+                engineExecutionContext = localExecutionContext
+            )
             ProxyEngineObjectData(
                 engineResults.queryResult,
                 selectionSetFactory.rawSelectionSet(rss.selections, variables)
@@ -372,8 +384,13 @@ class ResolverDataFetcher(
         val engineExecCtx = environment.findLocalContextForType<EngineExecutionContextImpl>()
         val queryEngineResult = environment.getLocalContextForType<EngineResultLocalContext>()?.queryEngineResult
             ?: ObjectEngineResultImpl.newForType(environment.graphQLSchema.queryType)
-        val variablesMap = resolveVariables(queryEngineResult, querySelectionSet, environment.arguments, engineExecCtx)
-            .filterValues { it != null }.mapValues { it.value!! }
+        val variablesMap = resolveVariables(
+            variablesResolvers = querySelectionSet.variablesResolvers,
+            currentEngineData = queryEngineResult,
+            queryEngineData = queryEngineResult,
+            arguments = environment.arguments,
+            engineExecutionContext = engineExecCtx
+        ).filterValues { it != null }.mapValues { it.value!! }
 
         val fragmentDefs = querySelectionSet.selections.fragmentMap.values.toList()
         val doc = Document.newDocument().definitions(fragmentDefs).build()

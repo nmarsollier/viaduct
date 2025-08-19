@@ -186,32 +186,35 @@ class FieldResolver(
         parameters: ExecutionParameters,
         field: QueryPlan.CollectedField
     ): Value<FieldResolutionResult> {
-        // fetch the selection sets of any child plans described by the resolving field
-        if (field.childPlans.isNotEmpty()) {
-            // Produce the field arguments for the current field and make them available to child
-            // plan VariablesResolver.
-            val def = parameters.executionStepInfo.fieldDefinition
-            val arguments = FieldExecutionHelpers.getArgumentValues(
-                parameters,
-                def.arguments,
-                field.mergedField.arguments,
-            ).get()
-
-            val engineExecCtx =
-                parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
-            field.childPlans.forEach { childPlan ->
-                parameters.launchOnRootScope {
-                    val variables = resolveVariables(parameters.parentEngineResult, childPlan.variablesResolvers, arguments, engineExecCtx)
-                    val planParameters = parameters.forChildPlan(
-                        childPlan,
-                        CoercedVariables(variables)
-                    )
-                    fetchObject(childPlan.parentType as GraphQLObjectType, planParameters)
-                }
-            }
-        }
-
+        field.childPlans.forEach { launchQueryPlan(parameters, it) }
         return executeField(parameters)
+    }
+
+    private fun launchQueryPlan(
+        parameters: ExecutionParameters,
+        plan: QueryPlan
+    ) {
+        plan.childPlans.forEach { launchQueryPlan(parameters, it) }
+
+        val field = checkNotNull(parameters.field)
+        val def = parameters.executionStepInfo.fieldDefinition
+
+        // Produce the object data and field arguments for the current field and make them available to child
+        // plan VariablesResolver.
+        val engineExecCtx =
+            parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+
+        val arguments = FieldExecutionHelpers.getArgumentValues(
+            parameters,
+            def.arguments,
+            field.mergedField.arguments,
+        ).get()
+
+        parameters.launchOnRootScope {
+            val variables = resolveVariables(plan.variablesResolvers, arguments, parameters.parentEngineResult, parameters.queryEngineResult, engineExecCtx)
+            val planParameters = parameters.forChildPlan(plan, CoercedVariables(variables))
+            fetchObject(plan.parentType as GraphQLObjectType, planParameters)
+        }
     }
 
     /**

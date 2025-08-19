@@ -24,17 +24,22 @@ import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.runtime.execution.QueryPlan.Field
+import viaduct.graphql.utils.collectVariableReferences
 
 /**
  * QueryPlan is an intermediate representation of a GraphQL selection set.
  * It includes models of viaduct-specific concepts, including required selection sets
  * and their variables.
+ *
+ * @param childPlans child QueryPlan objects. These will be resolved before any
+ * selections in this QueryPlan are resolved.
  */
 data class QueryPlan(
     val selectionSet: SelectionSet,
     val fragments: Fragments,
     val variablesResolvers: List<VariablesResolver>,
-    val parentType: GraphQLOutputType
+    val parentType: GraphQLOutputType,
+    val childPlans: List<QueryPlan>,
 ) {
     /**
      * Configuration for building a QueryPlan.
@@ -84,7 +89,7 @@ data class QueryPlan(
      * These selections have not been collected yet and may be subject to [Constraints]
      * that determine if/how they get collected.
      */
-    class Field(
+    data class Field(
         val resultKey: String,
         override val constraints: Constraints,
         val field: GJField,
@@ -263,12 +268,17 @@ private class QueryPlanBuilder(
     private val fragmentsByName: Map<String, GJFragmentDefinition>,
     private val variablesResolvers: List<VariablesResolver>
 ) {
+    private val variableToResolver = variablesResolvers
+        .flatMap { vr -> vr.variableNames.map { vname -> vname to vr } }
+        .toMap()
+
     private val fragments: MutableMap<String, QueryPlan.FragmentDefinition> = mutableMapOf()
 
     private data class State(
         val selectionSet: QueryPlan.SelectionSet,
         val parentType: GraphQLCompositeType,
-        val constraints: Constraints
+        val constraints: Constraints,
+        val childPlans: List<QueryPlan>,
     )
 
     // Builders may cache results that are only valid for the specific input they were
@@ -296,13 +306,16 @@ private class QueryPlanBuilder(
                 selectionSet = QueryPlan.SelectionSet.empty,
                 parentType = parentType,
                 constraints = Constraints.Unconstrained,
+                childPlans = emptyList(),
             )
         )
+
         return QueryPlan(
             selectionSet = state.selectionSet,
             fragments = QueryPlan.Fragments(fragments.toMap()),
             variablesResolvers = variablesResolvers,
-            parentType = parentType
+            parentType = parentType,
+            childPlans = state.childPlans,
         )
     }
 
@@ -322,10 +335,11 @@ private class QueryPlanBuilder(
                 }
         }
 
-    private fun buildChildPlans(
+    private fun buildRequiredSelectionSetPlans(
         parentType: GraphQLCompositeType,
-        field: GJField
+        field: GJField,
     ): List<QueryPlan> {
+        // build plans for required selection sets
         val requiredSelectionSets = parameters.registry.getRequiredSelectionSets(parentType.name, field.name, parameters.executeAccessChecksInModstrat)
         if (requiredSelectionSets.isEmpty()) {
             return emptyList()
@@ -341,6 +355,25 @@ private class QueryPlanBuilder(
         }
     }
 
+    /** Build a QueryPlan for each variable referenced by a field */
+    private fun buildVariablesPlans(field: GJField): List<QueryPlan> {
+        val varRefs = field.collectVariableReferences()
+        if (varRefs.isEmpty()) return emptyList()
+
+        return varRefs.mapNotNull { varRef ->
+            val vResolver = variableToResolver[varRef] ?: return@mapNotNull null
+
+            // if the variable resolver has a required selection set, build a QueryPlan for that selection set
+            vResolver.requiredSelectionSet?.let { rss ->
+                QueryPlanBuilder(parameters, rss.selections.fragmentMap, rss.variablesResolvers)
+                    .createQueryPlan(
+                        rss.selections.selections,
+                        parentType = parameters.schema.schema.getTypeAs(rss.selections.typeName)
+                    )
+            }
+        }
+    }
+
     private fun processField(
         sel: GJField,
         state: State
@@ -352,7 +385,8 @@ private class QueryPlanBuilder(
 
             val possibleParentTypes = parameters.schema.rels.possibleObjectTypes(parentType)
 
-            val childPlans = buildChildPlans(parentType, sel)
+            val fieldChildPlans = buildRequiredSelectionSetPlans(parentType, sel)
+            val planChildPlans = buildVariablesPlans(sel)
 
             val fieldConstraints = constraints
                 .withDirectives(sel.directives)
@@ -384,10 +418,13 @@ private class QueryPlanBuilder(
                 constraints = fieldConstraints,
                 field = sel,
                 selectionSet = subSelectionState?.selectionSet,
-                childPlans = childPlans
+                childPlans = fieldChildPlans
             )
 
-            state.copy(selectionSet = selectionSet + field)
+            state.copy(
+                selectionSet = selectionSet + field,
+                childPlans = childPlans + planChildPlans
+            )
         }
 
     private fun processInlineFragment(
@@ -438,6 +475,7 @@ private class QueryPlanBuilder(
                         selectionSet = QueryPlan.SelectionSet.empty,
                         parentType = fragType,
                         constraints = Constraints.Unconstrained,
+                        childPlans = emptyList()
                     )
                 )
                 fragments[name] = QueryPlan.FragmentDefinition(fragState.selectionSet)

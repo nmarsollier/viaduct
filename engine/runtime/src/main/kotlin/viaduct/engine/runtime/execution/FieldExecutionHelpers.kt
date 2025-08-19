@@ -21,8 +21,8 @@ import graphql.schema.GraphQLObjectType
 import graphql.util.FpKit
 import java.util.function.Supplier
 import viaduct.engine.api.EngineExecutionContext
+import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.ObjectEngineResult
-import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.gj
 import viaduct.engine.runtime.EngineResultLocalContext
@@ -205,29 +205,40 @@ internal object FieldExecutionHelpers {
             parameters.queryPlan.fragments
         )
 
+    /**
+     * Recursively resolve all values in the provided [variablesResolvers].
+     * If any resolver in [variablesResolvers] depends on engine data, then this will return
+     * after the dependee data have resolved.
+     */
     suspend fun resolveVariables(
-        engineResult: ObjectEngineResult,
-        requiredSelectionSet: RequiredSelectionSet,
-        arguments: Map<String, Any?>,
-        ctx: EngineExecutionContext
-    ): Map<String, Any?> = resolveVariables(engineResult, requiredSelectionSet.variablesResolvers, arguments, ctx)
-
-    suspend fun resolveVariables(
-        engineResult: ObjectEngineResult,
         variablesResolvers: List<VariablesResolver>,
         arguments: Map<String, Any?>,
-        ctx: EngineExecutionContext
+        currentEngineData: ObjectEngineResult,
+        queryEngineData: ObjectEngineResult,
+        engineExecutionContext: EngineExecutionContext
     ): Map<String, Any?> =
         variablesResolvers.fold(emptyMap()) { acc, vr ->
-            val variablesData = vr.requiredSelectionSet?.let { vrss ->
+            val variablesData: EngineObjectData = vr.requiredSelectionSet?.let { vrss ->
                 // VariablesResolvers may have required selection sets which have their own variables resolvers.
                 // Recursively resolve them
-                val innerVariables = resolveVariables(engineResult, vrss.variablesResolvers, arguments, ctx)
-                val vss = ctx.rawSelectionSetFactory.rawSelectionSet(vrss.selections, variables = innerVariables)
-                ProxyEngineObjectData(engineResult, vss)
-            } ?: ProxyEngineObjectData(engineResult, null)
+                val innerVariables = resolveVariables(vrss.variablesResolvers, arguments, currentEngineData, queryEngineData, engineExecutionContext)
+                val vss = engineExecutionContext.rawSelectionSetFactory.rawSelectionSet(
+                    vrss.selections,
+                    variables = innerVariables
+                )
 
-            val resolved = vr.resolve(VariablesResolver.ResolveCtx(variablesData, arguments, ctx))
+                val engineResult = if (vrss.selections.typeName == engineExecutionContext.fullSchema.schema.queryType.name) {
+                    queryEngineData
+                } else {
+                    assert(currentEngineData.graphQLObjectType.name == vrss.selections.typeName) {
+                        "Expected current engine data type to match variable resolver selection set type `${vrss.selections.typeName}`, but instead found `${currentEngineData.graphQLObjectType.name}`"
+                    }
+                    currentEngineData
+                }
+                ProxyEngineObjectData(engineResult, vss)
+            } ?: ProxyEngineObjectData(currentEngineData, null)
+
+            val resolved = vr.resolve(VariablesResolver.ResolveCtx(variablesData, arguments, engineExecutionContext))
             acc + resolved
         }
 }

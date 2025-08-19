@@ -12,6 +12,7 @@ import viaduct.api.types.CompositeOutput
 import viaduct.api.types.NodeObject
 import viaduct.api.types.Object
 import viaduct.api.types.Query
+import viaduct.arbitrary.graphql.asSchema
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.Coordinate
@@ -141,7 +142,13 @@ class FeatureTestBuilder {
         )
 
         val objectSelections = objectValueFragment?.let { SelectionsParser.parse(coordinate.first, it) }
-        val querySelections = queryValueFragment?.let { SelectionsParser.parse("Query", it) }
+        val querySelections = queryValueFragment?.let {
+            val sdl = checkNotNull(this.sdl) {
+                "Cannot set queryValueFragment before setting sdl"
+            }
+            val queryName = sdl.asSchema.queryType.name
+            SelectionsParser.parse(queryName, it)
+        }
         resolverStubs[coordinate] =
             FieldUnbatchedResolverStub<Ctx>(
                 objectSelections = objectSelections,
