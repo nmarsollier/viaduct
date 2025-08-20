@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-project")
     id("viaduct-tenant")
 }
 

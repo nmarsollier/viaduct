@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-project")
     id("kotlin-static-analysis")
 }
 
@@ -7,14 +8,15 @@ tasks.test {
 }
 
 dependencies {
-    implementation(project(":shared:invariants"))
-    implementation(project(":shared:utils"))
-    implementation(libs.antlr.st4)
-    implementation(libs.javassist)
-    implementation(libs.kotlinx.coroutines)
-    implementation(libs.kotlinx.metadata.jvm)
+    api(libs.javassist)
+    api(libs.kotlinx.metadata.jvm)
+    api(project(":shared:invariants"))
+    api(project(":shared:utils"))
 
-    testImplementation(libs.io.mockk.jvm)
+    implementation(libs.antlr.st4)
+    implementation(libs.kotlinx.coroutines.core)
+
     testImplementation(libs.kotest.assertions.core.jvm)
+    testImplementation(libs.kotest.assertions.shared)
     testImplementation(libs.kotlin.reflect)
 }

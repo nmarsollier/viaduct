@@ -1,15 +1,17 @@
 plugins {
+    id("kotlin-project")
     id("viaduct-app")
 }
 
 dependencies {
-    implementation(project(":tenant:tenant-runtime"))
     implementation(project(":tenant:testapps:resolver:schema"))
-    implementation(project(":tenant:testapps:resolver:tenants:tenant1"))
-    implementation(project(":tenant:testapps:resolver:tenants:tenant2"))
-    implementation(project(":tenant:testapps:resolver:tenants:tenant3"))
-    implementation(libs.graphql.java)
 
-    testImplementation(testFixtures(project(":shared:graphql")))
+    testImplementation(libs.graphql.java)
+    testImplementation(project(":tenant:tenant-api"))
+    testImplementation(project(":tenant:tenant-runtime"))
     testImplementation(project(":tenant:testapps:fixtures"))
+    testImplementation(project(":tenant:testapps:resolver:tenants:tenant1"))
+    testImplementation(project(":tenant:testapps:resolver:tenants:tenant2"))
+    testImplementation(project(":tenant:testapps:resolver:tenants:tenant3"))
+    testImplementation(testFixtures(project(":shared:graphql")))
 }

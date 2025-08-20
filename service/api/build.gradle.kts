@@ -2,18 +2,20 @@ plugins {
     `java-library`
     `maven-publish`
     `java-test-fixtures`
+    id("kotlin-project")
     id("kotlin-static-analysis")
 }
 
 dependencies {
-    implementation(project(":engine:engine-api"))
-    implementation(libs.graphql.java)
+    api(libs.graphql.java)
+    api(project(":engine:engine-api"))
 
     testImplementation(project(":service"))
     testImplementation(libs.kotest.property.jvm)
+    testImplementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.kotlinx.coroutines.test)
 
-    testFixturesImplementation(project(":engine:engine-api"))
+    testFixturesApi(project(":engine:engine-api"))
 }
 
 tasks.register<Jar>("sourcesJar") {

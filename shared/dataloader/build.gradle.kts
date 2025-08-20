@@ -1,21 +1,26 @@
 plugins {
     `java-test-fixtures`
+    id("kotlin-project")
     id("kotlin-static-analysis")
 }
 
 dependencies {
-    implementation(libs.guice)
-    implementation(libs.kotlinx.coroutines)
-    implementation(project(":service:service-api"))
+    api(libs.javax.inject)
+    api(libs.guice)
+    api(project(":service:service-api"))
 
-    testFixturesImplementation(libs.kotlinx.coroutines.jdk8)
-    testFixturesImplementation(libs.kotlinx.coroutines.test)
-    testFixturesImplementation(project(":service:service-api"))
+    implementation(libs.kotlinx.coroutines.core)
 
+    testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.junit.params)
     testImplementation(libs.kotlinx.coroutines.debug)
-    testImplementation(libs.kotlinx.coroutines.jdk8)
+    runtimeOnly(libs.kotlinx.coroutines.jdk8)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(project(":shared:utils"))
+
+    testCompileOnly(libs.kotlinx.coroutines.jdk8)
+
+    testFixturesImplementation(libs.kotlinx.coroutines.test)
+    testFixturesImplementation(project(":service:service-api"))
 }

@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-project")
     id("kotlin-static-analysis")
 }
 
@@ -7,14 +8,17 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    api(libs.graphql.java)
+    api(libs.kotest.property.jvm)
+    api(project(":shared:invariants"))
+    api(project(":shared:viaductschema"))
+
     implementation(project(":engine:engine-api"))
-    implementation(project(":shared:invariants"))
     implementation(project(":shared:utils"))
-    implementation(project(":shared:viaductschema"))
-    implementation(libs.graphql.java)
     implementation(libs.kotest.common.jvm)
-    implementation(libs.kotest.property.jvm)
-    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.core.jvm)
     implementation(libs.kotlinx.coroutines.test)
+
+    testImplementation(libs.kotest.assertions.shared)
 }

@@ -3,6 +3,8 @@ package viaduct.gradle.app
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import viaduct.gradle.schema.ViaductSchemaExtension
 import viaduct.gradle.tenant.ViaductTenantExtension
 
@@ -47,6 +49,12 @@ class ViaductAppPlugin : Plugin<Project> {
         // Configure schema project for viaduct app mode
         schemaProject.pluginManager.apply("java-library")
         schemaProject.pluginManager.apply("viaduct-schema")
+
+        schemaProject.extensions.configure(JavaPluginExtension::class.java) {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(17))
+            }
+        }
 
         // Enable viaduct app mode for automatic schema discovery
         schemaProject.extensions.configure(ViaductSchemaExtension::class.java) {
