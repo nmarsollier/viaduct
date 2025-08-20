@@ -190,6 +190,108 @@ class CharacterHomeworldBatchResolver : CharacterResolvers.Homeworld() {
 }
 ```
 
+### Variables and Variable Providers
+**Purpose**: Enable dynamic field selection and conditional GraphQL queries through runtime variable computation.
+
+**Usage**: Variables can be bound to resolver arguments or computed dynamically using VariableProvider classes to control which fields are selected at the GraphQL execution level.
+
+Viaduct supports three approaches for dynamic field resolution:
+
+#### 1. Variables with @Variable and fromArgument
+Variables can be bound directly to resolver arguments to control GraphQL directive evaluation:
+
+```kotlin
+@Resolver(
+    """
+    fragment _ on Character {
+        name
+        birthYear @include(if: $includeDetails)
+        height @include(if: $includeDetails)
+        mass @include(if: $includeDetails)
+    }
+    """,
+    variables = [Variable("includeDetails", fromArgument = "includeDetails")]
+)
+class CharacterProfileResolver {
+    // When includeDetails=true, all fields are available
+    // When includeDetails=false, only name is selected
+}
+```
+
+**Benefits**: GraphQL-level optimization, declarative field selection, efficient data fetching.
+
+#### 2. Argument-Based Statistics Logic
+For practical demo purposes, the character stats use argument-based conditional logic:
+
+```kotlin
+@Resolver(
+    """
+    fragment _ on Character {
+        name
+        birthYear
+        height
+        species {
+            name
+        }
+    }
+    """
+)
+class CharacterStatsResolver {
+    override suspend fun resolve(ctx: Context): String? {
+        val args = ctx.arguments
+        return when {
+            isValidAgeRange(args.minAge, args.maxAge) -> buildDetailedStats(ctx.objectValue)
+            else -> buildBasicStats(ctx.objectValue)
+        }
+    }
+}
+```
+
+**Benefits**: Simple implementation, full access to all fields, easy to debug and maintain.
+
+*Note: The full VariableProvider API with dynamic computation is available in the complete Viaduct runtime but simplified here for demo clarity.*
+
+#### 3. Argument-Based Conditional Logic
+For simpler cases, traditional argument processing within resolvers:
+
+```kotlin
+@Resolver(
+    """
+    fragment _ on Character {
+        name
+        birthYear
+        eyeColor
+        hairColor
+    }
+    """
+)
+class CharacterFormattedDescriptionResolver {
+    override suspend fun resolve(ctx: Context): String? {
+        return when (ctx.arguments.format) {
+            "detailed" -> buildDetailedDescription(ctx.objectValue)
+            "year-only" -> buildYearOnlyDescription(ctx.objectValue)  
+            else -> ctx.objectValue.getName()
+        }
+    }
+}
+```
+
+**Benefits**: Simplicity, full Kotlin language features, easy debugging.
+
+**Example Schema**:
+```graphql
+type Character {
+  # Variables with fromArgument - demonstrates GraphQL-level field selection
+  characterProfile(includeDetails: Boolean = false): String @resolver
+  
+  # Argument-based statistics - practical implementation for demos  
+  characterStats(minAge: Int, maxAge: Int): String @resolver
+  
+  # Argument-based conditional logic - flexible formatting
+  formattedDescription(format: String = "default"): String @resolver
+}
+```
+
 ## Data Model
 
 The demo includes comprehensive Star Wars data:
@@ -268,7 +370,9 @@ GraphQL connections are implemented using backing data classes that handle pagin
 4. **Complex Relationships**: Shows related entities with efficient resolution
 5. **Pagination Support**: Implements GraphQL connection pattern
 6. **Input Validation**: Demonstrates `@oneOf` for exactly-one-field semantics
-7. **Fragment Optimization**: Specifies exact field requirements for performance
+7. **Variables and Variable Providers**: Dynamic field selection with three different approaches
+8. **Fragment Optimization**: Specifies exact field requirements for performance
+9. **Comprehensive Documentation**: All directives and features are thoroughly documented
 
 ## Batch Resolver Examples
 
@@ -369,6 +473,95 @@ query {
     name
     culturalNotes      # Only available with extras scope
     specialAbilities
+  }
+}
+```
+
+### Variables and Variable Providers Examples
+```graphql
+# Variables with @Variable fromArgument
+query BasicProfile {
+  person(id: "cGVvcGxlOjE=") {  # Luke Skywalker
+    name
+    characterProfile(includeDetails: false)
+    # Result: "Character Profile: Luke Skywalker (basic info only)"
+  }
+}
+
+query DetailedProfile {
+  person(id: "cGVvcGxlOjE=") {
+    name  
+    characterProfile(includeDetails: true)
+    # Result: "Character Profile: Luke Skywalker, Born: 19BBY, Height: 172cm, Mass: 77.0kg"
+  }
+}
+
+# VariableProvider with dynamic computation
+query CharacterStats {
+  person(id: "cGVvcGxlOjEw") {  # Obi-Wan Kenobi
+    name
+    characterStats(minAge: 25, maxAge: 100)
+    # Result: "Stats for Obi-Wan Kenobi (Age range: 25-100), Born: 57BBY, Height: 182cm, Species: Human"
+  }
+}
+
+# Argument-based conditional logic
+query FormattedDescriptions {
+  person(id: "cGVvcGxlOjU=") {  # Princess Leia
+    name
+    detailed: formattedDescription(format: "detailed")
+    # Result: "Princess Leia (born 19BBY) - brown eyes, brown hair"
+    
+    yearOnly: formattedDescription(format: "year-only") 
+    # Result: "Princess Leia (born 19BBY)"
+    
+    default: formattedDescription(format: "default")
+    # Result: "Princess Leia"
+  }
+}
+
+# Combined usage of all three approaches
+query CombinedVariablesDemo {
+  person(id: "cGVvcGxlOjE=") {  # Luke Skywalker
+    name
+    
+    # @Variable with fromArgument examples
+    basicProfile: characterProfile(includeDetails: false)
+    detailedProfile: characterProfile(includeDetails: true)
+    
+    # VariableProvider with dynamic computation
+    youngStats: characterStats(minAge: 0, maxAge: 30)
+    oldStats: characterStats(minAge: 30, maxAge: 100)
+    
+    # Argument-based conditional logic
+    nameOnly: formattedDescription(format: "default")
+    yearOnly: formattedDescription(format: "year-only")
+    detailed: formattedDescription(format: "detailed")
+  }
+}
+```
+
+### Film Fragment Examples
+```graphql
+query {
+  allFilms(first: 2) {
+    films {
+      # Standard fields
+      title
+      director
+      
+      # Shorthand fragment - delegates to title
+      displayTitle
+      
+      # Full fragment - combines episode, title, director
+      summary
+      
+      # Full fragment - production details
+      productionDetails
+      
+      # Full fragment with connection data
+      characterCountSummary
+    }
   }
 }
 ```

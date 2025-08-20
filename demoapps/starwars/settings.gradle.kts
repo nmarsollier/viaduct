@@ -20,5 +20,3 @@ dependencyResolutionManagement {
     }
 }
 
-// include("schema")
-include("tenants:starwars")

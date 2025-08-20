@@ -30,8 +30,6 @@ dependencies {
     implementation(project(":schema"))
     implementation(project(":tenants:starwars"))
 
-    // implementation(project(":schema"))
-
     testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "junit")
     }
