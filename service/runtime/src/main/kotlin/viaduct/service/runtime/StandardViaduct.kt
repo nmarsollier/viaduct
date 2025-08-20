@@ -36,7 +36,6 @@ import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.Viaduct
-import viaduct.service.api.airbnb.AirbnbViaduct
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
 
@@ -63,7 +62,7 @@ class StandardViaduct internal constructor(
     private val tenantNameResolver: TenantNameResolver,
     private val resolverInstrumentation: Instrumentation,
     private val flagManager: FlagManager,
-) : Viaduct, AirbnbViaduct {
+) : Viaduct {
     private val engineExecutionContextFactory =
         EngineExecutionContextFactory(
             viaductSchemaRegistry.getFullSchema(),
@@ -432,13 +431,13 @@ class StandardViaduct internal constructor(
      *
      * @return GraphQL instance of the engine
      */
-    override fun getEngine(schemaId: String): GraphQL? = viaductSchemaRegistry.getEngine(schemaId)
+    fun getEngine(schemaId: String): GraphQL? = viaductSchemaRegistry.getEngine(schemaId)
 
     /**
      * Creates an instance of EngineExecutionContext. This should be called exactly once
      * per request and set in the graphql-java execution input's local context.
      */
-    override fun mkEngineExecutionContext(): EngineExecutionContext {
+    fun mkEngineExecutionContext(): EngineExecutionContext {
         return engineExecutionContextFactory.create()
     }
 }
