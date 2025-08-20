@@ -99,6 +99,7 @@ type Character implements Node @resolver @scope(to: ["default"]) {
   Description of character's appearance (demonstrates full fragment syntax with multiple fields)
   """
   appearanceDescription: String @resolver
+
   """
   Number of films this character appears in (batch resolver example)
   """
@@ -108,6 +109,21 @@ type Character implements Node @resolver @scope(to: ["default"]) {
   Rich summary combining character data with relationships (batch resolver example)
   """
   richSummary: String @resolver
+
+  """
+  Character profile with conditional information based on includeDetails argument (demonstrates @Variable with fromArgument)
+  """
+  characterProfile(includeDetails: Boolean = false): String @resolver
+
+  """
+  Character stats summary with age range filtering (demonstrates VariableProvider with dynamic values)
+  """
+  characterStats(minAge: Int, maxAge: Int): String @resolver
+
+  """
+  Formatted character description using field variables (demonstrates @Variable with fromField)
+  """
+  formattedDescription(format: String = "default"): String @resolver
 }
 
 """
