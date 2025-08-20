@@ -1,7 +1,8 @@
 plugins {
+    id("kotlin-project-without-tests")
     id("kotlin-static-analysis")
 }
 
 dependencies {
-    implementation(libs.slf4j.api)
+    api(libs.slf4j.api)
 }

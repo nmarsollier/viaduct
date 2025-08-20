@@ -2,6 +2,9 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
     }
+    includeBuild("build-logic-settings")
+    includeBuild("build-logic-root")
+    includeBuild("build-logic")
     includeBuild("plugins")
 }
 
@@ -13,20 +16,11 @@ dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
 }
 
-// TODO: figure out how to remove the build-scan stuff from external repo
 plugins {
-    // Our internal gradle enterprise deployment can't handle a higher version
-    id("com.gradle.develocity").version("3.19.2")
+    id("build-scans")
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
 
-develocity {
-    server = "https://gradle-enterprise.musta.ch"
-    buildScan {
-        publishing.onlyIf {
-            it.buildResult.failures.isNotEmpty()
-        }
-    }
+    kotlin("jvm") version "1.8.22" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
 }
 
 rootProject.name = "viaduct"

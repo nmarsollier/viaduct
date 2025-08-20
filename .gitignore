@@ -12,3 +12,5 @@ out/
 *.kts~
 *.main.kts
 .kotlin
+
+/.envrc

@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-project-without-tests")
     id("kotlin-static-analysis")
 }
 
@@ -15,15 +16,18 @@ tasks.test {
 }
 
 dependencies {
-    implementation(project(":shared:invariants"))
-    implementation(project(":shared:utils"))
-    implementation(libs.graphql.java)
+    api(libs.graphql.java)
+    api(libs.junit)
+    api(project(":shared:invariants"))
+    api(project(":shared:utils"))
+
     implementation(libs.guava)
-    implementation(libs.junit)
     implementation(libs.kotlin.reflect)
     implementation(libs.reflections)
+    implementation(libs.jspecify)
 
-    testImplementation(libs.guava.testlib)
+    testImplementation(libs.kotlin.test)
     testImplementation(libs.io.mockk.jvm)
-    testImplementation(libs.kotest.assertions.core.jvm)
+    testImplementation(libs.io.mockk.dsl)
+    testImplementation(libs.kotest.assertions.shared)
 }

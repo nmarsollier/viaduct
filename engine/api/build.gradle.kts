@@ -1,39 +1,40 @@
 plugins {
     `java-test-fixtures`
+    id("kotlin-project")
     id("kotlin-static-analysis")
 }
 
 dependencies {
+    api(libs.graphql.java)
+    api(libs.guice)
+    api(libs.javax.inject)
+    api(project(":shared:utils"))
+
     implementation(libs.caffeine)
-    implementation(libs.graphql.java)
-    implementation(libs.guice)
-    implementation(libs.javax.inject)
+    implementation(libs.checker.qual)
     implementation(libs.kotlin.reflect)
-    implementation(libs.kotlinx.coroutines)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(project(":shared:graphql"))
-    implementation(project(":shared:utils"))
     implementation(project(":snipped:errors"))
 
-    testFixturesImplementation(libs.graphql.java)
-    testFixturesImplementation(libs.io.mockk.jvm)
-    testFixturesImplementation(libs.kotlinx.coroutines)
+    testFixturesApi(libs.graphql.java)
+    testFixturesApi(project(":engine:engine-runtime"))
+    testFixturesApi(project(":service:service-runtime"))
+    testFixturesApi(testFixtures(project(":engine:engine-runtime")))
+
+    testFixturesImplementation(libs.kotlinx.coroutines.core)
     testFixturesImplementation(libs.kotlinx.coroutines.test)
-    testFixturesImplementation(project(":engine:engine-runtime"))
     testFixturesImplementation(project(":service:service-api"))
-    testFixturesImplementation(project(":service:service-runtime"))
-    testFixturesImplementation(project(":shared:graphql"))
-    testFixturesImplementation(testFixtures(project(":engine:engine-runtime")))
     testFixturesImplementation(testFixtures(project(":service:service-api")))
     testFixturesImplementation(testFixtures(project(":shared:dataloader")))
     testFixturesImplementation(testFixtures(project(":shared:graphql")))
 
+    testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.junit)
     testImplementation(libs.kotest.assertions.core.jvm)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.net.bytebuddy)
     testImplementation(project(":engine:engine-runtime"))
-    testImplementation(project(":service:service-api"))
     testImplementation(testFixtures(project(":engine:engine-runtime")))
 }

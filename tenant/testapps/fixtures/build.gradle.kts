@@ -1,23 +1,20 @@
+plugins {
+    id("kotlin-project-without-tests")
+}
+
 dependencies {
+    api(libs.graphql.java)
+    api(libs.junit)
+    api(project(":service:service-runtime"))
+    api(project(":tenant:tenant-api"))
+    api(project(":tenant:tenant-runtime"))
+
     implementation(testFixtures(project(":service:service-api")))
     implementation(project(":engine:engine-api"))
-    implementation(project(":engine:engine-runtime"))
     implementation(project(":service:service-api"))
-    implementation(project(":service:service-runtime"))
-    implementation(project(":shared:arbitrary"))
-    implementation(project(":shared:viaductschema"))
     implementation(project(":snipped:errors"))
-    implementation(project(":tenant:tenant-api"))
-    implementation(project(":tenant:tenant-runtime"))
-    implementation(libs.graphql.java)
     implementation(libs.guice)
-    implementation(libs.io.mockk.jvm)
-    implementation(libs.javax.inject)
-    implementation(libs.junit)
-    implementation(libs.kotest.assertions.core.jvm)
-    implementation(libs.kotest.property.jvm)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.core.jvm)
     implementation(libs.kotlinx.coroutines.jdk8)
-    implementation(libs.kotlinx.coroutines.test)
 }

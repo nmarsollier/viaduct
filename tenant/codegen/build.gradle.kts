@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-project")
     id("kotlin-static-analysis")
     id("viaduct-classdiff")
 }
@@ -12,16 +13,25 @@ viaductClassDiff {
 }
 
 dependencies {
-    implementation(project(":shared:invariants"))
-    implementation(project(":shared:shared-codegen"))
-    implementation(project(":shared:utils"))
-    implementation(project(":shared:viaductschema"))
-    implementation(project(":tenant:tenant-api"))
-    implementation(project(":engine:engine-api"))
-    implementation(libs.clikt.jvm)
-    implementation(libs.graphql.java)
-    implementation(libs.javassist)
-    implementation(libs.kotlinx.metadata.jvm)
+    api(libs.clikt.jvm)
+    api(libs.kotlinx.metadata.jvm)
+    api(project(":shared:invariants"))
+    api(project(":shared:shared-codegen"))
+    api(project(":shared:utils"))
+    api(project(":shared:viaductschema"))
 
+    implementation(libs.graphql.java)
+    implementation(project(":tenant:tenant-api"))
+
+    testImplementation(libs.javassist)
+    testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
+    testImplementation(project(":engine:engine-api"))
+}
+
+afterEvaluate {
+    tasks.named("explodeCodeSourceTest") { // TODO: a hack for the sake of this dependency-analysis task...
+        dependsOn(tasks.named("generateSchemaDiffSchemaSchemaObjects"))
+        dependsOn(tasks.named("generateSchemaDiffSchemaKotlinGrts"))
+    }
 }

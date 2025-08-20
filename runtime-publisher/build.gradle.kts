@@ -1,7 +1,6 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("kotlin-static-analysis")
 }
 
 val projectNames = setOf(

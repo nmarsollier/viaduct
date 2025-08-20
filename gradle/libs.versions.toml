@@ -11,6 +11,7 @@ clikt = "3.5.4"
 graphql-java = "24.1"
 graphql-java-extension = "22.0"
 guava = "21.0"
+checker = "3.12.0"
 guice = "6.0.0"
 jackson = "2.9.10"
 javassist = "3.24.1-GA"
@@ -26,13 +27,14 @@ kotlinx-metadata = "0.9.0"
 mockk-jvm = "1.13.3"
 reflections = "0.10.2"
 slf4j = "2.0.7"
+jspecify = "1.0.0"
 strikt = "0.35.1"
 
 # Plugins
 ktlintPluginVersion = "13.0.0"
 ktlintVersion = "1.2.1"
 detekt = "1.23.6"
-dependency-analysis = "1.20.0"
+dependency-analysis = "1.33.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -43,7 +45,8 @@ dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.r
 [libraries]
 # Kotlin
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
-kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines", version.ref = "kotlinx" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
 kotlinx-coroutines-core-jvm = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "kotlinx" }
 kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "kotlinx-debug" }
 kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlinx" }
@@ -58,6 +61,8 @@ clikt-jvm = { module = "com.github.ajalt.clikt:clikt-jvm", version.ref = "clikt"
 graphql-java = { module = "com.graphql-java:graphql-java", version.ref = "graphql-java" }
 graphql-java-extension = { module = "com.graphql-java:graphql-java-extended-scalars", version.ref = "graphql-java-extension" }
 guice = { module = "com.google.inject:guice", version.ref = "guice" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-module = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 javassist = { module = "org.javassist:javassist", version.ref = "javassist" }
@@ -65,21 +70,26 @@ javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inje
 net-bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
 reflections = { module = "org.reflections:reflections", version.ref = "reflections" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 
 # Testing
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 guava-testlib = { module = "com.google.guava:guava-testlib", version.ref = "guava" }
+io-mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk-jvm" }
 io-mockk-jvm = { module = "io.mockk:mockk-jvm", version.ref = "mockk-jvm" }
 jmh-annotation-processor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh"}
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh"}
 junit = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
+kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 kotest-common-jvm = { module = "io.kotest:kotest-common-jvm", version.ref = "kotest" }
 kotest-property-jvm = { module = "io.kotest:kotest-property-jvm", version.ref = "kotest" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 strikt-core = { module = "io.strikt:strikt-core", version.ref = "strikt" }
 strikt-jvm = { module = "io.strikt:strikt-jvm", version.ref = "strikt" }
+checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker" }
 
 # Linting
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
