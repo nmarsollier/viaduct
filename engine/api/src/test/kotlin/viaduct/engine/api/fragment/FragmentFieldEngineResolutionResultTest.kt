@@ -11,7 +11,7 @@ class FragmentFieldEngineResolutionResultTest {
             anyMap
         )
         assert(fragmentFieldEngineResolutionResult.errors.isEmpty())
-        assertEquals(fragmentFieldEngineResolutionResult.data, anyMap)
+        assertEquals(anyMap, fragmentFieldEngineResolutionResult.data)
     }
 
     @Test
