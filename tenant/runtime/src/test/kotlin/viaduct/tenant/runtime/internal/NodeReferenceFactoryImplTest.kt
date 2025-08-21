@@ -119,9 +119,9 @@ class NodeReferenceFactoryImplTest {
             factory.nodeFor(globalId, internalContext)
         }
 
-        assertEquals(exception::class.simpleName, NullPointerException::class.simpleName)
+        assertEquals(NullPointerException::class.simpleName, exception::class.simpleName)
         assertNotNull(exception, "Exception should not be null")
-        assertEquals(exception.message, "type must not be null")
+        assertEquals("type must not be null", exception.message)
     }
 
     @Test
@@ -141,7 +141,7 @@ class NodeReferenceFactoryImplTest {
         }
 
         assertNotNull(exception, "Exception should not be null")
-        assertEquals(exception.message, "Primary constructor for type ${userNameInvalidType.name} is not found.")
+        assertEquals("Primary constructor for type ${userNameInvalidType.name} is not found.", exception.message)
     }
 
     @Test
