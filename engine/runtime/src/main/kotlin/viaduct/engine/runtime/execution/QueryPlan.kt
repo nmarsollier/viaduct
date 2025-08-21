@@ -14,11 +14,13 @@ import graphql.language.SelectionSet as GJSelectionSet
 import graphql.language.SourceLocation
 import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLNamedOutputType
+import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLOutputType
 import graphql.schema.GraphQLTypeUtil
 import java.util.concurrent.Executors
 import kotlin.jvm.optionals.getOrNull
 import kotlinx.coroutines.future.await
+import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
@@ -94,7 +96,8 @@ data class QueryPlan(
         override val constraints: Constraints,
         val field: GJField,
         val selectionSet: SelectionSet?,
-        val childPlans: List<QueryPlan>
+        val childPlans: List<QueryPlan>,
+        val fieldTypeChildPlans: Map<GraphQLObjectType, List<QueryPlan>>,
     ) : Selection {
         override fun toString(): String = AstPrinter.printAst(field)
     }
@@ -341,6 +344,31 @@ private class QueryPlanBuilder(
     ): List<QueryPlan> {
         // build plans for required selection sets
         val requiredSelectionSets = parameters.registry.getRequiredSelectionSets(parentType.name, field.name, parameters.executeAccessChecksInModstrat)
+        return buildChildPlansFromRequiredSelectionSets(requiredSelectionSets)
+    }
+
+    private fun buildFieldTypeChildPlans(
+        fieldType: GraphQLNamedOutputType,
+        field: GJField
+    ): Map<GraphQLObjectType, List<QueryPlan>> {
+        if (fieldType !is GraphQLCompositeType) {
+            return emptyMap()
+        }
+        val possibleFieldTypes = parameters.schema.rels.possibleObjectTypes(fieldType)
+
+        val fieldTypeChildPlanMap = mutableMapOf<GraphQLObjectType, List<QueryPlan>>()
+        possibleFieldTypes.toList().forEach { it ->
+            val requiredSelectionSets =
+                parameters.registry.getRequiredSelectionSetsForType(it.name, parameters.executeAccessChecksInModstrat)
+            val childPlans = buildChildPlansFromRequiredSelectionSets(requiredSelectionSets)
+            if (childPlans.isNotEmpty()) {
+                fieldTypeChildPlanMap[it] = childPlans
+            }
+        }
+        return fieldTypeChildPlanMap
+    }
+
+    private fun buildChildPlansFromRequiredSelectionSets(requiredSelectionSets: List<RequiredSelectionSet>): List<QueryPlan> {
         if (requiredSelectionSets.isEmpty()) {
             return emptyList()
         }
@@ -388,6 +416,8 @@ private class QueryPlanBuilder(
             val fieldChildPlans = buildRequiredSelectionSetPlans(parentType, sel)
             val planChildPlans = buildVariablesPlans(sel)
 
+            val fieldTypeChildPlans = buildFieldTypeChildPlans(fieldType, sel)
+
             val fieldConstraints = constraints
                 .withDirectives(sel.directives)
                 .narrowTypes(possibleParentTypes)
@@ -418,7 +448,8 @@ private class QueryPlanBuilder(
                 constraints = fieldConstraints,
                 field = sel,
                 selectionSet = subSelectionState?.selectionSet,
-                childPlans = fieldChildPlans
+                childPlans = fieldChildPlans,
+                fieldTypeChildPlans = fieldTypeChildPlans
             )
 
             state.copy(
