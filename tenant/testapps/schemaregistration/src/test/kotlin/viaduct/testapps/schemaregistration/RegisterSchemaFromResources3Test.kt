@@ -1,6 +1,6 @@
 package viaduct.testapps.schemaregistration
 
-import kotlin.test.assertEquals
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
 import viaduct.testapps.fixtures.ScopedSchemaInfo
@@ -13,6 +13,7 @@ import viaduct.testapps.testfixtures.TestBase
  * This test uses the tenantPackagePrefix to only include the tenant1 resources
  * in combination with the fullSchemaRegex to only include the tenant1 resources in the full schema
  */
+@ExperimentalCoroutinesApi
 class RegisterSchemaFromResources3Test : TestBase(
     setOf(ScopedSchemaInfo(schemaId = "SCHEMA_ID_1", scopeIds = setOf("SCOPE1"))),
     tenantPackageFinder = TestTenantPackageFinder(listOf(viaduct.testapps.schemaregistration.tenant1.Tenant1Module::class)),

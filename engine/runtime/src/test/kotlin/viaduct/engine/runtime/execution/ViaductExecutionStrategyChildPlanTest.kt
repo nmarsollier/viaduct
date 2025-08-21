@@ -39,7 +39,7 @@ import viaduct.service.api.spi.FlagManager
  */
 @ExperimentalCoroutinesApi
 class ViaductExecutionStrategyChildPlanTest {
-    val nextTickDispatcher = NextTickDispatcher(flagManager = FlagManager.disabled)
+    private val nextTickDispatcher = NextTickDispatcher(flagManager = FlagManager.disabled)
 
     @Test
     fun `child plans execute with fresh root path and correct object type`() {
@@ -71,16 +71,16 @@ class ViaductExecutionStrategyChildPlanTest {
 
                 val resolvers = mapOf(
                     "Query" to mapOf(
-                        "testEntity" to DataFetcher { env ->
+                        "testEntity" to DataFetcher { _ ->
                             mapOf("id" to "123", "name" to "Test Entity")
                         }
                     ),
                     "TestEntity" to mapOf(
                         "id" to DataFetcher { env ->
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
                         "name" to DataFetcher { env ->
-                            env.getSource<Map<String, Any>>()["name"]
+                            env.getSource<Map<String, Any>>()!!["name"]
                         },
                         "details" to DataFetcher { env ->
                             childPlanExecutionStepInfos.add(env.executionStepInfo)
@@ -195,7 +195,7 @@ class ViaductExecutionStrategyChildPlanTest {
 
                 val resolvers = mapOf(
                     "Query" to mapOf(
-                        "node" to DataFetcher { env ->
+                        "node" to DataFetcher { _ ->
                             mapOf("id" to "node-123")
                         }
                     ),
@@ -203,15 +203,15 @@ class ViaductExecutionStrategyChildPlanTest {
                         "id" to DataFetcher { env ->
                             val path = env.executionStepInfo.path.toString()
                             capturedPaths.add(path)
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
-                        "restrictedField" to DataFetcher { env ->
+                        "restrictedField" to DataFetcher { _ ->
                             mapOf("content" to "Protected content")
                         }
                     ),
                     "Details" to mapOf(
                         "content" to DataFetcher { env ->
-                            env.getSource<Map<String, Any>>()["content"]
+                            env.getSource<Map<String, Any>>()!!["content"]
                         }
                     )
                 )
@@ -278,7 +278,7 @@ class ViaductExecutionStrategyChildPlanTest {
 
                 val resolvers = mapOf(
                     "Query" to mapOf(
-                        "item" to DataFetcher { env ->
+                        "item" to DataFetcher { _ ->
                             mapOf("id" to "item-123")
                         },
                         "globalConfig" to DataFetcher { env ->
@@ -289,15 +289,15 @@ class ViaductExecutionStrategyChildPlanTest {
                     "Item" to mapOf(
                         "id" to DataFetcher { env ->
                             capturedPaths.add("item.id" to env.executionStepInfo.path.toString())
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
-                        "restricted" to DataFetcher { env ->
+                        "restricted" to DataFetcher { _ ->
                             "restricted-value"
                         }
                     ),
                     "Config" to mapOf(
                         "value" to DataFetcher { env ->
-                            env.getSource<Map<String, Any>>()["value"]
+                            env.getSource<Map<String, Any>>()!!["value"]
                         }
                     )
                 )
@@ -373,34 +373,34 @@ class ViaductExecutionStrategyChildPlanTest {
 
                 val resolvers = mapOf(
                     "Query" to mapOf(
-                        "root" to DataFetcher { env ->
+                        "root" to DataFetcher { _ ->
                             mapOf("id" to "l1-id")
                         }
                     ),
                     "Level1" to mapOf(
                         "id" to DataFetcher { env ->
                             capturedPaths.add("Level1.id" to env.executionStepInfo.path.toString())
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
-                        "level2" to DataFetcher { env ->
+                        "level2" to DataFetcher { _ ->
                             mapOf("id" to "l2-id")
                         }
                     ),
                     "Level2" to mapOf(
                         "id" to DataFetcher { env ->
                             capturedPaths.add("Level2.id" to env.executionStepInfo.path.toString())
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
-                        "level3" to DataFetcher { env ->
+                        "level3" to DataFetcher { _ ->
                             mapOf("id" to "l3-id")
                         }
                     ),
                     "Level3" to mapOf(
                         "id" to DataFetcher { env ->
                             capturedPaths.add("Level3.id" to env.executionStepInfo.path.toString())
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
-                        "data" to DataFetcher { env ->
+                        "data" to DataFetcher { _ ->
                             "final-data"
                         }
                     )
@@ -467,7 +467,7 @@ class ViaductExecutionStrategyChildPlanTest {
 
                 val resolvers = mapOf(
                     "Query" to mapOf(
-                        "items" to DataFetcher { env ->
+                        "items" to DataFetcher { _ ->
                             listOf(
                                 mapOf("id" to "item-1"),
                                 mapOf("id" to "item-2"),
@@ -477,13 +477,13 @@ class ViaductExecutionStrategyChildPlanTest {
                     ),
                     "ListItem" to mapOf(
                         "id" to DataFetcher { env ->
-                            val id = env.getSource<Map<String, Any>>()["id"]
+                            val id = env.getSource<Map<String, Any>>()!!["id"]
                             val path = env.executionStepInfo.path.toString()
                             capturedPaths.add(id.toString() to path)
                             id
                         },
                         "restricted" to DataFetcher { env ->
-                            val id = env.getSource<Map<String, Any>>()["id"]
+                            val id = env.getSource<Map<String, Any>>()!!["id"]
                             "restricted-$id"
                         }
                     )
@@ -565,7 +565,7 @@ class ViaductExecutionStrategyChildPlanTest {
 
                 val resolvers = mapOf(
                     "Query" to mapOf(
-                        "entity" to DataFetcher { env ->
+                        "entity" to DataFetcher { _ ->
                             mapOf("id" to "user-123", "__typename" to "User")
                         }
                     ),
@@ -573,7 +573,7 @@ class ViaductExecutionStrategyChildPlanTest {
                         "id" to DataFetcher { env ->
                             val objectType = env.executionStepInfo.objectType?.name
                             capturedTypes.add("User.id" to objectType)
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
                         "name" to DataFetcher { "John" },
                         "restricted" to DataFetcher { "user-restricted" }
@@ -582,7 +582,7 @@ class ViaductExecutionStrategyChildPlanTest {
                         "id" to DataFetcher { env ->
                             val objectType = env.executionStepInfo.objectType?.name
                             capturedTypes.add("Admin.id" to objectType)
-                            env.getSource<Map<String, Any>>()["id"]
+                            env.getSource<Map<String, Any>>()!!["id"]
                         },
                         "role" to DataFetcher { "super" },
                         "restricted" to DataFetcher { "admin-restricted" }

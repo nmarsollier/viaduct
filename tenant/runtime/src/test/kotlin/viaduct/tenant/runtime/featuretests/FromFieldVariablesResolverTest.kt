@@ -1,6 +1,7 @@
 package viaduct.tenant.runtime.featuretests
 
 import com.google.inject.ProvisionException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -22,6 +23,7 @@ import viaduct.tenant.runtime.featuretests.fixtures.Query
 import viaduct.tenant.runtime.featuretests.fixtures.Union
 import viaduct.tenant.runtime.featuretests.fixtures.UntypedFieldContext
 
+@ExperimentalCoroutinesApi
 class FromFieldVariablesResolverTest {
     @Test
     fun `from object field -- simple`() =
@@ -265,7 +267,7 @@ class FromFieldVariablesResolverTest {
             .sdl("type Query { x:Int, y(b:Int!):Int!, z:Int }")
             .resolver(
                 "Query" to "x",
-                { ctx: UntypedFieldContext -> 0 },
+                { _: UntypedFieldContext -> 0 },
                 "y(b:\$b), z",
                 variables = listOf(
                     FromObjectFieldVariable("b", "z")
@@ -288,7 +290,7 @@ class FromFieldVariablesResolverTest {
             .sdl("type Query { x:Int, y(b:Int!):Int!, z:String! }")
             .resolver(
                 "Query" to "x",
-                { ctx: UntypedFieldContext -> 0 },
+                { _: UntypedFieldContext -> 0 },
                 "y(b:\$b), z",
                 variables = listOf(
                     FromObjectFieldVariable("b", "z")

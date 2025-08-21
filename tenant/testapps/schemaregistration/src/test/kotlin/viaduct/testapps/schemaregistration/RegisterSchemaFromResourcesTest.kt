@@ -1,5 +1,6 @@
 package viaduct.testapps.schemaregistration
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
 import viaduct.testapps.fixtures.ScopedSchemaInfo
@@ -9,6 +10,7 @@ import viaduct.testapps.testfixtures.TestBase
 /**
  * This rest register the SCOPE1, SCOPE2, as normal test should work
  */
+@ExperimentalCoroutinesApi
 class RegisterSchemaFromResourcesTest : TestBase(
     setOf(ScopedSchemaInfo(schemaId = "SCHEMA_ID_1", scopeIds = setOf("SCOPE1")), ScopedSchemaInfo(schemaId = "SCHEMA_ID_2", scopeIds = setOf("SCOPE2"))),
     tenantPackageFinder = TestTenantPackageFinder(Tenants),
