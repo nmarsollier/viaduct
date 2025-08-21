@@ -28,7 +28,8 @@ dependencies {
     implementation(libs.spring.boot.starter.web)
 
     implementation(project(":schema"))
-    implementation(project(":tenants:starwars"))
+    runtimeOnly(project(":tenants:starwars"))
+    runtimeOnly(project(":tenants:starships"))
 
     testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "junit")

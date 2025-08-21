@@ -113,7 +113,7 @@ type Character implements Node @resolver @scope(to: ["default"]) {
   """
   Character profile with conditional information based on includeDetails argument (demonstrates @Variable with fromArgument)
   """
-  characterProfile(includeDetails: Boolean = false): String @resolver
+  characterProfile(includeDetails: Boolean! = false): String @resolver
 
   """
   Character stats summary with age range filtering (demonstrates VariableProvider with dynamic values)

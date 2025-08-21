@@ -110,3 +110,5 @@ input SearchInput @oneOf {
 # Invalid usage: {}
 """
 directive @oneOf on INPUT_OBJECT
+
+scalar BackingData
