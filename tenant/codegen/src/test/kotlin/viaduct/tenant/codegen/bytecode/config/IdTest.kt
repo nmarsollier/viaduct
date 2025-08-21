@@ -213,8 +213,8 @@ class IdTest {
         )
 
         // for interfaces that are-or-implement Node, IDs are untyped unless they use @idOf
-        assertEquals(schema.field("Node2", "id").globalIDTypeName(), "Node2")
-        assertEquals(schema.field("Node2", "id2").globalIDTypeName(), null)
-        assertEquals(schema.field("Node2", "id3").globalIDTypeName(), "MyNode")
+        assertEquals("Node2", schema.field("Node2", "id").globalIDTypeName())
+        assertEquals(null, schema.field("Node2", "id2").globalIDTypeName())
+        assertEquals("MyNode", schema.field("Node2", "id3").globalIDTypeName())
     }
 }
