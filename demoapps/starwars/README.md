@@ -541,6 +541,70 @@ query CombinedVariablesDemo {
 }
 ```
 
+### Variables and Variable Providers Examples
+```graphql
+# Variables with @Variable fromArgument
+query BasicProfile {
+  person(id: "cGVvcGxlOjE=") {  # Luke Skywalker
+    name
+    characterProfile(includeDetails: false)
+    # Result: "Character Profile: Luke Skywalker (basic info only)"
+  }
+}
+
+query DetailedProfile {
+  person(id: "cGVvcGxlOjE=") {
+    name  
+    characterProfile(includeDetails: true)
+    # Result: "Character Profile: Luke Skywalker, Born: 19BBY, Height: 172cm, Mass: 77.0kg"
+  }
+}
+
+# VariableProvider with dynamic computation
+query CharacterStats {
+  person(id: "cGVvcGxlOjEw") {  # Obi-Wan Kenobi
+    name
+    characterStats(minAge: 25, maxAge: 100)
+    # Result: "Stats for Obi-Wan Kenobi (Age range: 25-100), Born: 57BBY, Height: 182cm, Species: Human"
+  }
+}
+
+# Argument-based conditional logic
+query FormattedDescriptions {
+  person(id: "cGVvcGxlOjU=") {  # Princess Leia
+    name
+    detailed: formattedDescription(format: "detailed")
+    # Result: "Princess Leia (born 19BBY) - brown eyes, brown hair"
+    
+    yearOnly: formattedDescription(format: "year-only") 
+    # Result: "Princess Leia (born 19BBY)"
+    
+    default: formattedDescription(format: "default")
+    # Result: "Princess Leia"
+  }
+}
+
+# Combined usage of all three approaches
+query CombinedVariablesDemo {
+  person(id: "cGVvcGxlOjE=") {  # Luke Skywalker
+    name
+    
+    # @Variable with fromArgument examples
+    basicProfile: characterProfile(includeDetails: false)
+    detailedProfile: characterProfile(includeDetails: true)
+    
+    # VariableProvider with dynamic computation
+    youngStats: characterStats(minAge: 0, maxAge: 30)
+    oldStats: characterStats(minAge: 30, maxAge: 100)
+    
+    # Argument-based conditional logic
+    nameOnly: formattedDescription(format: "default")
+    yearOnly: formattedDescription(format: "year-only")
+    detailed: formattedDescription(format: "detailed")
+  }
+}
+```
+
 ### Film Fragment Examples
 ```graphql
 query {

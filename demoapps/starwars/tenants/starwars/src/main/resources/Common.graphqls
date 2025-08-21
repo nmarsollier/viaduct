@@ -1,3 +1,6 @@
+# Common GraphQL types shared across the Star Wars schema
+# This file contains base interfaces, shared types, and connection definitions
+
 """
 Node interface for objects that can be uniquely identified with a GlobalID.
 """
@@ -31,6 +34,27 @@ type PageInfo @scope(to: ["default"]) {
   When paginating forwards, the cursor to continue.
   """
   endCursor: String
+}
+
+"""
+The root query object
+"""
+type Query @scope(to: ["default"]) {
+  _: String @deprecated
+}
+
+"""
+The root mutation object
+"""
+type Mutation @scope(to: ["default"]) {
+  _: String @deprecated
+}
+
+"""
+The root subscription object
+"""
+type Subscription @scope(to: ["default"]) {
+  _: String @deprecated
 }
 
 """

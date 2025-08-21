@@ -5,7 +5,6 @@ import viaduct.api.grts.Character
 import viaduct.api.grts.Film
 import viaduct.api.grts.Planet
 import viaduct.api.grts.Species
-import viaduct.api.grts.Starship
 import viaduct.api.grts.Vehicle
 import viaduct.demoapp.starwars.Constants.DEFAULT_PAGE_SIZE
 import viaduct.demoapp.starwars.data.StarWarsData
@@ -253,39 +252,6 @@ class AllSpeciesResolver : QueryResolvers.AllSpecies() {
 }
 
 @Resolver
-class AllStarshipsResolver : QueryResolvers.AllStarships() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.StarshipsConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val starships = StarWarsData.starships.take(first)
-        val starshipsGrts = starships.map { starship ->
-            Starship.Builder(ctx)
-                .id(ctx.globalIDFor(Starship.Reflection, starship.id))
-                .name(starship.name)
-                .model(starship.model)
-                .starshipClass(starship.starshipClass)
-                .manufacturers(starship.manufacturers)
-                .costInCredits(starship.costInCredits?.toDouble())
-                .length(starship.length?.toDouble())
-                .crew(starship.crew)
-                .passengers(starship.passengers)
-                .maxAtmospheringSpeed(starship.maxAtmospheringSpeed)
-                .hyperdriveRating(starship.hyperdriveRating?.toDouble())
-                .MGLT(starship.mglt)
-                .cargoCapacity(starship.cargoCapacity?.toDouble())
-                .consumables(starship.consumables)
-                .created(starship.created.toString())
-                .edited(starship.edited.toString())
-                .build()
-        }
-
-        return viaduct.api.grts.StarshipsConnection.Builder(ctx)
-            .starships(starshipsGrts)
-            .totalCount(StarWarsData.starships.size)
-            .build()
-    }
-}
-
-@Resolver
 class AllVehiclesResolver : QueryResolvers.AllVehicles() {
     override suspend fun resolve(ctx: Context): viaduct.api.grts.VehiclesConnection? {
         val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
@@ -376,44 +342,6 @@ class SpeciesResolver : QueryResolvers.Species() {
                 .language(species.language)
                 .created(species.created.toString())
                 .edited(species.edited.toString())
-                .build()
-        } else {
-            null
-        }
-    }
-}
-
-@Resolver
-class StarshipResolver : QueryResolvers.Starship() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.Starship? {
-        // Get the GlobalID argument - now automatically decoded by framework
-        val globalId = ctx.arguments.id
-
-        // Extract the internal ID from the GlobalID
-        val stringId = globalId.internalID
-
-        // Find the starship in data using the internal ID
-        val starship = StarWarsData.starships.find { it.id == stringId }
-
-        return if (starship != null) {
-            // Create the Starship GRT with proper GlobalID using globalIdFor
-            Starship.Builder(ctx)
-                .id(ctx.globalIDFor(Starship.Reflection, starship.id))
-                .name(starship.name)
-                .model(starship.model)
-                .starshipClass(starship.starshipClass)
-                .manufacturers(starship.manufacturers)
-                .costInCredits(starship.costInCredits?.toDouble())
-                .length(starship.length?.toDouble())
-                .crew(starship.crew)
-                .passengers(starship.passengers)
-                .maxAtmospheringSpeed(starship.maxAtmospheringSpeed)
-                .hyperdriveRating(starship.hyperdriveRating?.toDouble())
-                .MGLT(starship.mglt)
-                .cargoCapacity(starship.cargoCapacity?.toDouble())
-                .consumables(starship.consumables)
-                .created(starship.created.toString())
-                .edited(starship.edited.toString())
                 .build()
         } else {
             null

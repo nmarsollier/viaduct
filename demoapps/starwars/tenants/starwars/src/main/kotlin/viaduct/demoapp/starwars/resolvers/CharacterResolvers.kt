@@ -141,20 +141,20 @@ class CharacterAppearanceDescriptionResolver : CharacterResolvers.AppearanceDesc
     """
     fragment _ on Character {
         name
-        birthYear
-        height
-        mass
+        birthYear @include(if: ${'$'}includeDetails)
+        height @include(if: ${'$'}includeDetails)
+        mass @include(if: ${'$'}includeDetails)
     }
-    """
+    """,
+    variables = [Variable("includeDetails", fromArgument = "includeDetails")]
 )
 class CharacterProfileResolver : CharacterResolvers.CharacterProfile() {
     override suspend fun resolve(ctx: Context): String? {
         val character = ctx.objectValue
         val name = character.getName() ?: "Unknown"
 
-        val includeDetails = ctx.arguments.includeDetails ?: false
-
-        return if (includeDetails) {
+        return try {
+            // If includeDetails is true, these fields will be available
             val birthYear = character.getBirthYear()
             val height = character.getHeight()
             val mass = character.getMass()
@@ -165,7 +165,8 @@ class CharacterProfileResolver : CharacterResolvers.CharacterProfile() {
                 height?.let { append(", Height: ${it}cm") }
                 mass?.let { append(", Mass: ${it}kg") }
             }
-        } else {
+        } catch (e: Exception) {
+            // If includeDetails is false, detailed fields won't be available
             "Character Profile: $name (basic info only)"
         }
     }
@@ -339,6 +340,7 @@ class CharacterStatsResolver : CharacterResolvers.CharacterStats() {
  *    - Logic implemented in Kotlin `when` statement
  *    - All data is available, but output format varies
  *    - Conditional behavior at the application level, not GraphQL level
+<<<<<<< HEAD
  *
  * ### Comparison with Variables Approaches:
  *

@@ -20,3 +20,6 @@ dependencyResolutionManagement {
     }
 }
 
+include(":schema")
+include(":tenants:starwars")
+include(":tenants:starships")

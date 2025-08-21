@@ -16,10 +16,7 @@ input CharacterSearchInput @oneOf @scope(to: ["default"]) {
   byBirthYear: String
 }
 
-"""
-The root query object
-"""
-type Query @scope(to: ["default"]) {
+extend type Query @scope(to: ["default"]) {
   """
   Search for a character using exactly one search criteria
   """
@@ -59,13 +56,6 @@ type Query @scope(to: ["default"]) {
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllSpeciesResolver")
 
   """
-  All starships
-  """
-  allStarships(first: Int, after: String, last: Int, before: String): StarshipsConnection
-    @resolver
-    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllStarshipsResolver")
-
-  """
   All vehicles
   """
   allVehicles(first: Int, after: String, last: Int, before: String): VehiclesConnection
@@ -91,11 +81,6 @@ type Query @scope(to: ["default"]) {
   A specific species
   """
   species(id: ID! @idOf(type: "Species")): Species @resolver
-
-  """
-  A specific starship
-  """
-  starship(id: ID! @idOf(type: "Starship")): Starship @resolver
 
   """
   A specific vehicle
@@ -256,46 +241,6 @@ type SpeciesEdge @scope(to: ["default"]) {
   The item at the end of the edge
   """
   node: Species
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type StarshipsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [StarshipsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  starships: [Starship]
-}
-
-"""
-An edge in a connection.
-"""
-type StarshipsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Starship
 
   """
   A cursor for use in pagination

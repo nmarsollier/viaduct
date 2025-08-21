@@ -1,1 +1,1 @@
-// Empty schema module
+// Auto-configured by viaduct-app plugin
