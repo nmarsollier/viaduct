@@ -6,6 +6,8 @@ import graphql.execution.instrumentation.parameters.InstrumentationExecutionPara
 import viaduct.engine.api.instrumentation.ViaductInstrumentationBase
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.findLocalContextForType
+import viaduct.engine.runtime.isIntrospective
+import viaduct.engine.runtime.updateCompositeLocalContext
 
 class ScopeInstrumentation : ViaductInstrumentationBase() {
     override fun instrumentExecutionContext(
@@ -13,10 +15,26 @@ class ScopeInstrumentation : ViaductInstrumentationBase() {
         parameters: InstrumentationExecutionParameters,
         state: InstrumentationState?
     ): ExecutionContext {
-        return executionContext.transform {
-            // update the execution to use fullSchema, which is safe to do in all cases
-            it.graphQLSchema(
-                executionContext.findLocalContextForType<EngineExecutionContextImpl>().fullSchema.schema
+        return executionContext.transform { contextBuilder ->
+            // If introspective, we need to use the scoped schema, which is the correct schema to return the introspective query scoped.
+            val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>().let { currentExecutionContext ->
+                if (executionContext.isIntrospective) {
+                    val scopedExecutionContext = currentExecutionContext.copy(activeSchema = currentExecutionContext.scopedSchema)
+
+                    // Introspective queries needs to update the local context with the scoped execution context.
+                    contextBuilder.localContext(
+                        executionContext.updateCompositeLocalContext<EngineExecutionContextImpl> { scopedExecutionContext }
+                    )
+
+                    scopedExecutionContext
+                } else {
+                    currentExecutionContext
+                }
+            }
+
+            // update the execution to use activeSchema, which is fullSchema or scopedSchema depending on introspection
+            contextBuilder.graphQLSchema(
+                engineExecutionContext.activeSchema.schema
             )
         }
     }

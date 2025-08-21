@@ -284,7 +284,7 @@ data class ExecutionParameters(
                     QueryPlan.build(
                         QueryPlan.Parameters(
                             executionContext.executionInput.query,
-                            engineExecutionContext.fullSchema,
+                            engineExecutionContext.activeSchema,
                             requiredSelectionSetRegistry,
                             engineExecutionContext.executeAccessChecksInModstrat
                         ),

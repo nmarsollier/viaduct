@@ -63,6 +63,14 @@ fun <T : Any> find(
 }
 
 // ExecutionContext
+private const val IS_INTROSPECTIVE = "viaduct.service.runtime.isIntrospective"
+
+val ExecutionContext.isIntrospective: Boolean
+    get() = graphQLContext.get<Boolean>(IS_INTROSPECTIVE) == true
+
+fun ExecutionInput.setIsIntrospective(isIntrospective: Boolean) {
+    graphQLContext.put(IS_INTROSPECTIVE, isIntrospective)
+}
 
 inline fun <reified T : Any> ExecutionContext.updateCompositeLocalContext(updater: (ctx: T?) -> T): CompositeLocalContext {
     val compositeContext =

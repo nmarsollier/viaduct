@@ -24,8 +24,10 @@ class ContextMocks(
     myEngineExecutionContextFactory: EngineExecutionContextFactory? = null,
     private val myEngineExecutionContext: EngineExecutionContext? = null,
     myBaseLocalContext: CompositeLocalContext? = null,
+    myScopedSchema: ViaductSchema? = myFullSchema
 ) {
     val fullSchema: ViaductSchema = myFullSchema ?: mockk<ViaductSchema>()
+    val scopedSchema: ViaductSchema = myScopedSchema ?: mockk<ViaductSchema>()
     val viaductSchema: ViaductSchema = if (myFullSchema != null) {
         myFullSchema
     } else {
@@ -40,7 +42,7 @@ class ContextMocks(
     val engineExecutionContext: EngineExecutionContext get() =
         when {
             myEngineExecutionContext != null -> myEngineExecutionContext
-            else -> engineExecutionContextFactory.create()
+            else -> engineExecutionContextFactory.create(scopedSchema)
         }
 
     val engineExecutionContextImpl: EngineExecutionContextImpl get() =

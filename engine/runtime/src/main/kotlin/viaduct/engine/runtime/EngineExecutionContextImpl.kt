@@ -39,9 +39,10 @@ class EngineExecutionContextFactory(
     private val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory =
         RawSelectionsLoaderImpl.Factory(fragmentLoader, fullSchema)
 
-    fun create(): EngineExecutionContext {
+    fun create(scopedSchema: ViaductSchema): EngineExecutionContext {
         return EngineExecutionContextImpl(
             fullSchema,
+            scopedSchema,
             rawSelectionSetFactory,
             rawSelectionsLoaderFactory,
             dispatcherRegistry,
@@ -55,6 +56,7 @@ class EngineExecutionContextFactory(
 
 class EngineExecutionContextImpl(
     override val fullSchema: ViaductSchema,
+    override val scopedSchema: ViaductSchema,
     override val rawSelectionSetFactory: RawSelectionSet.Factory,
     override val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory,
     val dispatcherRegistry: DispatcherRegistry,
@@ -62,7 +64,8 @@ class EngineExecutionContextImpl(
     private val fieldDataLoaders: ConcurrentHashMap<String, FieldDataLoader>,
     private val nodeDataLoaders: ConcurrentHashMap<String, NodeDataLoader>,
     val executeAccessChecksInModstrat: Boolean,
-    val dataFetchingEnvironment: DataFetchingEnvironment? = null
+    val dataFetchingEnvironment: DataFetchingEnvironment? = null,
+    override val activeSchema: ViaductSchema = fullSchema,
 ) : EngineExecutionContext {
     override fun createNodeEngineObjectData(
         id: String,
@@ -109,8 +112,11 @@ class EngineExecutionContextImpl(
     fun copy(
         dataFetchingEnvironment: DataFetchingEnvironment? = this.dataFetchingEnvironment,
         executeAccessCheckInModstrat: Boolean = this.executeAccessChecksInModstrat,
+        activeSchema: ViaductSchema = this.activeSchema,
     ) = EngineExecutionContextImpl(
         fullSchema = this.fullSchema,
+        scopedSchema = this.scopedSchema,
+        activeSchema = activeSchema,
         rawSelectionSetFactory = this.rawSelectionSetFactory,
         rawSelectionsLoaderFactory = rawSelectionsLoaderFactory,
         dispatcherRegistry = this.dispatcherRegistry,
