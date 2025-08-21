@@ -26,10 +26,10 @@ class FragmentResolutionErrorTest {
             viaductErrorType = "viaduct-error",
             fatal = true
         )
-        assertEquals(fragmentFieldResoluitionError.message, "")
-        assertEquals(fragmentFieldResoluitionError.cause, throwable)
-        assertEquals(fragmentFieldResoluitionError.viaductErrorType, "viaduct-error")
-        assertEquals(fragmentFieldResoluitionError.fatal, true)
+        assertEquals("", fragmentFieldResoluitionError.message)
+        assertEquals(throwable, fragmentFieldResoluitionError.cause)
+        assertEquals("viaduct-error", fragmentFieldResoluitionError.viaductErrorType)
+        assertEquals(true, fragmentFieldResoluitionError.fatal)
     }
 
     @Test
@@ -47,7 +47,7 @@ class FragmentResolutionErrorTest {
         )
         assertContains(fragmentFieldResoluitionError.message, fieldName)
         assertContains(fragmentFieldResoluitionError.message, throwableMessage)
-        assertEquals(fragmentFieldResoluitionError.cause, throwable)
+        assertEquals(throwable, fragmentFieldResoluitionError.cause)
     }
 
     @Test
@@ -62,9 +62,9 @@ class FragmentResolutionErrorTest {
             graphQLError
         )
 
-        assertEquals(fragmentFieldResoluitionError.message, "fooMessage")
-        assertEquals(fragmentFieldResoluitionError.path, pathList)
-        assertEquals(fragmentFieldResoluitionError.pathString, pathList.joinToString(separator = "."))
+        assertEquals("fooMessage", fragmentFieldResoluitionError.message)
+        assertEquals(pathList, fragmentFieldResoluitionError.path)
+        assertEquals(pathList.joinToString(separator = "."), fragmentFieldResoluitionError.pathString)
     }
 
     @Test
@@ -92,7 +92,7 @@ class FragmentResolutionErrorTest {
             error3
         )
         val listForField = listOfErrors.forField("testend")
-        assertEquals(listForField.size, 2)
+        assertEquals(2, listForField.size)
         assertContains(listForField, error1)
         assertContains(listForField, error3)
         val listForFieldAndSubSelections = listOfErrors.forFieldAndSubSelections("")
