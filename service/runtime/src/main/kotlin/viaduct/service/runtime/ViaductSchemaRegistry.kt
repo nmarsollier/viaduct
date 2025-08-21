@@ -83,7 +83,7 @@ class ViaductSchemaRegistry internal constructor(
                     GraphQLEngine(
                         schema,
                         GraphQL.newGraphQL(schema.schema)
-                            .preparsedDocumentProvider(documentProviderFactory(schema))
+                            .preparsedDocumentProvider(IntrospectionRestrictingPreparsedDocumentProvider(documentProviderFactory(schema)))
                             .queryExecutionStrategy(queryExecutionStrategy)
                             .mutationExecutionStrategy(mutationExecutionStrategy)
                             .subscriptionExecutionStrategy(subscriptionExecutionStrategy)

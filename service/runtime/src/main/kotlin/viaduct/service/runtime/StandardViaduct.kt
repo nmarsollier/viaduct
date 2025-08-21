@@ -400,7 +400,7 @@ class StandardViaduct internal constructor(
             executionInputBuilder.operationName(executionInput.operationName)
         }
         executionInputBuilder.variables(executionInput.variables)
-        val localContext = CompositeLocalContext.withContexts(mkEngineExecutionContext())
+        val localContext = CompositeLocalContext.withContexts(mkEngineExecutionContext(executionInput.schemaId))
 
         @Suppress("DEPRECATION")
         return executionInputBuilder
@@ -437,7 +437,7 @@ class StandardViaduct internal constructor(
      * Creates an instance of EngineExecutionContext. This should be called exactly once
      * per request and set in the graphql-java execution input's local context.
      */
-    fun mkEngineExecutionContext(): EngineExecutionContext {
-        return engineExecutionContextFactory.create()
+    fun mkEngineExecutionContext(schemaId: String): EngineExecutionContext {
+        return engineExecutionContextFactory.create(viaductSchemaRegistry.getSchema(schemaId) ?: throw IllegalArgumentException("Schema not registered for $schemaId"))
     }
 }

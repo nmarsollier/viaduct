@@ -11,7 +11,6 @@ import graphql.GraphQL
 import graphql.InvalidSyntaxError
 import graphql.execution.DataFetcherExceptionHandler
 import graphql.execution.ExecutionStrategy
-import graphql.execution.preparsed.NoOpPreparsedDocumentProvider
 import graphql.language.SourceLocation
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
@@ -208,7 +207,7 @@ class ViaductOSSEndToEndTest {
                                         "mutationStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
                                         "subscriptionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
                                         "instrumentation" to chainedInstrumentationInvariant,
-                                        "preparsedDocumentProvider" to ClassTypeInvariant(NoOpPreparsedDocumentProvider::class),
+                                        "preparsedDocumentProvider" to ClassTypeInvariant(IntrospectionRestrictingPreparsedDocumentProvider::class),
                                     )
                                 )
                             )
