@@ -237,10 +237,10 @@ class StandardViaductTest {
 
         every { mockGraphql.executeAsync(any<graphql.ExecutionInput>()) } answers {
             val input = firstArg<graphql.ExecutionInput>()
-            assertEquals(input.query, query)
-            assertEquals(input.variables, variables)
-            assertEquals(input.operationName, operationName)
-            assertEquals(input.context, requestContext)
+            assertEquals(query, input.query)
+            assertEquals(variables, input.variables)
+            assertEquals(operationName, input.operationName)
+            assertEquals(requestContext, input.context)
             val engineExecutionContext = input.getLocalContextForType<EngineExecutionContextImpl>()
             assertNotNull(engineExecutionContext)
             assertEquals(graphQLSchemaRegistry.getFullSchema(), engineExecutionContext.fullSchema)
@@ -264,10 +264,10 @@ class StandardViaductTest {
 
         every { mockGraphql.executeAsync(any<graphql.ExecutionInput>()) } answers {
             val input = firstArg<graphql.ExecutionInput>()
-            assertEquals(input.query, query)
-            assertEquals(input.variables, mapOf())
-            assertEquals(input.operationName, null)
-            assertEquals(input.context, context)
+            assertEquals(query, input.query)
+            assertEquals(mapOf(), input.variables)
+            assertEquals(null, input.operationName)
+            assertEquals(context, input.context)
             val engineExecutionContext = input.getLocalContextForType<EngineExecutionContextImpl>()
             assertNotNull(engineExecutionContext)
             assertEquals(graphQLSchemaRegistry.getFullSchema(), engineExecutionContext.fullSchema)
@@ -302,9 +302,9 @@ class StandardViaductTest {
 
         val executionResultImpl = subject.sortExecutionResult(executionResult)
 
-        assertEquals(executionResultImpl.getData(), "Test")
-        assertEquals(executionResultImpl.errors, graphqlErrors)
-        assertEquals(executionResultImpl.extensions, mapOf())
+        assertEquals("Test", executionResultImpl.getData())
+        assertEquals(graphqlErrors, executionResultImpl.errors)
+        assertEquals(mapOf(), executionResultImpl.extensions)
     }
 
     @Test
