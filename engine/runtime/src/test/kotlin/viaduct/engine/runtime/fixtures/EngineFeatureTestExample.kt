@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.mocks.MockEngineObjectData
-import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.fetchAs
 import viaduct.engine.api.mocks.getAs
@@ -129,25 +128,29 @@ class EngineFeatureTestExample {
         val schemaSDL = """
             type Query {
                 node(id: ID!): Node
-                testNode: TestNode
             }
 
             interface Node {
                 id: ID!
             }
 
-            type TestNode { # TODO -- doesn't implement Node!!
+            type TestNode implements Node {
                 id: ID!
                 name: String
             }
         """.trimIndent()
 
-        val s = MockSchema.mk(schemaSDL)
+        // Here we can also do:
+        // ```
+        // val testSchema = mkSchemaWithWiring(schemaSDL)
+        // val testNodeType = testSchema.schema.getObjectType("TestNode")
+        // MockTenantModuleBootstrapper(testSchema) { ... }
+        // ```
+        // then `testSchema` and `testNodeType` can be reused in the test.
         MockTenantModuleBootstrapper(schemaSDL) {
-            // TODO - can we get Query.node to work?
-            field("Query" to "testNode") {
+            field("Query" to "node") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("123", s.schema.getObjectType("TestNode")) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("TestNode")) }
                 }
             }
             type("TestNode") {
@@ -159,8 +162,8 @@ class EngineFeatureTestExample {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{ testNode { id name } }")
-                .assertJson("""{data: { testNode: { id: "123", name: "Test Node 123"} } }""")
+            viaduct.runQuery("{ node(id: 123) { id ... on TestNode { name } } }")
+                .assertJson("""{data: { node: { id: "123", name: "Test Node 123"} } }""")
         }
     }
 

@@ -46,6 +46,7 @@ import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.engine.runtime.select.RawSelectionSetImpl
+import viaduct.service.runtime.ViaductWiringFactory
 
 typealias CheckerFn = suspend (arguments: Map<String, Any?>, objectDataMap: Map<String, EngineObjectData>) -> Unit
 typealias NodeBatchResolverFn = suspend (selectors: List<NodeResolverExecutor.Selector>, context: EngineExecutionContext) -> Map<NodeResolverExecutor.Selector, Result<EngineObjectData>>
@@ -328,9 +329,31 @@ class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolv
     override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = resolveFn(ctx)
 }
 
+/**
+ * Create a [ViaductSchema] with mock wiring, which allows for schema parsing and validation.
+ * This is useful for testing local changes which is unnecessary for a full engine execution,
+ * eg. unit tests.
+ *
+ * @param sdl The SDL string to parse and create the schema.
+ */
 fun mkSchema(sdl: String): ViaductSchema {
     val tdr = SchemaParser().parse(sdl)
     return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING))
+}
+
+/**
+ * Create a [ViaductSchema] with actual wiring, which allows for real execution.
+ * This is useful for testing the actual engine behaviors, eg. engine feature test.
+ *
+ * @param sdl The SDL string to parse and create the schema.
+ */
+fun mkSchemaWithWiring(sdl: String): ViaductSchema {
+    val tdr = SchemaParser().parse(sdl)
+    val actualWiringFactory = ViaductWiringFactory(DefaultCoroutineInterop)
+    val wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(actualWiringFactory).build()
+
+    // Let SchemaProblem and other GraphQL validation errors pass through
+    return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, wiring))
 }
 
 object MockSchema {
@@ -513,15 +536,24 @@ class MockTenantModuleBootstrapper(
     fun checkerAt(coord: Coordinate) = checkerExecutors[coord]
 
     companion object {
+        /**
+         * Create a [MockTenantModuleBootstrapper] with the provided schema SDL.
+         * This will parse the SDL and create a [ViaductSchema] with actual wiring.
+         */
         operator fun invoke(
             schemaSDL: String,
             block: MockTenantModuleBootstrapperDSL<Unit>.() -> Unit
-        ) = invoke(mkSchema(schemaSDL), block)
+        ) = invoke(mkSchemaWithWiring(schemaSDL), block)
 
+        /**
+         * Create a [MockTenantModuleBootstrapper] with the provided [ViaductSchema].
+         * The provided schema should already be built with actual wiring via `mkSchemaWithWiring`,
+         * not `mkSchema` with mock wiring.
+         */
         operator fun invoke(
-            schema: ViaductSchema,
+            schemaWithWiring: ViaductSchema,
             block: MockTenantModuleBootstrapperDSL<Unit>.() -> Unit
-        ) = MockTenantModuleBootstrapperDSL<Unit>(schema, Unit).apply { block() }.create()
+        ) = MockTenantModuleBootstrapperDSL<Unit>(schemaWithWiring, Unit).apply { block() }.create()
     }
 
     fun resolveField(
@@ -612,7 +644,7 @@ class MockCheckerExecutorFactory(
 }
 
 object Samples {
-    val testSchema = MockSchema.mk(
+    val testSchema = mkSchemaWithWiring(
         """
         type Query {
             foo: String

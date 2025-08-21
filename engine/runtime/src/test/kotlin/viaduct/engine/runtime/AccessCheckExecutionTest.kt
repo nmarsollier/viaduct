@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.mocks.MockEngineObjectData
-import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
+import viaduct.engine.api.mocks.mkSchemaWithWiring
 import viaduct.engine.api.mocks.runFeatureTest
 
 @ExperimentalCoroutinesApi
@@ -43,7 +43,7 @@ class AccessCheckExecutionTest {
             }
         """.trimIndent()
 
-        private val schema = MockSchema.mk(SDL)
+        private val schema = mkSchemaWithWiring(SDL)
         private val booType = schema.schema.getObjectType("Boo")
         private val bazType = schema.schema.getObjectType("Baz")
         private val queryType = schema.schema.getObjectType("Query")
@@ -51,7 +51,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `no checkers`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "boo", MockEngineObjectData(booType, mapOf("value" to 5)))
         }.runFeatureTest {
             viaduct.runQuery("{ boo { value } }")
@@ -64,7 +64,7 @@ class AccessCheckExecutionTest {
         var asyncFieldCheckerRan = false
         var syncFieldCheckerRan = false
 
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "boo", MockEngineObjectData(booType, mapOf("value" to 5)))
             field("Query" to "boo") {
                 checker {
@@ -88,7 +88,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `async field successful, checker throws`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "boo", MockEngineObjectData(booType, mapOf("value" to 5)))
             field("Query" to "boo") {
                 checker {
@@ -130,7 +130,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `async field throws, checker throws`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "boo") {
                 resolver {
                     fn { _, _, _, _, _ -> throw RuntimeException("not found") }
@@ -152,7 +152,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `sync field throws, checker throws`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "boo") {
                 resolver {
                     fn { _, _, _, _, _ ->
@@ -187,7 +187,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `objectValueFragment field - field and checker successful`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "string2", "2nd")
             field("Query" to "string1") {
                 resolver {
@@ -211,7 +211,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `objectValueFragment field - field successful, checker throws`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "string2", "2nd")
             field("Query" to "string1") {
                 resolver {
@@ -239,7 +239,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `objectValueFragment field - field throws, checker throws`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "string2") {
                 resolver {
                     fn { _, _, _, _, _ -> throw RuntimeException("string2 resolver throws") }
@@ -270,7 +270,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `objectValueFragment field - field throws, checker successful`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "string2") {
                 resolver {
                     fn { _, _, _, _, _ -> throw RuntimeException("string2 resolver throws") }
@@ -300,7 +300,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `checker with rss - access checks skipped`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "string1", "foo")
             fieldWithValue("Query" to "string2", "bar")
             field("Query" to "string1") {
@@ -334,7 +334,7 @@ class AccessCheckExecutionTest {
     fun `mutation field with checker`() {
         var mutationResolverRan = false
 
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Mutation" to "string1") {
                 resolver {
                     fn { _, _, _, _, _ ->
@@ -360,7 +360,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `field and type checks fail`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
@@ -389,7 +389,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `field check succeeds, type check fails`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
@@ -418,7 +418,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `no field check, type check fails`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
@@ -443,8 +443,8 @@ class AccessCheckExecutionTest {
     }
 
     @Test
-    fun `type check on interface field`() {
-        MockTenantModuleBootstrapper(SDL) {
+    fun `type check fail on interface field`() {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "node") {
                 resolver {
                     fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
@@ -469,8 +469,32 @@ class AccessCheckExecutionTest {
     }
 
     @Test
+    fun `type check succeed on interface field`() {
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "node") {
+                resolver {
+                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    fn { _, _ -> /* access granted */ }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ node { id ... on Baz { x y } } }")
+            val expectedData = mapOf("node" to mapOf("id" to "1", "x" to 1, "y" to "1"))
+            assertEquals(expectedData, result.getData())
+            assertEquals(0, result.errors.size)
+        }
+    }
+
+    @Test
     fun `type check with rss`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
@@ -510,7 +534,7 @@ class AccessCheckExecutionTest {
 
     @Test
     fun `type checks for list of objects`() {
-        MockTenantModuleBootstrapper(SDL) {
+        MockTenantModuleBootstrapper(schema) {
             field("Query" to "bazList") {
                 resolver {
                     fn { _, _, _, _, ctx ->

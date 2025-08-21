@@ -3,7 +3,6 @@
 package viaduct.engine.api.mocks
 
 import graphql.ExecutionResult
-import graphql.schema.idl.SchemaPrinter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.EngineObjectData
 import viaduct.graphql.test.assertJson as realAssertJson
@@ -36,7 +35,7 @@ fun MockTenantModuleBootstrapper.toViaductBuilder(): StandardViaduct.Builder {
     )
 
     val viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
-        .withFullSchemaFromSdl(SchemaPrinter().print(schema.schema)) // Need to reparse to get correct wiring
+        .withFullSchema(schema) // this schema should already be built with the actual wiring
         .registerFullSchema("")
 
     return StandardViaduct.Builder()
