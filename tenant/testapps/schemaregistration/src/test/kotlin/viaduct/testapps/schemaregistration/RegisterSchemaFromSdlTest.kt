@@ -1,6 +1,6 @@
 package viaduct.testapps.schemaregistration
 
-import kotlin.test.assertEquals
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
 import viaduct.testapps.fixtures.TestTenantPackageFinder
@@ -11,6 +11,7 @@ import viaduct.testapps.testfixtures.TestBase
  *
  * This test registers a full schema with queries as PUBLIC manually
  */
+@ExperimentalCoroutinesApi
 class RegisterSchemaFromSdlTest : TestBase(
     customSchemaRegistration = {
         val sdl = """

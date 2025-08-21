@@ -3,6 +3,7 @@ package viaduct.testapps.schemaregistration
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.ViaductSchema
 import viaduct.graphql.test.assertEquals
@@ -14,6 +15,7 @@ import viaduct.testapps.testfixtures.TestBase
  *
  * This test registers a full schema with queries as FULL_SCHEMA manually
  */
+@ExperimentalCoroutinesApi
 class RegisterFullSchemaTest : TestBase(
     customSchemaRegistration = {
         val schema = mkSchema(

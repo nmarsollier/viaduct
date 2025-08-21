@@ -1,5 +1,6 @@
 package viaduct.testapps.schemaregistration
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
 import viaduct.testapps.fixtures.ScopedSchemaInfo
@@ -10,6 +11,7 @@ import viaduct.testapps.testfixtures.TestBase
  * Register schema filtering by tenantPackagePrefix tenant2
  * Tenant2 only has SCOPE2 fields and not SCOPE1 fields
  */
+@ExperimentalCoroutinesApi
 class RegisterSchemaFromResources2Test : TestBase(
     setOf(ScopedSchemaInfo(schemaId = "SCHEMA_ID_1", scopeIds = setOf("SCOPE1")), ScopedSchemaInfo(schemaId = "SCHEMA_ID_2", scopeIds = setOf("SCOPE2"))),
     tenantPackageFinder = TestTenantPackageFinder(listOf(viaduct.testapps.schemaregistration.tenant2.Tenant2Module::class)),
