@@ -40,32 +40,27 @@ type Film implements Node @resolver @scope(to: ["default"]) {
   """
   The characters that appear in this film.
   """
-  characterConnection(first: Int, after: String, last: Int, before: String): FilmCharactersConnection
-    @backingData(class: "starwars.film.CharacterConnection")
+  characters(limit: Int): [Character] @backingData(class: "starwars.film.CharacterConnection")
 
   """
   The planets that appear in this film.
   """
-  planetConnection(first: Int, after: String, last: Int, before: String): FilmPlanetsConnection
-    @backingData(class: "starwars.film.PlanetConnection")
+  planets(limit: Int): [Planet] @backingData(class: "starwars.film.PlanetConnection")
 
   """
   The starships that appear in this film.
   """
-  starshipConnection(first: Int, after: String, last: Int, before: String): FilmStarshipsConnection
-    @backingData(class: "starwars.film.StarshipConnection")
+  starships(limit: Int): [Starship] @backingData(class: "starwars.film.StarshipConnection")
 
   """
   The vehicles that appear in this film.
   """
-  vehicleConnection(first: Int, after: String, last: Int, before: String): FilmVehiclesConnection
-    @backingData(class: "starwars.film.VehicleConnection")
+  vehicles(limit: Int): [Vehicle] @backingData(class: "starwars.film.VehicleConnection")
 
   """
   The species that appear in this film.
   """
-  speciesConnection(first: Int, after: String, last: Int, before: String): FilmSpeciesConnection
-    @backingData(class: "starwars.film.SpeciesConnection")
+  species(limit: Int): [Species] @backingData(class: "starwars.film.SpeciesConnection")
 
   """
   The ISO 8601 date format of the time that this resource was created.
@@ -100,204 +95,4 @@ type Film implements Node @resolver @scope(to: ["default"]) {
   Main characters in this film (batch resolver example)
   """
   mainCharacters: [Character] @resolver
-}
-
-"""
-A connection to a list of items.
-"""
-type FilmCharactersConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [FilmCharactersEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  characters: [Character]
-}
-
-"""
-An edge in a connection.
-"""
-type FilmCharactersEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Character
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type FilmPlanetsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [FilmPlanetsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  planets: [Planet]
-}
-
-"""
-An edge in a connection.
-"""
-type FilmPlanetsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Planet
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type FilmStarshipsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [FilmStarshipsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  starships: [Starship]
-}
-
-"""
-An edge in a connection.
-"""
-type FilmStarshipsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Starship
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type FilmVehiclesConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [FilmVehiclesEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  vehicles: [Vehicle]
-}
-
-"""
-An edge in a connection.
-"""
-type FilmVehiclesEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Vehicle
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type FilmSpeciesConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [FilmSpeciesEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  species: [Species]
-}
-
-"""
-An edge in a connection.
-"""
-type FilmSpeciesEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Species
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
 }

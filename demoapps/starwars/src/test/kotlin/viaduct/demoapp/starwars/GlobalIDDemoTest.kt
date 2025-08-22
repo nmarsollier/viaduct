@@ -154,12 +154,10 @@ class GlobalIDDemoTest {
     fun `should show GlobalID consistency across multiple characters`() {
         val query = """
             query GetMultipleCharactersWithGlobalIds {
-              allCharacters(first: 3) {
-                characters {
-                  # Node interface id field returns encoded GlobalID for each character
-                  id
-                  name
-                }
+              allCharacters(limit: 3) {
+                # Node interface id field returns encoded GlobalID for each character
+                id
+                name
               }
             }
         """.trimIndent()
@@ -173,7 +171,7 @@ class GlobalIDDemoTest {
             "GraphQL query should not return errors"
         )
 
-        val characters = result.get("data").get("allCharacters").get("characters")
+        val characters = result.get("data").get("allCharacters")
 
         // Verify we got multiple characters
         assertEquals(3, characters.size(), "Should return 3 characters")

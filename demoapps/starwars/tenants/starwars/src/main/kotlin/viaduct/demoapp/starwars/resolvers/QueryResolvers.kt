@@ -64,12 +64,12 @@ class SearchCharacterResolver : QueryResolvers.SearchCharacter() {
  */
 @Resolver
 class AllCharactersResolver : QueryResolvers.AllCharacters() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.CharactersConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val characters = StarWarsData.characters.take(first)
+    override suspend fun resolve(ctx: Context): List<viaduct.api.grts.Character?>? {
+        val limit = ctx.arguments.limit ?: DEFAULT_PAGE_SIZE
+        val characters = StarWarsData.characters.take(limit)
 
         // Convert StarWarsData.Character objects to Character objects
-        val charactersGrts = characters.map { character ->
+        return characters.map { character ->
             Character.Builder(ctx)
                 .id(ctx.globalIDFor(Character.Reflection, character.id))
                 .name(character.name)
@@ -83,11 +83,6 @@ class AllCharactersResolver : QueryResolvers.AllCharacters() {
                 .edited(character.edited.toString())
                 .build()
         }
-
-        return viaduct.api.grts.CharactersConnection.Builder(ctx)
-            .characters(charactersGrts)
-            .totalCount(StarWarsData.characters.size)
-            .build()
     }
 }
 
@@ -135,12 +130,12 @@ class CharacterResolver : QueryResolvers.Character() {
  */
 @Resolver
 class AllFilmsResolver : QueryResolvers.AllFilms() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.FilmsConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val films = StarWarsData.films.take(first)
+    override suspend fun resolve(ctx: Context): List<viaduct.api.grts.Film?>? {
+        val limit = ctx.arguments.limit ?: DEFAULT_PAGE_SIZE
+        val films = StarWarsData.films.take(limit)
 
         // Convert StarWarsData.Film objects to Film objects
-        val filmsGrts = films.map { film ->
+        return films.map { film ->
             Film.Builder(ctx)
                 .id(ctx.globalIDFor(Film.Reflection, film.id))
                 .title(film.title)
@@ -152,11 +147,6 @@ class AllFilmsResolver : QueryResolvers.AllFilms() {
                 .edited(film.edited.toString())
                 .build()
         }
-
-        return viaduct.api.grts.FilmsConnection.Builder(ctx)
-            .films(filmsGrts)
-            .totalCount(StarWarsData.films.size)
-            .build()
     }
 }
 
@@ -196,10 +186,10 @@ class FilmResolver : QueryResolvers.Film() {
 
 @Resolver
 class AllPlanetsResolver : QueryResolvers.AllPlanets() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.PlanetsConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val planets = StarWarsData.planets.take(first)
-        val planetsGrts = planets.map { planet ->
+    override suspend fun resolve(ctx: Context): List<viaduct.api.grts.Planet?>? {
+        val limit = ctx.arguments.limit ?: DEFAULT_PAGE_SIZE
+        val planets = StarWarsData.planets.take(limit)
+        return planets.map { planet ->
             Planet.Builder(ctx)
                 .id(ctx.globalIDFor(Planet.Reflection, planet.id))
                 .name(planet.name)
@@ -215,20 +205,15 @@ class AllPlanetsResolver : QueryResolvers.AllPlanets() {
                 .edited(planet.edited.toString())
                 .build()
         }
-
-        return viaduct.api.grts.PlanetsConnection.Builder(ctx)
-            .planets(planetsGrts)
-            .totalCount(StarWarsData.planets.size)
-            .build()
     }
 }
 
 @Resolver
 class AllSpeciesResolver : QueryResolvers.AllSpecies() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.SpeciesConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val species = StarWarsData.species.take(first)
-        val speciesGrts = species.map { speciesItem ->
+    override suspend fun resolve(ctx: Context): List<viaduct.api.grts.Species?>? {
+        val limit = ctx.arguments.limit ?: DEFAULT_PAGE_SIZE
+        val species = StarWarsData.species.take(limit)
+        return species.map { speciesItem ->
             Species.Builder(ctx)
                 .id(ctx.globalIDFor(Species.Reflection, speciesItem.id))
                 .name(speciesItem.name)
@@ -243,20 +228,15 @@ class AllSpeciesResolver : QueryResolvers.AllSpecies() {
                 .edited(speciesItem.edited.toString())
                 .build()
         }
-
-        return viaduct.api.grts.SpeciesConnection.Builder(ctx)
-            .species(speciesGrts)
-            .totalCount(StarWarsData.species.size)
-            .build()
     }
 }
 
 @Resolver
 class AllVehiclesResolver : QueryResolvers.AllVehicles() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.VehiclesConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val vehicles = StarWarsData.vehicles.take(first)
-        val vehiclesGrts = vehicles.map { vehicle ->
+    override suspend fun resolve(ctx: Context): List<viaduct.api.grts.Vehicle?>? {
+        val limit = ctx.arguments.limit ?: DEFAULT_PAGE_SIZE
+        val vehicles = StarWarsData.vehicles.take(limit)
+        return vehicles.map { vehicle ->
             Vehicle.Builder(ctx)
                 .id(ctx.globalIDFor(Vehicle.Reflection, vehicle.id))
                 .name(vehicle.name)
@@ -274,11 +254,6 @@ class AllVehiclesResolver : QueryResolvers.AllVehicles() {
                 .edited(vehicle.edited.toString())
                 .build()
         }
-
-        return viaduct.api.grts.VehiclesConnection.Builder(ctx)
-            .vehicles(vehiclesGrts)
-            .totalCount(StarWarsData.vehicles.size)
-            .build()
     }
 }
 

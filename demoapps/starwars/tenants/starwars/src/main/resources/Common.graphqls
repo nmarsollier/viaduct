@@ -12,31 +12,6 @@ interface Node @scope(to: ["default"]) {
 }
 
 """
-Information about pagination in a connection.
-"""
-type PageInfo @scope(to: ["default"]) {
-  """
-  When paginating forwards, are there more items?
-  """
-  hasNextPage: Boolean!
-
-  """
-  When paginating backwards, are there more items?
-  """
-  hasPreviousPage: Boolean!
-
-  """
-  When paginating backwards, the cursor to continue.
-  """
-  startCursor: String
-
-  """
-  When paginating forwards, the cursor to continue.
-  """
-  endCursor: String
-}
-
-"""
 The root query object
 """
 type Query @scope(to: ["default"]) {
@@ -129,14 +104,12 @@ type Planet implements Node @resolver @scope(to: ["default"]) {
   """
   The residents of this planet.
   """
-  residentConnection(first: Int, after: String, last: Int, before: String): PlanetResidentsConnection
-    @backingData(class: "starwars.planet.ResidentConnection")
+  residents(limit: Int): [Character] @backingData(class: "starwars.planet.ResidentConnection")
 
   """
   The films that this planet has appeared in.
   """
-  filmConnection(first: Int, after: String, last: Int, before: String): PlanetFilmsConnection
-    @backingData(class: "starwars.planet.FilmConnection")
+  films(limit: Int): [Film] @backingData(class: "starwars.planet.FilmConnection")
 }
 
 """
@@ -198,14 +171,12 @@ type Species implements Node @resolver @scope(to: ["default", "extras"]) {
   """
   The people that are a part of this species.
   """
-  personConnection(first: Int, after: String, last: Int, before: String): SpeciesPeopleConnection
-    @backingData(class: "starwars.species.CharacterConnection")
+  people(limit: Int): [Character] @backingData(class: "starwars.species.CharacterConnection")
 
   """
   The films that this species has appeared in.
   """
-  filmConnection(first: Int, after: String, last: Int, before: String): SpeciesFilmsConnection
-    @backingData(class: "starwars.species.FilmConnection")
+  films(limit: Int): [Film] @backingData(class: "starwars.species.FilmConnection")
 
   """
   The ISO 8601 date format of the time that this resource was created.
@@ -288,14 +259,12 @@ type Vehicle implements Node @resolver @scope(to: ["default"]) {
   """
   The films that this vehicle has appeared in.
   """
-  filmConnection(first: Int, after: String, last: Int, before: String): VehicleFilmsConnection
-    @backingData(class: "starwars.vehicle.FilmConnection")
+  films(limit: Int): [Film] @backingData(class: "starwars.vehicle.FilmConnection")
 
   """
   The pilots that have piloted this vehicle.
   """
-  pilotConnection(first: Int, after: String, last: Int, before: String): VehiclePilotsConnection
-    @backingData(class: "starwars.vehicle.PilotConnection")
+  pilots(limit: Int): [Character] @backingData(class: "starwars.vehicle.PilotConnection")
 
   """
   The ISO 8601 date format of the time that this resource was created.
@@ -306,79 +275,4 @@ type Vehicle implements Node @resolver @scope(to: ["default"]) {
   The ISO 8601 date format of the time that this resource was edited.
   """
   edited: String
-}
-
-"""
-Connection types for relationships
-"""
-type PlanetResidentsConnection @scope(to: ["default"]) {
-  pageInfo: PageInfo!
-  edges: [PlanetResidentsEdge]
-  totalCount: Int
-  residents: [Character]
-}
-
-type PlanetResidentsEdge @scope(to: ["default"]) {
-  node: Character
-  cursor: String!
-}
-
-type PlanetFilmsConnection @scope(to: ["default"]) {
-  pageInfo: PageInfo!
-  edges: [PlanetFilmsEdge]
-  totalCount: Int
-  films: [Film]
-}
-
-type PlanetFilmsEdge @scope(to: ["default"]) {
-  node: Film
-  cursor: String!
-}
-
-type SpeciesPeopleConnection @scope(to: ["default"]) {
-  pageInfo: PageInfo!
-  edges: [SpeciesPeopleEdge]
-  totalCount: Int
-  people: [Character]
-}
-
-type SpeciesPeopleEdge @scope(to: ["default"]) {
-  node: Character
-  cursor: String!
-}
-
-type SpeciesFilmsConnection @scope(to: ["default"]) {
-  pageInfo: PageInfo!
-  edges: [SpeciesFilmsEdge]
-  totalCount: Int
-  films: [Film]
-}
-
-type SpeciesFilmsEdge @scope(to: ["default"]) {
-  node: Film
-  cursor: String!
-}
-
-type VehicleFilmsConnection @scope(to: ["default"]) {
-  pageInfo: PageInfo!
-  edges: [VehicleFilmsEdge]
-  totalCount: Int
-  films: [Film]
-}
-
-type VehicleFilmsEdge @scope(to: ["default"]) {
-  node: Film
-  cursor: String!
-}
-
-type VehiclePilotsConnection @scope(to: ["default"]) {
-  pageInfo: PageInfo!
-  edges: [VehiclePilotsEdge]
-  totalCount: Int
-  pilots: [Character]
-}
-
-type VehiclePilotsEdge @scope(to: ["default"]) {
-  node: Character
-  cursor: String!
 }

@@ -34,16 +34,15 @@ directive @resolver on FIELD_DEFINITION | OBJECT
 
 """
 @backingData directive: Specifies a backing data class for complex field resolution.
-Used primarily for connection fields that require pagination, filtering, or other
-complex data handling. The class parameter specifies the fully-qualified name
-of the backing data implementation.
+Used for list fields that require custom data handling or transformation.
+The class parameter specifies the fully-qualified name of the backing data implementation.
 
 Usage:
 - class: String! - The backing data class name (e.g., "starwars.character.FilmConnection")
 
 Example:
 type Character {
-  filmConnection(first: Int, after: String): CharacterFilmsConnection
+  films(limit: Int): [Film]
     @resolver
     @backingData(class: "starwars.character.FilmConnection")
 }

@@ -1,7 +1,6 @@
 package viaduct.demoapp.starwars.resolvers
 
 import viaduct.api.Resolver
-import viaduct.demoapp.starwars.data.StarWarsData
 
 /**
  * Film resolvers - for all fields that have @resolver directives.
@@ -75,8 +74,8 @@ class FilmProductionDetailsResolver : viaduct.demoapp.starwars.resolverbases.Fil
 
 /**
  * Complex fragment example showing relationship data
- * @resolver("fragment _ on Film { title characterConnection }"): Fragment syntax
- *          that includes both simple fields and connection fields
+ * @resolver("fragment _ on Film { title characters }"): Fragment syntax
+ *          that includes both simple fields and list fields
  * Updated to extend generated base class.
  */
 @Resolver(
@@ -84,8 +83,8 @@ class FilmProductionDetailsResolver : viaduct.demoapp.starwars.resolverbases.Fil
     fragment _ on Film {
         id
         title
-        characterConnection(first: 10) {
-            totalCount
+        characters(limit: 10) {
+            id
         }
     }
     """
@@ -94,10 +93,9 @@ class FilmCharacterCountSummaryResolver : viaduct.demoapp.starwars.resolverbases
     override suspend fun resolve(ctx: Context): String? {
         // Access the source Film from the context
         val film = ctx.objectValue
-        // We need to access the film ID to look up character relationships
-        val filmGlobalId = film.getId()
-        val filmId = filmGlobalId.internalID
-        val characterCount = StarWarsData.filmCharacterRelations[filmId]?.size ?: 0
+        // We can now access the characters list directly from the fragment
+        val characters = film.getCharacters()
+        val characterCount = characters?.size ?: 0
         return "${film.getTitle()} features $characterCount main characters"
     }
 }
