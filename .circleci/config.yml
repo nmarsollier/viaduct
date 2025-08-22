@@ -276,7 +276,7 @@ jobs:
       
       - restore_cache:
           keys:
-            - gradle-deps-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-deps-v1-{{ .BuildNum }}-{{ .Revision }}
             - gradle-deps-v1-
       
       - attach_workspace:
@@ -336,7 +336,7 @@ jobs:
       
       - restore_cache:
           keys:
-            - gradle-deps-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-deps-v1-{{ .BuildNum }}-{{ .Revision }}
             - gradle-deps-v1-
       
       - attach_workspace:
@@ -384,7 +384,7 @@ jobs:
       
       - restore_cache:
           keys:
-            - gradle-deps-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-deps-v1-{{ .BuildNum }}-{{ .Revision }}
             - gradle-deps-v1-
       
       - attach_workspace:
