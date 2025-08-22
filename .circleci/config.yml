@@ -66,11 +66,11 @@ jobs:
           name: Install tar and git
           command: |
             echo "📦 Installing required packages..."
-            yum install -y tar git || {
-              echo "❌ Failed to install tar and git packages"
+            yum install -y tar git perl-Digest-SHA || {
+              echo "❌ Failed to install tar, git, and perl-Digest-SHA packages"
               exit 1
             }
-            echo "✅ Successfully installed tar and git"
+            echo "✅ Successfully installed tar, git, and perl-Digest-SHA (provides shasum)"
       - fail-step:
           message: "Package installation failed"
       
