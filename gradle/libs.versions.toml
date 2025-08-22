@@ -28,7 +28,7 @@ mockk-jvm = "1.13.3"
 reflections = "0.10.2"
 slf4j = "2.0.7"
 jspecify = "1.0.0"
-strikt = "0.35.1"
+strikt = "0.34.1"
 
 # Plugins
 ktlintPluginVersion = "13.0.0"
