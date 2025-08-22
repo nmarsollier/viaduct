@@ -130,7 +130,7 @@ interface FragmentSource {
     /** render this FragmentSource as a String */
     fun documentString(): String
 
-    /** render this FragmentSource a a parsed GraphQL Document */
+    /** render this FragmentSource as a parsed GraphQL Document */
     fun document(): Document
 
     companion object {
@@ -188,3 +188,9 @@ fun FragmentDefinition.addTypeName(): FragmentDefinition {
         it.selectionSet(selSet)
     }
 }
+
+/** Adds __typename to fragment definiton for compatibility with classic Apollo GraphQL */
+fun FragmentDefinition.toDefinitionWithTypeName(): String =
+    this.addTypeName()
+        .let { Document.newDocument().definition(it).build() }
+        .let(AstPrinter::printAst)
