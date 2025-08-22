@@ -84,20 +84,20 @@ type Character {
 ```
 
 ### @backingData
-**Purpose**: Specifies a backing data class for complex field resolution, particularly useful for connection fields requiring pagination.
+**Purpose**: Specifies a backing data class for complex field resolution.
 
-**Usage**: Applied to connection fields to specify the implementation class for pagination and filtering.
+**Usage**: Applied to fields to specify the implementation class for data transformation.
 
 **Example**:
 ```graphql
 type Character {
-  filmConnection(first: Int, after: String): CharacterFilmsConnection
+  films(limit: Int): [Film]
   @resolver
   @backingData(class: "starwars.character.FilmConnection")
 }
 ```
 
-**Implementation**: The specified class provides pagination logic and data transformation for GraphQL connections.
+**Implementation**: The specified class provides data transformation logic for GraphQL fields.
 
 ### @scope
 **Purpose**: Restricts schema availability to specific tenants or contexts, enabling multi-tenant GraphQL schemas.
@@ -356,11 +356,11 @@ class CharacterHomeworldBatchResolver : CharacterResolvers.Homeworld() {
 }
 ```
 
-### Connection Implementation
-GraphQL connections are implemented using backing data classes that handle pagination:
-- `CharactersConnection` for paginated character queries
-- `FilmsConnection` for paginated film queries
-- Relationship connections for character-film, character-starship mappings
+### List Implementation
+GraphQL lists are implemented using backing data classes:
+- Simple list queries for characters, films, planets, species, vehicles
+- Relationship lists for character-film, character-starship mappings
+- Optional limit parameter to control the number of returned items
 
 ## Key Features
 
@@ -368,7 +368,7 @@ GraphQL connections are implemented using backing data classes that handle pagin
 2. **Multi-tenant Schema**: Demonstrates `@scope` directive for tenant isolation
 3. **Type-safe GlobalIDs**: Uses `@idOf` with encoded GlobalID system
 4. **Complex Relationships**: Shows related entities with efficient resolution
-5. **Pagination Support**: Implements GraphQL connection pattern
+5. **List Support**: Implements simple GraphQL lists with optional limit parameter
 6. **Input Validation**: Demonstrates `@oneOf` for exactly-one-field semantics
 7. **Variables and Variable Providers**: Dynamic field selection with three different approaches
 8. **Fragment Optimization**: Specifies exact field requirements for performance
@@ -406,12 +406,10 @@ class CharacterRichSummaryResolver : CharacterResolvers.RichSummary() {
 ### Basic Character Query (with batch optimization)
 ```graphql
 query {
-  allCharacters(first: 5) {
-    characters {
-      name
-      homeworld { name }  # Batch resolved efficiently
-      filmCount          # Batch calculated
-    }
+  allCharacters(limit: 5) {
+    name
+    homeworld { name }  # Batch resolved efficiently
+    filmCount          # Batch calculated
   }
 }
 ```
@@ -419,14 +417,12 @@ query {
 ### Complex Batch Query
 ```graphql
 query {
-  allCharacters(first: 10) {
-    characters {
-      name
-      richSummary      # Combines multiple data sources
-      homeworld { name }
-      species { name }
-      filmCount
-    }
+  allCharacters(limit: 10) {
+    name
+    richSummary      # Combines multiple data sources
+    homeworld { name }
+    species { name }
+    filmCount
   }
 }
 ```
@@ -435,12 +431,10 @@ query {
 ```graphql
 query {
   allFilms {
-    films {
-      title
-      mainCharacters {  # Batch resolved
-        name
-        homeworld { name }
-      }
+    title
+    mainCharacters {  # Batch resolved
+      name
+      homeworld { name }
     }
   }
 }
@@ -608,24 +602,22 @@ query CombinedVariablesDemo {
 ### Film Fragment Examples
 ```graphql
 query {
-  allFilms(first: 2) {
-    films {
-      # Standard fields
-      title
-      director
-      
-      # Shorthand fragment - delegates to title
-      displayTitle
-      
-      # Full fragment - combines episode, title, director
-      summary
-      
-      # Full fragment - production details
-      productionDetails
-      
-      # Full fragment with connection data
-      characterCountSummary
-    }
+  allFilms(limit: 2) {
+    # Standard fields
+    title
+    director
+    
+    # Shorthand fragment - delegates to title
+    displayTitle
+    
+    # Full fragment - combines episode, title, director
+    summary
+    
+    # Full fragment - production details
+    productionDetails
+    
+    # Full fragment with character data
+    characterCountSummary
   }
 }
 ```

@@ -93,92 +93,10 @@ type Starship implements Node @resolver @scope(to: ["default"]) {
   """
   The films that this starship has appeared in.
   """
-  filmConnection(first: Int, after: String, last: Int, before: String): StarshipFilmsConnection
-    @backingData(class: "starwars.starship.FilmConnection")
+  films(limit: Int): [Film] @backingData(class: "starwars.starship.FilmConnection")
 
   """
   The pilots that have piloted this starship.
   """
-  pilotConnection(first: Int, after: String, last: Int, before: String): StarshipPilotsConnection
-    @backingData(class: "starwars.starship.PilotConnection")
-}
-
-"""
-A connection to a list of items.
-"""
-type StarshipFilmsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [StarshipFilmsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  films: [Film]
-}
-
-"""
-An edge in a connection.
-"""
-type StarshipFilmsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Film
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type StarshipPilotsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [StarshipPilotsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  pilots: [Character]
-}
-
-"""
-An edge in a connection.
-"""
-type StarshipPilotsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Character
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
+  pilots(limit: Int): [Character] @backingData(class: "starwars.starship.PilotConnection")
 }

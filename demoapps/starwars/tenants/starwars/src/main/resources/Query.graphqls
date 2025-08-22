@@ -30,35 +30,33 @@ extend type Query @scope(to: ["default"]) {
   """
   All films
   """
-  allFilms(first: Int, after: String, last: Int, before: String): FilmsConnection
-    @resolver
-    @backingData(class: "viaduct.demoapp.starwars.resolvers.AllFilmsResolver")
+  allFilms(limit: Int): [Film] @resolver @backingData(class: "viaduct.demoapp.starwars.resolvers.AllFilmsResolver")
 
   """
   All characters
   """
-  allCharacters(first: Int, after: String, last: Int, before: String): CharactersConnection
+  allCharacters(limit: Int): [Character]
     @resolver
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllCharactersResolver")
 
   """
   All planets
   """
-  allPlanets(first: Int, after: String, last: Int, before: String): PlanetsConnection
+  allPlanets(limit: Int): [Planet]
     @resolver
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllPlanetsResolver")
 
   """
   All species
   """
-  allSpecies(first: Int, after: String, last: Int, before: String): SpeciesConnection
+  allSpecies(limit: Int): [Species]
     @resolver
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllSpeciesResolver")
 
   """
   All vehicles
   """
-  allVehicles(first: Int, after: String, last: Int, before: String): VehiclesConnection
+  allVehicles(limit: Int): [Vehicle]
     @resolver
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllVehiclesResolver")
 
@@ -86,204 +84,4 @@ extend type Query @scope(to: ["default"]) {
   A specific vehicle
   """
   vehicle(id: ID! @idOf(type: "Vehicle")): Vehicle @resolver
-}
-
-"""
-A connection to a list of items.
-"""
-type FilmsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [FilmsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  films: [Film]
-}
-
-"""
-An edge in a connection.
-"""
-type FilmsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Film
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type CharactersConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [CharactersEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  characters: [Character]
-}
-
-"""
-An edge in a connection.
-"""
-type CharactersEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Character
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type PlanetsConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [PlanetsEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  planets: [Planet]
-}
-
-"""
-An edge in a connection.
-"""
-type PlanetsEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Planet
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type SpeciesConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [SpeciesEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  species: [Species]
-}
-
-"""
-An edge in a connection.
-"""
-type SpeciesEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Species
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
-}
-
-"""
-A connection to a list of items.
-"""
-type VehiclesConnection @scope(to: ["default"]) {
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-
-  """
-  A list of edges.
-  """
-  edges: [VehiclesEdge]
-
-  """
-  A count of the total number of objects in this connection, ignoring pagination.
-  """
-  totalCount: Int
-
-  """
-  A list of all of the objects returned in the connection.
-  """
-  vehicles: [Vehicle]
-}
-
-"""
-An edge in a connection.
-"""
-type VehiclesEdge @scope(to: ["default"]) {
-  """
-  The item at the end of the edge
-  """
-  node: Vehicle
-
-  """
-  A cursor for use in pagination
-  """
-  cursor: String!
 }

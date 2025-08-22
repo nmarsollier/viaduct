@@ -95,27 +95,22 @@ class ResolverIntegrationTest {
         }
 
         @Test
-        fun `should resolve allCharacters connection`() {
+        fun `should resolve allCharacters list`() {
             val query = """
                 query {
-                    allCharacters(first: 5) {
-                        characters {
-                            id
-                            name
-                        }
-                        totalCount
+                    allCharacters(limit: 5) {
+                        id
+                        name
                     }
                 }
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            println("DEBUG: AllPeople GraphQL response: $response")
-            val characters = response.path("data").path("allCharacters").path("characters")
-            val totalCount = response.path("data").path("allCharacters").path("totalCount").asInt()
-            println("DEBUG: characters.size() = ${characters.size()}, totalCount = $totalCount")
+            println("DEBUG: AllCharacters GraphQL response: $response")
+            val characters = response.path("data").path("allCharacters")
+            println("DEBUG: characters.size() = ${characters.size()}")
 
             assertTrue(characters.size() > 0)
-            assertTrue(totalCount > 0)
         }
 
         @Test
@@ -142,21 +137,18 @@ class ResolverIntegrationTest {
         }
 
         @Test
-        fun `should resolve allFilms connection`() {
+        fun `should resolve allFilms list`() {
             val query = """
                 query {
-                    allFilms(first: 3) {
-                        films {
-                            id
-                            title
-                        }
-                        totalCount
+                    allFilms(limit: 3) {
+                        id
+                        title
                     }
                 }
             """.trimIndent()
 
             val response = executeGraphQLQuery(query)
-            val films = response.path("data").path("allFilms").path("films")
+            val films = response.path("data").path("allFilms")
 
             assertTrue(films.size() > 0)
         }

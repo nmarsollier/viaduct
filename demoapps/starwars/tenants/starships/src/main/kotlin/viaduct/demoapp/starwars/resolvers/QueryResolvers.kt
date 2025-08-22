@@ -13,10 +13,10 @@ import viaduct.demoapp.starwars.data.StarshipsData
 
 @Resolver
 class AllStarshipsResolver : QueryResolvers.AllStarships() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.StarshipsConnection? {
-        val first = ctx.arguments.first ?: DEFAULT_PAGE_SIZE
-        val starships = StarshipsData.starships.take(first)
-        val starshipsGrts = starships.map { starship ->
+    override suspend fun resolve(ctx: Context): List<viaduct.api.grts.Starship?>? {
+        val limit = ctx.arguments.limit ?: DEFAULT_PAGE_SIZE
+        val starships = StarshipsData.starships.take(limit)
+        return starships.map { starship ->
             Starship.Builder(ctx)
                 .id(ctx.globalIDFor(Starship.Reflection, starship.id))
                 .name(starship.name)
@@ -36,11 +36,6 @@ class AllStarshipsResolver : QueryResolvers.AllStarships() {
                 .edited(starship.edited.toString())
                 .build()
         }
-
-        return viaduct.api.grts.StarshipsConnection.Builder(ctx)
-            .starships(starshipsGrts)
-            .totalCount(StarshipsData.starships.size)
-            .build()
     }
 }
 

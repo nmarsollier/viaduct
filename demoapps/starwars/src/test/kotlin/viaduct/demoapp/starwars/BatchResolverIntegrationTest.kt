@@ -40,11 +40,9 @@ class BatchResolverIntegrationTest {
     fun `batch resolver prevents N+1 queries for film counts`() {
         val query = """
             query {
-                allCharacters(first: 3) {
-                    characters {
-                        name
-                        filmCount
-                    }
+                allCharacters(limit: 3) {
+                    name
+                    filmCount
                 }
             }
         """.trimIndent()
@@ -53,7 +51,7 @@ class BatchResolverIntegrationTest {
 
         assertTrue(response.get("errors")?.isNull ?: true, "Query should execute without errors")
 
-        val characters = response.get("data").get("allCharacters").get("characters")
+        val characters = response.get("data").get("allCharacters")
         assertEquals(3, characters.size(), "Should return 3 characters")
 
         // Verify all characters have film counts (all should be 3 based on test data)
@@ -70,10 +68,8 @@ class BatchResolverIntegrationTest {
     fun `batch resolver efficiently creates rich summaries`() {
         val query = """
             query {
-                allCharacters(first: 3) {
-                    characters {
-                        richSummary
-                    }
+                allCharacters(limit: 3) {
+                    richSummary
                 }
             }
         """.trimIndent()
@@ -82,7 +78,7 @@ class BatchResolverIntegrationTest {
 
         assertTrue(response.get("errors")?.isNull ?: true, "Query should execute without errors")
 
-        val characters = response.get("data").get("allCharacters").get("characters")
+        val characters = response.get("data").get("allCharacters")
         assertEquals(3, characters.size(), "Should return 3 characters")
 
         // Verify rich summaries contain expected data
@@ -101,12 +97,10 @@ class BatchResolverIntegrationTest {
     fun `batch resolver efficiently resolves film characters`() {
         val query = """
             query {
-                allFilms(first: 2) {
-                    films {
-                        title
-                        mainCharacters {
-                            name
-                        }
+                allFilms(limit: 2) {
+                    title
+                    mainCharacters {
+                        name
                     }
                 }
             }
@@ -116,7 +110,7 @@ class BatchResolverIntegrationTest {
 
         assertTrue(response.get("errors")?.isNull ?: true, "Query should execute without errors")
 
-        val films = response.get("data").get("allFilms").get("films")
+        val films = response.get("data").get("allFilms")
         assertEquals(2, films.size(), "Should return 2 films")
 
         // Verify each film has main characters
@@ -145,14 +139,12 @@ class BatchResolverIntegrationTest {
         // This query would cause many N+1 problems without batch resolvers
         val query = """
             query {
-                allCharacters(first: 5) {
-                    characters {
-                        name
-                        filmCount
-                        richSummary
-                        homeworld { name }
-                        species { name }
-                    }
+                allCharacters(limit: 5) {
+                    name
+                    filmCount
+                    richSummary
+                    homeworld { name }
+                    species { name }
                 }
             }
         """.trimIndent()
@@ -161,7 +153,7 @@ class BatchResolverIntegrationTest {
 
         assertTrue(response.get("errors")?.isNull ?: true, "Complex query should execute efficiently")
 
-        val characters = response.get("data").get("allCharacters").get("characters")
+        val characters = response.get("data").get("allCharacters")
         assertEquals(5, characters.size(), "Should return 5 characters")
 
         // Verify all fields are resolved efficiently
