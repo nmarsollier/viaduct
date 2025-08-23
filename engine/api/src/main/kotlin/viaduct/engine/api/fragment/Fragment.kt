@@ -48,6 +48,9 @@ data class Fragment(
     val parsedDocument: Document
         get() = fragmentSource.document()
 
+    /**
+     * The field definition in the fragment document, with __typename added
+     */
     val definition by lazy {
         try {
             getFragmentDefinition(parsedDocument, variables.asMap().keys)
@@ -189,8 +192,7 @@ fun FragmentDefinition.addTypeName(): FragmentDefinition {
     }
 }
 
-/** Adds __typename to fragment definiton for compatibility with classic Apollo GraphQL */
-fun FragmentDefinition.toDefinitionWithTypeName(): String =
-    this.addTypeName()
+fun FragmentDefinition.toDocumentString(): String =
+    this
         .let { Document.newDocument().definition(it).build() }
         .let(AstPrinter::printAst)
