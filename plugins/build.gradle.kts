@@ -7,6 +7,16 @@ plugins {
 
 project.version = libs.versions.project.get()
 
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
 // These are the plugins we're publishing externally
 // (viaduct-feature-app is not published: it's for internal testing purposes)
 gradlePlugin {
