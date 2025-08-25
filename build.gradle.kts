@@ -1,7 +1,12 @@
 import org.gradle.internal.extensions.core.serviceOf
 
 plugins {
-    id("dependency-analysis")
+    id("java")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktlintPlugin)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.dependency.analysis)
+    alias(libs.plugins.dokka)
 }
 
 val projectVersion = libs.versions.project

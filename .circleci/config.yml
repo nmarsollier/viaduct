@@ -238,11 +238,6 @@ jobs:
       - checkout
       
       
-      - restore_cache:
-          keys:
-            - gradle-deps-v1-{{ .BuildNum }}-{{ .Revision }}
-            - gradle-deps-v1-
-      
       - attach_workspace:
           at: ~/project
       - fail-step:
@@ -286,11 +281,6 @@ jobs:
       - checkout
       
       
-      - restore_cache:
-          keys:
-            - gradle-deps-v1-{{ .BuildNum }}-{{ .Revision }}
-            - gradle-deps-v1-
-      
       - attach_workspace:
           at: ~/project
       - fail-step:
@@ -321,11 +311,6 @@ jobs:
     steps:
       - checkout
       
-      
-      - restore_cache:
-          keys:
-            - gradle-deps-v1-{{ .BuildNum }}-{{ .Revision }}
-            - gradle-deps-v1-
       
       - attach_workspace:
           at: ~/project
