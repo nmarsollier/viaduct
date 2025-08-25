@@ -56,6 +56,16 @@ configure<com.autonomousapps.DependencyAnalysisExtension> {
     }
 }
 subprojects {
+    apply(plugin = "org.jetbrains.dokka")
+    
+    tasks.withType<ProcessResources> {
+        exclude("**/BUILD.bazel")
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
     group = groupId
     version = jarVersion
 
