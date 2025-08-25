@@ -410,18 +410,71 @@ jobs:
           message: "Documentation deployment failed"
 
 workflows:
-  build-and-test:
+  pull-request:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              ignore: 
+                - main
+                - master
       - test:
           requires:
             - build
+          filters:
+            branches:
+              ignore: 
+                - main
+                - master
       - lint:
           requires:
             - build
+          filters:
+            branches:
+              ignore: 
+                - main
+                - master
       - docs:
           requires:
             - build
+          filters:
+            branches:
+              ignore: 
+                - main
+                - master
+
+  main-branch:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: 
+                - main
+                - master
+      - test:
+          requires:
+            - build
+          filters:
+            branches:
+              only: 
+                - main
+                - master
+      - lint:
+          requires:
+            - build
+          filters:
+            branches:
+              only: 
+                - main
+                - master
+      - docs:
+          requires:
+            - build
+          filters:
+            branches:
+              only: 
+                - main
+                - master
       # TODO: Re-enable when JaCoCo coverage is working
       # - coverage-verification:
       #     requires:
@@ -430,6 +483,8 @@ workflows:
       # - deploy-docs:
       #     requires:
       #       - build
-      #     # filters:
-      #     #   branches:
-      #     #     only: main
+      #     filters:
+      #       branches:
+      #         only: 
+      #           - main
+      #           - master
