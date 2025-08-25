@@ -58,6 +58,14 @@ configure<com.autonomousapps.DependencyAnalysisExtension> {
 subprojects {
     apply(plugin = "org.jetbrains.dokka")
     
+    // Disable Dokka for test apps and demo apps to avoid dependency issues
+    if (project.path.contains("testapps") || 
+        project.path.startsWith(":demoapps")) {
+        tasks.named("dokkaHtmlPartial") {
+            enabled = false
+        }
+    }
+    
     tasks.withType<ProcessResources> {
         exclude("**/BUILD.bazel")
     }

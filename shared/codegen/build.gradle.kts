@@ -7,6 +7,11 @@ tasks.test {
     jvmArgs = ((jvmArgs ?: emptyList<String>()) + "--add-opens=java.base/java.lang=ALL-UNNAMED")
 }
 
+// Exclude from Dokka documentation due to parsing issues
+tasks.named("dokkaHtmlPartial") {
+    enabled = false
+}
+
 dependencies {
     api(libs.javassist)
     api(libs.kotlinx.metadata.jvm)
