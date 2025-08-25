@@ -410,40 +410,7 @@ jobs:
           message: "Documentation deployment failed"
 
 workflows:
-  pull-request:
-    jobs:
-      - build:
-          filters:
-            branches:
-              ignore: 
-                - main
-                - master
-      - test:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: 
-                - main
-                - master
-      - lint:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: 
-                - main
-                - master
-      - docs:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: 
-                - main
-                - master
-
-  main-branch:
+  build-and-test:
     jobs:
       - build:
           filters:
@@ -488,3 +455,16 @@ workflows:
       #         only: 
       #           - main
       #           - master
+
+  pull-request-workflow:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - lint:
+          requires:
+            - build
+      - docs:
+          requires:
+            - build
