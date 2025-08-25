@@ -14,10 +14,17 @@ executors:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configureondemand=true"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
-      # Cache version to force cache refresh when needed
-      CACHE_VERSION: "v2"
 
 commands:
+  gradle-with-cache:
+    parameters:
+      steps:
+        type: steps
+    steps:
+      - gradle/with_cache:
+          cache_key: "v2-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
+          steps: << parameters.steps >>
+  
   fail-step:
     parameters:
       message:
@@ -69,7 +76,7 @@ jobs:
           message: "Gradle setup failed"
       
       # Use Gradle orb for optimal caching
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run:
                 name: Download dependencies
@@ -83,7 +90,7 @@ jobs:
       - fail-step:
           message: "Dependency download failed"
       
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run:
                 name: Build project (without tests)
@@ -123,7 +130,7 @@ jobs:
           path: build/package
           destination: package
 
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run: 
                 name: Generate Documentation in HTML with Dokka (multi module)
@@ -175,7 +182,7 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in test job"
       
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run:
                 name: Run tests with JaCoCo coverage
@@ -249,7 +256,7 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in lint job"
       
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run:
                 name: Run ktlint
@@ -292,7 +299,7 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in docs job"
       
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run:
                 name: Generate Javadoc
@@ -325,7 +332,7 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in coverage-verification job"
       
-      - gradle/with_cache:
+      - gradle-with-cache:
           steps:
             - run:
                 name: Verify coverage thresholds
