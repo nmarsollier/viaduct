@@ -110,3 +110,18 @@ a:hover, p > a:hover {
   background-image: linear-gradient(rgba(64, 63, 76, 0.3), 60%, rgba(64, 63, 76, 0.0));
   background-color: transparent;
 }
+
+// Embedded Github content
+table.hljs-ln td {
+  padding: 0 1rem 0 0 !important;
+}
+
+code.hljs {
+  background-color: #fff !important;
+}
+
+.td-content pre {
+  background-color: #fff !important;
+}
+
+
