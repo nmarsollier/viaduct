@@ -247,27 +247,27 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in lint job"
       
-      - run:
-          name: Run ktlint
-          command: |
-            echo "🧹 Running ktlint code style checks..."
-            ./gradlew ktlintCheck --no-scan || {
-              echo "❌ ktlint found code style violations"
-              exit 1
-            }
-            echo "✅ ktlint checks passed"
-      - fail-step:
-          message: "ktlint code style checks failed"
-      
-      - run:
-          name: Run Detekt
-          command: |
-            echo "🔍 Running Detekt static analysis..."
-            ./gradlew detekt --no-scan || {
-              echo "❌ Detekt found code quality issues"
-              exit 1
-            }
-            echo "✅ Detekt analysis passed"
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Run ktlint
+                command: |
+                  echo "🧹 Running ktlint code style checks..."
+                  ./gradlew ktlintCheck --no-scan || {
+                    echo "❌ ktlint found code style violations"
+                    exit 1
+                  }
+                  echo "✅ ktlint checks passed"
+            
+            - run:
+                name: Run Detekt
+                command: |
+                  echo "🔍 Running Detekt static analysis..."
+                  ./gradlew detekt --no-scan || {
+                    echo "❌ Detekt found code quality issues"
+                    exit 1
+                  }
+                  echo "✅ Detekt analysis passed"
       - fail-step:
           message: "Detekt static analysis failed"
       
@@ -290,15 +290,17 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in docs job"
       
-      - run:
-          name: Generate Javadoc
-          command: |
-            echo "📝 Generating Javadoc documentation..."
-            ./gradlew javadoc --no-scan || {
-              echo "❌ Javadoc generation failed"
-              exit 1
-            }
-            echo "✅ Javadoc generated successfully"
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Generate Javadoc
+                command: |
+                  echo "📝 Generating Javadoc documentation..."
+                  ./gradlew javadoc --no-scan || {
+                    echo "❌ Javadoc generation failed"
+                    exit 1
+                  }
+                  echo "✅ Javadoc generated successfully"
       - fail-step:
           message: "Javadoc generation failed"
       
@@ -321,16 +323,18 @@ jobs:
       - fail-step:
           message: "Gradle setup failed in coverage-verification job"
       
-      - run:
-          name: Verify coverage thresholds
-          command: |
-            echo "🎯 Verifying coverage thresholds..."
-            ./gradlew jacocoTestCoverageVerification --no-scan || {
-              echo "❌ Coverage thresholds not met"
-              echo "Please check the coverage report and add more tests"
-              exit 1
-            }
-            echo "✅ Coverage thresholds met successfully"
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Verify coverage thresholds
+                command: |
+                  echo "🎯 Verifying coverage thresholds..."
+                  ./gradlew jacocoTestCoverageVerification --no-scan || {
+                    echo "❌ Coverage thresholds not met"
+                    echo "Please check the coverage report and add more tests"
+                    exit 1
+                  }
+                  echo "✅ Coverage thresholds met successfully"
       - fail-step:
           message: "Coverage threshold verification failed"
           
