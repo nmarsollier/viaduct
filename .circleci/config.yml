@@ -6,7 +6,7 @@ orbs:
 executors:
   kotlin-gradle-executor:
     docker:
-      - image: gradle:8.13-jdk17-corretto
+      - image: cimg/openjdk:17.0
     working_directory: ~/project
     environment:
       GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading"
@@ -61,18 +61,6 @@ jobs:
     steps:
       - checkout
       
-      # Install tar (required for workspace functionality)
-      - run:
-          name: Install tar and git
-          command: |
-            echo "📦 Installing required packages..."
-            yum install -y tar git perl-Digest-SHA || {
-              echo "❌ Failed to install tar, git, and perl-Digest-SHA packages"
-              exit 1
-            }
-            echo "✅ Successfully installed tar, git, and perl-Digest-SHA (provides shasum)"
-      - fail-step:
-          message: "Package installation failed"
       
       - setup-gradle
       - fail-step:
@@ -174,18 +162,6 @@ jobs:
     steps:
       - checkout
       
-      # Install tar (required for workspace functionality)
-      - run:
-          name: Install tar
-          command: |
-            echo "📦 Installing tar package..."
-            yum install -y tar || {
-              echo "❌ Failed to install tar package"
-              exit 1
-            }
-            echo "✅ Tar installed successfully"
-      - fail-step:
-          message: "Tar installation failed in test job"
       
       # Restore workspace from build job
       - attach_workspace:
@@ -261,18 +237,6 @@ jobs:
     steps:
       - checkout
       
-      # Install tar (required for workspace functionality)
-      - run:
-          name: Install tar
-          command: |
-            echo "📦 Installing tar package..."
-            yum install -y tar || {
-              echo "❌ Failed to install tar package"
-              exit 1
-            }
-            echo "✅ Tar installed successfully"
-      - fail-step:
-          message: "Tar installation failed in lint job"
       
       - restore_cache:
           keys:
@@ -321,18 +285,6 @@ jobs:
     steps:
       - checkout
       
-      # Install tar (required for workspace functionality)
-      - run:
-          name: Install tar
-          command: |
-            echo "📦 Installing tar package..."
-            yum install -y tar || {
-              echo "❌ Failed to install tar package"
-              exit 1
-            }
-            echo "✅ Tar installed successfully"
-      - fail-step:
-          message: "Tar installation failed in docs job"
       
       - restore_cache:
           keys:
@@ -369,18 +321,6 @@ jobs:
     steps:
       - checkout
       
-      # Install tar (required for workspace functionality)
-      - run:
-          name: Install tar
-          command: |
-            echo "📦 Installing tar package..."
-            yum install -y tar || {
-              echo "❌ Failed to install tar package"
-              exit 1
-            }
-            echo "✅ Tar installed successfully"
-      - fail-step:
-          message: "Tar installation failed in coverage-verification job"
       
       - restore_cache:
           keys:
