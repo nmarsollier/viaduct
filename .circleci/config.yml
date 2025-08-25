@@ -6,7 +6,7 @@ orbs:
 executors:
   kotlin-gradle-executor:
     docker:
-      - image: cimg/openjdk:21.0
+      - image: cimg/openjdk:17.0
     working_directory: ~/project
     environment:
       GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading"

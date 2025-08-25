@@ -21,7 +21,7 @@ repositories {
 
 plugins.withId("org.jetbrains.kotlin.jvm") {
     configure<KotlinJvmProjectExtension> {
-        jvmToolchain(21)
+        jvmToolchain(17)
     }
 }
 
@@ -60,7 +60,7 @@ subprojects {
 
     plugins.withId("org.jetbrains.kotlin.jvm") {
         configure<KotlinJvmProjectExtension> {
-            jvmToolchain(21)
+            jvmToolchain(17)
         }
 
         dependencies {
