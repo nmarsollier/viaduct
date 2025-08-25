@@ -411,37 +411,21 @@ jobs:
 
 workflows:
   build-and-test:
+    when:
+      or:
+        - equal: [ main, << pipeline.git.branch >> ]
+        - equal: [ master, << pipeline.git.branch >> ]
     jobs:
-      - build:
-          filters:
-            branches:
-              only: 
-                - main
-                - master
+      - build
       - test:
           requires:
             - build
-          filters:
-            branches:
-              only: 
-                - main
-                - master
       - lint:
           requires:
             - build
-          filters:
-            branches:
-              only: 
-                - main
-                - master
       - docs:
           requires:
             - build
-          filters:
-            branches:
-              only: 
-                - main
-                - master
       # TODO: Re-enable when JaCoCo coverage is working
       # - coverage-verification:
       #     requires:
@@ -450,13 +434,15 @@ workflows:
       # - deploy-docs:
       #     requires:
       #       - build
-      #     filters:
-      #       branches:
-      #         only: 
-      #           - main
-      #           - master
 
-  pull-request-workflow:
+  pull-request:
+    when:
+      and:
+        - not:
+            or:
+              - equal: [ main, << pipeline.git.branch >> ]
+              - equal: [ master, << pipeline.git.branch >> ]
+        - not: << pipeline.git.tag >>
     jobs:
       - build
       - test:
