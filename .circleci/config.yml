@@ -22,7 +22,7 @@ commands:
         type: steps
     steps:
       - gradle/with_cache:
-          cache_key: "v3-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
+          cache_key: "v4-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
           steps: << parameters.steps >>
   
   fail-step:
@@ -414,16 +414,16 @@ workflows:
             - build
       - lint:
           requires:
-            - build
+            - test
       - docs:
           requires:
-            - build
+            - lint
       - coverage-verification:
           requires:
-            - test
+            - docs
       - deploy-docs:
           requires:
-            - build
+            - coverage-verification
           # filters:
           #   branches:
           #     only: main
