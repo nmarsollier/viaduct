@@ -14,6 +14,8 @@ executors:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configureondemand=true"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
+      # Cache version to force cache refresh when needed
+      CACHE_VERSION: "v2"
 
 commands:
   fail-step:
