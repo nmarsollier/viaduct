@@ -56,7 +56,7 @@ use Viaduct for actually serving the ads, but you could use it to host the entir
 {{% /blocks/lead %}}
 
 
-{{% blocks/section color="white" type="row justify-content-center" %}}
+{{% blocks/section color="white" type="row justify-content-center" class="trusted-by" %}}
 
 Trusted By
 {.h1 .text-center .mb-4}
