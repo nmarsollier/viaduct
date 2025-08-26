@@ -22,10 +22,6 @@ val junitLib = libs.junit
 val kotlinTestLib = libs.kotlin.test
 
 
-repositories {
-    mavenCentral()
-}
-
 plugins.withId("org.jetbrains.kotlin.jvm") {
     configure<KotlinJvmProjectExtension> {
         jvmToolchain(17)
