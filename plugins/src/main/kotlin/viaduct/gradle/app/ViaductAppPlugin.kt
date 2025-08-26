@@ -7,44 +7,18 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import viaduct.gradle.schema.ViaductSchemaExtension
 import viaduct.gradle.tenant.ViaductTenantExtension
+import viaduct.gradle.utils.computeChildProjectPath
 
 class ViaductAppPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        // enforcing tenants directory
-        val tenantsDir = project.projectDir.resolve("tenants")
+        checkTenantsDirectoryExists(project)
 
-        if (!tenantsDir.exists() || !tenantsDir.isDirectory) {
-            throw GradleException("Expected a 'tenants' directory directly under ${project.projectDir}")
-        }
-
-        // enforcing schema project
-        val dynamicSchemaProjectPath = "${project.path}:schema"
-        val schemaProject = project.rootProject.findProject(dynamicSchemaProjectPath)
-            ?: throw GradleException("Expected schema project at path '$dynamicSchemaProjectPath' (sibling to ${project.path})")
+        val schemaProject = checkSchemaProjectExists(project)
+        checkSchemaProjectDoesNotContainBuildLogic(schemaProject)
 
         // Configure [ViaductAppExtension]
         val appExt = project.extensions.create("viaduct", ViaductAppExtension::class.java)
         appExt.appProjectProperty.set(project)
-
-        // allow only comments in schema gradle build.
-        val schemaBuildFile = schemaProject.projectDir.resolve("build.gradle.kts")
-        if (schemaBuildFile.exists()) {
-            val invalidLines = schemaBuildFile.readLines()
-                .map { it.trim() }
-                .filter { line ->
-                    line.isNotEmpty() &&
-                        !line.startsWith("//") &&
-                        !line.startsWith("/*") &&
-                        !line.startsWith("*")
-                }
-
-            if (invalidLines.isNotEmpty()) {
-                throw GradleException(
-                    "Project ':schema' must not contain custom configuration in build.gradle.kts. Found:\n" +
-                        invalidLines.joinToString("\n")
-                )
-            }
-        }
 
         // Configure schema project for viaduct app mode
         schemaProject.pluginManager.apply("java-library")
@@ -66,7 +40,7 @@ class ViaductAppPlugin : Plugin<Project> {
             sub.pluginManager.withPlugin("viaduct-tenant") {
                 val tenantPluginExt = sub.extensions.getByType(ViaductTenantExtension::class.java)
                 tenantPluginExt.tenantContainer.configureEach {
-                    schemaProjectPath.convention(dynamicSchemaProjectPath)
+                    schemaProjectPath.convention(schemaProject.path)
                 }
             }
         }
@@ -77,7 +51,7 @@ class ViaductAppPlugin : Plugin<Project> {
                 .filter { it.plugins.hasPlugin("viaduct-tenant") }
                 .forEach { sub ->
                     // Add the dependency to point to the dynamic schema project
-                    sub.dependencies.add("implementation", project.project(dynamicSchemaProjectPath))
+                    sub.dependencies.add("implementation", project.project(schemaProject.path))
                 }
         }
 
@@ -148,6 +122,42 @@ class ViaductAppPlugin : Plugin<Project> {
                 }
                 it.validateNestedSubProjects()
             }
+        }
+    }
+}
+
+private fun checkTenantsDirectoryExists(project: Project) {
+    val tenantsDir = project.projectDir.resolve("tenants")
+
+    if (!tenantsDir.exists() || !tenantsDir.isDirectory) {
+        throw GradleException("Expected a 'tenants' directory directly under ${project.projectDir}")
+    }
+}
+
+private fun checkSchemaProjectExists(project: Project): Project {
+    val dynamicSchemaProjectPath = computeChildProjectPath(project, "schema")
+    val schemaProject = project.rootProject.findProject(dynamicSchemaProjectPath)
+        ?: throw GradleException("Expected schema project at path '$dynamicSchemaProjectPath' (sibling to ${project.path})")
+    return schemaProject
+}
+
+private fun checkSchemaProjectDoesNotContainBuildLogic(schemaProject: Project) {
+    val schemaBuildFile = schemaProject.projectDir.resolve("build.gradle.kts")
+    if (schemaBuildFile.exists()) {
+        val invalidLines = schemaBuildFile.readLines()
+            .map { it.trim() }
+            .filter { line ->
+                line.isNotEmpty() &&
+                    !line.startsWith("//") &&
+                    !line.startsWith("/*") &&
+                    !line.startsWith("*")
+            }
+
+        if (invalidLines.isNotEmpty()) {
+            throw GradleException(
+                "Project ':schema' must not contain custom configuration in build.gradle.kts. Found:\n" +
+                    invalidLines.joinToString("\n")
+            )
         }
     }
 }

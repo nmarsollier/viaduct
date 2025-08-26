@@ -12,8 +12,11 @@ detekt {
 }
 
 ktlint {
-    version.set(libs.findVersion("ktlintVersion").get().requiredVersion)
     enableExperimentalRules.set(true)
     outputToConsole.set(true)
     ignoreFailures.set(true)
+
+    filter {
+        exclude { element -> element.file.path.contains("/generated-sources/") }
+    }
 }

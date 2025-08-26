@@ -39,7 +39,7 @@ tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allSource)
 }
 
-publishing {
+/*publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             artifactId = "api"
@@ -48,12 +48,16 @@ publishing {
         }
     }
     repositories {
-        mavenLocal()
+        <define repository>
     }
-}
+}*/
+// TODO: not necessary now, just for the demoapps;
+//  might be needed later, when some version get released and
+//  published to a real artefact repository
 
 afterEvaluate {
-    tasks.named("explodeCodeSourceTest") { // TODO: a hack for the sake of this dependency-analysis task...
+    // TODO: a hack for the sake of this dependency-analysis task...
+    tasks.named("explodeCodeSourceTest") {
         dependsOn(tasks.named("generateApischemaSchemaObjects"))
         dependsOn(tasks.named("generateApischemaTenant"))
     }

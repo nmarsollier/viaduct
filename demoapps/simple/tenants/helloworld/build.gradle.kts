@@ -14,6 +14,6 @@ viaductTenant {
 }
 
 dependencies{
-    implementation("com.airbnb.viaduct:runtime:0.1.0-SNAPSHOT")
+    implementation("com.airbnb.viaduct:runtime:0.1.0")
     implementation("ch.qos.logback:logback-classic:1.3.7")
 }

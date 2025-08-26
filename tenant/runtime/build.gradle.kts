@@ -44,7 +44,8 @@ dependencies {
 }
 
 afterEvaluate {
-    tasks.named("explodeCodeSourceTest") { // TODO: a hack for the sake of this dependency-analysis task...
+    // TODO: a hack for the sake of this dependency-analysis task...
+    tasks.named("explodeCodeSourceTest") {
         dependsOn(tasks.named("generateBackingdataSchemaObjects"))
         dependsOn(tasks.named("generateBackingdataSchemaObjects"))
         dependsOn(tasks.named("generateBackingdataTenant"))

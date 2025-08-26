@@ -1,14 +1,9 @@
 plugins {
-    id("kotlin-project-without-tests")
+    id("kotlin-project")
     id("kotlin-static-analysis")
 }
 
-tasks.withType<Test>().configureEach {
-    jvmArgs = listOf("-Xmx4g")
-}
-
 tasks.test {
-    useJUnitPlatform()
     filter {
         includeTestsMatching("viaduct.graphql.schema.test.UtilsTest")
     }

@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.get
@@ -40,22 +41,6 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
         val generatedSourcesDir = project.layout.buildDirectory.dir("generated-sources").get().asFile
         generatedSourcesDir.mkdirs()
 
-        // Configure source sets to include the generated directory
-        val javaExtension = project.extensions.getByType<JavaPluginExtension>()
-
-        // Java compatibility - add to classpath for both compile and runtime
-        // This ensures Java can see the classes even if the source directory doesn't have the same semantics
-        javaExtension.sourceSets.getByName("main").apply {
-            java.srcDir(generatedSourcesDir)
-            compileClasspath += project.files(generatedSourcesDir)
-            runtimeClasspath += project.files(generatedSourcesDir)
-        }
-
-        javaExtension.sourceSets.getByName("test").apply {
-            compileClasspath += project.files(generatedSourcesDir)
-            runtimeClasspath += project.files(generatedSourcesDir)
-        }
-
         // Kotlin Compatibility - adds the generatedSourcesDir as a srcDir for kotlin if kotlin exists
         // This allows the tenant in kotlin to recognize the new created directory code.
         val kotlinExtension = project.extensions.findByName("kotlin")
@@ -72,20 +57,13 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
          * After the evaluation of the project (meaning the required details have been properly given),
          * each tenant is configured in detail
          */
-        project.afterEvaluate {
-            /**
-             * Configure each tenant directly created in the extension
-             * viaductTenant {
-             *     create("tenant1") { ... }
-             *     create("tenant2") { ... }
-             * }
-             */
+        project.afterEvaluate { // TODO: replace with lazy configuration, but for that lazy wiring of task properties is required first
+            val javaExtension = project.extensions.getByType<JavaPluginExtension>()
             extension.tenantContainer.forEach { tenant ->
-                /**
-                 * Configure tenant registers lazily configured extraction tasks so
-                 * any dependency should be added with this awareness to prevent eager computation.
-                 */
-                configureTenant(project, tenant, generatedSourcesDir)
+                val task = configureTenant(project, tenant, generatedSourcesDir)
+                javaExtension.sourceSets.getByName("main").apply {
+                    java.srcDir(task.map { it.outputs.files })
+                }
             }
         }
     }
@@ -103,7 +81,7 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
         project: Project,
         tenant: ViaductTenant,
         generatedSourcesDir: File
-    ) {
+    ): TaskProvider<ViaductTenantTask> {
         // The tenant given name through the parameter create(name)
         val name = tenant.name
 
@@ -221,15 +199,6 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
             this.metaInfSrcDir.set(metaInfSrcDir)
         }
 
-        val compileJavaTask = project.tasks.findByName("compileJava")
-        val compileKotlinTask = project.tasks.findByName("compileKotlin")
-        compileJavaTask?.dependsOn(generateTask)
-        compileKotlinTask?.dependsOn(generateTask)
-        val lintTestFixtureTask = project.tasks.findByName("runKtlintCheckOverTestFixturesSourceSet")
-        val lintingTask = project.tasks.findByName("runKtlintCheckOverMainSourceSet")
-        val lintingTestTask = project.tasks.findByName("runKtlintCheckOverTestSourceSet")
-        lintTestFixtureTask?.mustRunAfter(generateTask)
-        lintingTask?.mustRunAfter(generateTask)
-        lintingTestTask?.mustRunAfter(generateTask)
+        return generateTask
     }
 }

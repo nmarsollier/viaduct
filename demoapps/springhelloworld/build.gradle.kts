@@ -12,11 +12,6 @@ java {
     }
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 dependencies {
     implementation(libs.viaduct.runtime)
 

@@ -11,7 +11,6 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
 import viaduct.gradle.utils.capitalize
-import viaduct.gradle.utils.configureKotlinSourceSet
 
 /**
  * Plugin for generating schema and tenant code from configured schema diffs.
@@ -27,9 +26,17 @@ abstract class ViaductClassDiffPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create<ViaductClassDiffExtension>("viaductClassDiff", project)
 
-        // Eagerly create the generated sources directory
-        val generatedSourcesDir = project.layout.buildDirectory.dir(GENERATED_SOURCES_PATH).get().asFile
-        generatedSourcesDir.mkdirs()
+        val javaExtension = project.extensions.getByType<JavaPluginExtension>()
+        val testSourceSet = javaExtension.sourceSets.getByName("test")
+
+        val generatedSourceSet = javaExtension.sourceSets.create("generated")
+        generatedSourceSet.apply {
+            val generatedSourcesDir = project.layout.buildDirectory.dir(GENERATED_SOURCES_PATH).get().asFile
+            java.srcDir(generatedSourcesDir)
+
+            compileClasspath += testSourceSet.compileClasspath
+            runtimeClasspath += testSourceSet.runtimeClasspath
+        }
 
         project.afterEvaluate {
             val schemaDiffs = extension.schemaDiffs.get()
@@ -40,33 +47,9 @@ abstract class ViaductClassDiffPlugin : Plugin<Project> {
 
             project.logger.info("Found ${schemaDiffs.size} configured schema diffs")
 
-            val generationTasks = schemaDiffs.map { schemaDiff ->
-                configureSchemaGenerationTasks(project, schemaDiff)
-            }.flatten()
-
-            configureSourceSets(project)
-            linkGenerationTasksToCompilation(project, generationTasks)
+            val generationTasks = schemaDiffs.map { schemaDiff -> configureSchemaGenerationTasks(project, schemaDiff) }.flatten()
+            generationTasks.forEach { task -> generatedSourceSet.java.srcDir(task.map { it.outputs.files }) }
         }
-    }
-
-    /**
-     * Configure source sets to include generated directories after generation tasks are created
-     */
-    private fun configureSourceSets(project: Project) {
-        val javaExtension = project.extensions.getByType<JavaPluginExtension>()
-        val generatedSourcesDir = project.layout.buildDirectory.dir(GENERATED_SOURCES_PATH).get().asFile
-
-        // Ensure directory exists
-        generatedSourcesDir.mkdirs()
-
-        // Configure Java test source set
-        javaExtension.sourceSets.getByName("test").apply {
-            java.srcDir(generatedSourcesDir)
-            compileClasspath += project.files(generatedSourcesDir)
-            runtimeClasspath += project.files(generatedSourcesDir)
-        }
-
-        configureKotlinSourceSet(project, generatedSourcesDir)
     }
 
     /**
@@ -185,49 +168,4 @@ abstract class ViaductClassDiffPlugin : Plugin<Project> {
             project.logger.warn("Classpath resolution failed: ${e.message}")
             project.configurations.getByName("runtimeClasspath")
         }
-
-    /**
-     * Link generation tasks to compilation tasks to ensure proper build order
-     */
-    private fun linkGenerationTasksToCompilation(
-        project: Project,
-        generationTasks: List<org.gradle.api.tasks.TaskProvider<*>>
-    ) {
-        if (generationTasks.isEmpty()) return
-
-        // Create a single task that depends on all generation tasks
-        val allGenerationTask = project.tasks.register("generateAllSchemaDiffSources") {
-            group = PLUGIN_GROUP
-            description = "Generates all schema diff sources"
-            dependsOn(generationTasks)
-        }
-
-        // Make compilation tasks depend on the umbrella task
-        val compilationTaskNames = listOf(
-            "compileTestJava",
-            "compileTestKotlin",
-            "processTestResources",
-            "testClasses"
-        )
-
-        compilationTaskNames.forEach { taskName ->
-            project.tasks.findByName(taskName)?.dependsOn(allGenerationTask)
-        }
-
-        // Make sure test task also depends on generation
-        project.tasks.findByName("test")?.dependsOn(allGenerationTask)
-
-        // Ensure linting runs after generation
-        val lintingTasks = listOf(
-            "runKtlintCheckOverMainSourceSet",
-            "runKtlintCheckOverTestSourceSet",
-            "runKtlintCheckOverTestFixturesSourceSet"
-        )
-
-        lintingTasks.forEach { taskName ->
-            project.tasks.findByName(taskName)?.mustRunAfter(allGenerationTask)
-        }
-
-        project.logger.info("Linked ${generationTasks.size} generation tasks to compilation via umbrella task")
-    }
 }

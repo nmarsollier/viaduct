@@ -3,6 +3,16 @@ plugins {
     id("maven-publish")
 }
 
+val projectDependencies: Configuration by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = true
+}
+
+val nonTransitiveProjectDependencies: Configuration by configurations.creating {
+    isTransitive = false // we don't want the transitive dependencies of the projects to be included
+    extendsFrom(projectDependencies)
+}
+
 val projectNames = setOf(
     ":engine:engine-api",
     ":engine:engine-runtime",
@@ -28,52 +38,62 @@ val projectNames = setOf(
 
 val projectsToPackage = rootProject.subprojects.filter { it.path in projectNames }
 
-projectsToPackage.forEach {
-    evaluationDependsOn(it.path)
-}
-
-val tempDirectory = layout.buildDirectory.dir("merged-runtime")
-
-val copyFiles = tasks.register<Copy>("copyFiles") {
-    dependsOn(projectsToPackage.map { it.tasks.named("classes") })
-
-    into(tempDirectory)
-
-    projectsToPackage.forEach { sub ->
-        val output = sub.extensions
-            .getByType<SourceSetContainer>()["main"]
-            .output
-
-        from(output.classesDirs)
-        from(output.resourcesDir)
+dependencies {
+    projectsToPackage.forEach {
+        projectDependencies(project(it.path))
     }
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-val combinedClasses = tasks.register<Jar>("combinedClasses") {
-    dependsOn(copyFiles)
-    archiveBaseName.set("runtime")
-    from(tempDirectory)
-}
+@CacheableTask
+abstract class UnpackProjectDependenciesTask : DefaultTask() {
 
-val combinedSources = tasks.register<Jar>("combinedSources") {
-    archiveClassifier.set("sources")
-    from(
-        projectsToPackage.mapNotNull {
-            it.extensions.findByType<SourceSetContainer>()?.findByName("main")?.allSource
+    // TODO: task can be made incremental, would be more efficient: https://docs.gradle.org/current/userguide/custom_tasks.html#incremental_tasks
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val artifacts: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Inject
+    abstract val fs: FileSystemOperations
+
+    @get:Inject
+    abstract val archives: ArchiveOperations
+
+    @TaskAction
+    fun unpack() {
+        val outDir = outputDir.get()
+
+        fs.delete { delete(outDir) }
+
+        artifacts.files.forEach { jar ->
+            fs.copy {
+                from(archives.zipTree(jar))
+                into(outDir)
+            }
         }
-    )
+    }
+}
+
+val unpackProjectDependencies by tasks.registering(UnpackProjectDependenciesTask::class) {
+    artifacts.from(nonTransitiveProjectDependencies.incoming.artifacts.artifactFiles)
+    outputDir = layout.buildDirectory.dir("unpacked-project-dependencies")
+}
+
+tasks.named<Jar>("jar") {
+    archiveClassifier.set("")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(unpackProjectDependencies.flatMap { it.outputDir })
 }
 
 publishing {
     publications {
-        create<MavenPublication>("runtimeCombined") {
-            artifact(combinedClasses.get())
-            artifact(combinedSources.get())
+        create<MavenPublication>("maven") {
             artifactId = "runtime"
             version = project.version.toString()
+            artifact(tasks.jar.get())
 
             pom.withXml {
                 val depsNode = asNode().appendNode("dependencies")
@@ -95,8 +115,4 @@ publishing {
     repositories {
         mavenLocal()
     }
-}
-
-tasks.named("publishToMavenLocal") {
-    dependsOn(combinedClasses)
 }
