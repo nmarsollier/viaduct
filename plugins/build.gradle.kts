@@ -7,10 +7,6 @@ plugins {
 
 project.version = libs.versions.project.get()
 
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-}
 
 java {
     toolchain {

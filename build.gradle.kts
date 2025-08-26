@@ -1,4 +1,5 @@
 import org.gradle.internal.extensions.core.serviceOf
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
     id("java")
@@ -20,9 +21,6 @@ val junitVersion = libs.versions.junit5
 val junitLib = libs.junit
 val kotlinTestLib = libs.kotlin.test
 
-repositories {
-    mavenCentral()
-}
 
 plugins.withId("org.jetbrains.kotlin.jvm") {
     configure<KotlinJvmProjectExtension> {
@@ -70,9 +68,6 @@ subprojects {
         exclude("**/BUILD.bazel")
     }
 
-    repositories {
-        mavenCentral()
-    }
 
     group = groupId
     version = jarVersion
