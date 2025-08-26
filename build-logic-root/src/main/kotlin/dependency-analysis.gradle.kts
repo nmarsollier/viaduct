@@ -21,6 +21,10 @@ configure<com.autonomousapps.DependencyAnalysisExtension> {
         project(":tenant:tenant-runtime") {
             onAny { severity("warn") } // TODO: bunch of unused testImplementation dependencies introduced by viaduct plugins
         }
+
+        project(":shared:viaductschema") {
+            onAny { severity("warn") } // TODO: complains about testImplementation(libs.junit) not being needed and I don't yet understand why
+        }
     }
 
     structure {

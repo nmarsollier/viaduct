@@ -5,9 +5,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 
 abstract class ViaductSettingsExtension(private val settings: Settings) {
+    @Suppress("unused")
     fun viaductInclude(pathOrNull: String? = null): Unit =
         settings.run {
-            val path = pathOrNull ?: ""
+            val path = pathOrNull ?: "" // TODO: when is this path set? because without it we could do this on plugin application
             if (path.startsWith(":")) {
                 throw GradleException("viaductInclude path should not start with ':'. Use '${path.substring(1)}' instead of '$path'")
             }

@@ -9,6 +9,7 @@ dependencies {
     testImplementation(libs.findLibrary("kotlin-test").get())
 
     testRuntimeOnly(libs.findLibrary("junit-engine").get())
+    testRuntimeOnly(libs.findLibrary("junit-launcher").get())
 }
 
 tasks.named<Test>("test") {

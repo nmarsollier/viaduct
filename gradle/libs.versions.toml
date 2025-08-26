@@ -31,7 +31,7 @@ jspecify = "1.0.0"
 strikt = "0.34.1"
 
 # Plugins
-ktlintPluginVersion = "13.0.0"
+ktlintPluginVersion = "13.1.0"
 ktlintVersion = "1.2.1"
 detekt = "1.23.6"
 dependency-analysis = "1.33.0"
@@ -82,6 +82,7 @@ jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh"}
 junit = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" } # version intentionally not specified
 kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 kotest-common-jvm = { module = "io.kotest:kotest-common-jvm", version.ref = "kotest" }

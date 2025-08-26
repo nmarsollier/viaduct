@@ -1,5 +1,5 @@
 plugins {
-    id("kotlin-project")
+    id("kotlin-project-without-tests")
     id("viaduct-tenant")
 }
 

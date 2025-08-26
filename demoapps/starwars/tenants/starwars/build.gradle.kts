@@ -6,11 +6,6 @@ plugins {
     id("viaduct-tenant")
 }
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-}
-
 viaductTenant {
     create("starwars") {
         packageName.set("viaduct.demoapp")

@@ -5,8 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
-val isMavenLocal = gradle.parent?.startParameter?.taskNames?.any { it.contains("publishToMavenLocal", true) } ?: false
-project.version = libs.versions.project.map { if (isMavenLocal) "$it-SNAPSHOT" else it }.get()
+project.version = libs.versions.project.get()
 
 // These are the plugins we're publishing externally
 // (viaduct-feature-app is not published: it's for internal testing purposes)
@@ -51,9 +50,5 @@ publishing {
             artifactId = "plugins"
             version = project.version.toString()
         }
-    }
-
-    repositories {
-        mavenLocal()
     }
 }

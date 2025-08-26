@@ -23,7 +23,7 @@ tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allSource)
 }
 
-publishing {
+/*publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
@@ -31,6 +31,9 @@ publishing {
         }
     }
     repositories {
-        mavenLocal()
+        <define repository>
     }
-}
+}*/
+// TODO: not necessary now, just for the demoapps;
+//  might be needed later, when some version get released and
+//  published to a real artefact repository

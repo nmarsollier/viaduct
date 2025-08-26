@@ -97,19 +97,16 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
         val isInternalMode = mainProject != null && apiProject != null
 
         val classpath = if (isInternalMode) {
+            mainProject!!
+            apiProject!!
             project.logger.info("Running in internal mode with tenant projects")
             /**
              * In order to get the Clikt Command we need to put the project where it is being used
              * as a classPath dependency so it can run.
-             */
-            val mainProject = project.project(":tenant:tenant-codegen")
-
-            /**
+             *
              * The Clikt Command needs to have as runtime deps a list of Classes and Interfaces
              * that are present in tenant:api. Therefore, we must give them as classPath.
              */
-            val apiProject = project.project(":tenant:tenant-api")
-
             effectiveSourceSets.forEach { sourceSetName ->
                 javaExtension.sourceSets.named(sourceSetName) {
                     compileClasspath += project.files(schema.generatedClassesDir.get())
@@ -168,45 +165,18 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
             this.generatedSrcDir.set(project.layout.buildDirectory.dir("generated-sources/schema/$name/generated_classes"))
 
             if (isInternalMode) {
-                val mainProject = project.project(":tenant:tenant-codegen")
-                dependsOn(mainProject.tasks.named("classes"))
+                dependsOn(mainProject!!.tasks.named("classes"))
 
-                val apiProject = project.project(":tenant:tenant-api")
-                dependsOn(apiProject.tasks.named("classes"))
+                dependsOn(apiProject!!.tasks.named("classes"))
             }
         }
 
-        /**
-         * Makes the compilation task for each source set dependent on schema generation.
-         */
-        effectiveSourceSets.forEach { sourceSet ->
-            val srcSetCompileName = if (sourceSet == "main") {
-                ""
-            } else {
-                sourceSet.capitalize()
-            }
-
-            val compileJavaTask = project.tasks.findByName("compile${srcSetCompileName}Java")
-            compileJavaTask?.dependsOn(generateByteCodeTask)
-
-            val compileKotlinTask = project.tasks.findByName("compile${srcSetCompileName}Kotlin")
-            compileKotlinTask?.dependsOn(generateByteCodeTask)
-
-            if (compileJavaTask == null && compileKotlinTask == null) {
-                throw GradleException("No compile tasks found for source set '$sourceSet' in project '${project.name}'")
-            }
-        }
-
-        val lintingTask = project.tasks.findByName("runKtlintCheckOverMainSourceSet")
-        val lintTestFixtureTask = project.tasks.findByName("runKtlintCheckOverTestFixturesSourceSet")
-        val lintingTestTask = project.tasks.findByName("runKtlintCheckOverTestSourceSet")
-        lintingTask?.mustRunAfter(generateByteCodeTask)
-        lintTestFixtureTask?.mustRunAfter(generateByteCodeTask)
-        lintingTestTask?.mustRunAfter(generateByteCodeTask)
+        val mainSourceSet = javaExtension.sourceSets.getByName("main")
+        mainSourceSet.java.srcDir(generateByteCodeTask.map { it.outputs.files })
     }
 
     private fun viaductArtifactClassPath(project: Project): FileCollection {
-        val dependency = project.dependencies.create("com.airbnb.viaduct:runtime:0.1.0-SNAPSHOT")
+        val dependency = project.dependencies.create("com.airbnb.viaduct:runtime:0.1.0")
         val configuration = project.configurations.detachedConfiguration(dependency)
         return project.files(configuration.resolve())
     }

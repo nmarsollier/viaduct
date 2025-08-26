@@ -14,7 +14,6 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
 import viaduct.gradle.utils.capitalize
-import viaduct.gradle.utils.configureKotlinSourceSet
 
 /**
  * Plugin for automatically discovering FeatureApp files and generating
@@ -32,25 +31,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             featureAppFiles.forEach { featureAppFile ->
                 configureFeatureApp(project, featureAppFile, extension)
             }
-
-            configureSourceSetsAfterTasks(project)
         }
-    }
-
-    /**
-     * Configure source sets to include generated directories after tasks are created
-     * Note: Only configures test source set since viaduct-feature-app is for testing only
-     */
-    private fun configureSourceSetsAfterTasks(project: Project) {
-        val javaExtension = project.extensions.getByType<JavaPluginExtension>()
-        val generatedSourcesDir = project.layout.buildDirectory.dir("generated-sources/featureapp").get().asFile
-
-        javaExtension.sourceSets.getByName("test").apply {
-            compileClasspath += project.files(generatedSourcesDir)
-            runtimeClasspath += project.files(generatedSourcesDir)
-        }
-
-        configureKotlinSourceSet(project, generatedSourcesDir)
     }
 
     /**
@@ -144,12 +125,14 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             }
         }
 
-        val schemaTask = configureSchemaGeneration(project, featureAppName, schemaFile, packageName, extractionTask)
-        val tenantTask = configureTenantGeneration(project, featureAppName, schemaFile, packageName, schemaTask)
+        val javaExtension = project.extensions.getByType<JavaPluginExtension>()
+        val testSourceSet = javaExtension.sourceSets.getByName("test")
 
-        // Link tasks to compilation
-        linkToCompilationTasks(project, schemaTask)
-        linkToCompilationTasks(project, tenantTask)
+        val schemaTask = configureSchemaGeneration(project, featureAppName, schemaFile, packageName, extractionTask)
+        testSourceSet.java.srcDir(schemaTask.map { it.outputs.files })
+
+        val tenantTask = configureTenantGeneration(project, featureAppName, schemaFile, packageName, schemaTask)
+        testSourceSet.java.srcDir(tenantTask.map { it.outputs.files })
     }
 
     /**
@@ -238,7 +221,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         schemaFile: File,
         packageName: String,
         extractionTask: TaskProvider<Task>
-    ): org.gradle.api.tasks.TaskProvider<ViaductFeatureAppSchemaTask> {
+    ): TaskProvider<ViaductFeatureAppSchemaTask> {
         val toolchainService = project.extensions.getByType<JavaToolchainService>()
         val javaPluginExt = project.extensions.getByType<JavaPluginExtension>()
         val javaExecutable = toolchainService
@@ -341,30 +324,4 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             project.logger.info("Using fallback classpath: ${e.message}")
             project.configurations.getByName("runtimeClasspath")
         }
-
-    /**
-     * Link generation tasks to test compilation tasks with proper dependencies
-     * Note: Only links to test tasks since viaduct-feature-app is for testing only
-     */
-    private fun linkToCompilationTasks(
-        project: Project,
-        generationTask: TaskProvider<*>
-    ) {
-        // Make test compilation tasks depend on generation (not main compilation)
-        listOf("compileTestJava", "compileTestKotlin").forEach { taskName ->
-            project.tasks.findByName(taskName)?.dependsOn(generationTask)
-        }
-
-        // Make processTestResources depend on generation tasks to handle META-INF files for tests
-        project.tasks.findByName("processTestResources")?.dependsOn(generationTask)
-
-        // Make linting tasks run after generation
-        listOf(
-            "runKtlintCheckOverMainSourceSet",
-            "runKtlintCheckOverTestSourceSet",
-            "runKtlintCheckOverTestFixturesSourceSet"
-        ).forEach { taskName ->
-            project.tasks.findByName(taskName)?.mustRunAfter(generationTask)
-        }
-    }
 }

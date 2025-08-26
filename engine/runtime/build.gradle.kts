@@ -1,15 +1,11 @@
 plugins {
     id("kotlin-project")
-    id("viaduct-feature-app")
     id("me.champeau.jmh").version("0.7.3")
     `java-test-fixtures`
     id("kotlin-static-analysis")
 }
 
 dependencies {
-    jmh(libs.jmh.annotation.processor)
-    jmh(libs.jmh.core)
-
     api(libs.graphql.java)
     api(libs.jackson.annotations)
     api(libs.javax.inject)
@@ -17,6 +13,7 @@ dependencies {
     api(project(":engine:engine-api"))
     api(project(":service:service-api"))
     api(project(":shared:dataloader"))
+    api(project(":shared:utils"))
 
     implementation(libs.caffeine)
     implementation(libs.checker.qual)
@@ -25,44 +22,29 @@ dependencies {
     implementation(project(":shared:deferred"))
     implementation(project(":shared:graphql"))
     implementation(project(":shared:logging"))
-    implementation(project(":shared:utils"))
     implementation(project(":snipped:errors"))
     implementation(project(":tenant:tenant-api"))
 
     testFixturesApi(libs.graphql.java)
+    testFixturesApi(libs.kotest.property.jvm)
+    testFixturesApi(libs.kotlinx.coroutines.core.jvm)
     testFixturesApi(project(":engine:engine-api"))
+    testFixturesApi(project(":engine:engine-runtime"))
     testFixturesApi(project(":service:service-api"))
+    testFixturesApi(project(":shared:arbitrary"))
 
     testFixturesImplementation(libs.caffeine)
-    testFixturesImplementation(libs.graphql.java)
+    testFixturesImplementation(libs.checker.qual)
     testFixturesImplementation(libs.graphql.java.extension)
     testFixturesImplementation(libs.io.mockk.dsl)
     testFixturesImplementation(libs.io.mockk.jvm)
-    testFixturesImplementation(libs.kotest.property.jvm)
-    testFixturesImplementation(libs.kotlinx.coroutines.core.jvm)
     testFixturesImplementation(libs.kotlinx.coroutines.jdk8)
-    testFixturesImplementation(project(":engine:engine-api"))
-    testFixturesImplementation(project(":engine:engine-runtime"))
-    testFixturesImplementation(project(":service:service-api"))
-    testFixturesImplementation(project(":shared:arbitrary"))
     testFixturesImplementation(testFixtures(project(":service:service-api")))
     testFixturesImplementation(testFixtures(project(":service:service-api")))
 
-    jmhAnnotationProcessor(libs.jmh.annotation.processor)
-
-    // JMH dependencies to access main and test sources
-    jmhImplementation(libs.graphql.java)
-    jmhImplementation(libs.kotlinx.coroutines.core.jvm)
-    jmhImplementation(libs.kotlinx.coroutines.jdk8)
-    jmhImplementation(project(":engine:engine-runtime"))
-    jmhImplementation(project(":shared:arbitrary"))
-    jmhImplementation(testFixtures(project(":engine:engine-runtime")))
-
-    testImplementation(libs.graphql.java.extension)
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.jackson.databind)
-    testImplementation(libs.jmh.core)
     testImplementation(libs.jspecify)
     testImplementation(libs.kotest.property.jvm)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -73,4 +55,18 @@ dependencies {
     testImplementation(testFixtures(project(":engine:engine-runtime")))
     testImplementation(testFixtures(project(":service:service-api")))
     testImplementation(testFixtures(project(":shared:graphql")))
+
+    jmh(libs.jmh.annotation.processor)
+
+    jmhAnnotationProcessor(libs.jmh.annotation.processor)
+
+    jmhApi(libs.jmh.core)
+    jmhApi(project(":shared:arbitrary"))
+
+    jmhImplementation(libs.graphql.java)
+    jmhImplementation(libs.kotest.property.jvm)
+    jmhImplementation(libs.kotlinx.coroutines.core.jvm)
+    jmhImplementation(libs.kotlinx.coroutines.jdk8)
+    jmhImplementation(project(":engine:engine-runtime"))
+    jmhImplementation(testFixtures(project(":engine:engine-runtime")))
 }

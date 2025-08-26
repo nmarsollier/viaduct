@@ -1,6 +1,7 @@
 rootProject.name = "starwars"
 
 pluginManagement {
+    includeBuild("../../plugins")
     repositories {
         mavenLocal()
         gradlePluginPortal()
@@ -8,7 +9,7 @@ pluginManagement {
 }
 
 plugins {
-    id("viaduct-settings") version "0.1.0-SNAPSHOT"
+    id("viaduct-settings") version "0.1.0"
 }
 
 viaduct.viaductInclude()
