@@ -32,31 +32,47 @@ class RequiredSelectionsAreAcyclic(
 
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun validate(ctx: RequiredSelectionsValidationCtx) {
-        /** breadth-first iteration, returning the path of the first cycle found */
-        tailrec fun loop(
-            path: List<Coordinate>,
-            pending: Set<Coordinate>
-        ): List<Coordinate>? {
-            if (pending.isEmpty()) return null
-            val coord = pending.first()
-
-            // check coord against just the first element. This is sufficient to catch cycles
-            // between required selection sets, while allowing for non-cyclic co-recursive objects
-            if (path.isNotEmpty() && coord == path[0]) {
-                // cycle found, append to path and return
-                return path + coord
-            }
-
-            val coordEdges = coord.edges(ctx.requiredSelectionSetRegistry)
-            return loop(
-                path = path + coord,
-                pending = (pending.drop(1) + coordEdges).toSet()
-            )
-        }
-
-        loop(emptyList(), setOf(ctx.coord))?.let { cyclePath ->
+        dfs(ctx.coord, mutableListOf(), mutableSetOf(), mutableSetOf(), ctx.requiredSelectionSetRegistry)?.let { cyclePath ->
             throw RequiredSelectionsCycleException(cyclePath)
         }
+    }
+
+    /**
+     * Finds cycles using depth-first search from the given [coord]
+     *
+     * @param coord The coordinate to validate
+     * @param path The coordinates in the current path that's being searched
+     * @param visiting Set version of path
+     * @param visited The nodes that have been fully explored, to avoid recomputation
+     */
+    fun dfs(
+        coord: Coordinate,
+        path: MutableList<Coordinate>,
+        visiting: MutableSet<Coordinate>,
+        visited: MutableSet<Coordinate>,
+        registry: RequiredSelectionSetRegistry
+    ): List<Coordinate>? {
+        // If we encounter a node currently being visited (in the current path), we have a cycle
+        if (coord in visiting) {
+            val cycleStart = path.indexOf(coord)
+            return path.subList(cycleStart, path.size) + coord
+        }
+
+        path.add(coord)
+        visiting.add(coord)
+
+        // Explore all edges
+        coord.edges(registry).forEach { edge ->
+            if (edge !in visited) {
+                val cycle = dfs(edge, path, visiting, visited, registry)
+                if (cycle != null) return cycle
+            }
+        }
+
+        path.removeLast()
+        visiting.remove(coord)
+        visited.add(coord)
+        return null
     }
 
     /** return all edges referenced by this Coordinate */

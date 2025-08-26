@@ -298,6 +298,17 @@ class RequiredSelectionsAreAcyclicTest {
     }
 
     @Test
+    fun `invalid -- cycle after first element does not cause infinite loop`() {
+        assertInvalid(
+            """
+                type Subject { x: Int, y: Int }
+            """.trimIndent(),
+            "Subject" to "x" to "y",
+            "Subject" to "y" to "y",
+        )
+    }
+
+    @Test
     fun `valid -- FromQueryFieldVariable without cycle`() {
         // The resolver for Subject.field depends on Query.data via FromQueryFieldVariable
         // Query.data has no dependencies, so no cycle exists
@@ -452,9 +463,7 @@ class RequiredSelectionsAreAcyclicTest {
         }
         err.assertErrorPath(
             "Foo" to "x",
-            "Foo" to "bar",
             "Bar" to "x",
-            "Bar" to "foo",
             "Foo" to "x"
         )
     }
