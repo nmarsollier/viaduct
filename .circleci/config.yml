@@ -215,7 +215,9 @@ jobs:
           name: Save test results
           command: |
             mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+            find . -type f -regex ".*/build/test-results/.*/.*\.xml" -exec cp {} ~/test-results/junit/ \; || echo "No test result files found"
+            echo "Test result files found:"
+            find ~/test-results/junit/ -name "*.xml" -ls || echo "No XML files in test-results directory"
           when: always
       
       - store_test_results:
