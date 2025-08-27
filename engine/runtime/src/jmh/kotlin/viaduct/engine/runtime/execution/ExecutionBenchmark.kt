@@ -43,8 +43,8 @@ open class ExecutionBenchmark {
         )
         val schema = createSchema(data.sdl, wiring)
         val gql = when (type) {
-            Type.gj -> createGJGraphQL(schema)
-            Type.modern -> createViaductGraphQL(schema)
+            Type.GJ -> createGJGraphQL(schema)
+            Type.MODERN -> createViaductGraphQL(schema)
         }
         val input = createExecutionInput(schema, data.query, data.variables)
 
@@ -56,9 +56,9 @@ open class ExecutionBenchmark {
             }
     }
 
-    enum class Type { gj, modern }
+    enum class Type { GJ, MODERN }
 
-    @Param("gj", "modern")
+    @Param("GJ", "MODERN")
     private var type: Type? = null
 
     private lateinit var simple: Fixture
