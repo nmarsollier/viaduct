@@ -65,38 +65,37 @@ data class ExecutionParameters(
 ) {
     // Computed properties
     /** The ResultPath for the current level of execution */
-    val path: ResultPath get() = executionStepInfo.path
+    val path: ResultPath = executionStepInfo.path
 
-    /** Convenient access to the execution context from constants */
-    val executionContext: ExecutionContext get() = constants.executionContext
+    /** The ExecutionContext with the current local context applied */
+    val executionContext: ExecutionContext = constants.executionContext.transform { it.localContext(localContext) }
 
     /** Convenient access to the GraphQL schema from constants */
-    val graphQLSchema: GraphQLSchema get() = constants.executionContext.graphQLSchema
+    val graphQLSchema: GraphQLSchema = constants.executionContext.graphQLSchema
 
     /** Convenient access to instrumentation from constants */
-    val instrumentation: ViaductModernGJInstrumentation get() = constants.instrumentation
+    val instrumentation: ViaductModernGJInstrumentation = constants.instrumentation
 
     /** The root ObjectEngineResult for the entire request */
-    val rootEngineResult: ObjectEngineResultImpl get() = constants.rootEngineResult
+    val rootEngineResult: ObjectEngineResultImpl = constants.rootEngineResult
 
     /** The query ObjectEngineResult for query selections, if available */
-    val queryEngineResult: ObjectEngineResultImpl get() = constants.queryEngineResult
+    val queryEngineResult: ObjectEngineResultImpl = constants.queryEngineResult
 
-    val gjParameters: ExecutionStrategyParameters
-        get() = ExecutionStrategyParameters.newParameters()
-            // graphql-java requires a merged selection set, though our execution strategy doesn't use it.
-            // provide a placeholder value
-            .fields(emptyMergedSelectionSet)
-            .source(source) // in some cases this should be the resolved one in currentEngineResult
-            // nonNullFieldValidator is required but not used in modstrat
-            // see [viaduct.engine.runtime.execution.NonNullableFieldValidator]
-            // .localContext(localContext)
-            .nonNullFieldValidator(NonNullableFieldValidator(executionContext))
-            .executionStepInfo(executionStepInfo)
-            .path(path)
-            .parent(parent?.gjParameters)
-            .field(this.field?.mergedField)
-            .build()
+    val gjParameters: ExecutionStrategyParameters = ExecutionStrategyParameters.newParameters()
+        // graphql-java requires a merged selection set, though our execution strategy doesn't use it.
+        // provide a placeholder value
+        .fields(emptyMergedSelectionSet)
+        .source(source) // in some cases this should be the resolved one in currentEngineResult
+        // nonNullFieldValidator is required but not used in modstrat
+        // see [viaduct.engine.runtime.execution.NonNullableFieldValidator]
+        .localContext(localContext)
+        .nonNullFieldValidator(NonNullableFieldValidator(executionContext))
+        .executionStepInfo(executionStepInfo)
+        .path(path)
+        .parent(parent?.gjParameters)
+        .field(this.field?.mergedField)
+        .build()
 
     /**
      * Delegates to scope for launching coroutines on the root execution scope.
