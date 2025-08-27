@@ -6,12 +6,6 @@ plugins {
     id("viaduct-app")
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
 dependencies {
     implementation(libs.viaduct.runtime)
 

@@ -35,12 +35,14 @@ ktlintPluginVersion = "13.1.0"
 ktlintVersion = "1.2.1"
 detekt = "1.23.6"
 dependency-analysis = "1.33.0"
+dokka = "1.8.20"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlintPlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPluginVersion" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 [libraries]
 # Kotlin
