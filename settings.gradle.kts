@@ -20,7 +20,7 @@ plugins {
     id("build-scans")
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 
-    kotlin("jvm") version "2.0.21" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
+    kotlin("jvm") version "1.8.22" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
 }
 
 rootProject.name = "viaduct"
