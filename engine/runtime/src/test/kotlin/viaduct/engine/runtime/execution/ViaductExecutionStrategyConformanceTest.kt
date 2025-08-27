@@ -874,7 +874,7 @@ class ViaductExecutionStrategyConformanceTest {
                     }
                 )
             ),
-            typeResolvers = mapOf("Character" to TypeResolvers.__typename)
+            typeResolvers = mapOf("Character" to TypeResolvers.typename)
         ) {
             check(
                 """
@@ -916,7 +916,7 @@ class ViaductExecutionStrategyConformanceTest {
                     }
                 )
             ),
-            typeResolvers = mapOf("Character" to TypeResolvers.__typename)
+            typeResolvers = mapOf("Character" to TypeResolvers.typename)
         ) {
             check(
                 """
@@ -958,7 +958,7 @@ class ViaductExecutionStrategyConformanceTest {
                     }
                 )
             ),
-            typeResolvers = mapOf("SearchResult" to TypeResolvers.__typename)
+            typeResolvers = mapOf("SearchResult" to TypeResolvers.typename)
         ) {
             check(
                 """
@@ -1048,8 +1048,8 @@ class ViaductExecutionStrategyConformanceTest {
                 )
             ),
             typeResolvers = mapOf(
-                "SearchResult" to TypeResolvers.__typename,
-                "Pet" to TypeResolvers.__typename
+                "SearchResult" to TypeResolvers.typename,
+                "Pet" to TypeResolvers.typename
             )
         ) {
             check(
@@ -1120,7 +1120,7 @@ class ViaductExecutionStrategyConformanceTest {
                     }
                 )
             ),
-            typeResolvers = mapOf("Section" to TypeResolvers.__typename)
+            typeResolvers = mapOf("Section" to TypeResolvers.typename)
         ) {
             check(
                 """

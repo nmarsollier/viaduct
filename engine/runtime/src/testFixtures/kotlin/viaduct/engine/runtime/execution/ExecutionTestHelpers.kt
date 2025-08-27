@@ -249,15 +249,15 @@ object ExecutionTestHelpers {
     }
 }
 
-/** methods for generatng a [TypeResolver] */
+/** methods for generating a [TypeResolver] */
 object TypeResolvers {
     /** create a [TypeResolver] that always resolves to the provided type */
     fun const(name: String): TypeResolver = TypeResolver { it.schema.getObjectType(name) }
 
     /** a [TypeResolver] that will use a `__typename` entry in the current object data to resolve a type */
-    val __typename: TypeResolver = TypeResolver { env ->
+    val typename: TypeResolver = TypeResolver { env ->
         val data = env.getObject() as Map<String, Any?>
-        val typename = data.get("__typename")!! as String
+        val typename = data["__typename"]!! as String
         env.schema.getObjectType(typename)
     }
 }
