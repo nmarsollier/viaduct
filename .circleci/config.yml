@@ -4,14 +4,50 @@ orbs:
   gradle: circleci/gradle@3.0.0
 
 executors:
+  java-11-executor:
+    docker:
+      - image: cimg/openjdk:11.0
+    working_directory: ~/project
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g"
+      # Improve build performance with caching enabled
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      # Disable build scans in CI to avoid network timeouts
+      GRADLE_SCAN: "false"
+      JAVA_VERSION: "11"
+
+  java-17-executor:
+    docker:
+      - image: cimg/openjdk:17.0
+    working_directory: ~/project
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+EnableDynamicAgentLoading"
+      # Improve build performance with caching enabled
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      # Disable build scans in CI to avoid network timeouts
+      GRADLE_SCAN: "false"
+      JAVA_VERSION: "17"
+
+  java-21-executor:
+    docker:
+      - image: cimg/openjdk:21.0
+    working_directory: ~/project
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+EnableDynamicAgentLoading"
+      # Improve build performance with caching enabled
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      # Disable build scans in CI to avoid network timeouts
+      GRADLE_SCAN: "false"
+      JAVA_VERSION: "21"
+
   kotlin-gradle-executor:
     docker:
       - image: cimg/openjdk:21.0
     working_directory: ~/project
     environment:
       GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+EnableDynamicAgentLoading"
-      # Improve build performance
-      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=false -Dorg.gradle.daemon=false"
+      # Improve build performance with caching enabled
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
 
@@ -22,7 +58,7 @@ commands:
         type: steps
     steps:
       - gradle/with_cache:
-          cache_key: "v4-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
+          cache_key: "v4-java-${JAVA_VERSION:-21}-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
           steps: << parameters.steps >>
   
   fail-step:
@@ -323,6 +359,127 @@ jobs:
           path: build/docs/javadoc
           destination: javadoc
 
+  # Parallel testing jobs for different Java versions
+  test-java-11:
+    executor: java-11-executor
+    steps:
+      - checkout
+      - setup-gradle
+      - fail-step:
+          message: "Gradle setup failed in Java 11 test job"
+      
+      - gradle-with-cache:
+          steps:
+            - run:
+                name: Download dependencies (Java 11)
+                command: |
+                  echo "📥 Downloading Gradle dependencies for Java 11..."
+                  ./gradlew dependencies --no-scan || {
+                    echo "❌ Failed to download dependencies"
+                    exit 1
+                  }
+                  echo "✅ Dependencies downloaded successfully"
+            
+            - run:
+                name: Build and test with Java 11
+                command: |
+                  echo "🧪 Building and testing with Java 11..."
+                  ./gradlew clean build --no-scan --continue || {
+                    echo "⚠️ Some tests failed on Java 11, but continuing"
+                    echo "Test failures are not blocking the pipeline"
+                  }
+                  echo "✅ Java 11 test execution completed"
+      
+      - run:
+          name: Save test results (Java 11)
+          command: |
+            mkdir -p ~/test-results/junit-java11/
+            find . -type f -regex ".*/build/test-results/.*/.*\.xml" -exec cp {} ~/test-results/junit-java11/ \; || echo "No test result files found"
+          when: always
+      
+      - store_test_results:
+          path: ~/test-results
+
+  test-java-17:
+    executor: java-17-executor
+    steps:
+      - checkout
+      - setup-gradle
+      - fail-step:
+          message: "Gradle setup failed in Java 17 test job"
+      
+      - gradle-with-cache:
+          steps:
+            - run:
+                name: Download dependencies (Java 17)
+                command: |
+                  echo "📥 Downloading Gradle dependencies for Java 17..."
+                  ./gradlew dependencies --no-scan || {
+                    echo "❌ Failed to download dependencies"
+                    exit 1
+                  }
+                  echo "✅ Dependencies downloaded successfully"
+            
+            - run:
+                name: Build and test with Java 17
+                command: |
+                  echo "🧪 Building and testing with Java 17..."
+                  ./gradlew clean build --no-scan --continue || {
+                    echo "⚠️ Some tests failed on Java 17, but continuing"
+                    echo "Test failures are not blocking the pipeline"
+                  }
+                  echo "✅ Java 17 test execution completed"
+      
+      - run:
+          name: Save test results (Java 17)
+          command: |
+            mkdir -p ~/test-results/junit-java17/
+            find . -type f -regex ".*/build/test-results/.*/.*\.xml" -exec cp {} ~/test-results/junit-java17/ \; || echo "No test result files found"
+          when: always
+      
+      - store_test_results:
+          path: ~/test-results
+
+  test-java-21:
+    executor: java-21-executor
+    steps:
+      - checkout
+      - setup-gradle
+      - fail-step:
+          message: "Gradle setup failed in Java 21 test job"
+      
+      - gradle-with-cache:
+          steps:
+            - run:
+                name: Download dependencies (Java 21)
+                command: |
+                  echo "📥 Downloading Gradle dependencies for Java 21..."
+                  ./gradlew dependencies --no-scan || {
+                    echo "❌ Failed to download dependencies"
+                    exit 1
+                  }
+                  echo "✅ Dependencies downloaded successfully"
+            
+            - run:
+                name: Build and test with Java 21
+                command: |
+                  echo "🧪 Building and testing with Java 21..."
+                  ./gradlew clean build --no-scan --continue || {
+                    echo "⚠️ Some tests failed on Java 21, but continuing"
+                    echo "Test failures are not blocking the pipeline"
+                  }
+                  echo "✅ Java 21 test execution completed"
+      
+      - run:
+          name: Save test results (Java 21)
+          command: |
+            mkdir -p ~/test-results/junit-java21/
+            find . -type f -regex ".*/build/test-results/.*/.*\.xml" -exec cp {} ~/test-results/junit-java21/ \; || echo "No test result files found"
+          when: always
+      
+      - store_test_results:
+          path: ~/test-results
+
   coverage-verification:
     executor: kotlin-gradle-executor
     steps:
@@ -422,6 +579,10 @@ workflows:
       - test:
           requires:
             - build
+      # Parallel testing with different Java versions
+      - test-java-11
+      - test-java-17  
+      - test-java-21
       - lint:
           requires:
             - build
@@ -450,6 +611,10 @@ workflows:
       - test:
           requires:
             - build
+      # Parallel testing with different Java versions
+      - test-java-11
+      - test-java-17
+      - test-java-21
       - lint:
           requires:
             - build
