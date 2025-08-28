@@ -12,7 +12,7 @@ sealed interface FieldValue<out T> {
     fun get(): T
 
     /**
-     * Whether or not this is an error value
+     * Whether this is an error value or not
      */
     val isError: Boolean
 
