@@ -36,9 +36,10 @@ tasks.register<JacocoReport>("jacocoAggregatedReport") {
     description = "Generates aggregated Jacoco coverage report for all subprojects"
     group = "verification"
     
-    dependsOn(subprojects.map { it.tasks.withType<Test>() })
-    
     val javaSubprojects = subprojects.filter { it.plugins.hasPlugin("java") }
+    
+    dependsOn(subprojects.map { it.tasks.withType<Test>() })
+    dependsOn(javaSubprojects.map { it.tasks.named("jacocoTestReport") })
     
     additionalSourceDirs.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
     sourceDirectories.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
