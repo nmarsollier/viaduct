@@ -2,10 +2,10 @@ package viaduct.tenant.runtime.featuretests
 
 import com.google.inject.ProvisionException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import viaduct.api.context.FieldExecutionContext
@@ -15,6 +15,7 @@ import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.FromQueryFieldVariable
 import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.VariableCycleException
+import viaduct.engine.runtime.tenantloading.InvalidVariableException
 import viaduct.engine.runtime.tenantloading.RequiredSelectionsCycleException
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestBuilder
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestSchemaFixture
@@ -257,8 +258,10 @@ class FromFieldVariablesResolverTest {
                     Foo.Builder(ctx).value("FOO").build()
                 }
             )
-            .build()
-            .assertJson("{data: {string1: \"FOO..\"}}", "{ string1 }")
+            .let {
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<InvalidVariableException>()
+                assertEquals("x", err.variableName)
+            }
     }
 
     @Test
@@ -276,11 +279,8 @@ class FromFieldVariablesResolverTest {
             .resolver("Query" to "y") { 0 }
             .resolver("Query" to "z") { null }
             .let {
-                // TODO: https://app.asana.com/1/150975571430/project/1208357307661305/task/1210970634566879
-                //  This should validate the type of the selection and throw an exception
-                assertDoesNotThrow {
-                    it.build()
-                }
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<InvalidVariableException>()
+                assertEquals("b", err.variableName)
             }
     }
 
@@ -299,11 +299,8 @@ class FromFieldVariablesResolverTest {
             .resolver("Query" to "y") { 0 }
             .resolver("Query" to "z") { "" }
             .let {
-                // TODO: https://app.asana.com/1/150975571430/project/1208357307661305/task/1210970634566879
-                //  This should validate the type of the selection and throw an exception
-                assertDoesNotThrow {
-                    it.build()
-                }
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<InvalidVariableException>()
+                assertEquals("b", err.variableName)
             }
     }
 
@@ -359,7 +356,7 @@ class FromFieldVariablesResolverTest {
     fun `from object field -- variable used in conditional directive`() {
         var yResolved = false
         FeatureTestBuilder()
-            .sdl("type Query { x:String, y:Boolean, z:Boolean }")
+            .sdl("type Query { x:String, y:Boolean, z:Boolean! }")
             .resolver(
                 "Query" to "x",
                 { ctx: UntypedFieldContext ->
@@ -469,8 +466,7 @@ class FromFieldVariablesResolverTest {
             )
             .resolver("Query" to "y") { 2 }
             .let {
-                val err = assertThrows<Exception> { it.build() }.stripWrappers()
-                assertTrue(err is IllegalArgumentException)
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<IllegalArgumentException>()
                 assertTrue(err.message?.contains("No selections found for path") == true) { err.message }
             }
 
@@ -487,11 +483,8 @@ class FromFieldVariablesResolverTest {
             .resolver("Query" to "y") { fail("should not execute") }
             .resolver("Query" to "z") { fail("should not execute") }
             .let {
-                // TODO: https://app.asana.com/1/150975571430/project/1208357307661305/task/1210970634566879
-                //  This should validate the type of the selection and throw an exception
-                assertDoesNotThrow {
-                    it.build()
-                }
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<InvalidVariableException>()
+                assertEquals("b", err.variableName)
             }
     }
 
@@ -625,8 +618,7 @@ class FromFieldVariablesResolverTest {
             )
             .resolver("Query" to "foo") { "test" }
             .let {
-                val err = assertThrows<Exception> { it.build() }.stripWrappers()
-                assertTrue(err is IllegalArgumentException)
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<IllegalArgumentException>()
                 val msg = checkNotNull(err.message)
                 assertTrue(msg.contains("unused variables")) { msg }
                 assertTrue(msg.contains("name")) { msg }
@@ -647,8 +639,7 @@ class FromFieldVariablesResolverTest {
             )
             .resolver("Query" to "foo") { "test" }
             .let {
-                val err = assertThrows<Exception> { it.build() }.stripWrappers()
-                assertTrue(err is IllegalArgumentException)
+                val err = assertThrows<Exception> { it.build() }.stripWrappersAs<IllegalArgumentException>()
                 val msg = checkNotNull(err.message)
                 assertTrue(msg.contains("unused variables")) { msg }
                 assertTrue(msg.contains("name")) { msg }
@@ -698,11 +689,11 @@ class FromFieldVariablesResolverTest {
             .resolver(
                 "Query" to "x",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("y") * 11 },
-                "y(a:\$a, b:\$b), z(w:7)",
-                queryValueFragment = "z(w:5)",
+                "y(a:\$a, b:\$b), z1:z(w:7)",
+                queryValueFragment = "z2:z(w:5)",
                 variables = listOf(
-                    FromObjectFieldVariable("a", "z"),
-                    FromQueryFieldVariable("b", "z")
+                    FromObjectFieldVariable("a", "z1"),
+                    FromQueryFieldVariable("b", "z2")
                 )
             )
             .resolver("Query" to "y") {
@@ -719,3 +710,5 @@ internal fun Throwable.stripWrappers(): Throwable =
         is ProvisionException -> this.cause!!.stripWrappers()
         else -> this
     }
+
+internal fun <T : Throwable> Throwable.stripWrappersAs(): T = this.stripWrappers() as T

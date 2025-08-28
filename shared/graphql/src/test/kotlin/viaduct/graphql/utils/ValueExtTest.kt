@@ -176,7 +176,6 @@ class ValueExtTest {
         assertEquals("arg", usage.argumentName)
         assertEquals("String!", GraphQLTypeUtil.simplePrint(usage.type))
         assertEquals(false, usage.hasDefaultValue)
-        assertEquals(false, usage.isOneOfField)
     }
 
     @Test
@@ -192,7 +191,6 @@ class ValueExtTest {
         assertEquals("arg", usage.argumentName)
         assertEquals("String", GraphQLTypeUtil.simplePrint(usage.type))
         assertEquals(true, usage.hasDefaultValue)
-        assertEquals(false, usage.isOneOfField)
     }
 
     @Test
@@ -208,7 +206,6 @@ class ValueExtTest {
         assertEquals("if", usage.argumentName)
         assertEquals("Boolean!", GraphQLTypeUtil.simplePrint(usage.type))
         assertEquals(false, usage.hasDefaultValue)
-        assertEquals(false, usage.isOneOfField)
     }
 
     @Test
@@ -221,23 +218,21 @@ class ValueExtTest {
         )
         val document = Parser.parse("{ createUser(input: { name: \$userName, age: \$userAge }) }")
 
-        val nameUsages = document.collectVariableUsages(schema, "userName", "Query" to "createUser")
-        val ageUsages = document.collectVariableUsages(schema, "userAge", "Query" to "createUser")
+        val userNameUsages = document.collectVariableUsages(schema, "userName", "Query" to "createUser")
+        val userAgeUsages = document.collectVariableUsages(schema, "userAge", "Query" to "createUser")
 
-        assertEquals(1, nameUsages.size)
-        assertEquals(1, ageUsages.size)
+        assertEquals(1, userNameUsages.size)
+        assertEquals(1, userAgeUsages.size)
 
-        val nameUsage = nameUsages.first()
+        val nameUsage = userNameUsages.first()
         assertEquals("createUser", nameUsage.fieldName)
         assertEquals("input", nameUsage.argumentName)
         assertEquals("String!", GraphQLTypeUtil.simplePrint(nameUsage.type))
-        assertEquals(false, nameUsage.isOneOfField)
 
-        val ageUsage = ageUsages.first()
+        val ageUsage = userAgeUsages.first()
         assertEquals("createUser", ageUsage.fieldName)
         assertEquals("input", ageUsage.argumentName)
         assertEquals("Int", GraphQLTypeUtil.simplePrint(ageUsage.type))
-        assertEquals(false, ageUsage.isOneOfField)
     }
 
     @Test
@@ -257,7 +252,6 @@ class ValueExtTest {
         assertEquals("process", usage.fieldName)
         assertEquals("input", usage.argumentName)
         assertEquals("String", GraphQLTypeUtil.simplePrint(usage.type))
-        assertEquals(true, usage.isOneOfField)
     }
 
     @Test
@@ -279,7 +273,6 @@ class ValueExtTest {
         assertEquals("process", usage.fieldName)
         assertEquals("input", usage.argumentName)
         assertEquals("String!", GraphQLTypeUtil.simplePrint(usage.type))
-        assertEquals(false, usage.isOneOfField)
     }
 
     @Test

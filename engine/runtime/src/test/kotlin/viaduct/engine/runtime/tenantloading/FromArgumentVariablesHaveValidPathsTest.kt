@@ -13,7 +13,7 @@ import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
 
-class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
+class FromArgumentVariablesHaveValidPathsTest {
     @Test
     fun `valid -- simple argument path`() {
         Fixture("type Query { foo(x: Int!): Int!, bar(y: Int): Int }") {
@@ -150,7 +150,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
     }
 
     @Test
-    fun `invalid -- cannot traverse through list type`() {
+    fun `invalid -- cannot traverse through list argument`() {
         Fixture(
             """
             input UserInput { name: String! }
@@ -161,6 +161,25 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
                 "Query" to "foo",
                 "foo",
                 listOf(FromArgument("userName", listOf("users", "name")))
+            )
+
+            assertTrue(exception.message.contains("Path traversal through lists is not supported"))
+        }
+    }
+
+    @Test
+    fun `invalid -- cannot traverse through list input field`() {
+        Fixture(
+            """
+            input UserInput { name:String! }
+            input Inp { users:[UserInput!]! }
+            type Query { foo(inp:Inp):String! }
+            """.trimIndent()
+        ) {
+            val exception = assertInvalid(
+                "Query" to "foo",
+                "foo",
+                listOf(FromArgument("userName", listOf("inp", "users", "name")))
             )
 
             assertTrue(exception.message.contains("Path traversal through lists is not supported"))
@@ -194,10 +213,15 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
         }
 
         // Non-null field in a nullable context
-        Fixture("input MyInput { x: Int! } type Query { foo(myInput: MyInput): Int, bar(y: Int!): Int }") {
+        Fixture(
+            """
+                input MyInput { x:Int! }
+                type Query { foo(myInput:MyInput):Int, bar(y:Int!):Int }
+            """.trimIndent()
+        ) {
             assertInvalid(
                 "Query" to "foo",
-                "bar(y: \$x)",
+                "bar(y:\$x)",
                 listOf(
                     FromArgument("x", listOf("myInput", "x"))
                 )
@@ -340,7 +364,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
 
     @Test
     fun `OneOf input nullability validation`() {
-        // Simple passing OneOf field usage
+        // valid non-nullable OneOf field wiring
         Fixture(
             """
             input OneOfInput @oneOf {
@@ -362,7 +386,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             )
         }
 
-        // Simple failing case first - nullable value used in OneOf field
+        // valid nullable OneOf field wiring
         Fixture(
             """
             input OneOfInput @oneOf {
@@ -375,7 +399,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             }
             """.trimIndent()
         ) {
-            assertInvalid(
+            assertValid(
                 "Query" to "foo",
                 "testOneOf(input: { stringOption: \$value })",
                 listOf(
@@ -386,10 +410,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
     }
 
     @Test
-    fun `valid -- non-list value used in list context`() {
-        // https://spec.graphql.org/draft/#sec-List.Input-Coercion
-        // According to GraphQL spec, a non-list value can be used where a list is expected
-        // The value will be automatically wrapped in a list
+    fun `invalid -- non-list value used in list context`() {
         Fixture(
             """
             type Query {
@@ -398,7 +419,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             }
             """.trimIndent()
         ) {
-            assertValid(
+            val err = assertInvalid(
                 "Query" to "foo",
                 "acceptList(items: \$item)",
                 listOf(
@@ -416,7 +437,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             }
             """.trimIndent()
         ) {
-            assertValid(
+            assertInvalid(
                 "Query" to "foo",
                 "acceptNullableList(items: \$item)",
                 listOf(
@@ -425,7 +446,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             )
         }
 
-        // Test nested list coercion (per spec: "may apply recursively for nested lists")
+        // Test nested list
         Fixture(
             """
             type Query {
@@ -434,7 +455,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             }
             """.trimIndent()
         ) {
-            assertValid(
+            assertInvalid(
                 "Query" to "foo",
                 "acceptNestedList(items: \$innerList)",
                 listOf(
@@ -442,11 +463,8 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
                 )
             )
         }
-    }
 
-    @Test
-    fun `valid -- spec compliance for nullable list coercion`() {
-        // Per spec: nullable single value can be used in nullable list items
+        // Test coercion of nullable singleton type to list of nullable inner type
         Fixture(
             """
             type Query {
@@ -455,7 +473,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             }
             """.trimIndent()
         ) {
-            assertValid(
+            assertInvalid(
                 "Query" to "foo",
                 "acceptNullableItems(items: \$item)",
                 listOf(
@@ -514,7 +532,7 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
         fn: Fixture.() -> Unit = {}
     ) {
         val schema = ViaductSchema(sdl.asSchema)
-        val validator = VariableReferencesFromArgumentsExistAndMatchRequiredTypes(schema)
+        val validator = FromArgumentVariablesHaveValidPaths(schema)
 
         init {
             fn()
@@ -534,8 +552,8 @@ class VariableReferencesFromArgumentsExistAndMatchRequiredTypesTest {
             coord: Coordinate,
             selections: String,
             variablesResolvers: List<VariablesResolver> = emptyList()
-        ): InvalidArgumentPathException =
-            assertThrows<InvalidArgumentPathException> {
+        ): InvalidVariableException =
+            assertThrows<InvalidVariableException> {
                 validate(coord, selections, variablesResolvers)
             }
 
