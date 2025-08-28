@@ -195,21 +195,19 @@ jobs:
                     echo "Test failures are not blocking the pipeline"
                   }
                   echo "✅ Test execution completed"
-
-            # TODO: Enable JaCoCo coverage when ready
-            # - run:
-            #     name: Generate JaCoCo aggregated coverage report
-            #     command: |
-            #       echo "📊 Generating JaCoCo aggregated coverage report..."
-            #       ./gradlew jacocoAggregatedReport --no-scan || {
-            #         echo "❌ Failed to generate coverage report"
-            #         exit 1
-            #       }
-            #       echo "✅ Coverage report generated successfully"
-            #     when: always
-      # - fail-step:
-      #     message: "JaCoCo coverage report generation failed"
-
+            
+            - run:
+                name: Generate JaCoCo aggregated coverage report
+                command: |
+                  echo "📊 Generating JaCoCo aggregated coverage report..."
+                  ./gradlew jacocoAggregatedReport --no-scan --no-configuration-cache || {
+                    echo "❌ Failed to generate coverage report"
+                    exit 1
+                  }
+                  echo "✅ Coverage report generated successfully"
+                when: always
+      - fail-step:
+          message: "JaCoCo coverage report generation failed"
       # Store test results for CircleCI UI
       - run:
           name: Save test results
@@ -222,30 +220,29 @@ jobs:
 
       - store_test_results:
           path: ~/test-results
-
-      # TODO: Re-enable JaCoCo coverage reports when ready
+      
       # Store JaCoCo coverage reports
-      # - store_artifacts:
-      #     path: build/reports/jacoco/aggregate/html
-      #     destination: coverage-html
-      #
-      # - store_artifacts:
-      #     path: build/reports/jacoco/aggregate/jacocoTestReport.xml
-      #     destination: coverage-xml
-      #
-      # # Coverage reports are stored as artifacts above
-      #
-      # # Store individual project coverage reports
-      # - run:
-      #     name: Collect individual coverage reports
-      #     command: |
-      #       mkdir -p ~/coverage-reports
-      #       find . -path "*/build/reports/jacoco/test/html" -type d -exec cp -r {} ~/coverage-reports/ \; || true
-      #     when: always
-      #
-      # - store_artifacts:
-      #     path: ~/coverage-reports
-      #     destination: individual-coverage
+      - store_artifacts:
+          path: build/reports/jacoco/aggregate/html
+          destination: coverage-html
+      
+      - store_artifacts:
+          path: build/reports/jacoco/aggregate/jacocoAggregatedReport.xml
+          destination: coverage-xml
+      
+      # Store individual project coverage reports
+      - run:
+          name: Collect individual coverage reports
+          command: |
+            mkdir -p ~/coverage-reports
+            find . -path "*/build/reports/jacoco/test/html" -type d -exec cp -r {} ~/coverage-reports/ \; || true
+            echo "Individual coverage reports collected:"
+            find ~/coverage-reports -name "index.html" -ls || echo "No individual coverage reports found"
+          when: always
+      
+      - store_artifacts:
+          path: ~/coverage-reports
+          destination: individual-coverage
 
   lint:
     executor: kotlin-gradle-executor
@@ -344,7 +341,7 @@ jobs:
                 name: Verify coverage thresholds
                 command: |
                   echo "🎯 Verifying coverage thresholds..."
-                  ./gradlew jacocoTestCoverageVerification --no-scan || {
+                  ./gradlew jacocoAggregatedCoverageVerification --no-scan --no-configuration-cache || {
                     echo "❌ Coverage thresholds not met"
                     echo "Please check the coverage report and add more tests"
                     exit 1
@@ -428,10 +425,9 @@ workflows:
       - docs:
           requires:
             - build
-      # TODO: Re-enable when JaCoCo coverage is working
-      # - coverage-verification:
-      #     requires:
-      #       - test
+      - coverage-verification:
+          requires:
+            - test
       # TODO: Re-enable when Dokka documentation is working
       # - deploy-docs:
       #     requires:
@@ -456,3 +452,6 @@ workflows:
       - docs:
           requires:
             - build
+      - coverage-verification:
+          requires:
+            - test

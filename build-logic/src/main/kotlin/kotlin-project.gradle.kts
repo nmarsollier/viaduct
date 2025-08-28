@@ -1,5 +1,6 @@
 plugins {
     id("kotlin-project-without-tests")
+    id("jacoco-project")
 }
 
 val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
