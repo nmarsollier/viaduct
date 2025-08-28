@@ -52,7 +52,7 @@ import viaduct.utils.collections.parallelMap
  * actual results.
  *
  */
-@CoroutinesTimeout(5000, true)
+// @CoroutinesTimeout(5000, true) // Commented out: For debugging only, breaks JaCoCo coverage due to bytecode instrumentation conflicts
 class InternalDataLoaderTest {
     enum class TestDispatchStrategy {
         BATCH,
