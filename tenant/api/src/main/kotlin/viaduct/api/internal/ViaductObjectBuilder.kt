@@ -10,6 +10,11 @@ import viaduct.api.context.ExecutionContext
 import viaduct.api.handleTenantAPIErrors
 import viaduct.api.types.Object
 
+/** Builder for GraphQL object types.
+ *
+ * This class is not meant to be instantiated directly.
+ * Use [dynamicBuilderFor] instead.
+ */
 class ViaductObjectBuilder<T : Object> private constructor(
     val context: InternalContext,
     val graphqlType: GraphQLObjectType,
