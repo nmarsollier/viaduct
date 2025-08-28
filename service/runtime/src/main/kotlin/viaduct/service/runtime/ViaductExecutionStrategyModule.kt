@@ -31,10 +31,11 @@ import viaduct.engine.runtime.instrumentation.ScopeInstrumentation
 import viaduct.engine.runtime.tenantloading.CheckerSelectionSetsAreProperlyTyped
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
 import viaduct.engine.runtime.tenantloading.ExecutorValidator
+import viaduct.engine.runtime.tenantloading.FromArgumentVariablesHaveValidPaths
+import viaduct.engine.runtime.tenantloading.FromFieldVariablesHaveValidPaths
 import viaduct.engine.runtime.tenantloading.RequiredSelectionsAreAcyclic
 import viaduct.engine.runtime.tenantloading.RequiredSelectionsAreSchematicallyValid
 import viaduct.engine.runtime.tenantloading.ResolverSelectionSetsAreProperlyTyped
-import viaduct.engine.runtime.tenantloading.VariableReferencesFromArgumentsExistAndMatchRequiredTypes
 import viaduct.engine.runtime.validation.Validator
 import viaduct.engine.runtime.validation.Validator.Companion.flatten
 import viaduct.service.api.spi.FlagManager
@@ -77,7 +78,8 @@ class ViaductExecutionStrategyModule(
             requiredSelectionsValidator = listOf(
                 RequiredSelectionsAreSchematicallyValid(schema),
                 RequiredSelectionsAreAcyclic(schema),
-                VariableReferencesFromArgumentsExistAndMatchRequiredTypes(schema)
+                FromArgumentVariablesHaveValidPaths(schema),
+                FromFieldVariablesHaveValidPaths(schema)
             ).flatten(),
             fieldCheckerExecutorValidator = CheckerSelectionSetsAreProperlyTyped(schema),
         )

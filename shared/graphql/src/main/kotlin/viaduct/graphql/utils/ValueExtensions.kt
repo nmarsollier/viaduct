@@ -68,7 +68,6 @@ data class VariableUsageInfo(
     val argumentName: String,
     val type: GraphQLType,
     val hasDefaultValue: Boolean = false,
-    val isOneOfField: Boolean = false
 )
 
 // Just semantics for the below
@@ -141,7 +140,6 @@ fun AbstractNode<*>.collectVariableUsages(
                                         fieldName = currentContext.fieldName,
                                         argumentName = currentContext.argumentName,
                                         hasDefaultValue = currentContext.hasDefaultValue,
-                                        isOneOfField = unwrappedType.hasAppliedDirective("oneOf")
                                     )
                                 )
                             }

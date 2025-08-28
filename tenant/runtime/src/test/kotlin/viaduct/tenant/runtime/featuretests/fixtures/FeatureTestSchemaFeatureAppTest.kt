@@ -16,7 +16,7 @@ type Query {
   string1: String @resolver
   string2: String @resolver
   hasArgs1(x: Int!): Int! @resolver
-  hasArgs2(x: String!): String! @resolver
+  hasArgs2(x: String): String! @resolver
   foo: Foo @resolver
   bar: Bar @resolver
   baz: Baz @resolver

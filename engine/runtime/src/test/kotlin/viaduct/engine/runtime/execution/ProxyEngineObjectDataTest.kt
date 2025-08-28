@@ -265,6 +265,82 @@ class ProxyEngineObjectDataTest {
     }
 
     @Test
+    fun `fetch statically included selections`() {
+        Fixture("type Query { f1:Int, f2:Int }") {
+            val o = mkProxy(
+                """
+                    fragment _ on Query {
+                      f1 @skip(if:false)
+                      f2 @include(if:true)
+                    }
+                """.trimIndent(),
+                "Query",
+                mapOf("f1" to 1, "f2" to 2)
+            )
+            assertEquals(1, o.fetch("f1"))
+            assertEquals(2, o.fetch("f2"))
+        }
+    }
+
+    @Test
+    fun `fetch statically excluded selections`() {
+        Fixture("type Query { f1:Int, f2:Int }") {
+            val o = mkProxy(
+                """
+                    fragment _ on Query {
+                      f1 @skip(if:true)
+                      f2 @include(if:false)
+                    }
+                """.trimIndent(),
+                "Query",
+                mapOf("f1" to 1, "f2" to 2)
+            )
+            assertThrows<UnsetSelectionException> { o.fetch("f1") }
+            assertThrows<UnsetSelectionException> { o.fetch("f2") }
+        }
+    }
+
+    @Test
+    fun `fetch dynamically included selections`() {
+        Fixture("type Query { f1:Int, f2:Int }") {
+            val o = mkProxy(
+                """
+                    fragment _ on Query {
+                      f1 @skip(if:${'$'}skipIf)
+                      f2 @include(if:${'$'}includeIf)
+                    }
+                """.trimIndent(),
+                "Query",
+                mapOf("f1" to 1, "f2" to 2),
+                emptyList(),
+                mapOf("skipIf" to false, "includeIf" to true)
+            )
+            assertEquals(1, o.fetch("f1"))
+            assertEquals(2, o.fetch("f2"))
+        }
+    }
+
+    @Test
+    fun `fetch dynamically excluded selections`() {
+        Fixture("type Query { f1:Int, f2:Int }") {
+            val o = mkProxy(
+                """
+                    fragment _ on Query {
+                      f1 @skip(if:${'$'}skipIf)
+                      f2 @include(if:${'$'}includeIf)
+                    }
+                """.trimIndent(),
+                "Query",
+                mapOf("f1" to 1, "f2" to 2),
+                emptyList(),
+                mapOf("skipIf" to true, "includeIf" to false)
+            )
+            assertThrows<UnsetSelectionException> { o.fetch("f1") }
+            assertThrows<UnsetSelectionException> { o.fetch("f2") }
+        }
+    }
+
+    @Test
     fun `fetch argumented selection -- aliases and variables`() {
         Fixture("type Query { field(x: Int): Int }") {
             val o = mkProxy(

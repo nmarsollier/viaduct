@@ -153,7 +153,7 @@ interface VariablesResolver {
                     view,
                     nestedVariablesResolvers,
                 )
-                return FromField(v.name, path, requiredSelectionSet)
+                return FromFieldVariablesResolver(v.name, path, requiredSelectionSet)
             }
         }
 
@@ -207,10 +207,10 @@ data class FromArgument(val name: String, val path: List<String>) : VariablesRes
     private val reader = InputValueReader(path)
     override val variableNames: Set<String> = setOf(name)
 
-    override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = mapOf(name to reader.read(ctx.arguments))
+    override suspend fun resolve(ctx: ResolveCtx): Map<String, Any?> = mapOf(name to reader.read(ctx.arguments))
 }
 
-private data class FromField(val name: String, val path: List<String>, override val requiredSelectionSet: RequiredSelectionSet) : VariablesResolver {
+data class FromFieldVariablesResolver(val name: String, val path: List<String>, override val requiredSelectionSet: RequiredSelectionSet) : VariablesResolver {
     init {
         require(path.isNotEmpty()) {
             "Path for variable `$name` is empty"
@@ -220,7 +220,7 @@ private data class FromField(val name: String, val path: List<String>, override 
     private val reader = EngineDataReader(path)
     override val variableNames: Set<String> = setOf(name)
 
-    override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = mapOf(name to reader.read(ctx.objectData))
+    override suspend fun resolve(ctx: ResolveCtx): Map<String, Any?> = mapOf(name to reader.read(ctx.objectData))
 }
 
 /** Return a merged set of all variable names provided by these [VariablesResolver]s */
@@ -229,7 +229,7 @@ val List<VariablesResolver>.variableNames: Set<String>
         flatMap { it.variableNames }.toSet()
 
 /** Return a combined map of all variable values resolved by these [VariableResolver]s */
-suspend fun List<VariablesResolver>.resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = fold(emptyMap()) { acc, vr -> acc + vr.resolve(ctx) }
+suspend fun List<VariablesResolver>.resolve(ctx: ResolveCtx): Map<String, Any?> = fold(emptyMap()) { acc, vr -> acc + vr.resolve(ctx) }
 
 /** check that all values provide disjoint sets of variables */
 fun List<VariablesResolver>.checkDisjoint() {

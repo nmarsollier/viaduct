@@ -29,8 +29,15 @@ annotation class Resolver(
  *  The value of [fromObjectField] is subject to these requirements:
  *
  *  1. the path must be a path that is selected in the selection set this [Variable] is bound to
- *  1. the path must terminate on a scalar or enum value, or a list that wraps one of these values
+ *  1. the path must terminate on a scalar or enum value, or a potentially-nested
+ *     list that wraps one of these values
  *  1. the path may not traverse through list-valued fields
+ *  1. the type at the end of the path must be compatible with the location that this variable is used.
+ *     For example, if the variable location is non-nullable and has no default value, then the path may
+ *     not traverse through nullable selections, or selections with variable @skip/@include conditions,
+ *     or fragments with narrowing type conditions
+ *
+ * @property fromQueryField see [fromObjectField]
  *
  * @property fromArgument a path into a GraphQL argument of the field to which this annotation
  *  is applied.
