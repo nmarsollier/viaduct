@@ -64,7 +64,8 @@ interface VariablesResolver {
         private class Builder(
             private val objectSelections: ParsedSelections?,
             private val querySelections: ParsedSelections?,
-            private val variables: List<SelectionSetVariable>
+            private val variables: List<SelectionSetVariable>,
+            private val attribution: ExecutionAttribution?,
         ) {
             private val variablesByName = variables.groupBy { it.name }
                 .mapValues { (name, values) ->
@@ -152,6 +153,8 @@ interface VariablesResolver {
                 val requiredSelectionSet = RequiredSelectionSet(
                     view,
                     nestedVariablesResolvers,
+                    // concatenate the attribution to indicate the full chain of attributions
+                    attribution?.toTagString()?.let { ExecutionAttribution.fromVariablesResolver(it) }
                 )
                 return FromFieldVariablesResolver(v.name, path, requiredSelectionSet)
             }
@@ -169,8 +172,9 @@ interface VariablesResolver {
         fun fromSelectionSetVariables(
             objectSelections: ParsedSelections?,
             querySelections: ParsedSelections?,
-            variables: List<SelectionSetVariable>
-        ): List<VariablesResolver> = Builder(objectSelections, querySelections, variables).buildAll()
+            variables: List<SelectionSetVariable>,
+            attribution: ExecutionAttribution? = null
+        ): List<VariablesResolver> = Builder(objectSelections, querySelections, variables, attribution).buildAll()
     }
 }
 

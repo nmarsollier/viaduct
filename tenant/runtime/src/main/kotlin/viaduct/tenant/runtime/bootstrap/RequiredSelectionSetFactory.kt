@@ -13,6 +13,7 @@ import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.ReflectionLoader
 import viaduct.api.internal.ResolverBase
 import viaduct.api.types.Arguments
+import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.FromArgumentVariable
 import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.FromQueryFieldVariable
@@ -70,6 +71,7 @@ class RequiredSelectionSetFactory(
             querySelections = querySelections,
             argumentsFactory = argumentsFactory,
             variables = annotation.selectionSetVariables,
+            attribution = ExecutionAttribution.fromResolver(resolverCls.qualifiedName!!)
         )
     }
 
@@ -84,6 +86,7 @@ class RequiredSelectionSetFactory(
         querySelections: ParsedSelections?,
         argumentsFactory: Factory<ArgumentsArgs, Arguments>,
         variables: List<SelectionSetVariable>,
+        attribution: ExecutionAttribution? = null,
     ): RequiredSelectionSets {
         if (objectSelections == null && querySelections == null) {
             return RequiredSelectionSets.empty()
@@ -108,7 +111,8 @@ class RequiredSelectionSetFactory(
             mkFromAnnotationVariablesResolvers(
                 objectSelections,
                 querySelections,
-                variables
+                variables,
+                attribution = attribution
             ),
         ).flatten()
             .also { it.checkDisjoint() }
@@ -116,10 +120,18 @@ class RequiredSelectionSetFactory(
 
         return RequiredSelectionSets(
             objectSelections = objectSelections?.let {
-                RequiredSelectionSet(it, allVariableResolvers)
+                RequiredSelectionSet(
+                    it,
+                    allVariableResolvers,
+                    attribution
+                )
             },
             querySelections = querySelections?.let {
-                RequiredSelectionSet(it, allVariableResolvers)
+                RequiredSelectionSet(
+                    it,
+                    allVariableResolvers,
+                    attribution
+                )
             }
         )
     }
@@ -138,12 +150,14 @@ class RequiredSelectionSetFactory(
     private fun mkFromAnnotationVariablesResolvers(
         resolverSelections: ParsedSelections?,
         querySelections: ParsedSelections?,
-        vars: List<SelectionSetVariable>
+        vars: List<SelectionSetVariable>,
+        attribution: ExecutionAttribution?
     ): List<VariablesResolver> =
         VariablesResolver.fromSelectionSetVariables(
             resolverSelections,
             querySelections,
-            vars
+            vars,
+            attribution
         )
 }
 

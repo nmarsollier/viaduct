@@ -20,6 +20,7 @@ import graphql.schema.GraphQLTypeUtil
 import java.util.concurrent.Executors
 import kotlin.jvm.optionals.getOrNull
 import kotlinx.coroutines.future.await
+import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.VariablesResolver
@@ -42,6 +43,7 @@ data class QueryPlan(
     val variablesResolvers: List<VariablesResolver>,
     val parentType: GraphQLOutputType,
     val childPlans: List<QueryPlan>,
+    val attribution: ExecutionAttribution? = ExecutionAttribution.DEFAULT,
 ) {
     /**
      * Configuration for building a QueryPlan.
@@ -168,6 +170,7 @@ data class QueryPlan(
             document: Document,
             documentKey: DocumentKey? = null,
             useCache: Boolean = true,
+            attribution: ExecutionAttribution? = ExecutionAttribution.DEFAULT,
         ): QueryPlan {
             val fragmentsByName = NodeUtil.getFragmentsByName(document)
             val operations = document.getDefinitionsOfType(OperationDefinition::class.java)
@@ -199,7 +202,7 @@ data class QueryPlan(
                 }
             }
 
-            return build(parameters, selectionSet, docKey, parentType, fragmentsByName, useCache)
+            return build(parameters, selectionSet, docKey, parentType, fragmentsByName, useCache, attribution)
         }
 
         /**
@@ -244,10 +247,11 @@ data class QueryPlan(
             parentType: GraphQLCompositeType,
             fragmentsByName: Map<String, GJFragmentDefinition>,
             useCache: Boolean = true,
+            attribution: ExecutionAttribution?
         ): QueryPlan {
             fun build(): QueryPlan =
                 QueryPlanBuilder(parameters, fragmentsByName, emptyList())
-                    .build(selectionSet, parentType)
+                    .build(selectionSet, parentType, attribution)
 
             return if (useCache) {
                 val cacheKey = QueryPlanCacheKey(parameters.query, documentKey, parameters.schema.hashCode(), parameters.executeAccessChecksInModstrat)
@@ -292,13 +296,15 @@ private class QueryPlanBuilder(
     fun build(
         selectionSet: GJSelectionSet,
         parentType: GraphQLCompositeType,
+        attribution: ExecutionAttribution?
     ): QueryPlan {
-        return createQueryPlan(selectionSet, parentType)
+        return createQueryPlan(selectionSet, parentType, attribution)
     }
 
     private fun createQueryPlan(
         selectionSet: GJSelectionSet,
         parentType: GraphQLCompositeType,
+        attribution: ExecutionAttribution?
     ): QueryPlan {
         check(!built) { "Builder cannot be reused" }
         built = true
@@ -319,6 +325,7 @@ private class QueryPlanBuilder(
             variablesResolvers = variablesResolvers,
             parentType = parentType,
             childPlans = state.childPlans,
+            attribution = attribution
         )
     }
 
@@ -379,6 +386,7 @@ private class QueryPlanBuilder(
                 .createQueryPlan(
                     rss.selections.selections,
                     targetType,
+                    attribution = rss.attribution
                 )
         }
     }
@@ -396,7 +404,8 @@ private class QueryPlanBuilder(
                 QueryPlanBuilder(parameters, rss.selections.fragmentMap, rss.variablesResolvers)
                     .createQueryPlan(
                         rss.selections.selections,
-                        parentType = parameters.schema.schema.getTypeAs(rss.selections.typeName)
+                        parentType = parameters.schema.schema.getTypeAs(rss.selections.typeName),
+                        attribution = rss.attribution
                     )
             }
         }

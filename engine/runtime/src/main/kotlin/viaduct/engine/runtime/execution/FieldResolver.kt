@@ -238,6 +238,7 @@ class FieldResolver(
         val parentOER = parameters.parentEngineResult
         val oerKey = buildOERKeyForField(parameters, field)
         val executionStepInfoForField = parameters.executionStepInfo
+
         val fieldInstrumentationCtx = parameters.instrumentation.beginFieldExecution(
             InstrumentationFieldParameters(parameters.executionContext, { executionStepInfoForField }),
             parameters.executionContext.instrumentationState

@@ -22,6 +22,7 @@ import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.RequiredSelectionSets
@@ -83,6 +84,7 @@ class FieldUnbatchedResolverStub<Ctx : FieldExecutionContext<*, *, *, *>>(
     val variables: List<SelectionSetVariable>,
     val resolveFn: (suspend (ctx: Any) -> Any?),
     val variablesProvider: VariablesProviderInfo?,
+    val resolverName: String?
 ) : ResolverBase<Any?> {
     suspend fun resolve(
         self: Any,
@@ -103,6 +105,7 @@ class FieldUnbatchedResolverStub<Ctx : FieldExecutionContext<*, *, *, *>>(
             querySelections = querySelections,
             argumentsFactory = argumentsFactory,
             variables = variables,
+            attribution = resolverName?.let { ExecutionAttribution.fromResolver(it) },
         )
     }
 }

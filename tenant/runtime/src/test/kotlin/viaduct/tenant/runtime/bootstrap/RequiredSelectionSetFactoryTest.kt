@@ -1157,7 +1157,7 @@ class RequiredSelectionSetFactoryTest {
                 variables = listOf(
                     FromArgumentVariable("argVar", "someArg"),
                     FromQueryFieldVariable("queryVar", "baz")
-                ),
+                )
             )
         }
     }

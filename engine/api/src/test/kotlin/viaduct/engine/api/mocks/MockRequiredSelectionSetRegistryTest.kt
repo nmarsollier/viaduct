@@ -24,7 +24,7 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x"),
-                    emptyList(),
+                    emptyList()
                 )
             ),
             reg.getRequiredSelectionSets("Foo", "f1")
@@ -34,7 +34,7 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x y"),
-                    emptyList(),
+                    emptyList()
                 )
             ),
             reg.getRequiredSelectionSets("Foo", "f2")
@@ -43,7 +43,7 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Bar", "x"),
-                    emptyList(),
+                    emptyList()
                 )
             ),
             reg.getRequiredSelectionSets("Bar", "b1")
@@ -52,7 +52,7 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Bar", "x"),
-                    emptyList(),
+                    emptyList()
                 )
             ),
             reg.getRequiredSelectionSetsForType("Bar")
@@ -98,7 +98,7 @@ class MockRequiredSelectionSetRegistryTest {
                 listOf(
                     FromObjectFieldVariable("a", "b")
                 )
-            )
+            ),
         )
         assertEquals(
             listOf(

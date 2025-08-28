@@ -50,10 +50,15 @@ class ViaductExecutionStrategyModule(
     val tenantBootstrapper: TenantAPIBootstrapper,
     val fragmentLoader: FragmentLoader? = null,
     val tenantNameResolver: TenantNameResolver,
+    val config: Config
 ) : AbstractModule() {
     companion object {
         private val log by logger()
     }
+
+    data class Config(
+        val chainInstrumentationWithDefaults: Boolean = false
+    )
 
     @ExperimentalCoroutinesApi
     override fun configure() {
@@ -196,11 +201,14 @@ class ViaductExecutionStrategyModule(
         resolverInstrumentation: ResolverInstrumentation,
         scopeInstrumentation: ScopeInstrumentation
     ): Instrumentation {
-        return instrumentation ?: ChainedInstrumentation(
-            listOf(
-                scopeInstrumentation.asStandardInstrumentation,
-                resolverInstrumentation,
-            )
+        val defaultInstrumentations = listOf(
+            scopeInstrumentation.asStandardInstrumentation,
+            resolverInstrumentation,
         )
+        return if (config.chainInstrumentationWithDefaults) {
+            ChainedInstrumentation(defaultInstrumentations + listOfNotNull(instrumentation))
+        } else {
+            instrumentation ?: ChainedInstrumentation(defaultInstrumentations)
+        }
     }
 }

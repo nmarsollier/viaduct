@@ -122,6 +122,7 @@ class StandardViaduct internal constructor(
         private var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
         private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperBuilder> = emptyList()
+        private var chainInstrumentationWithDefaults: Boolean = false
 
         fun enableAirbnbBypassDoNotUse(
             fragmentLoader: FragmentLoader,
@@ -192,10 +193,14 @@ class StandardViaduct internal constructor(
         //         this.dataFetcherErrorBuilder = dataFetcherErrorBuilder
         //     }
 
-        @Deprecated("For advance uses, Airbnb only use.", level = DeprecationLevel.WARNING)
-        fun withInstrumentation(instrumentation: Instrumentation) =
+        @Deprecated("For advance uses, Airbnb-use only", level = DeprecationLevel.WARNING)
+        fun withInstrumentation(
+            instrumentation: Instrumentation?,
+            chainInstrumentationWithDefaults: Boolean = false
+        ): Builder =
             apply {
                 this.instrumentation = instrumentation
+                this.chainInstrumentationWithDefaults = chainInstrumentationWithDefaults
             }
 
         fun withCoroutineInterop(coroutineInterop: CoroutineInterop) =
@@ -203,7 +208,7 @@ class StandardViaduct internal constructor(
                 this.coroutineInterop = coroutineInterop
             }
 
-        @Deprecated("For advance uses, Airbnb only use.", level = DeprecationLevel.WARNING)
+        @Deprecated("For advance uses, Airbnb-use only.", level = DeprecationLevel.WARNING)
         fun getSchemaRegistryBuilder(): ViaductSchemaRegistryBuilder = viaductSchemaRegistryBuilder
 
         /**
@@ -227,6 +232,9 @@ class StandardViaduct internal constructor(
             )
 
             val tenantBootstrapper = tenantAPIBootstrapperBuilders.map { it.create() }.flatten()
+            val executionStrategyModuleConfig = ViaductExecutionStrategyModule.Config(
+                chainInstrumentationWithDefaults = chainInstrumentationWithDefaults,
+            )
 
             val viaductModule = Modules.combine(
                 ViaductExecutionStrategyModule(
@@ -235,6 +243,7 @@ class StandardViaduct internal constructor(
                     tenantBootstrapper,
                     fragmentLoader,
                     tenantNameResolver,
+                    executionStrategyModuleConfig
                 ),
                 internalEngineModule
             )
