@@ -29,7 +29,7 @@ import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
 
-internal object FieldExecutionHelpers {
+object FieldExecutionHelpers {
     val executionStepInfoFactory = ExecutionStepInfoFactory()
 
     fun coordinateOfField(
