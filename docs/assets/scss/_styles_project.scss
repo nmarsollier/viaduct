@@ -124,4 +124,7 @@ code.hljs {
   background-color: #fff !important;
 }
 
+nav#TableOfContents::before {
+  content: "On this page";
+}
 
