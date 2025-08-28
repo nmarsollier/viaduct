@@ -39,7 +39,13 @@ tasks.register<JacocoReport>("jacocoAggregatedReport") {
     val javaSubprojects = subprojects.filter { it.plugins.hasPlugin("java") }
     
     dependsOn(subprojects.map { it.tasks.withType<Test>() })
-    dependsOn(javaSubprojects.map { it.tasks.named("jacocoTestReport") })
+    
+    // Only depend on jacocoTestReport tasks that actually exist
+    javaSubprojects.forEach { subproject ->
+        subproject.plugins.withId("jacoco") {
+            dependsOn(subproject.tasks.named("jacocoTestReport"))
+        }
+    }
     
     additionalSourceDirs.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
     sourceDirectories.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
@@ -52,10 +58,6 @@ tasks.register<JacocoReport>("jacocoAggregatedReport") {
         html.required = true
         html.outputLocation = layout.buildDirectory.dir("reports/jacoco/aggregate/html")
         csv.required = false
-    }
-    
-    doFirst {
-        executionData = files(executionData.filter { it.exists() })
     }
 }
 
