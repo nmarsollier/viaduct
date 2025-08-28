@@ -1,5 +1,6 @@
 package viaduct.tenant.runtime.featuretests.fixtures
 
+import graphql.execution.instrumentation.Instrumentation
 import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.api.FieldValue
@@ -57,6 +58,7 @@ class FeatureTestBuilder {
     private val nodeBatchResolverStubs = mutableMapOf<String, NodeBatchResolverStub>()
     private val fieldCheckerStubs = mutableMapOf<Coordinate, CheckerExecutorStub>()
     private val typeCheckerStubs = mutableMapOf<String, CheckerExecutorStub>()
+    private var instrumentation: Instrumentation? = null
 
     /**
      * Configure a resolver that binds the provided [resolveFn] to the provided schema [coordinate].
@@ -77,6 +79,7 @@ class FeatureTestBuilder {
         queryValueFragment: String? = null,
         variables: List<SelectionSetVariable> = emptyList(),
         variablesProvider: VariablesProviderInfo? = null,
+        resolverName: String? = null
     ): FeatureTestBuilder =
         resolver(
             Ctx::class,
@@ -90,6 +93,7 @@ class FeatureTestBuilder {
             queryValueFragment,
             variables,
             variablesProvider,
+            resolverName
         )
 
     fun <
@@ -110,6 +114,7 @@ class FeatureTestBuilder {
         queryValueFragment: String? = null,
         variables: List<SelectionSetVariable> = emptyList(),
         variablesProvider: VariablesProviderInfo? = null,
+        resolverName: String? = null
     ): FeatureTestBuilder {
         val objFactory =
             ObjectFactory.forClass(
@@ -161,6 +166,7 @@ class FeatureTestBuilder {
                     resolveFn(ctx as Ctx)
                 },
                 variablesProvider = variablesProvider,
+                resolverName = resolverName
             )
 
         return this
@@ -175,11 +181,13 @@ class FeatureTestBuilder {
      */
     fun resolver(
         coordinate: Coordinate,
-        resolveFn: suspend (ctx: UntypedFieldContext) -> Any?
+        resolverName: String? = null,
+        resolveFn: suspend (ctx: UntypedFieldContext) -> Any?,
     ): FeatureTestBuilder =
         resolver<UntypedFieldContext, ObjectStub, QueryStub, ArgumentsStub, CompositeStub>(
             coordinate = coordinate,
             resolveFn = resolveFn,
+            resolverName = resolverName
         )
 
     /**
@@ -191,11 +199,13 @@ class FeatureTestBuilder {
      */
     fun mutation(
         coordinate: Coordinate,
-        resolveFn: suspend (ctx: UntypedMutationFieldContext) -> Any?
+        resolverName: String? = null,
+        resolveFn: suspend (ctx: UntypedMutationFieldContext) -> Any?,
     ): FeatureTestBuilder =
         resolver<UntypedMutationFieldContext, ObjectStub, QueryStub, ArgumentsStub, CompositeStub>(
             coordinate = coordinate,
             resolveFn = resolveFn,
+            resolverName = resolverName
         )
 
     /**
@@ -369,6 +379,12 @@ class FeatureTestBuilder {
     /** set the grtPackage to a value derived from the provided Type */
     fun grtPackage(type: Type<*>): FeatureTestBuilder = grtPackage(type.kcls)
 
+    /** chain the instrumentation with the default instrumentations */
+    fun instrumentation(instrumentation: Instrumentation): FeatureTestBuilder =
+        this.also {
+            this.instrumentation = instrumentation
+    }
+
     fun build(): FeatureTest {
         val tenantPackageFinder = TestTenantPackageFinder(packageToResolverBases)
 
@@ -389,7 +405,12 @@ class FeatureTestBuilder {
 
         val standardViaduct = StandardViaduct.Builder()
             .withTenantAPIBootstrapperBuilders(builders)
-            .withFlagManager(MockFlagManager(Flags.useModernExecutionStrategyFlags + Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY))
+            .withFlagManager(
+                MockFlagManager(
+                Flags.useModernExecutionStrategyFlags +
+                    Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY
+                )
+            )
             .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
             .withCheckerExecutorFactory(
                 object : CheckerExecutorFactory {
@@ -401,8 +422,14 @@ class FeatureTestBuilder {
                     override fun checkerExecutorForType(typeName: String): CheckerExecutor? = typeCheckerStubs[typeName]
                 }
             )
-            .build()
 
-        return FeatureTest(standardViaduct)
+        instrumentation?.let {
+            standardViaduct.withInstrumentation(
+                it,
+                chainInstrumentationWithDefaults = true
+            )
+        }
+
+        return FeatureTest(standardViaduct.build())
     }
 }

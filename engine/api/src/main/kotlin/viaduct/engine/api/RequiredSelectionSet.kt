@@ -9,6 +9,7 @@ import viaduct.graphql.utils.collectVariableReferences
 data class RequiredSelectionSet(
     val selections: ParsedSelections,
     val variablesResolvers: List<VariablesResolver>,
+    val attribution: ExecutionAttribution? = ExecutionAttribution.DEFAULT,
 ) {
     init {
         val refs = selections.selections.collectVariableReferences()

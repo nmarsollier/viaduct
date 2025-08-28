@@ -256,7 +256,7 @@ class ResolverDataFetcherTest {
                                         variables = listOf(
                                             FromArgumentVariable("myid", "id")
                                         )
-                                    )
+                                    ),
                                 )
                             },
                         flagManager = flags

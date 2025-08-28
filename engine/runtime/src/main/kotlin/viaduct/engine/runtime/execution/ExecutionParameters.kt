@@ -17,16 +17,19 @@ import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.FieldCheckerDispatcherRegistry
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
+import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.findLocalContextForType
+import viaduct.engine.runtime.updateCompositeLocalContext
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.Flags
 import viaduct.utils.slf4j.logger
@@ -191,7 +194,11 @@ data class ExecutionParameters(
         } else {
             // For object plans, we use the current local context
             localContext
-        }
+        }.addOrUpdate(
+            ExecutionObservabilityContext(
+                attribution = childPlan.attribution
+            )
+        )
 
         val source = if (isRootQueryQueryPlan) {
             executionContext.getRoot()
@@ -277,6 +284,7 @@ data class ExecutionParameters(
                 queryEngineResult: ObjectEngineResultImpl,
             ): ExecutionParameters {
                 val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+                val planAttribution = ExecutionAttribution.fromOperation(executionContext.operationDefinition.name)
 
                 // Build the query plan
                 val (queryPlan, duration) = measureTimedValue {
@@ -291,10 +299,18 @@ data class ExecutionParameters(
                         executionContext.executionInput.operationName
                             ?.takeIf(String::isNotEmpty)
                             ?.let(DocumentKey::Operation),
-                        useCache = !flagManager.isEnabled(Flags.DISABLE_QUERY_PLAN_CACHE)
+                        useCache = !flagManager.isEnabled(Flags.DISABLE_QUERY_PLAN_CACHE),
+                        attribution = planAttribution
                     )
                 }
                 log.debug("Built QueryPlan in $duration")
+
+                // Add the execution context with observability context for this query
+                val localContext = executionContext.updateCompositeLocalContext<ExecutionObservabilityContext> {
+                    ExecutionObservabilityContext(
+                        attribution = planAttribution
+                    )
+                }
 
                 // Create the execution scope with all execution-wide dependencies
                 val constants = Constants(
@@ -316,7 +332,7 @@ data class ExecutionParameters(
                     coercedVariables = executionContext.coercedVariables,
                     queryPlan = queryPlan,
                     source = executionContext.getRoot(),
-                    localContext = executionContext.getLocalContext(),
+                    localContext = localContext,
                     executionStepInfo = parameters.executionStepInfo,
                     selectionSet = queryPlan.selectionSet,
                     errorAccumulator = ErrorAccumulator(),

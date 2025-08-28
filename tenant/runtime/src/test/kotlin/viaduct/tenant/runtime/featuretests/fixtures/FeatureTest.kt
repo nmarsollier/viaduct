@@ -54,7 +54,7 @@ open class FeatureTest(
 
     open fun execute(
         query: String,
-        variables: Map<String, Any?> = mapOf(),
+        variables: Map<String, Any?> = mapOf()
     ): ExecutionResult {
         lateinit var result: ExecutionResult
         runBlocking {
