@@ -436,10 +436,7 @@ workflows:
   pull-request:
     when:
       and:
-        - not:
-            or:
-              - equal: [ main, << pipeline.git.branch >> ]
-              - equal: [ master, << pipeline.git.branch >> ]
+        - equal: [ pull_request, << pipeline.event.name >> ]
         - not: << pipeline.git.tag >>
     jobs:
       - build
