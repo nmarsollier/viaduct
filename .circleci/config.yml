@@ -24,7 +24,7 @@ commands:
       - gradle/with_cache:
           cache_key: "v4-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
           steps: << parameters.steps >>
-  
+
   fail-step:
     parameters:
       message:
@@ -50,7 +50,7 @@ commands:
             echo "  3. Review recent changes that might have caused this failure"
             exit 1
           when: on_fail
-  
+
   setup-gradle:
     steps:
       - run:
@@ -69,12 +69,12 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-      
-      
+
+
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed"
-      
+
       # Use Gradle orb for optimal caching
       - gradle-with-cache:
           steps:
@@ -89,7 +89,7 @@ jobs:
                   echo "✅ Dependencies downloaded successfully"
       - fail-step:
           message: "Dependency download failed"
-      
+
       - gradle-with-cache:
           steps:
             - run:
@@ -103,7 +103,7 @@ jobs:
                   echo "✅ Project built successfully"
       - fail-step:
           message: "Project build failed"
-      
+
       - run:
           name: Collect build artifacts
           command: |
@@ -134,7 +134,7 @@ jobs:
       # Currently disabled due to complex multi-module conflicts and dependency issues
       # - gradle-with-cache:
       #     steps:
-      #       - run: 
+      #       - run:
       #           name: Generate Documentation in HTML with Dokka (multi module)
       #           command: |
       #             echo "📝 Generating Dokka documentation..."
@@ -155,12 +155,12 @@ jobs:
       #       else
       #         echo "No Dokka problem report found."
       #       fi
-      
+
       # TODO: Re-enable when Dokka is working
-      # - store_artifacts:  
+      # - store_artifacts:
       #     path: build/dokka
       #     destination: kdoc-html
-      
+
       - persist_to_workspace:
           root: .
           paths:
@@ -172,18 +172,18 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-      
-      
+
+
       # Restore workspace from build job
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in test job"
-      
+
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in test job"
-      
+
       - gradle-with-cache:
           steps:
             - run:
@@ -195,7 +195,7 @@ jobs:
                     echo "Test failures are not blocking the pipeline"
                   }
                   echo "✅ Test execution completed"
-            
+
             # TODO: Enable JaCoCo coverage when ready
             # - run:
             #     name: Generate JaCoCo aggregated coverage report
@@ -209,7 +209,7 @@ jobs:
             #     when: always
       # - fail-step:
       #     message: "JaCoCo coverage report generation failed"
-      
+
       # Store test results for CircleCI UI
       - run:
           name: Save test results
@@ -219,22 +219,22 @@ jobs:
             echo "Test result files found:"
             find ~/test-results/junit/ -name "*.xml" -ls || echo "No XML files in test-results directory"
           when: always
-      
+
       - store_test_results:
           path: ~/test-results
-      
+
       # TODO: Re-enable JaCoCo coverage reports when ready
       # Store JaCoCo coverage reports
       # - store_artifacts:
       #     path: build/reports/jacoco/aggregate/html
       #     destination: coverage-html
-      # 
+      #
       # - store_artifacts:
       #     path: build/reports/jacoco/aggregate/jacocoTestReport.xml
       #     destination: coverage-xml
-      # 
+      #
       # # Coverage reports are stored as artifacts above
-      # 
+      #
       # # Store individual project coverage reports
       # - run:
       #     name: Collect individual coverage reports
@@ -242,7 +242,7 @@ jobs:
       #       mkdir -p ~/coverage-reports
       #       find . -path "*/build/reports/jacoco/test/html" -type d -exec cp -r {} ~/coverage-reports/ \; || true
       #     when: always
-      # 
+      #
       # - store_artifacts:
       #     path: ~/coverage-reports
       #     destination: individual-coverage
@@ -251,17 +251,17 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-      
-      
+
+
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in lint job"
-      
+
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in lint job"
-      
+
       - gradle-with-cache:
           steps:
             - run:
@@ -273,7 +273,7 @@ jobs:
                     exit 1
                   }
                   echo "✅ ktlint checks passed"
-            
+
             - run:
                 name: Run Detekt
                 command: |
@@ -285,7 +285,7 @@ jobs:
                   echo "✅ Detekt analysis passed"
       - fail-step:
           message: "Detekt static analysis failed"
-      
+
       - store_artifacts:
           path: build/reports/detekt
           destination: detekt-reports
@@ -294,17 +294,17 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-      
-      
+
+
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in docs job"
-      
+
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in docs job"
-      
+
       - gradle-with-cache:
           steps:
             - run:
@@ -318,7 +318,7 @@ jobs:
                   echo "✅ Javadoc generated successfully"
       - fail-step:
           message: "Javadoc generation failed"
-      
+
       - store_artifacts:
           path: build/docs/javadoc
           destination: javadoc
@@ -327,17 +327,17 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-      
-      
+
+
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in coverage-verification job"
-      
+
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in coverage-verification job"
-      
+
       - gradle-with-cache:
           steps:
             - run:
@@ -352,7 +352,7 @@ jobs:
                   echo "✅ Coverage thresholds met successfully"
       - fail-step:
           message: "Coverage threshold verification failed"
-          
+
   deploy-docs:
     docker:
       - image: cimg/base:stable
