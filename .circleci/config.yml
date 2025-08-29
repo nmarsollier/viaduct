@@ -166,7 +166,7 @@ jobs:
           paths:
             - build
             - .gradle
-            - "*/build"
+            - "**/build"
             - build/package
 
   test:

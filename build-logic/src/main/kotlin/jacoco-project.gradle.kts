@@ -17,7 +17,7 @@ tasks.named<JacocoReport>("jacocoTestReport") {
     reports {
         xml.required = true
         xml.outputLocation = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
-        html.required = true
+        html.required = System.getenv("CI") != "true" // Skip HTML in CI for speed
         html.outputLocation = layout.buildDirectory.dir("reports/jacoco/test/html")
         csv.required = false
     }

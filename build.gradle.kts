@@ -67,6 +67,15 @@ reporting {
     }
 }
 
+// Configure aggregated report to skip HTML in CI
+tasks.named<JacocoReport>("testCodeCoverageReport") {
+    reports {
+        xml.required.set(true)
+        html.required.set(System.getenv("CI") != "true") // Skip HTML in CI
+        csv.required.set(false)
+    }
+}
+
 // Coverage verification with reasonable thresholds
 tasks.register<JacocoCoverageVerification>("testCodeCoverageVerification") {
     dependsOn("testCodeCoverageReport")
