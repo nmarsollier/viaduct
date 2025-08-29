@@ -376,7 +376,6 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
             typeCheckerExecutors.putIfMissingOrFail(typeName) {
                 val c = CheckerScope().apply { block() }
                 val fn = c.executeFn
-                    ?: throw IllegalArgumentException("checker block must define a checker function.")
                 MockCheckerExecutor(c.requiredSelectionSets, fn)
             }
 

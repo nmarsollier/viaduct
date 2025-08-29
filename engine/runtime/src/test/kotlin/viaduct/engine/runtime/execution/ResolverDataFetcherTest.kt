@@ -4,6 +4,7 @@ import com.airbnb.viaduct.errors.ViaductPermissionDeniedException
 import graphql.execution.ExecutionStepInfo
 import graphql.language.OperationDefinition
 import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLObjectType
 import io.mockk.every
 import io.mockk.mockk
 import java.util.concurrent.CompletionException
@@ -87,13 +88,13 @@ class ResolverDataFetcherTest {
             type Baz { x: Int }
             """.trimIndent()
         )
-        val testTypeObject = schema.schema.getObjectType(testType)
-        val executionStepInfo = ExecutionStepInfo.newExecutionStepInfo()
+        val testTypeObject: GraphQLObjectType = schema.schema.getObjectType(testType)
+        val executionStepInfo: ExecutionStepInfo? = ExecutionStepInfo.newExecutionStepInfo()
             .type(schema.schema.getTypeAs("String"))
             .fieldContainer(testTypeObject)
             .build()
         var resolverRan = false
-        val resolverId = testType + "." + testField
+        val resolverId = "$testType.$testField"
         val objectValue = EngineObjectDataBuilder.from(testTypeObject).put(testField, expectedResult).build()
         val selector = FieldResolverExecutor.Selector(
             arguments = emptyMap(),
@@ -171,7 +172,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -192,7 +193,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -213,7 +214,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -234,7 +235,7 @@ class ResolverDataFetcherTest {
                     assertEquals(expectedResult, receivedResult)
 
                     // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
+                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
                 }
             }
         }
@@ -265,7 +266,7 @@ class ResolverDataFetcherTest {
                         assertEquals(expectedResult, receivedResult)
 
                         // verify that localContext has dataFetchingEnvironment copied
-                        assertEquals(dataFetchingEnvironment, (executor as TestFieldUnbatchedResolverExecutor).lastReceivedLocalContext?.dataFetchingEnvironment)
+                        assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
                     }
                 }
             }

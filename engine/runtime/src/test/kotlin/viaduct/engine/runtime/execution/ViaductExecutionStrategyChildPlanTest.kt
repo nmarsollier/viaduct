@@ -25,23 +25,24 @@ import viaduct.service.api.spi.FlagManager
  *
  * Test scenarios include:
  * - Child plans maintaining correct execution paths (not inheriting parent field paths)
- * - Query-type vs Object-type child plan execution contexts
+ * - Query-type vs. Object-type child plan execution contexts
  * - Nested object types with RSS at multiple levels
  * - List fields with RSS for each item
  * - Interface and union types with RSS
- * - Mixed Query and Object type child plans in same execution
+ * - Mixed Query and Object type child plans in the same execution
  *
  * These tests ensure that the fix for child plan path handling (commit 589665aee1c7d)
  * works correctly across various GraphQL schema configurations.
  *
  * For general execution strategy tests, see ViaductExecutionStrategyTest.
- * For modern vs classic strategy comparisons, see ViaductExecutionStrategyModernTest.
+ * For modern vs. classic strategy comparisons, see ViaductExecutionStrategyModernTest.
  */
 @ExperimentalCoroutinesApi
 class ViaductExecutionStrategyChildPlanTest {
     private val nextTickDispatcher = NextTickDispatcher(flagManager = FlagManager.disabled)
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `child plans execute with fresh root path and correct object type`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
@@ -163,6 +164,7 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `child plans for object field checkers use fresh root path - reproduces original bug`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
@@ -247,6 +249,7 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `mixed child plans - Query and Object types in same execution`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
@@ -333,6 +336,7 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `nested object types with RSS at multiple levels maintain correct paths`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
@@ -441,6 +445,7 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `list fields with RSS execute child plans with correct paths for each item`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {
@@ -523,6 +528,7 @@ class ViaductExecutionStrategyChildPlanTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `interface types with RSS use correct parent type for child plans`() {
         runExecutionTest {
             withContext(nextTickDispatcher) {

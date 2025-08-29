@@ -1,5 +1,6 @@
 package viaduct.tenant.runtime.bootstrap
 
+import java.util.Locale.getDefault
 import kotlin.reflect.KClass
 import viaduct.api.context.ExecutionContext
 import viaduct.api.context.FieldExecutionContext
@@ -14,7 +15,6 @@ import viaduct.engine.api.ViaductSchema
  */
 open class ExecutionContextClasses<X : ExecutionContext>(
     targetClass: KClass<X>,
-    tenantResolverClassFinder: TenantResolverClassFinder,
     resolverBaseClass: Class<*>,
 ) {
     @Suppress("UNCHECKED_CAST")
@@ -32,7 +32,8 @@ class FieldContextClasses<X : FieldExecutionContext<*, *, *, *>>(
     schema: ViaductSchema,
     typeName: String,
     fieldName: String,
-) : ExecutionContextClasses<X>(targetClass, tenantResolverClassFinder, resolverBaseClass) {
+) : ExecutionContextClasses<X>(targetClass, resolverBaseClass) {
+    @Suppress("UNCHECKED_CAST")
     val query = tenantResolverClassFinder.grtClassForName(schema.schema.queryType.name) as KClass<Query>
 
     val objectValue: KClass<out Object> =
@@ -48,7 +49,7 @@ class FieldContextClasses<X : FieldExecutionContext<*, *, *, *>>(
         if (fieldDef.arguments.isEmpty()) {
             Arguments.NoArguments::class
         } else {
-            val argsTypeName = "${typeName}_${fieldName.capitalize()}_Arguments"
+            val argsTypeName = "${typeName}_${fieldName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }}_Arguments"
             tenantResolverClassFinder.argumentClassForName(argsTypeName)
         }
     }

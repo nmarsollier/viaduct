@@ -1,5 +1,6 @@
 package viaduct.testapps.resolver
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
 import viaduct.testapps.fixtures.ScopedSchemaInfo
@@ -9,6 +10,7 @@ import viaduct.testapps.testfixtures.TestBase
 /**
  * Test @Resolver for object queries.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class ObjectResolverTests : TestBase(
     setOf(ScopedSchemaInfo(DEFAULT_SCHEMA_ID, setOf(DEFAULT_PUBLIC_SCOPE_ID))),
     tenantPackageFinder = TestTenantPackageFinder(Tenants),
@@ -40,7 +42,7 @@ class ObjectResolverTests : TestBase(
     }
 
     @Test
-    fun `Resolver returns a lsit of object type`() {
+    fun `Resolver returns a list of object type`() {
         execute(
             schemaId = DEFAULT_SCHEMA_ID,
             query = "query TestQuery { listObjectValue { strValue,  enumValue } }"

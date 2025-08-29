@@ -204,7 +204,7 @@ class ObjectEngineResultImpl private constructor(
         fun newPendingForType(type: GraphQLObjectType) = ObjectEngineResultImpl(type, CompletableDeferred<Unit>())
 
         /**
-         * Temporary helper to convert a fully resolved response from the ViaductClassicFragmentLoader to a ObjectEngineResult.
+         * Temporary helper to convert a fully resolved response from the ViaductClassicFragmentLoader to an ObjectEngineResult.
          *
          * @param type The GraphQLObjectType that the data represents. This is the type of the constructed ObjectEngineResult
          * @param data The data for this object
@@ -342,6 +342,7 @@ class ObjectEngineResultImpl private constructor(
                 // Interfaces and unions need concrete type resolution
                 is GraphQLInterfaceType,
                 is GraphQLUnionType -> {
+                    @Suppress("UNCHECKED_CAST")
                     val valueMap = value as Map<String, Any?>
                     val typeName = valueMap["__typename"] as String
                     val concreteType = schema.schema.getObjectType(typeName)
@@ -391,8 +392,8 @@ class ObjectEngineResultImpl private constructor(
                 }
                 selectionsByName[keyString]?.let { sel ->
                     val arguments = selectionSet.argumentsOfSelection(type.name, sel.selectionName) ?: emptyMap()
-                    val key = ObjectEngineResult.Key(name = sel.fieldName, alias = sel.selectionName, arguments = arguments)
-                    map[key] = value
+                    val objectEngineResultKey = ObjectEngineResult.Key(name = sel.fieldName, alias = sel.selectionName, arguments = arguments)
+                    map[objectEngineResultKey] = value
                 }
             }
             return map.toMap()

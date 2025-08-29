@@ -3,6 +3,7 @@ package viaduct.engine.runtime.mocks
 import graphql.execution.instrumentation.Instrumentation
 import graphql.execution.instrumentation.SimplePerformantInstrumentation
 import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.ViaductSchema
@@ -15,6 +16,7 @@ import viaduct.engine.runtime.ViaductFragmentLoader
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.mocks.MockFlagManager
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ContextMocks(
     myFullSchema: ViaductSchema? = null,
     myDispatcherRegistry: DispatcherRegistry? = null,

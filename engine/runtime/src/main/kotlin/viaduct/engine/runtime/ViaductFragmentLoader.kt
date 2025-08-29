@@ -156,9 +156,7 @@ class ViaductFragmentLoader
                     engineResultLocalContext.queryEngineResult
                 } else {
                     engineResultLocalContext.parentEngineResult
-                } ?: throw IllegalStateException(
-                    "Invariant: ObjectEngineResult @ $path is null. Check implementation of `EngineResultInstrumentation`."
-                )
+                }
             return objectEngineResult to metadataForField
         }
 

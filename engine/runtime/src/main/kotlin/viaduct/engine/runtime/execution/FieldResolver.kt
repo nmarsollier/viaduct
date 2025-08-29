@@ -49,7 +49,7 @@ import viaduct.utils.slf4j.logger
  * execution of data fetchers (https://spec.graphql.org/draft/#sec-Value-Resolution).
  *
  * The FieldResolver handles three main responsibilities:
- * 1. Object resolution - Coordinating the fetching and resolution of the collected fields of a GraphQL object type
+ * 1. Object resolution - Coordinating the fetching and resolution of the collected fields of GraphQL object type
  * 2. Field resolution - Managing the execution of individual field data fetchers and processing their results
  * 3. Nested resolution - Handling nested object types and list fields by recursively resolving their values
  *
@@ -175,12 +175,12 @@ class FieldResolver(
      * All errors are captured in the returned Value rather than thrown.
      *
      * This method:
-     * 1. Creates the field execution path
+     * 1. Creates field execution path
      * 2. Sets up new execution parameters
      * 3. Delegates to [executeField] which returns a Value of [FieldResolutionResult]
      *
      * @param parameters ExecutionParameters containing the context and execution state
-     * @param field The field from the query plan to resolve
+     * @param field The field from the query plans to resolve
      */
     fun resolveField(
         parameters: ExecutionParameters,
@@ -240,7 +240,7 @@ class FieldResolver(
         val executionStepInfoForField = parameters.executionStepInfo
 
         val fieldInstrumentationCtx = parameters.instrumentation.beginFieldExecution(
-            InstrumentationFieldParameters(parameters.executionContext, { executionStepInfoForField }),
+            InstrumentationFieldParameters(parameters.executionContext) { executionStepInfoForField },
             parameters.executionContext.instrumentationState
         ) ?: FieldFetchingInstrumentationContext.NOOP
 
@@ -337,7 +337,7 @@ class FieldResolver(
     ): FieldResolutionResult {
         val data = fetchedValue.fetchedValue ?: return FieldResolutionResult.fromFetchedValue(null, fetchedValue)
 
-        // if type has a non-null wrapper, unwrap one level and recurse
+        // if the type has a non-null wrapper, unwrap one level and recurse
         if (GraphQLTypeUtil.isNonNull(fieldType)) {
             return buildFieldResolutionResult(parameters, GraphQLTypeUtil.unwrapNonNullAs(fieldType), fetchedValue)
         }
@@ -424,9 +424,7 @@ class FieldResolver(
 
                 engineResult.forEach {
                     check(it is Cell) { "Expected Cell but got $it" }
-                    val frr = checkNotNull(it.getValue(RAW_VALUE_SLOT) as? Value.Sync<FieldResolutionResult>) {
-                        "Expected the raw value slot to contain a Value.Sync<FieldResolutionResult>"
-                    }.getOrThrow()
+                    val frr = extractFieldResolutionResult(it)
                     maybeFetchLazyData(frr, GraphQLTypeUtil.unwrapOneAs(outputType), parameters, env)
                 }
             }
@@ -460,6 +458,19 @@ class FieldResolver(
         }
     }
 
+    private fun extractFieldResolutionResult(cell: Cell): FieldResolutionResult {
+        val rawValue = cell.getValue(RAW_VALUE_SLOT)
+        return when (rawValue) {
+            is Value.Sync<*> -> {
+                val result = rawValue.getOrThrow()
+                result as? FieldResolutionResult ?: throw IllegalStateException("Expected FieldResolutionResult but got ${result!!::class}")
+            }
+            else -> throw IllegalStateException(
+                "Expected the raw value slot to contain a Value.Sync<FieldResolutionResult>, but got ${rawValue::class}"
+            )
+        }
+    }
+
     /**
      * Initiates fetching of nested selection sets for complex field types.
      *
@@ -472,7 +483,7 @@ class FieldResolver(
      * @param field the [QueryPlan.CollectedField] containing potential nested selections
      * @param parameters The [ExecutionParameters] for the current context
      *
-     * @throws IllegalStateException if selection set is missing for object types
+     * @throws IllegalStateException if a selection set is missing for object types
      */
     private fun maybeFetchNestedObject(
         fieldResolutionResult: FieldResolutionResult,
@@ -488,9 +499,7 @@ class FieldResolver(
                 val engineResult = checkNotNull(fieldResolutionResult.engineResult as? Iterable<*>) { "Expected iterable engineResult but got ${fieldResolutionResult.engineResult}" }
                 engineResult.forEachIndexed { i, item ->
                     check(item is Cell) { "Expected engine result to be a Cell." }
-                    val frr = checkNotNull(item.getValue(RAW_VALUE_SLOT) as? Value.Sync<FieldResolutionResult>) {
-                        "Expected the raw value slot to contain a Value.Sync<FieldResolutionResult>"
-                    }.getOrThrow()
+                    val frr = extractFieldResolutionResult(item)
                     val newParams = updateListItemParameters(parameters, i)
                     maybeFetchNestedObject(frr, GraphQLTypeUtil.unwrapOneAs(outputType), field, newParams)
                 }
@@ -527,9 +536,9 @@ class FieldResolver(
      * All errors during fetching are caught and wrapped in Value.
      *
      * This method:
-     * 1. Gets the data fetcher
+     * 1. Gets data fetcher
      * 2. Sets up instrumentation
-     * 3. Executes the fetcher and the field checker, if it exists
+     * 3. Executes the fetcher and the field checker if it exists
      * 4. Wraps any errors in FieldFetchingException before returning in [Value.fromThrowable]
      *
      * @param field The field to fetch

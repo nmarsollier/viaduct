@@ -15,6 +15,7 @@ import graphql.schema.GraphQLOutputType
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import viaduct.dataloader.mocks.MockNextTickDispatcher
 import viaduct.engine.api.CheckerExecutor
@@ -289,20 +290,20 @@ class MockRequiredSelectionSetRegistry private constructor(
     }
 
     /**
-     * Final override the original getRequiredSelectionSets method and expose a new one without
+     * Final overrides the original getRequiredSelectionSets method and exposes a new one without
      * `executeAccessChecksInModstrat` as it is not relevant for the mock implementation.
      */
-    final override fun getRequiredSelectionSets(
+    override fun getRequiredSelectionSets(
         typeName: String,
         fieldName: String,
         executeAccessChecksInModstrat: Boolean
     ): List<RequiredSelectionSet> = getRequiredSelectionSets(typeName, fieldName)
 
     /**
-     * Final override the original getRequiredSelectionSetsForType method and expose a new one without
+     * Final overrides the original getRequiredSelectionSetsForType method and exposes a new one without
      * `executeAccessChecksInModstrat` as it is not relevant for the mock implementation.
      */
-    final override fun getRequiredSelectionSetsForType(
+    override fun getRequiredSelectionSetsForType(
         typeName: String,
         executeAccessChecksInModstrat: Boolean
     ): List<RequiredSelectionSet> = getRequiredSelectionSetsForType(typeName)
@@ -331,8 +332,8 @@ class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolv
 
 /**
  * Create a [ViaductSchema] with mock wiring, which allows for schema parsing and validation.
- * This is useful for testing local changes which is unnecessary for a full engine execution,
- * eg. unit tests.
+ * This is useful for testing local changes that are unnecessary for a full engine execution,
+ * e.g., unit tests.
  *
  * @param sdl The SDL string to parse and create the schema.
  */
@@ -343,7 +344,7 @@ fun mkSchema(sdl: String): ViaductSchema {
 
 /**
  * Create a [ViaductSchema] with actual wiring, which allows for real execution.
- * This is useful for testing the actual engine behaviors, eg. engine feature test.
+ * This is useful for testing the actual engine behaviors, e.g., engine feature test.
  *
  * @param sdl The SDL string to parse and create the schema.
  */
@@ -376,7 +377,7 @@ fun mkDispatcherRegistry(
     )
 }
 
-class MockFieldResolverDispatcherRegistry(vararg val bindings: Pair<Coordinate, FieldResolverDispatcher>) : FieldResolverDispatcherRegistry {
+class MockFieldResolverDispatcherRegistry(vararg bindings: Pair<Coordinate, FieldResolverDispatcher>) : FieldResolverDispatcherRegistry {
     private val bindingsMap = bindings.toMap()
 
     override fun getFieldResolverDispatcher(
@@ -424,6 +425,7 @@ open class MockFieldBatchResolverExecutor(
     ): Map<FieldResolverExecutor.Selector, Result<Any?>> = batchResolveFn(selectors, context)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun FieldResolverExecutor.invoke(
     fullSchema: ViaductSchema,
     coord: Coordinate,
@@ -439,9 +441,10 @@ fun FieldResolverExecutor.invoke(
         queryValue = MockEngineObjectData(fullSchema.schema.queryType, queryValue),
         selections = selections,
     )
-    batchResolve(listOf(selector), context).get(selector)?.getOrNull()
+    batchResolve(listOf(selector), context)[selector]?.getOrNull()
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun CheckerExecutor.invoke(
     fullSchema: ViaductSchema,
     coord: Coordinate,
@@ -553,7 +556,7 @@ class MockTenantModuleBootstrapper(
         operator fun invoke(
             schemaWithWiring: ViaductSchema,
             block: MockTenantModuleBootstrapperDSL<Unit>.() -> Unit
-        ) = MockTenantModuleBootstrapperDSL<Unit>(schemaWithWiring, Unit).apply { block() }.create()
+        ) = MockTenantModuleBootstrapperDSL(schemaWithWiring, Unit).apply { block() }.create()
     }
 
     fun resolveField(
@@ -563,7 +566,7 @@ class MockTenantModuleBootstrapper(
         queryValue: Map<String, Any?> = emptyMap(),
         selections: RawSelectionSet? = null,
         context: EngineExecutionContext = contextMocks.engineExecutionContext,
-    ) = resolverAt(coord)!!.invoke(schema, coord, arguments, objectValue, queryValue, selections, context)
+    ) = resolverAt(coord).invoke(schema, coord, arguments, objectValue, queryValue, selections, context)
 
     fun checkField(
         coord: Coordinate,
@@ -678,7 +681,7 @@ object Samples {
             }
         }
 
-        // Add resolver for parameterizedField with required selection set
+        // Add resolver for parameterizedField with a required selection set
         field("TestType" to "parameterizedField") {
             resolver {
                 objectSelections("fragment _ on TestType { aField @include(if: \$experiment) bIntField }") {
@@ -701,7 +704,7 @@ object Samples {
         field("TestType" to "dField") {
             resolver {
                 objectSelections("fragment _ on TestType { aField @include(if: \$experiment) bIntField }") {
-                    variables("experiment") { ctx ->
+                    variables("experiment") { _ ->
                         mapOf("experiment" to true)
                     }
                 }
@@ -726,11 +729,11 @@ object Samples {
             }
         }
 
-        // Add batch node resolver for TestBatchNode
+        // Add a batch node resolver for TestBatchNode
         type("TestBatchNode") {
             nodeBatchedExecutor { selectors, _ ->
-                selectors.associate { selector ->
-                    selector to Result.success(
+                selectors.associateWith { selector ->
+                    Result.success(
                         MockEngineObjectData(
                             testSchema.schema.getObjectType("TestBatchNode"),
                             mapOf("id" to selector.id)

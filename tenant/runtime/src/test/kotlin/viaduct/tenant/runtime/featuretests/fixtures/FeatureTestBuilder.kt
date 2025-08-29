@@ -424,6 +424,7 @@ class FeatureTestBuilder {
             )
 
         instrumentation?.let {
+            @Suppress("DEPRECATION")
             standardViaduct.withInstrumentation(
                 it,
                 chainInstrumentationWithDefaults = true

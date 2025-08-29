@@ -1,5 +1,6 @@
 package viaduct.testapps.resolver
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
@@ -8,13 +9,14 @@ import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
 
 /**
- * Tests cross tenant @Resolver.
+ * Tests cross-tenant @Resolver.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class CrossTenantResolverTests : TestBase(
     setOf(ScopedSchemaInfo(DEFAULT_SCHEMA_ID, setOf(DEFAULT_PUBLIC_SCOPE_ID))),
     tenantPackageFinder = TestTenantPackageFinder(Tenants),
 ) {
-    // Also tests :
+    // Also tests:
     // The nested @Resolver field is set in the top-level @Resolver
     // The nested @Resolver field is not set in the top-level @Resolver
     @Test

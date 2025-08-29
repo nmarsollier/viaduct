@@ -82,7 +82,7 @@ class BatchFieldResolverTest {
             field("Item" to "y") {
                 resolver {
                     fn { selectors, _ ->
-                        selectors.associateWith { selector ->
+                        selectors.associateWith { _ ->
                             Result.success(selectors.size) // selectors.size is the number of items in the batch, larger than 1 indicates successful batching
                         }
                     }
@@ -112,7 +112,7 @@ class BatchFieldResolverTest {
             }
             field("Item" to "y") {
                 resolver {
-                    fn { selectors, _ ->
+                    fn { _, _ ->
                         throw RuntimeException("Item y resolver failed")
                     }
                 }
@@ -149,7 +149,7 @@ class BatchFieldResolverTest {
             field("Item" to "y") {
                 resolver {
                     objectSelections("x")
-                    fn { selectors, ctx ->
+                    fn { selectors, _ ->
                         selectors.associateWith { selector ->
                             val x = selector.objectValue.fetch("x") as Int
                             if (x % 2 == 0) {
@@ -179,7 +179,7 @@ class BatchFieldResolverTest {
         MockTenantModuleBootstrapper(schemaSDL) {
             field("Query" to "items") {
                 resolver {
-                    fn { arguments, _, _, _, _ ->
+                    fn { _, _, _, _, _ ->
                         listOf(1, 2).map { i ->
                             MockEngineObjectData(
                                 schema.schema.getObjectType("Item"),
@@ -191,7 +191,7 @@ class BatchFieldResolverTest {
             }
             field("Query" to "anotherItem") {
                 resolver {
-                    fn { _, _, _, _, ctx ->
+                    fn { _, _, _, _, _ ->
                         MockEngineObjectData(
                             schema.schema.getObjectType("Item"),
                             mapOf("x" to 1)
@@ -203,7 +203,7 @@ class BatchFieldResolverTest {
                 val resolverId = resolverId
                 resolver {
                     objectSelections("x")
-                    fn { selectors, ctx ->
+                    fn { selectors, _ ->
                         selectors.associateWith { selector ->
                             execCounts.computeIfAbsent(resolverId) { AtomicInteger(0) }.incrementAndGet()
                             val x = selector.objectValue.fetch("x") as Int
@@ -216,7 +216,7 @@ class BatchFieldResolverTest {
             viaduct.runQuery("{ items { x y } anotherItem { x y }}")
                 .assertJson("""{"data": {"items": [{ "x": 1, "y": 1 }, { "x": 2, "y": 2 }], "anotherItem": { "x": 1, "y": 1 }}}""")
         }
-        // We disable caching for field data loaders, so the execCounts value is 3. Otherwise it would be 2.
+        // We disable caching for field data loaders, so the execCounts value is 3. Otherwise, it would be 2.
         assertEquals(mapOf("Item.y" to 3), execCounts.mapValues { it.value.get() })
     }
 }

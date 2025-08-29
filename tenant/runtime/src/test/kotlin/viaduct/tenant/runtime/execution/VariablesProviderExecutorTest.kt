@@ -43,9 +43,8 @@ class VariablesProviderExecutorTest {
                     VariablesProvider<MockArgs> { context ->
                         mapOf("foo" to context.args.a * 2, "bar" to context.args.b * 3)
                     }
-                },
-                { args -> MockArgs(args.arguments) }
-            )
+                }
+            ) { args -> MockArgs(args.arguments) }
 
             assertEquals(
                 mapOf("foo" to 10, "bar" to 21),
@@ -81,12 +80,11 @@ class VariablesProviderExecutorTest {
                 globalIDCodec,
                 reflectionLoader,
                 variablesProvider = VariablesProviderInfo(setOf("foo", "bar")) {
-                    VariablesProvider<MockArgs> { context ->
+                    VariablesProvider<MockArgs> { _ ->
                         mapOf("foo" to mockInput, "bar" to mockGlobalID)
                     }
-                },
-                { args -> MockArgs(args.arguments) }
-            )
+                }
+            ) { args -> MockArgs(args.arguments) }
 
             assertEquals(
                 mapOf("foo" to mapOf("a" to 10, "b" to 14), "bar" to "User:1234"),

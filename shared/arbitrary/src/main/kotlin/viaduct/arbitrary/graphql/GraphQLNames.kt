@@ -11,9 +11,8 @@ import viaduct.arbitrary.common.Config
 class GraphQLNames internal constructor(internal val names: Map<TypeType, Set<String>>) {
     operator fun plus(other: GraphQLNames): GraphQLNames =
         GraphQLNames(
-            TypeType.values().map { nt ->
-                nt to ((names[nt] ?: emptySet()) + (other.names[nt] ?: emptySet()))
-            }.toMap()
+            TypeType.values()
+                .associateWith { nt -> ((names[nt] ?: emptySet()) + (other.names[nt] ?: emptySet())) }
         )
 
     val interfaces: Set<String>
@@ -105,7 +104,7 @@ class GraphQLNames internal constructor(internal val names: Map<TypeType, Set<St
             }.let { ttWeights ->
                 // normalize
                 val total = ttWeights.values.sum()
-                ttWeights.mapValues { (tt, weight) ->
+                ttWeights.mapValues { (_, weight) ->
                     val normWeight = weight / total
                     (names.size * normWeight).toInt()
                 }

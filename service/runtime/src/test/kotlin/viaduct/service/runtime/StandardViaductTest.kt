@@ -140,7 +140,7 @@ class StandardViaductTest {
     fun `runQuery(_) executes request`() {
         val query = "query"
         val context = mapOf("userId" to "user123")
-        val executionInput = ExecutionInput(query, SCHEMA_ID, context)
+        ExecutionInput(query, SCHEMA_ID, context)
 
         createSimpleStandardViaduct()
 
@@ -154,7 +154,7 @@ class StandardViaductTest {
     fun `runQuery(_,_) executes request`() {
         val query = "query"
         val context = mapOf("userId" to "user123")
-        val executionInput = ExecutionInput(query, SCHEMA_ID, context)
+        ExecutionInput(query, SCHEMA_ID, context)
 
         createSimpleStandardViaduct()
 

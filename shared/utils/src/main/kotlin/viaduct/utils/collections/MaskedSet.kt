@@ -22,6 +22,7 @@ class MaskedSet<T> private constructor(
         /** An empty [MaskedSet] */
         val empty: MaskedSet<Nothing> = MaskedSet(emptyMap(), BitVector(0), 0)
 
+        @Suppress("UNCHECKED_CAST")
         fun <T> empty(): MaskedSet<T> = empty as MaskedSet<T>
 
         /** create a new [MaskedSet] from a collection of values */
@@ -63,13 +64,13 @@ class MaskedSet<T> private constructor(
      */
     fun intersect(other: MaskedSet<T>): MaskedSet<T> {
         // Implementation note:
-        // This implementation tends to be faster than simple collection-based intersection because
+        // This implementation tends to be faster than a simple collection-based intersection because
         // it uses structural sharing on [valueToIndex]. Deriving an intersecting MaskedSet will reuse
         // the same collection without creating a filtered copy.
-        // Instead, we copy and modify [exclude] BitVector, which is significantly cheaper.
+        // Instead, we copy and modify [exclude] BitVector, which is significantly less expensive.
 
         if (this === other) return this
-        if (isEmpty() || other.isEmpty()) return empty as MaskedSet<T>
+        if (isEmpty() || other.isEmpty()) return empty()
 
         // Iterate the smaller set for speed, but build an exclude bitmap for *this*
         val smaller = if (this.size <= other.size) this else other
@@ -97,9 +98,8 @@ class MaskedSet<T> private constructor(
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is MaskedSet<*>) return false
 
-        other as MaskedSet<T>
         return toList() == other.toList()
     }
 

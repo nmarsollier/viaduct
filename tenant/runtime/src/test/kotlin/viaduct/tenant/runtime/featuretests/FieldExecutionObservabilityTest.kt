@@ -149,10 +149,10 @@ class FieldExecutionObservabilityTest {
             instrumentation.fieldToRequiredByLookup.keys
         )
 
-        assertTrue(instrumentation.getFieldRequiredBy("Query", "idField")?.toSet()?.contains("RESOLVER:query-string1-resolver") ?: false) {
+        assertTrue(instrumentation.getFieldRequiredBy("Query", "idField").toSet().contains("RESOLVER:query-string1-resolver")) {
             "Expected 'query-string1-resolver' to be in the required by set for 'idField'"
         }
-        assertTrue((instrumentation.getFieldRequiredBy("Query", "idField")?.size == 2)) {
+        assertTrue((instrumentation.getFieldRequiredBy("Query", "idField").size == 2)) {
             "Expected 'idField' to be required by the resolver twice, but found: ${instrumentation.getFieldRequiredBy("Query", "idField")}"
         }
     }
@@ -196,7 +196,7 @@ class FieldExecutionObservabilityTest {
         )
 
         assertEquals(setOf("RESOLVER:query-string1-resolver", "OPERATION:testQuery"), instrumentation.getFieldRequiredBy("Query", "idField").toSet())
-        assertEquals(setOf("OPERATION:testQuery"), instrumentation.getFieldRequiredBy("Query", "string1")?.toSet())
+        assertEquals(setOf("OPERATION:testQuery"), instrumentation.getFieldRequiredBy("Query", "string1").toSet())
     }
 
     @Test

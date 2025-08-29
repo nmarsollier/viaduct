@@ -21,7 +21,7 @@ class MockTenantModuleBootstrapperDSLTest {
         private val emptyArgs = emptyMap<String, Any?>()
         private val emptyObjectMap = emptyMap<String, EngineObjectData>()
 
-        private val schemaSDL = """
+        private const val SCHEMA_SDL = """
             type Query {
               t: Test
             }
@@ -42,7 +42,7 @@ class MockTenantModuleBootstrapperDSLTest {
     @Test
     fun `field with value without fieldWithValue`() {
         val coord = "Test" to "k"
-        val module = MockTenantModuleBootstrapper(schemaSDL) {
+        val module = MockTenantModuleBootstrapper(SCHEMA_SDL) {
             field(coord) { value(42) }
         }
         assertEquals(42, module.resolveField(coord))
@@ -51,7 +51,7 @@ class MockTenantModuleBootstrapperDSLTest {
     @Test
     fun `field with valueFromContext`() {
         val coord = "Query" to "t"
-        val module = MockTenantModuleBootstrapper(schemaSDL) {
+        val module = MockTenantModuleBootstrapper(SCHEMA_SDL) {
             field(coord) {
                 valueFromContext { ctx ->
                     ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("Test"))
@@ -65,10 +65,10 @@ class MockTenantModuleBootstrapperDSLTest {
     fun `field checker succeeds`() {
         var iRan = false
         val coord = "Query" to "t"
-        val module = MockTenantModuleBootstrapper(schemaSDL) {
+        val module = MockTenantModuleBootstrapper(SCHEMA_SDL) {
             field(coord) {
                 checkerExecutor {
-                    MockCheckerExecutor { args, data -> iRan = true }
+                    MockCheckerExecutor { _, _ -> iRan = true }
                 }
             }
         }
@@ -80,10 +80,10 @@ class MockTenantModuleBootstrapperDSLTest {
     fun `field checker fails`() {
         var myException: Exception? = null
         val coord = "Query" to "t"
-        val module = MockTenantModuleBootstrapper(schemaSDL) {
+        val module = MockTenantModuleBootstrapper(SCHEMA_SDL) {
             field(coord) {
                 checkerExecutor {
-                    MockCheckerExecutor { args, data ->
+                    MockCheckerExecutor { _, _ ->
                         try {
                             throw SecurityException()
                         } catch (e: Exception) {
@@ -116,7 +116,7 @@ class MockTenantModuleBootstrapperDSLTest {
             }
         }
 
-        // Verify checker was added to external map
+        // Verify checker was added to an external map
         assertEquals(2, module.checkerExecutors.size)
         assertTrue(module.checkerExecutors.containsKey(Coordinate("TestType", "aField")))
         assertTrue(module.checkerExecutors.containsKey(Coordinate("TestType", "cField")))
@@ -162,7 +162,7 @@ class MockTenantModuleBootstrapperDSLTest {
             }
         }
 
-        // Verify checker was added to external map
+        // Verify checker was added to an external map
         assertEquals(1, module.typeCheckerExecutors.size)
         assertTrue(module.typeCheckerExecutors.containsKey("TestNode"))
     }
@@ -279,12 +279,12 @@ class MockTenantModuleBootstrapperDSLTest {
             MockTenantModuleBootstrapper(Samples.testSchema) {
                 type("TestNode") {
                     nodeBatchedExecutor { selectors, _ ->
-                        selectors.associate { it to Result.success(MockEngineObjectData(objectType, emptyMap())) }
+                        selectors.associateWith { Result.success(MockEngineObjectData(objectType, emptyMap())) }
                     }
                 }
                 type("TestNode") {
                     nodeBatchedExecutor { selectors, _ ->
-                        selectors.associate { it to Result.success(MockEngineObjectData(objectType, emptyMap())) }
+                        selectors.associateWith { Result.success(MockEngineObjectData(objectType, emptyMap())) }
                     }
                 }
             }
@@ -451,9 +451,7 @@ class MockTenantModuleBootstrapperDSLTest {
             // Node with batch resolver and checker
             type("BatchNode") {
                 nodeBatchedExecutor { selectors, _ ->
-                    selectors.associate { selector ->
-                        selector to Result.success(MockEngineObjectData(objectType, mapOf("id" to selector.id)))
-                    }
+                    selectors.associateWith { selector -> Result.success(MockEngineObjectData(objectType, mapOf("id" to selector.id))) }
                 }
                 checker {
                     objectSelections("batch", "fragment _ on BatchNode { id }")

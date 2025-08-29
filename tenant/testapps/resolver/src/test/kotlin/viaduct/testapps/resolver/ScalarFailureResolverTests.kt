@@ -1,11 +1,13 @@
 package viaduct.testapps.resolver
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertJson
 import viaduct.testapps.fixtures.ScopedSchemaInfo
 import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ScalarFailureResolverTests : TestBase(
     setOf(ScopedSchemaInfo(DEFAULT_SCHEMA_ID, setOf(DEFAULT_PUBLIC_SCOPE_ID))),
     tenantPackageFinder = TestTenantPackageFinder(Tenants),

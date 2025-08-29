@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
-
 package viaduct.engine.runtime
 
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicReferenceArray
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.ObjectEngineResult
 
 /**
@@ -106,9 +103,9 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
     /**
      * If the cell hasn't previously been written, then call [block] which
      * is responsible for setting all the slots of the cell. If [block] fails
-     * (e.g. it threw an exception, did not set all slots, or set a slot more
+     * (e.g., it threw an exception, did not set all slots, or set a slot more
      * than once), then all slots will have an exceptional [Value]. This is
-     * true even if some of the slots could have been successfully set.
+     * true even if some slots could have been successfully set.
      *
      * @returns this Cell
      * @throws IllegalStateException when [block] does not set all slots or
@@ -211,6 +208,7 @@ value class Cell private constructor(private val slots: AtomicReferenceArray<Any
             }
         }
 
+        @Suppress("UNCHECKED_CAST")
         private fun completeSlot(
             slotNo: Int,
             value: Value<*>
@@ -240,7 +238,7 @@ interface SlotSetter {
     fun set(
         slotNo: Int,
         value: Value<*>
-    ): Unit
+    )
 }
 
 private fun AtomicReferenceArray<Any?>.assertWithinBounds(slotNo: Int) {
