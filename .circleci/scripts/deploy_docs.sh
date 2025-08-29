@@ -5,8 +5,8 @@ echo "Starting deployment of Dokka documentation to GitHub Pages..."
 echo "Current commit: ${CIRCLE_SHA1}"
 echo "Current branch: ${CIRCLE_BRANCH}"
 echo "Configuring Git user details..."
-git config --global user.email "paulo.correa@outlook.com"
-git config --global user.name "CI Bot - Paulo"
+git config --global user.email "viaduct-bot@users.noreply.github.com"
+git config --global user.name "Viaduct Bot"
 
 echo "Cloning gh-pages branch..."
 git clone --depth 1 --branch gh-pages https://x-access-token:${GITHUB_TOKEN}@github.com/rstata-projects/viaduct-real.git gh-pages-repo || \
