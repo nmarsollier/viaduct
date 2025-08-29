@@ -4,6 +4,7 @@ import org.gradle.api.tasks.SourceSetContainer
 plugins {
     id("dependency-analysis")
     jacoco
+    `jacoco-report-aggregation`
 }
 
 val projectVersion = libs.versions.project
@@ -27,72 +28,64 @@ tasks.register("cleanBuildAndPublish") {
     }
 }
 
-// Jacoco aggregate coverage report configuration
+// Jacoco configuration
 jacoco {
     toolVersion = libs.versions.jacoco.get()
 }
 
-tasks.register<JacocoReport>("jacocoAggregatedReport") {
-    description = "Generates aggregated Jacoco coverage report for all subprojects"
-    group = "verification"
-    
-    val javaSubprojects = subprojects.filter { it.plugins.hasPlugin("java") }
-    
-    dependsOn(subprojects.map { it.tasks.withType<Test>() })
-    
-    // Only depend on jacocoTestReport tasks that actually exist
-    javaSubprojects.forEach { subproject ->
-        subproject.plugins.withId("jacoco") {
-            dependsOn(subproject.tasks.named("jacocoTestReport"))
-        }
-    }
-    
-    additionalSourceDirs.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
-    sourceDirectories.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
-    classDirectories.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].output })
-    executionData.setFrom(javaSubprojects.map { it.fileTree(it.layout.buildDirectory.asFile.get()).include("**/jacoco/*.exec") })
-    
+// Dependencies for jacoco aggregation - all Java subprojects with jacoco
+dependencies {
+    jacocoAggregation(project(":engine:engine-api"))
+    jacocoAggregation(project(":engine:engine-runtime"))
+    jacocoAggregation(project(":runtime"))
+    jacocoAggregation(project(":service:service-api"))
+    jacocoAggregation(project(":service:service-runtime"))
+    jacocoAggregation(project(":shared:arbitrary"))
+    jacocoAggregation(project(":shared:dataloader"))
+    jacocoAggregation(project(":shared:deferred"))
+    jacocoAggregation(project(":shared:graphql"))
+    jacocoAggregation(project(":shared:invariants"))
+    jacocoAggregation(project(":shared:logging"))
+    jacocoAggregation(project(":shared:shared-codegen"))
+    jacocoAggregation(project(":shared:utils"))
+    jacocoAggregation(project(":shared:viaductschema"))
+    jacocoAggregation(project(":snipped:errors"))
+    jacocoAggregation(project(":tenant:tenant-api"))
+    jacocoAggregation(project(":tenant:tenant-codegen"))
+    jacocoAggregation(project(":tenant:tenant-runtime"))
+    jacocoAggregation(project(":tenant:testapps:policycheck"))
+    jacocoAggregation(project(":tenant:testapps:resolver"))
+    jacocoAggregation(project(":tenant:testapps:schemaregistration"))
+}
+
+// Configure the coverage report in the reporting block
+reporting {
     reports {
-        xml.required = true
-        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/aggregate/jacocoAggregatedReport.xml")
-        html.required = true
-        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/aggregate/html")
-        csv.required = false
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+            testSuiteName = "test"
+        }
     }
 }
 
-tasks.register<JacocoCoverageVerification>("jacocoAggregatedCoverageVerification") {
-    description = "Verifies aggregated code coverage metrics"
-    group = "verification"
-    
-    dependsOn(tasks.named("jacocoAggregatedReport"))
-    
-    val javaSubprojects = subprojects.filter { it.plugins.hasPlugin("java") }
-    
-    additionalSourceDirs.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
-    sourceDirectories.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].allSource.srcDirs })
-    classDirectories.setFrom(javaSubprojects.map { it.extensions.getByName<SourceSetContainer>("sourceSets")["main"].output })
-    executionData.setFrom(javaSubprojects.map { it.fileTree(it.layout.buildDirectory.asFile.get()).include("**/jacoco/*.exec") })
+// Coverage verification with reasonable thresholds
+tasks.register<JacocoCoverageVerification>("testCodeCoverageVerification") {
+    dependsOn("testCodeCoverageReport")
     
     violationRules {
         rule {
             limit {
                 counter = "INSTRUCTION"
                 value = "COVEREDRATIO"
-                minimum = "0.00".toBigDecimal() // Start with 0% and gradually increase
+                minimum = "0.10".toBigDecimal() // 10% minimum instruction coverage
             }
         }
         rule {
             limit {
-                counter = "BRANCH"
+                counter = "BRANCH"  
                 value = "COVEREDRATIO"
-                minimum = "0.00".toBigDecimal() // Start with 0% and gradually increase
+                minimum = "0.05".toBigDecimal() // 5% minimum branch coverage
             }
         }
-    }
-    
-    doFirst {
-        executionData = files(executionData.filter { it.exists() })
     }
 }
 
@@ -101,12 +94,13 @@ tasks.register("testAndCoverage") {
     description = "Runs tests and generates coverage reports for CircleCI"
     group = "verification"
     
-    dependsOn("jacocoAggregatedReport")
+    dependsOn("testCodeCoverageReport")
     
     doLast {
         println("Coverage reports generated:")
         println("- Individual module XML reports: */build/reports/jacoco/test/jacocoTestReport.xml")
-        println("- Aggregated XML report: build/reports/jacoco/aggregate/jacocoAggregatedReport.xml")
-        println("- Aggregated HTML report: build/reports/jacoco/aggregate/html/index.html")
+        println("- Aggregated XML report: build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml")
+        println("- Aggregated HTML report: build/reports/jacoco/testCodeCoverageReport/html/index.html")
     }
 }
+
