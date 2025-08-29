@@ -6,25 +6,16 @@ orbs:
 executors:
   kotlin-gradle-executor:
     docker:
-      - image: cimg/openjdk:21.0
+      - image: gradle:8.13-jdk17-corretto
     working_directory: ~/project
     environment:
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+EnableDynamicAgentLoading"
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading"
       # Improve build performance
-      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=false -Dorg.gradle.daemon=false"
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configureondemand=true"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
 
 commands:
-  gradle-with-cache:
-    parameters:
-      steps:
-        type: steps
-    steps:
-      - gradle/with_cache:
-          cache_key: "v4-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
-          steps: << parameters.steps >>
-
   fail-step:
     parameters:
       message:
@@ -50,7 +41,7 @@ commands:
             echo "  3. Review recent changes that might have caused this failure"
             exit 1
           when: on_fail
-
+  
   setup-gradle:
     steps:
       - run:
@@ -69,14 +60,26 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-
-
+      
+      # Install tar (required for workspace functionality)
+      - run:
+          name: Install tar and git
+          command: |
+            echo "📦 Installing required packages..."
+            yum install -y tar git || {
+              echo "❌ Failed to install tar and git packages"
+              exit 1
+            }
+            echo "✅ Successfully installed tar and git"
+      - fail-step:
+          message: "Package installation failed"
+      
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed"
-
+      
       # Use Gradle orb for optimal caching
-      - gradle-with-cache:
+      - gradle/with_cache:
           steps:
             - run:
                 name: Download dependencies
@@ -89,8 +92,8 @@ jobs:
                   echo "✅ Dependencies downloaded successfully"
       - fail-step:
           message: "Dependency download failed"
-
-      - gradle-with-cache:
+      
+      - gradle/with_cache:
           steps:
             - run:
                 name: Build project (without tests)
@@ -103,7 +106,7 @@ jobs:
                   echo "✅ Project built successfully"
       - fail-step:
           message: "Project build failed"
-
+      
       - run:
           name: Collect build artifacts
           command: |
@@ -130,21 +133,19 @@ jobs:
           path: build/package
           destination: package
 
-      # TODO: Enable Dokka documentation generation
-      # Currently disabled due to complex multi-module conflicts and dependency issues
-      # - gradle-with-cache:
-      #     steps:
-      #       - run:
-      #           name: Generate Documentation in HTML with Dokka (multi module)
-      #           command: |
-      #             echo "📝 Generating Dokka documentation..."
-      #             ./gradlew dokkaHtmlMultiModule --no-scan --no-configuration-cache || {
-      #               echo "❌ Dokka documentation generation failed"
-      #               exit 1
-      #             }
-      #             echo "✅ Dokka documentation generated successfully"
-      # - fail-step:
-      #     message: "Dokka documentation generation failed"
+      - gradle/with_cache:
+          steps:
+            - run: 
+                name: Generate Documentation in HTML with Dokka (multi module)
+                command: |
+                  echo "📝 Generating Dokka documentation..."
+                  ./gradlew dokkaHtmlMultiModule --no-scan --no-configuration-cache || {
+                    echo "❌ Dokka documentation generation failed"
+                    exit 1
+                  }
+                  echo "✅ Dokka documentation generated successfully"
+      - fail-step:
+          message: "Dokka documentation generation failed"
 
       # - run:
       #     name: Dump Dokka problem report
@@ -155,16 +156,16 @@ jobs:
       #       else
       #         echo "No Dokka problem report found."
       #       fi
-
-      # TODO: Re-enable when Dokka is working
-      # - store_artifacts:
-      #     path: build/dokka
-      #     destination: kdoc-html
-
+      
+      - store_artifacts:  
+          path: build/dokka
+          destination: kdoc-html
+      
       - persist_to_workspace:
           root: .
           paths:
             - build
+            - build/dokka
             - .gradle
             - build/package
 
@@ -172,120 +173,145 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-
-
+      
+      # Install tar (required for workspace functionality)
+      - run:
+          name: Install tar
+          command: |
+            echo "📦 Installing tar package..."
+            yum install -y tar || {
+              echo "❌ Failed to install tar package"
+              exit 1
+            }
+            echo "✅ Tar installed successfully"
+      - fail-step:
+          message: "Tar installation failed in test job"
+      
       # Restore workspace from build job
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in test job"
-
+      
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in test job"
-
-      - gradle-with-cache:
+      
+      - gradle/with_cache:
           steps:
             - run:
-                name: Run tests
+                name: Run tests with JaCoCo coverage
                 command: |
-                  echo "🧪 Running tests..."
+                  echo "🧪 Running tests with JaCoCo coverage..."
                   ./gradlew test --no-scan --continue || {
-                    echo "⚠️ Some tests failed, but continuing"
+                    echo "⚠️ Some tests failed, but continuing with coverage report"
                     echo "Test failures are not blocking the pipeline"
                   }
                   echo "✅ Test execution completed"
-
-            # TODO: Enable JaCoCo coverage when ready
-            # - run:
-            #     name: Generate JaCoCo aggregated coverage report
-            #     command: |
-            #       echo "📊 Generating JaCoCo aggregated coverage report..."
-            #       ./gradlew jacocoAggregatedReport --no-scan || {
-            #         echo "❌ Failed to generate coverage report"
-            #         exit 1
-            #       }
-            #       echo "✅ Coverage report generated successfully"
-            #     when: always
-      # - fail-step:
-      #     message: "JaCoCo coverage report generation failed"
-
+            
+            - run:
+                name: Generate JaCoCo aggregated coverage report
+                command: |
+                  echo "📊 Generating JaCoCo aggregated coverage report..."
+                  ./gradlew jacocoAggregatedReport --no-scan || {
+                    echo "❌ Failed to generate coverage report"
+                    exit 1
+                  }
+                  echo "✅ Coverage report generated successfully"
+                when: always
+      - fail-step:
+          message: "JaCoCo coverage report generation failed"
+      
       # Store test results for CircleCI UI
       - run:
           name: Save test results
           command: |
             mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/build/test-results/.*/.*\.xml" -exec cp {} ~/test-results/junit/ \; || echo "No test result files found"
-            echo "Test result files found:"
-            find ~/test-results/junit/ -name "*.xml" -ls || echo "No XML files in test-results directory"
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
           when: always
-
+      
       - store_test_results:
           path: ~/test-results
-
-      # TODO: Re-enable JaCoCo coverage reports when ready
+      
       # Store JaCoCo coverage reports
-      # - store_artifacts:
-      #     path: build/reports/jacoco/aggregate/html
-      #     destination: coverage-html
-      #
-      # - store_artifacts:
-      #     path: build/reports/jacoco/aggregate/jacocoTestReport.xml
-      #     destination: coverage-xml
-      #
-      # # Coverage reports are stored as artifacts above
-      #
-      # # Store individual project coverage reports
-      # - run:
-      #     name: Collect individual coverage reports
-      #     command: |
-      #       mkdir -p ~/coverage-reports
-      #       find . -path "*/build/reports/jacoco/test/html" -type d -exec cp -r {} ~/coverage-reports/ \; || true
-      #     when: always
-      #
-      # - store_artifacts:
-      #     path: ~/coverage-reports
-      #     destination: individual-coverage
+      - store_artifacts:
+          path: build/reports/jacoco/aggregate/html
+          destination: coverage-html
+      
+      - store_artifacts:
+          path: build/reports/jacoco/aggregate/jacocoTestReport.xml
+          destination: coverage-xml
+      
+      # Coverage reports are stored as artifacts above
+      
+      # Store individual project coverage reports
+      - run:
+          name: Collect individual coverage reports
+          command: |
+            mkdir -p ~/coverage-reports
+            find . -path "*/build/reports/jacoco/test/html" -type d -exec cp -r {} ~/coverage-reports/ \; || true
+          when: always
+      
+      - store_artifacts:
+          path: ~/coverage-reports
+          destination: individual-coverage
 
   lint:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-
-
+      
+      # Install tar (required for workspace functionality)
+      - run:
+          name: Install tar
+          command: |
+            echo "📦 Installing tar package..."
+            yum install -y tar || {
+              echo "❌ Failed to install tar package"
+              exit 1
+            }
+            echo "✅ Tar installed successfully"
+      - fail-step:
+          message: "Tar installation failed in lint job"
+      
+      - restore_cache:
+          keys:
+            - gradle-deps-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-deps-v1-
+      
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in lint job"
-
+      
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in lint job"
-
-      - gradle-with-cache:
-          steps:
-            - run:
-                name: Run ktlint
-                command: |
-                  echo "🧹 Running ktlint code style checks..."
-                  ./gradlew ktlintCheck --no-scan || {
-                    echo "❌ ktlint found code style violations"
-                    exit 1
-                  }
-                  echo "✅ ktlint checks passed"
-
-            - run:
-                name: Run Detekt
-                command: |
-                  echo "🔍 Running Detekt static analysis..."
-                  ./gradlew detekt --no-scan || {
-                    echo "❌ Detekt found code quality issues"
-                    exit 1
-                  }
-                  echo "✅ Detekt analysis passed"
+      
+      - run:
+          name: Run ktlint
+          command: |
+            echo "🧹 Running ktlint code style checks..."
+            ./gradlew ktlintCheck --no-scan || {
+              echo "❌ ktlint found code style violations"
+              exit 1
+            }
+            echo "✅ ktlint checks passed"
+      - fail-step:
+          message: "ktlint code style checks failed"
+      
+      - run:
+          name: Run Detekt
+          command: |
+            echo "🔍 Running Detekt static analysis..."
+            ./gradlew detekt --no-scan || {
+              echo "❌ Detekt found code quality issues"
+              exit 1
+            }
+            echo "✅ Detekt analysis passed"
       - fail-step:
           message: "Detekt static analysis failed"
-
+      
       - store_artifacts:
           path: build/reports/detekt
           destination: detekt-reports
@@ -294,31 +320,46 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-
-
+      
+      # Install tar (required for workspace functionality)
+      - run:
+          name: Install tar
+          command: |
+            echo "📦 Installing tar package..."
+            yum install -y tar || {
+              echo "❌ Failed to install tar package"
+              exit 1
+            }
+            echo "✅ Tar installed successfully"
+      - fail-step:
+          message: "Tar installation failed in docs job"
+      
+      - restore_cache:
+          keys:
+            - gradle-deps-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-deps-v1-
+      
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in docs job"
-
+      
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in docs job"
-
-      - gradle-with-cache:
-          steps:
-            - run:
-                name: Generate Javadoc
-                command: |
-                  echo "📝 Generating Javadoc documentation..."
-                  ./gradlew javadoc --no-scan || {
-                    echo "❌ Javadoc generation failed"
-                    exit 1
-                  }
-                  echo "✅ Javadoc generated successfully"
+      
+      - run:
+          name: Generate Javadoc
+          command: |
+            echo "📝 Generating Javadoc documentation..."
+            ./gradlew javadoc --no-scan || {
+              echo "❌ Javadoc generation failed"
+              exit 1
+            }
+            echo "✅ Javadoc generated successfully"
       - fail-step:
           message: "Javadoc generation failed"
-
+      
       - store_artifacts:
           path: build/docs/javadoc
           destination: javadoc
@@ -327,32 +368,47 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-
-
+      
+      # Install tar (required for workspace functionality)
+      - run:
+          name: Install tar
+          command: |
+            echo "📦 Installing tar package..."
+            yum install -y tar || {
+              echo "❌ Failed to install tar package"
+              exit 1
+            }
+            echo "✅ Tar installed successfully"
+      - fail-step:
+          message: "Tar installation failed in coverage-verification job"
+      
+      - restore_cache:
+          keys:
+            - gradle-deps-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
+            - gradle-deps-v1-
+      
       - attach_workspace:
           at: ~/project
       - fail-step:
           message: "Failed to restore workspace in coverage-verification job"
-
+      
       - setup-gradle
       - fail-step:
           message: "Gradle setup failed in coverage-verification job"
-
-      - gradle-with-cache:
-          steps:
-            - run:
-                name: Verify coverage thresholds
-                command: |
-                  echo "🎯 Verifying coverage thresholds..."
-                  ./gradlew jacocoTestCoverageVerification --no-scan || {
-                    echo "❌ Coverage thresholds not met"
-                    echo "Please check the coverage report and add more tests"
-                    exit 1
-                  }
-                  echo "✅ Coverage thresholds met successfully"
+      
+      - run:
+          name: Verify coverage thresholds
+          command: |
+            echo "🎯 Verifying coverage thresholds..."
+            ./gradlew jacocoTestCoverageVerification --no-scan || {
+              echo "❌ Coverage thresholds not met"
+              echo "Please check the coverage report and add more tests"
+              exit 1
+            }
+            echo "✅ Coverage thresholds met successfully"
       - fail-step:
           message: "Coverage threshold verification failed"
-
+          
   deploy-docs:
     docker:
       - image: cimg/base:stable
@@ -413,10 +469,6 @@ jobs:
 
 workflows:
   build-and-test:
-    when:
-      or:
-        - equal: [ main, << pipeline.git.branch >> ]
-        - equal: [ master, << pipeline.git.branch >> ]
     jobs:
       - build
       - test:
@@ -428,31 +480,12 @@ workflows:
       - docs:
           requires:
             - build
-      # TODO: Re-enable when JaCoCo coverage is working
-      # - coverage-verification:
-      #     requires:
-      #       - test
-      # TODO: Re-enable when Dokka documentation is working
-      # - deploy-docs:
-      #     requires:
-      #       - build
-
-  pull-request:
-    when:
-      and:
-        - not:
-            or:
-              - equal: [ main, << pipeline.git.branch >> ]
-              - equal: [ master, << pipeline.git.branch >> ]
-        - not: << pipeline.git.tag >>
-    jobs:
-      - build
-      - test:
+      - coverage-verification:
+          requires:
+            - test
+      - deploy-docs:
           requires:
             - build
-      - lint:
-          requires:
-            - build
-      - docs:
-          requires:
-            - build
+          # filters:
+          #   branches:
+          #     only: main
