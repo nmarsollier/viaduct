@@ -9,7 +9,7 @@ executors:
       - image: cimg/openjdk:21.0
     working_directory: ~/project
     environment:
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+EnableDynamicAgentLoading"
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1536m -XX:+EnableDynamicAgentLoading -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
       # Improve build performance
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       # Disable build scans in CI to avoid network timeouts
