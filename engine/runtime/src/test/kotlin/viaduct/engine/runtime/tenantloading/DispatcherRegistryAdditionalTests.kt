@@ -27,7 +27,7 @@ class DispatcherRegistryAdditionalTests {
         val throwingModule = object : TenantModuleBootstrapper {
             override fun fieldResolverExecutors(schema: ViaductSchema) = throw TenantModuleException("Test exception")
 
-            override fun nodeResolverExecutors() = emptyList<Pair<String, NodeResolverExecutor>>()
+            override fun nodeResolverExecutors(schema: ViaductSchema) = emptyList<Pair<String, NodeResolverExecutor>>()
         }
         val workingModule = Samples.mockTenantModule
 

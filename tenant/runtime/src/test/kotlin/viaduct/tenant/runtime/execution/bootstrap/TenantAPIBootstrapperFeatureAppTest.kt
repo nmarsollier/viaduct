@@ -82,7 +82,7 @@ class TenantAPIBootstrapperFeatureAppTest : FeatureAppTestBase() {
             val tenant = tenantModuleBootstrappers.first()
             val schema = mkSchema(sdl)
             val fieldResolverExecutors = tenant.fieldResolverExecutors(schema).toMap()
-            val nodeResolverExecutors = tenant.nodeResolverExecutors().toMap()
+            val nodeResolverExecutors = tenant.nodeResolverExecutors(schema).toMap()
             assertEquals(2, fieldResolverExecutors.size)
             assertEquals(2, nodeResolverExecutors.size)
 

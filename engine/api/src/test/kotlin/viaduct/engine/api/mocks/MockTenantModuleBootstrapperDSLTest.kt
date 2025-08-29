@@ -371,7 +371,7 @@ class MockTenantModuleBootstrapperDSLTest {
             }
         }
 
-        val nodeExecutors = module.nodeResolverExecutors().toList()
+        val nodeExecutors = module.nodeResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, nodeExecutors.size)
         assertEquals(1, module.typeCheckerExecutors.size)
 
@@ -464,7 +464,7 @@ class MockTenantModuleBootstrapperDSLTest {
 
         // Verify resolver/node counts
         assertEquals(2, module.fieldResolverExecutors(Samples.testSchema).count())
-        assertEquals(2, module.nodeResolverExecutors().count())
+        assertEquals(2, module.nodeResolverExecutors(Samples.testSchema).count())
 
         // Verify checkers were accumulated in external maps
         assertEquals(1, module.checkerExecutors.size) // complexField checker

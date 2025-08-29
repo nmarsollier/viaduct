@@ -57,7 +57,7 @@ class FeatureTestTenantModuleBootstrapper(
             )
         }.toList()
 
-    override fun nodeResolverExecutors(): Iterable<Pair<String, NodeResolverExecutor>> =
+    override fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>> =
         nodeUnbatchedResolverStubs.mapValues { (typeName, stub) ->
             NodeUnbatchedResolverExecutorImpl(
                 resolver = stub.resolver,

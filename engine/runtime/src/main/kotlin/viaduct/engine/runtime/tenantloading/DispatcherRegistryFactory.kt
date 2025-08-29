@@ -53,7 +53,7 @@ class DispatcherRegistryFactory(
         for (tenant in tenantModuleBootstrappers) {
             val (tenantFieldResolverExecutors, tenantNodeResolverExecutors) = try {
                 val tenantFieldResolverExecutors = tenant.fieldResolverExecutors(schema)
-                val tenantNodeResolverExecutors = tenant.nodeResolverExecutors()
+                val tenantNodeResolverExecutors = tenant.nodeResolverExecutors(schema)
                 Pair(tenantFieldResolverExecutors, tenantNodeResolverExecutors)
             } catch (e: TenantModuleException) {
                 log.warn("Could not bootstrap $tenant", e)
