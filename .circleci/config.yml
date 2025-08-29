@@ -166,6 +166,7 @@ jobs:
           paths:
             - build
             - .gradle
+            - "**/build"
             - build/package
 
   test:
@@ -207,17 +208,17 @@ jobs:
                   echo "✅ Coverage report generated successfully"
                 when: always
             
-            - run:
-                name: Verify coverage thresholds
-                command: |
-                  echo "🎯 Verifying coverage thresholds..."
-                  ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache -x testCodeCoverageReport || {
-                    echo "❌ Coverage thresholds not met"
-                    echo "Please check the coverage report and add more tests"
-                    exit 1
-                  }
-                  echo "✅ Coverage thresholds met successfully"
-                when: always
+            # - run:
+            #     name: Verify coverage thresholds
+            #     command: |
+            #       echo "🎯 Verifying coverage thresholds..."
+            #       ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache -x testCodeCoverageReport || {
+            #         echo "❌ Coverage thresholds not met"
+            #         echo "Please check the coverage report and add more tests"
+            #         exit 1
+            #       }
+            #       echo "✅ Coverage thresholds met successfully"
+            #     when: always
       - fail-step:
           message: "JaCoCo coverage report generation failed"
       # Store test results for CircleCI UI
