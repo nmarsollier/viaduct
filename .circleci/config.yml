@@ -11,7 +11,7 @@ executors:
     environment:
       GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+EnableDynamicAgentLoading"
       # Improve build performance
-      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=false -Dorg.gradle.daemon=false"
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
 
@@ -209,40 +209,12 @@ jobs:
       - fail-step:
           message: "JaCoCo coverage report generation failed"
       # Store test results for CircleCI UI
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/build/test-results/.*/.*\.xml" -exec cp {} ~/test-results/junit/ \; || echo "No test result files found"
-            echo "Test result files found:"
-            find ~/test-results/junit/ -name "*.xml" -ls || echo "No XML files in test-results directory"
-          when: always
-
       - store_test_results:
-          path: ~/test-results
+          path: build/test-results
       
       # Store JaCoCo coverage reports
       - store_artifacts:
-          path: build/reports/jacoco/testCodeCoverageReport/html
-          destination: coverage-html
-      
-      - store_artifacts:
-          path: build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
-          destination: coverage-xml
-      
-      # Store individual project coverage reports
-      - run:
-          name: Collect individual coverage reports
-          command: |
-            mkdir -p ~/coverage-reports
-            find . -path "*/build/reports/jacoco/test/html" -type d -exec cp -r {} ~/coverage-reports/ \; || true
-            echo "Individual coverage reports collected:"
-            find ~/coverage-reports -name "index.html" -ls || echo "No individual coverage reports found"
-          when: always
-      
-      - store_artifacts:
-          path: ~/coverage-reports
-          destination: individual-coverage
+          path: build/reports
 
   lint:
     executor: kotlin-gradle-executor
