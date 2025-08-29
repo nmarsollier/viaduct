@@ -341,7 +341,8 @@ jobs:
                 name: Verify coverage thresholds
                 command: |
                   echo "🎯 Verifying coverage thresholds..."
-                  ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache || {
+                  # Skip report generation since it was already done in test job
+                  ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache -x testCodeCoverageReport || {
                     echo "❌ Coverage thresholds not met"
                     echo "Please check the coverage report and add more tests"
                     exit 1
