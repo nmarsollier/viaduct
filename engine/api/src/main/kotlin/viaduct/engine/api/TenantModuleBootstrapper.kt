@@ -36,7 +36,7 @@ interface TenantModuleBootstrapper {
      * but that isn't fatal in the sense that it should necessarily
      * terminate the loading of other modules.
      */
-    fun nodeResolverExecutors(): Iterable<Pair<String, NodeResolverExecutor>>
+    fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>>
 }
 
 /**

@@ -273,7 +273,7 @@ class DispatcherRegistryTest {
 
             val tenantModuleBootstrapper = tenantModuleBootstrappers[0]
             val fieldResolverExecutors = tenantModuleBootstrapper.fieldResolverExecutors(Samples.testSchema).toMap()
-            val nodeResolverExecutors = tenantModuleBootstrapper.nodeResolverExecutors().toMap()
+            val nodeResolverExecutors = tenantModuleBootstrapper.nodeResolverExecutors(Samples.testSchema).toMap()
 
             assertEquals(6, fieldResolverExecutors.size)
             assertEquals(2, nodeResolverExecutors.size)

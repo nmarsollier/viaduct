@@ -529,7 +529,7 @@ class MockTenantModuleBootstrapper(
 ) : TenantModuleBootstrapper {
     override fun fieldResolverExecutors(schema: ViaductSchema): Iterable<Pair<Coordinate, FieldResolverExecutor>> = fieldResolverExecutors
 
-    override fun nodeResolverExecutors(): Iterable<Pair<String, NodeResolverExecutor>> = nodeResolverExecutors
+    override fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>> = nodeResolverExecutors
 
     fun resolverAt(coord: Coordinate) = fieldResolverExecutors(schema).first { it.first == coord }.second
 

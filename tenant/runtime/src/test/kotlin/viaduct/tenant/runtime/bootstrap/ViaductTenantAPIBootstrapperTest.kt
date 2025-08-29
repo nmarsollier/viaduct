@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNotSame
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -44,6 +45,15 @@ class ViaductTenantAPIBootstrapperTest {
             """
             type Query {
                 foo: String
+            }
+            interface Node {
+                id: ID!
+            }
+            type TestNode implements Node {
+                id: ID!
+            }
+            type TestBatchNode implements Node {
+                id: ID!
             }
             type TestType {
                 aField: String @privacy(fullTimeEmployeeAccess: true)
@@ -117,7 +127,7 @@ class ViaductTenantAPIBootstrapperTest {
 
             tenantModuleBootstrappers = tenantAPIBootstrapper.tenantModuleBootstrappers()
             fieldResolverExecutors = tenantModuleBootstrappers.flatMap { it.fieldResolverExecutors(schema) }.toMap()
-            nodeResolverExecutors = tenantModuleBootstrappers.flatMap { it.nodeResolverExecutors() }.toMap()
+            nodeResolverExecutors = tenantModuleBootstrappers.flatMap { it.nodeResolverExecutors(schema) }.toMap()
         }
     }
 
@@ -133,6 +143,11 @@ class ViaductTenantAPIBootstrapperTest {
 
         val testNodeResolver = nodeResolverExecutors["TestNode"]
         assertTrue(testNodeResolver is NodeUnbatchedResolverExecutorImpl)
+    }
+
+    @Test
+    fun `test missing types are not in registry`() {
+        assertNull(nodeResolverExecutors["TestMissing"])
     }
 
     @Test

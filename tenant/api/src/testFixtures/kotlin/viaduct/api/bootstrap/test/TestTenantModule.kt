@@ -6,6 +6,7 @@ import viaduct.api.Variable
 import viaduct.api.Variables
 import viaduct.api.VariablesProvider
 import viaduct.api.bootstrap.test.grts.Query
+import viaduct.api.bootstrap.test.grts.TestBatchNode
 import viaduct.api.bootstrap.test.grts.TestNode
 import viaduct.api.bootstrap.test.grts.TestType
 import viaduct.api.bootstrap.test.grts.TestType_ParameterizedField_Arguments
@@ -151,14 +152,27 @@ class TestNodeResolver : TestNodeResolverBase() {
 }
 
 @NodeResolverFor("TestBatchNode")
-abstract class TestBatchNodeResolverBase : NodeResolverBase<TestNode> {
-    open suspend fun batchResolve(ctx: List<Context>): List<TestNode> = TODO()
+abstract class TestBatchNodeResolverBase : NodeResolverBase<TestBatchNode> {
+    open suspend fun batchResolve(ctx: List<Context>): List<TestBatchNode> = TODO()
+
+    class Context(
+        private val inner: NodeExecutionContext<TestBatchNode>
+    ) : NodeExecutionContext<TestBatchNode> by inner
+}
+
+class TestBatchNodeResolver : TestBatchNodeResolverBase() {
+    override suspend fun batchResolve(ctx: List<Context>): List<TestBatchNode> = TODO()
+}
+
+@NodeResolverFor("MissingNode")
+abstract class TestMissingResolverBase : NodeResolverBase<TestNode> {
+    open suspend fun resolve(ctx: Context): TestNode = TODO()
 
     class Context(
         private val inner: NodeExecutionContext<TestNode>
     ) : NodeExecutionContext<TestNode> by inner
 }
 
-class TestBatchNodeResolver : TestBatchNodeResolverBase() {
-    override suspend fun batchResolve(ctx: List<Context>): List<TestNode> = TODO()
+class TestMissingResolver : TestMissingResolverBase() {
+    override suspend fun resolve(ctx: Context): TestNode = TODO()
 }

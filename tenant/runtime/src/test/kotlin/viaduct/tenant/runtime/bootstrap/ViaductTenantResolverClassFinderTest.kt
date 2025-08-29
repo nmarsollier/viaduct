@@ -38,6 +38,7 @@ class ViaductTenantResolverClassFinderTest {
         assertEquals(
             setOf(
                 "viaduct.api.bootstrap.test.TestBatchNodeResolverBase",
+                "viaduct.api.bootstrap.test.TestMissingResolverBase",
                 "viaduct.api.bootstrap.test.TestNodeResolverBase",
             ),
             tenantResolverClassFinder.nodeResolverForClassesInPackage().map { it.name }.toSet()

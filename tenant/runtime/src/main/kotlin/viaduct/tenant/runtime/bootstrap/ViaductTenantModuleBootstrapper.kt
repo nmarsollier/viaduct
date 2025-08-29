@@ -8,7 +8,6 @@ import kotlin.reflect.full.memberFunctions
 import viaduct.api.Resolver
 import viaduct.api.TenantCodeInjector
 import viaduct.api.Variables
-import viaduct.api.context.ExecutionContext
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.context.NodeExecutionContext
 import viaduct.api.internal.NodeResolverBase
@@ -16,8 +15,6 @@ import viaduct.api.internal.NodeResolverFor
 import viaduct.api.internal.ResolverBase
 import viaduct.api.internal.ResolverFor
 import viaduct.api.types.Arguments
-import viaduct.api.types.NodeObject
-import viaduct.api.types.Query
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantModuleBootstrapper
@@ -86,6 +83,12 @@ class ViaductTenantModuleBootstrapper(
                 ?: throw TenantModuleException("ResolverBase class $baseClass does not have a @ResolverFor annotation")
             val typeName = resolverForAnnotation.typeName
             val fieldName = resolverForAnnotation.fieldName
+            if (schema.schema.getObjectType(typeName)?.getFieldDefinition(fieldName) == null) {
+                schema.schema.getType(typeName)?.let {
+                    log.warn("Found resolver code for type {} which is not a GraphQL Object type ({}).", typeName)
+                } ?: log.warn("Found resolver code for {}.{}, which is an undefined field in the schema.", typeName, fieldName)
+                continue
+            }
             if (resolverClasses.size != 1) {
                 throw TenantModuleException("Expected exactly one resolver implementation for $typeName.$fieldName, found ${resolverClasses.size}: ${resolverClasses.map { it.name }}")
             }
@@ -115,23 +118,27 @@ class ViaductTenantModuleBootstrapper(
                     }
                 }
 
-            @Suppress("UNCHECKED_CAST")
-            val contextKClass =
-                baseClass.declaredClasses.firstOrNull { ExecutionContext::class.java.isAssignableFrom(it) }?.kotlin as? KClass<FieldExecutionContext<*, *, *, *>>
-                    ?: throw java.lang.IllegalArgumentException("No nested Context class found in ${baseClass.name}")
-            val noArgs = contextKClass.supertypes.firstOrNull { it.classifier == FieldExecutionContext::class }
-                ?.let { it.arguments.any { kType -> kType.type?.classifier == Arguments.NoArguments::class } }
-                ?: false
-            val argumentsFactory =
-                if (noArgs) {
+            val fieldContextClasses = FieldContextClasses(
+                FieldExecutionContext::class,
+                tenantResolverClassFinder,
+                baseClass,
+                schema,
+                typeName,
+                fieldName
+            )
+
+            val contextKClass = fieldContextClasses.context
+
+            val argumentsFactory = fieldContextClasses.arguments.let {
+                if (it == Arguments.NoArguments::class) {
                     ArgumentsFactory.NoArguments
                 } else {
-                    ArgumentsFactory.forClass(findArgumentsClass(tenantResolverClassFinder, typeName, fieldName))
+                    ArgumentsFactory.forClass(it)
                 }
+            }
 
-            val objectKClass = tenantResolverClassFinder.grtClassForName(typeName)
-            val queryKClass = tenantResolverClassFinder.grtClassForName(schema.schema.queryType.name) as? KClass<Query>
-                ?: throw IllegalArgumentException("GRT for Query type ${schema.schema.queryType.name} is not of type `Query`")
+            val objectKClass = fieldContextClasses.objectValue
+            val queryKClass = fieldContextClasses.query
             val resolverId = typeName to fieldName
             val formattedResolverId = formatResolverId(resolverId)
 
@@ -147,10 +154,6 @@ class ViaductTenantModuleBootstrapper(
             // resolvers for this module will get rebuilt when new
             // code comes in.
             val fieldDef = schema.schema.getFieldDefinition(FieldCoordinates.coordinates(typeName, fieldName))
-            if (fieldDef == null) {
-                log.warn("Found resolver code for $typeName.$fieldName, which is unknown in the schema")
-                continue
-            }
             val selectionSetContextFactory = SelectionSetContextFactory.forField(fieldDef)
             val (objectSelectionSet, querySelectionSet) = requiredSelectionSetFactory.mkRequiredSelectionSets(
                 schema,
@@ -193,8 +196,11 @@ class ViaductTenantModuleBootstrapper(
             }
             if (resolveFunction != null) {
                 log.info(
-                    "- Adding entry for resolver for '$typeName.$fieldName' " +
-                        "to '${resolverKClass.qualifiedName}' via ${resolverClass.classLoader}"
+                    "- Adding entry for resolver for '{}.{}' to {} via {}",
+                    typeName,
+                    fieldName,
+                    resolverKClass.qualifiedName,
+                    resolverClass.classLoader
                 )
                 val resolverExecutor = FieldUnbatchedResolverExecutorImpl(
                     objectSelectionSet = objectSelectionSet,
@@ -214,8 +220,11 @@ class ViaductTenantModuleBootstrapper(
                 }
             } else if (batchResolveFunction != null) {
                 log.info(
-                    "- Adding entry for batchResolver for '$typeName.$fieldName' " +
-                        "to '${resolverKClass.qualifiedName}' via ${resolverClass.classLoader}"
+                    "- Adding entry for batch resolver for '{}.{}' to {} via {}",
+                    typeName,
+                    fieldName,
+                    resolverKClass.qualifiedName,
+                    resolverClass.classLoader
                 )
                 val resolverExecutor = FieldBatchResolverExecutorImpl(
                     objectSelectionSet = objectSelectionSet,
@@ -243,7 +252,7 @@ class ViaductTenantModuleBootstrapper(
      * on whether the tenant implements `resolve` or `batchResolve`. Returns these as maps from the node name to the
      * corresponding object.
      */
-    override fun nodeResolverExecutors(): Iterable<Pair<String, NodeResolverExecutor>> {
+    override fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>> {
         val nodeResolverExecutors: MutableMap<String, NodeResolverExecutor> = mutableMapOf()
         val nodeResolverBase = NodeResolverBase::class.java
 
@@ -261,9 +270,23 @@ class ViaductTenantModuleBootstrapper(
             nodeResolverBaseClasses.associateWith { // Get all node resolver subclasses
                 tenantResolverClassFinder.getSubTypesOf(it.name) as Set<Class<out NodeResolverBase<*>>>
             }
-        nodeResolverClassesByBaseClass.forEach { (baseClass, nodeResolverClasses) ->
+        for ((baseClass, nodeResolverClasses) in nodeResolverClassesByBaseClass) {
             val nodeResolverForAnnotation = baseClass.annotations.first { it is NodeResolverFor } as NodeResolverFor
             val typeName = nodeResolverForAnnotation.typeName
+
+            val nodeType = schema.schema.getObjectType(typeName)
+            if (nodeType == null) {
+                if (schema.schema.getType(typeName) == null) {
+                    log.warn("Found node resolver code for {} which is unknown in the schema.", typeName)
+                } else {
+                    log.warn("Found resolver code for type {} which is not a GraphQL Object type ({}).", typeName, nodeType)
+                }
+                continue
+            } else if (nodeType.interfaces.none { it.name == "Node" }) {
+                log.warn("Found node resolver for {} which does not implement Node.", typeName)
+                continue
+            }
+
             if (nodeResolverClasses.size != 1) {
                 throw TenantModuleException(
                     "Expected exactly one resolver implementation for $typeName, " +
@@ -286,11 +309,9 @@ class ViaductTenantModuleBootstrapper(
             val resolveFunction = resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "resolve" }
             val batchResolveFunction = resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "batchResolve" }
 
-            @Suppress("UNCHECKED_CAST")
-            val contextKClass = baseClass.declaredClasses.firstOrNull {
-                NodeExecutionContext::class.java.isAssignableFrom(it)
-            }?.kotlin as? KClass<NodeExecutionContext<NodeObject>>
-                ?: throw java.lang.IllegalArgumentException("No nested Context class found in ${baseClass.name}")
+            val nodeContextClasses = ExecutionContextClasses(NodeExecutionContext::class, tenantResolverClassFinder, baseClass)
+
+            val contextKClass = nodeContextClasses.context
             val resolverContextFactory = NodeResolverContextFactory.forClass(
                 contextKClass,
                 NodeExecutionContextMetaFactory.create(
@@ -302,10 +323,7 @@ class ViaductTenantModuleBootstrapper(
                 if (batchResolveFunction != null) {
                     throw TenantModuleException("Resolver class $resolverKClass implements both 'resolve' and 'batchResolve', it should only implement one")
                 }
-                log.info(
-                    "- Adding node resolver entry for '$typeName' " +
-                        "to '${resolverKClass.qualifiedName}'."
-                )
+                log.info("- Adding node resolver entry for '{}' to '{}'.", typeName, resolverKClass.qualifiedName)
                 val nodeUnbatchedResolverExecutor =
                     NodeUnbatchedResolverExecutorImpl(
                         resolver = resolverContainerProvider,
@@ -322,10 +340,7 @@ class ViaductTenantModuleBootstrapper(
                     )
                 }
             } else if (batchResolveFunction != null) {
-                log.info(
-                    "- Adding node batch resolver entry for '$typeName' " +
-                        "to '${resolverKClass.qualifiedName}'."
-                )
+                log.info("- Adding node batch resolver entry for '{}' to '{}'.", typeName, resolverKClass.qualifiedName)
                 val nodeResolverExecutor =
                     NodeBatchResolverExecutorImpl(
                         resolver = resolverContainerProvider,

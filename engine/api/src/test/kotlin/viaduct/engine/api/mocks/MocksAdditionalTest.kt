@@ -146,7 +146,7 @@ class MocksAdditionalTest {
             }
         }
 
-        val nodeResolvers = module.nodeResolverExecutors().toList()
+        val nodeResolvers = module.nodeResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, nodeResolvers.size)
 
         val (typeName, executor) = nodeResolvers[0]
@@ -164,7 +164,7 @@ class MocksAdditionalTest {
             }
         }
 
-        val resolverExecutors = module.nodeResolverExecutors().toList()
+        val resolverExecutors = module.nodeResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolverExecutors.size)
 
         val (typeName, resolver) = resolverExecutors[0]
@@ -196,7 +196,7 @@ class MocksAdditionalTest {
         }
 
         assertEquals(2, module.fieldResolverExecutors(Samples.testSchema).count())
-        assertEquals(2, module.nodeResolverExecutors().count())
+        assertEquals(2, module.nodeResolverExecutors(Samples.testSchema).count())
     }
 
     @Test
@@ -239,7 +239,7 @@ class MocksAdditionalTest {
             coordinates
         )
 
-        val nodeResolvers = module.nodeResolverExecutors().toList()
+        val nodeResolvers = module.nodeResolverExecutors(Samples.testSchema).toList()
         assertEquals(2, nodeResolvers.size)
 
         // Verify unbatched node resolvers
@@ -313,7 +313,7 @@ class MocksAdditionalTest {
         val emptyModule = MockTenantModuleBootstrapper(MockSchema.minimal)
 
         assertEquals(0, emptyModule.fieldResolverExecutors(Samples.testSchema).count())
-        assertEquals(0, emptyModule.nodeResolverExecutors().count())
+        assertEquals(0, emptyModule.nodeResolverExecutors(Samples.testSchema).count())
     }
 
     @Test
