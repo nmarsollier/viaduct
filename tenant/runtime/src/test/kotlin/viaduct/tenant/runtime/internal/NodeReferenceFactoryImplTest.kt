@@ -40,7 +40,7 @@ class NodeReferenceFactoryImplTest {
             every { nodeCheckerRegistryProvider.get() } returns mockk()
             val schema = GlobalIdFeatureAppTest.schema
             val globalId = GlobalIDImpl(User.Reflection, "123")
-            val factory = NodeReferenceFactoryImpl { id: String, objectType: GraphQLObjectType ->
+            val factory = NodeReferenceFactoryImpl { _: String, objectType: GraphQLObjectType ->
                 mockk {
                     every { graphQLObjectType } returns objectType
                 }
@@ -145,7 +145,6 @@ class NodeReferenceFactoryImplTest {
     }
 
     @Test
-    @Suppress("KotlinConstantConditions")
     fun `nodeFor - user returned from function can get the id `() {
         val internalId = "123"
         val globalId = GlobalIDImpl(User.Reflection, internalId)

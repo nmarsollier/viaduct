@@ -3,7 +3,6 @@ package viaduct.tenant.runtime.context.factory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
@@ -35,8 +34,7 @@ class ObjectFactoryTest {
                     ).getObjectArgs()
                 )
 
-            assertTrue(obj is Bar)
-            obj as Bar
+            assertEquals(Bar::class, obj::class)
             assertEquals(42, obj.getX())
             assertEquals(true, obj.getY())
             assertEquals("Z", obj.getZ())

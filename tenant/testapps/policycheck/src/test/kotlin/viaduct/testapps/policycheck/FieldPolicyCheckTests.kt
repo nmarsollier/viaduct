@@ -1,6 +1,7 @@
 package viaduct.testapps.policycheck
 
 import java.util.Base64
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -10,6 +11,7 @@ import viaduct.testapps.fixtures.ScopedSchemaInfo
 import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FieldPolicyCheckTests : TestBase(
     setOf(ScopedSchemaInfo("policyCheckSchema", setOf("SCOPE1"))),
     fullSchemaRegex = "viaduct.testapps.policycheck.tenant1.*graphqls",

@@ -222,10 +222,7 @@ class ResolverDataFetcher(
             val queryEngineResultDeferred = if (shouldUseModernExecutionStrategy(environment)) {
                 val engineLoaderContext = environment.findLocalContextForType<EngineResultLocalContext>()
                 // Modern strategy - use the queryEngineResult from context
-                CompletableDeferred(
-                    engineLoaderContext.queryEngineResult
-                        ?: throw IllegalStateException("Missing query ObjectEngineResult")
-                )
+                CompletableDeferred(engineLoaderContext.queryEngineResult)
             } else {
                 if (fieldResolverDispatcher.querySelectionSet == null) {
                     // Legacy strategy with no query selections - use empty queryEngineResult from context
@@ -245,10 +242,7 @@ class ResolverDataFetcher(
 
             val parentEngineResultDeferred = if (shouldUseModernExecutionStrategy(environment)) {
                 val engineLoaderContext = environment.findLocalContextForType<EngineResultLocalContext>()
-                CompletableDeferred(
-                    engineLoaderContext.parentEngineResult
-                        ?: throw IllegalStateException("Missing parent ObjectEngineResult")
-                )
+                CompletableDeferred(engineLoaderContext.parentEngineResult)
             } else {
                 val resolverSelectionSet = fieldResolverDispatcher.objectSelectionSet
                 val checkerSelectionSets = checkerDispatcher?.requiredSelectionSets?.values?.toList()?.filterNotNull()

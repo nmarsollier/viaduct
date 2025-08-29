@@ -234,7 +234,7 @@ class ObjectEngineResultImplTest {
                 List(50) {
                     testScope.launch {
                         val value = engine.fetch(key, RAW_VALUE_SLOT)
-                        val check = engine.fetch(key, ACCESS_CHECK_SLOT)
+                        engine.fetch(key, ACCESS_CHECK_SLOT)
                         readResults.computeIfAbsent(key.name) {
                             ConcurrentHashMap.newKeySet()
                         }.add(value as String)
@@ -786,7 +786,7 @@ class ObjectEngineResultImplTest {
                         mapOf("id" to "456", "name" to "Bob")
                     ),
                     "friendCount" to 10,
-                    "socialMedia" to "http://example.com"
+                    "socialMedia" to "https://example.com"
                 )
 
                 val result = ObjectEngineResultImpl.newFromMap(
@@ -825,7 +825,7 @@ class ObjectEngineResultImplTest {
                 assertEquals(10, result.fetch(ObjectEngineResult.Key("friendCount", null, mapOf("onlyDirect" to false)), RAW_VALUE_SLOT))
 
                 // Test variable references
-                assertEquals("http://example.com", result.fetch(ObjectEngineResult.Key("socialMedia", null, mapOf("siteName" to "example")), RAW_VALUE_SLOT))
+                assertEquals("https://example.com", result.fetch(ObjectEngineResult.Key("socialMedia", null, mapOf("siteName" to "example")), RAW_VALUE_SLOT))
             }
         }
 
@@ -990,6 +990,7 @@ class ObjectEngineResultImplTest {
         }
 
         @Test
+        @Suppress("UNCHECKED_CAST")
         fun `newFromMap with list of objects`() {
             runBlocking {
                 val schema = mkSchema(
@@ -1171,10 +1172,10 @@ class ObjectEngineResultImplTest {
                     mkRss("Query", "x", emptyMap(), schema)
                 )
 
-                // Test selected field
+                // Test the selected field
                 assertEquals(1, result.fetch(ObjectEngineResult.Key("x"), RAW_VALUE_SLOT))
 
-                // assert that the unselected field was not stored in the OER.
+                // Assert that the unselected field was not stored in the OER.
                 // We can do this by trying to compute a value for the key we suspect this would have been populated under
                 var computeRan = false
                 runCatching {

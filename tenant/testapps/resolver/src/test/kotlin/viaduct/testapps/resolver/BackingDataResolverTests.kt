@@ -1,5 +1,6 @@
 package viaduct.testapps.resolver
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
 import viaduct.graphql.test.assertJson
@@ -10,6 +11,7 @@ import viaduct.testapps.testfixtures.TestBase
 /**
  * Test @Resolver for @backingData queries.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class BackingDataResolverTests : TestBase(
     setOf(ScopedSchemaInfo(DEFAULT_SCHEMA_ID, setOf(DEFAULT_PUBLIC_SCOPE_ID))),
     tenantPackageFinder = TestTenantPackageFinder(Tenants),

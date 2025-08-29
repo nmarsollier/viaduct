@@ -24,7 +24,7 @@ class FromArgumentVariablesHaveValidPathsTest {
                 listOf(FromArgument("x", listOf("x")))
             )
 
-            // Variable name different from argument name
+            // Variable name different from the argument name
             assertValid(
                 "Query" to "foo",
                 "bar(y: \$myVar)",
@@ -419,7 +419,7 @@ class FromArgumentVariablesHaveValidPathsTest {
             }
             """.trimIndent()
         ) {
-            val err = assertInvalid(
+            assertInvalid(
                 "Query" to "foo",
                 "acceptList(items: \$item)",
                 listOf(
@@ -428,7 +428,7 @@ class FromArgumentVariablesHaveValidPathsTest {
             )
         }
 
-        // Test with nullable list too
+        // Test with a nullable list too
         Fixture(
             """
             type Query {
@@ -464,7 +464,7 @@ class FromArgumentVariablesHaveValidPathsTest {
             )
         }
 
-        // Test coercion of nullable singleton type to list of nullable inner type
+        // Test coercion of a nullable singleton type to a list of a nullable inner type
         Fixture(
             """
             type Query {

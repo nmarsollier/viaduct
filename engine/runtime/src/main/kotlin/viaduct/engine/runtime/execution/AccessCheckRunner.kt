@@ -104,10 +104,10 @@ class AccessCheckRunner(
                     fieldCheckerResultValue == Value.nullValue -> typeCheckerResultValue
                     else -> {
                         // Both checkers exist, combine the CheckerResults
-                        fieldCheckerResultValue.flatMap { fieldCheckerResult ->
+                        fieldCheckerResultValue.flatMap<CheckerResult?> { fieldCheckerResult ->
                             typeCheckerResultValue.flatMap { typeCheckerResult ->
                                 check(fieldCheckerResult != null && typeCheckerResult != null) { "Expected non-null field and type checker results" }
-                                Value.fromValue(typeCheckerResult.combine(fieldCheckerResult)) as Value<out CheckerResult?>
+                                Value.fromValue(typeCheckerResult.combine(fieldCheckerResult))
                             }
                         }
                     }

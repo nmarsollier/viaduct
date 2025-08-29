@@ -1,5 +1,6 @@
 package viaduct.testapps.resolver
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertJson
 import viaduct.testapps.fixtures.ScopedSchemaInfo
@@ -9,9 +10,10 @@ import viaduct.testapps.testfixtures.TestBase
 /**
  * Tests @Resolver on scalar queries.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class ScalarResolverTests : TestBase(
     setOf(ScopedSchemaInfo(DEFAULT_SCHEMA_ID, setOf(DEFAULT_PUBLIC_SCOPE_ID))),
-    tenantPackageFinder = TestTenantPackageFinder(viaduct.testapps.resolver.Tenants)
+    tenantPackageFinder = TestTenantPackageFinder(Tenants)
 ) {
     @Test
     fun `Resolver returns string`() {
@@ -46,7 +48,7 @@ class ScalarResolverTests : TestBase(
     }
 
     @Test
-    fun `Resolver query with aruments returns argument`() {
+    fun `Resolver query with arguments returns argument`() {
         execute(
             schemaId = DEFAULT_SCHEMA_ID,
             query = """

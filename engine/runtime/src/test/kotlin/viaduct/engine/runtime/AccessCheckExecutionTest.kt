@@ -4,6 +4,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.mocks.MockEngineObjectData
@@ -82,7 +83,8 @@ class AccessCheckExecutionTest {
         }
 
         assertTrue(asyncFieldCheckerRan)
-        // TODO: uncomment after registering all checkers
+        assumeTrue(syncFieldCheckerRan, "Sync field checkers not yet implemented")
+        // TODO: uncomment after registering all checkers and remove above assumeTrue assertion
         // assertTrue(syncFieldCheckerRan)
     }
 

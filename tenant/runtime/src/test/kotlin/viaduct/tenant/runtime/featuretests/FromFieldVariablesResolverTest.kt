@@ -711,4 +711,8 @@ internal fun Throwable.stripWrappers(): Throwable =
         else -> this
     }
 
-internal fun <T : Throwable> Throwable.stripWrappersAs(): T = this.stripWrappers() as T
+internal inline fun <reified T : Throwable> Throwable.stripWrappersAs(): T {
+    val stripped = this.stripWrappers()
+    return stripped as? T
+        ?: throw IllegalStateException("Expected ${T::class.simpleName} but got ${stripped::class.simpleName}")
+}

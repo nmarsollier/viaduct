@@ -49,7 +49,6 @@ class SelectionsLoaderImplTest {
                     coEvery { fetch(Query.Reflection.Fields.intField.name) } returns 42
                 }
             }
-            val rawSelectionSet = mockk<RawSelectionSet>()
             val loaded = SelectionsLoaderImpl<Query>(rawSelectionsLoader)
                 .load(
                     context,

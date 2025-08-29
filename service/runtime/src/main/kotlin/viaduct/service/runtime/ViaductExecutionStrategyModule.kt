@@ -173,7 +173,7 @@ class ViaductExecutionStrategyModule(
 
     @Provides
     @Singleton
-    fun providesScopeInstrumentation(flagManager: FlagManager): ScopeInstrumentation {
+    fun providesScopeInstrumentation(): ScopeInstrumentation {
         return ScopeInstrumentation()
     }
 

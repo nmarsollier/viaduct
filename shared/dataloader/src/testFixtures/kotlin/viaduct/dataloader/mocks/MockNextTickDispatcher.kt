@@ -1,6 +1,7 @@
 package viaduct.dataloader.mocks
 
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.max
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Delay
 import kotlinx.coroutines.DisposableHandle
@@ -27,44 +28,35 @@ class MockNextTickDispatcher constructor(
     private val internalDispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher(),
     private val batchQueueDispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher()
 ) : NextTickDispatcher(internalDispatcher, batchQueueDispatcher, flagManager = FlagManager.disabled), Delay, DelayController {
-    @ExperimentalCoroutinesApi
     override val currentTime: Long
         get() = internalDispatcher.currentTime
 
-    @ExperimentalCoroutinesApi
     override fun advanceTimeBy(delayTimeMillis: Long): Long = internalDispatcher.advanceTimeBy(delayTimeMillis)
 
-    @ExperimentalCoroutinesApi
     override fun advanceUntilIdle(): Long {
-        var advanced: Long = 0L
+        var advanced: Long
         do {
             // advance our dispatchers in order. internalDispatcher will create nextTicks for batchQueueDispatcher
             // those nextTicks will add to the internalDispatcher until everything is executed
-            advanced = Math.max(internalDispatcher.advanceUntilIdle(), batchQueueDispatcher.advanceUntilIdle())
+            advanced = max(internalDispatcher.advanceUntilIdle(), batchQueueDispatcher.advanceUntilIdle())
         } while (advanced != 0L)
-        return advanced
+        return 0L
     }
 
-    @ExperimentalCoroutinesApi
     override fun cleanupTestCoroutines() = internalDispatcher.cleanupTestCoroutines()
 
-    @ExperimentalCoroutinesApi
     override fun pauseDispatcher() = internalDispatcher.pauseDispatcher()
 
-    @ExperimentalCoroutinesApi
     override suspend fun pauseDispatcher(block: suspend () -> Unit) = internalDispatcher.pauseDispatcher(block)
 
-    @ExperimentalCoroutinesApi
     override fun resumeDispatcher() = internalDispatcher.resumeDispatcher()
 
-    @ExperimentalCoroutinesApi
     override fun runCurrent() = internalDispatcher.runCurrent()
 
     fun runBlockingTest(testBody: suspend TestCoroutineScope.() -> Unit) {
         kotlinx.coroutines.test.runBlockingTest(this, testBody)
     }
 
-    @InternalCoroutinesApi
     override fun scheduleResumeAfterDelay(
         timeMillis: Long,
         continuation: CancellableContinuation<Unit>

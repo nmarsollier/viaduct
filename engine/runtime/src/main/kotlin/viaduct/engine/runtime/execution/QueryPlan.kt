@@ -354,10 +354,7 @@ private class QueryPlanBuilder(
         return buildChildPlansFromRequiredSelectionSets(requiredSelectionSets)
     }
 
-    private fun buildFieldTypeChildPlans(
-        fieldType: GraphQLNamedOutputType,
-        field: GJField
-    ): Map<GraphQLObjectType, List<QueryPlan>> {
+    private fun buildFieldTypeChildPlans(fieldType: GraphQLNamedOutputType): Map<GraphQLObjectType, List<QueryPlan>> {
         if (fieldType !is GraphQLCompositeType) {
             return emptyMap()
         }
@@ -425,7 +422,7 @@ private class QueryPlanBuilder(
             val fieldChildPlans = buildRequiredSelectionSetPlans(parentType, sel)
             val planChildPlans = buildVariablesPlans(sel)
 
-            val fieldTypeChildPlans = buildFieldTypeChildPlans(fieldType, sel)
+            val fieldTypeChildPlans = buildFieldTypeChildPlans(fieldType)
 
             val fieldConstraints = constraints
                 .withDirectives(sel.directives)

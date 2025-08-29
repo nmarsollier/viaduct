@@ -74,9 +74,9 @@ class ViaductTenantModuleBootstrapper(
             }
         @Suppress("UNCHECKED_CAST")
         val resolverClassesByBaseClass: Map<Class<out ResolverBase<*>>, List<Class<out ResolverBase<*>>>> =
-            resolverBaseClasses.associate {
+            resolverBaseClasses.associateWith { type ->
                 // Get all @Resolver subclasses
-                it to tenantResolverClassFinder.getSubTypesOf(it.name).filter { it.kotlin.hasAnnotation<Resolver>() } as List<Class<out ResolverBase<*>>>
+                tenantResolverClassFinder.getSubTypesOf(type.name).filter { it.kotlin.hasAnnotation<Resolver>() } as List<Class<out ResolverBase<*>>>
             }
         for ((baseClass, resolverClasses) in resolverClassesByBaseClass) {
             val resolverForAnnotation = baseClass.annotations.firstOrNull { it is ResolverFor } as? ResolverFor
@@ -100,7 +100,7 @@ class ViaductTenantModuleBootstrapper(
             val resolverContainerProvider = try {
                 tenantCodeInjector.getProvider(resolverClass)
             } catch (e: NoClassDefFoundError) {
-                // This can happen, at times, for tenant JARs whose dependencies don't resolve.
+                // This can happen, at times, for tenant JARs, whose dependencies don't resolve.
                 // By re-throwing a TenantModuleException, we ensure we only skip the bootstrapping of one offending tenant.
                 throw TenantModuleException("Resolver class $resolverClass could not be injected into", e)
             }
@@ -301,7 +301,7 @@ class ViaductTenantModuleBootstrapper(
             val resolverContainerProvider = try {
                 tenantCodeInjector.getProvider(resolverClass)
             } catch (e: NoClassDefFoundError) {
-                // This can happen, at times, for tenant JARs whose dependencies don't resolve.
+                // This can happen, at times, for tenant JARs, whose dependencies don't resolve.
                 // By re-throwing a TenantModuleException, we ensure we only skip the bootstrapping of one offending tenant.
                 throw TenantModuleException("Resolver class $resolverClass could not be injected into", e)
             }
@@ -309,7 +309,7 @@ class ViaductTenantModuleBootstrapper(
             val resolveFunction = resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "resolve" }
             val batchResolveFunction = resolverKClass.declaredMemberFunctions.firstOrNull { it.name == "batchResolve" }
 
-            val nodeContextClasses = ExecutionContextClasses(NodeExecutionContext::class, tenantResolverClassFinder, baseClass)
+            val nodeContextClasses = ExecutionContextClasses(NodeExecutionContext::class, baseClass)
 
             val contextKClass = nodeContextClasses.context
             val resolverContextFactory = NodeResolverContextFactory.forClass(
@@ -382,7 +382,7 @@ class ViaductTenantModuleBootstrapper(
             fieldName: String
         ): KClass<out Arguments> = classFinder.argumentClassForName(argumentTypeName(typeName, fieldName))
 
-        // Utility function to get argumentTypeName based of type and field names.
+        // Utility function to get argumentTypeName based on type and field names.
         private fun argumentTypeName(
             typeName: String,
             fieldName: String

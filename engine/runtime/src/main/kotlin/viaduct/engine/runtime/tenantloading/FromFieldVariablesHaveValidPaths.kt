@@ -23,6 +23,7 @@ class FromFieldVariablesHaveValidPaths(
 ) : Validator<RequiredSelectionsValidationCtx> {
     private val rawSelectionSetFactory = RawSelectionSetFactoryImpl(schema)
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun validate(ctx: RequiredSelectionsValidationCtx) {
         // For the supplied coordinate, we want to look up all of its RequiredSelectionSets and validate
         // every FromFieldVariablesResolver therein.
@@ -31,10 +32,10 @@ class FromFieldVariablesHaveValidPaths(
         // and being able to use a FromField variable in one RSS that refers to a path selected in another.
         //
         // To manage this, we:
-        //   1. create a mapping of all FromField variable resolvers: "variableName" -> FromFieldVariablesResolver
-        //   1. create a mapping of all variable sources: "variableName" -> RequiredSelectionSet
-        //   2. create a mapping of all variable sinks: "variableName" -> List<VariableUsageInfo>
-        //   3. for each variable sink, lookup its source and validate that the source and sink are compatible
+        //   1. Create a mapping of all FromField variable resolvers: "variableName" -> FromFieldVariablesResolver
+        //   1. Create a mapping of all variable sources: "variableName" -> RequiredSelectionSet
+        //   2. Create a mapping of all variable sinks: "variableName" -> List<VariableUsageInfo>
+        //   3. For each variable sink, lookup its source and validate that the source and sink are compatible
 
         val allSets = ctx.requiredSelectionSetRegistry.getRequiredSelectionSets(ctx.coord.first, ctx.coord.second, true)
 

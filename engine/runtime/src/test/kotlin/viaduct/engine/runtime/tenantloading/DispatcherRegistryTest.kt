@@ -4,7 +4,6 @@ package viaduct.engine.runtime.tenantloading
 
 import graphql.language.AstPrinter
 import kotlin.collections.count
-import kotlin.collections.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -198,7 +197,7 @@ class DispatcherRegistryTest {
     fun `invokes validator`() {
         val bootstrapper = MockTenantAPIBootstrapper(emptyList())
         MockValidator().let { validator ->
-            val wiring = DispatcherRegistryFactory(bootstrapper, validator, MockCheckerExecutorFactory()).create(Samples.testSchema)
+            DispatcherRegistryFactory(bootstrapper, validator, MockCheckerExecutorFactory()).create(Samples.testSchema)
             assertNotNull(validator.arg)
         }
     }
@@ -278,11 +277,11 @@ class DispatcherRegistryTest {
             assertEquals(6, fieldResolverExecutors.size)
             assertEquals(2, nodeResolverExecutors.size)
 
-            assert(fieldResolverExecutors.get(("TestType" to "aField"))!! is MockFieldUnbatchedResolverExecutor)
-            assert(fieldResolverExecutors.get(("TestType" to "bIntField"))!! is MockFieldUnbatchedResolverExecutor)
-            assert(fieldResolverExecutors.get(("TestType" to "parameterizedField"))!! is MockFieldUnbatchedResolverExecutor)
-            assert(fieldResolverExecutors.get(("TestType" to "batchField"))!! is MockFieldBatchResolverExecutor)
-            assert(nodeResolverExecutors.get("TestNode")!! is MockNodeUnbatchedResolverExecutor)
-            assert(nodeResolverExecutors.get("TestBatchNode")!! is MockNodeBatchResolverExecutor)
+            assert(fieldResolverExecutors[("TestType" to "aField")]!! is MockFieldUnbatchedResolverExecutor)
+            assert(fieldResolverExecutors[("TestType" to "bIntField")]!! is MockFieldUnbatchedResolverExecutor)
+            assert(fieldResolverExecutors[("TestType" to "parameterizedField")]!! is MockFieldUnbatchedResolverExecutor)
+            assert(fieldResolverExecutors[("TestType" to "batchField")]!! is MockFieldBatchResolverExecutor)
+            assert(nodeResolverExecutors["TestNode"]!! is MockNodeUnbatchedResolverExecutor)
+            assert(nodeResolverExecutors["TestBatchNode"]!! is MockNodeBatchResolverExecutor)
         }
 }
