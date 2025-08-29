@@ -166,7 +166,6 @@ jobs:
           paths:
             - build
             - .gradle
-            - "**/build"
             - build/package
 
   test:
@@ -206,6 +205,18 @@ jobs:
                     exit 1
                   }
                   echo "✅ Coverage report generated successfully"
+                when: always
+            
+            - run:
+                name: Verify coverage thresholds
+                command: |
+                  echo "🎯 Verifying coverage thresholds..."
+                  ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache -x testCodeCoverageReport || {
+                    echo "❌ Coverage thresholds not met"
+                    echo "Please check the coverage report and add more tests"
+                    exit 1
+                  }
+                  echo "✅ Coverage thresholds met successfully"
                 when: always
       - fail-step:
           message: "JaCoCo coverage report generation failed"
@@ -293,36 +304,6 @@ jobs:
           path: build/docs/javadoc
           destination: javadoc
 
-  coverage-verification:
-    executor: kotlin-gradle-executor
-    steps:
-      - checkout
-
-
-      - attach_workspace:
-          at: ~/project
-      - fail-step:
-          message: "Failed to restore workspace in coverage-verification job"
-
-      - setup-gradle
-      - fail-step:
-          message: "Gradle setup failed in coverage-verification job"
-
-      - gradle-with-cache:
-          steps:
-            - run:
-                name: Verify coverage thresholds
-                command: |
-                  echo "🎯 Verifying coverage thresholds..."
-                  # Skip report generation since it was already done in test job
-                  ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache -x testCodeCoverageReport || {
-                    echo "❌ Coverage thresholds not met"
-                    echo "Please check the coverage report and add more tests"
-                    exit 1
-                  }
-                  echo "✅ Coverage thresholds met successfully"
-      - fail-step:
-          message: "Coverage threshold verification failed"
 
   deploy-docs:
     docker:
@@ -399,9 +380,6 @@ workflows:
       - docs:
           requires:
             - build
-      - coverage-verification:
-          requires:
-            - test
       # TODO: Re-enable when Dokka documentation is working
       # - deploy-docs:
       #     requires:
@@ -426,6 +404,3 @@ workflows:
       - docs:
           requires:
             - build
-      - coverage-verification:
-          requires:
-            - test
