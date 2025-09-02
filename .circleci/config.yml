@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   gradle: circleci/gradle@3.0.0
-  hugo: circleci/hugo@1.3.1
+  hugo: circleci/hugo@1.4.0
 
 executors:
   kotlin-gradle-executor:
@@ -473,7 +473,7 @@ workflows:
       - build
       - test:
           requires:
-            - build
+zsh:1: command not found: :q
       - lint:
           requires:
             - build
