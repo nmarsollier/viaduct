@@ -2,6 +2,8 @@ package viaduct.graphql.test
 
 import graphql.ExecutionResult
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * DSL Extension function for ExecutionResult to assert equality with a map built using a DSL function.
@@ -26,6 +28,23 @@ import kotlin.test.assertEquals
  *  }
  */
 fun ExecutionResult.assertEquals(mapFn: QueryResultBuilderFn) = assertEquals(queryResultMap(mapFn), this.toSpecification())
+
+fun ExecutionResult.hasError(expectedMessage: String) {
+    val spec = this.toSpecification()
+    val errors = spec["errors"] as? List<*>
+
+    assertNotNull(errors, "Expected errors but found none. Result: $spec")
+    assertTrue(errors.isNotEmpty(), "Expected errors but errors list was empty. Result: $spec")
+
+    val errorMessages = errors.mapNotNull { error ->
+        (error as? Map<*, *>)?.get("message") as? String
+    }
+
+    assertTrue(
+        errorMessages.any { it.contains(expectedMessage) },
+        "Expected error message containing '$expectedMessage' but found: $errorMessages"
+    )
+}
 
 /**
  * Type alias for a function that operates on a MapBuilder.
