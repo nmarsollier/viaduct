@@ -365,8 +365,8 @@ jobs:
             - "SHA256:BVtkRhB6f0RHdEW8kTWcidy5v3r6vUQ2tzpW/40DV9U" # viaductbot key
 
       - run:
-          name: Install gh-pages tool
-          command: npm install gh-pages@6.3.0 --silent
+          name: Install gh-pages, autoprefixer, postcss
+          command: npm install gh-pages@6.3.0 autoprefixer postcss postcss-cli --silent
 
       - run:
           name: Configure git for deployment
