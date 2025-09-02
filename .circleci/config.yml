@@ -67,6 +67,7 @@ commands:
 jobs:
   build:
     executor: kotlin-gradle-executor
+    resource_class: large
     steps:
       - checkout
 
