@@ -1,54 +1,79 @@
 ---
 title: Generated Code
 description: What code does Viaduct generate for you?
-weight: 2
+weight: 30
 ---
 
-The new API generates two kinds of classes: *GraphQL Representational Types* (GRTs), and *resolver base classes,* i.e., the classes mentioned above that contain tenant-provided resolver functions.  This subsection discusses GRTS.  The next section will discuss resolver base classes.
+# Generated Code
 
-Like API Classic, for each GraphQL type API Modern generates a number of Kotlin classes to represent its values.  These classes are found in the `viaduct.api.grts` package.  In API Modern we generate just two classes for each GraphQL type: a class representing a *value* of a given type, and a builder-class allowing you to construct a value of a given type.  API Modern does not have `Value` classes, `DeferredBuilder`s, or Apollo-generated fragment classes.
+The API generates two kinds of classes: *GraphQL Representational Types* (GRTs), and *resolver base classes,* i.e., the classes mentioned above that contain tenant-provided resolver functions.  This subsection discusses GRTS.  The next section will discuss resolver base classes.
 
-Consider this simple schema:
+For each GraphQL type, Viaduct generates a number of Kotlin classes to represent its values.  These classes are found in the `viaduct.api.grts` package.  In Viaduct we generate just two classes for each GraphQL type: a class representing a *value* of a given type, and a builder-class allowing you to construct a value of a given type.  Consider this simple schema:
 
-`type User implements Node {`  
-`id: ID!`  
-`firstName: String`  
-`lastName: String`  
-`displayName: String`  
-`}`
+```graphql
+type User implements Node {
+  id: ID!
+  firstName: String
+  lastName: String
+  displayName: String
+}
+```
 
 The signature of the GRT for this type would look approximately like this:
 
-`package viaduct.api.grts.User`
+```kotlin
+package viaduct.api.grts.User
 
-`class User private constructor(...): NodeObject, Object {`  
-`suspend fun getId(alias: String? = null): GlobalID<User>`  
-`suspend fun getFirstName(alias: String? = null): String?`  
-`suspend fun getLastName(alias: String? = null): String?`  
-`suspend fun getDisplayName(alias: String? = null): String?`
+class User private constructor(...): NodeObject, Object {
+  suspend fun getId(alias: String? = null): GlobalID<User>
+  suspend fun getFirstName(alias: String? = null): String?
+  suspend fun getLastName(alias: String? = null): String?
+  suspend fun getDisplayName(alias: String? = null): String?
 
-`class Builder(): DynamicValueOutputBuilder<User> {`  
-`fun id(id: GlobalID<User>): Builder`  
-`fun firstName(firstName: String?): Builder`  
-`fun lastName(lastName: String?): Builder`  
-`fun displayName(displayName: String?): Builder`  
-`override fun build(): User`  
-`}`  
-`}`
+  class Builder(): DynamicValueOutputBuilder<User> {
+    fun id(id: GlobalID<User>): Builder
+    fun firstName(firstName: String?): Builder
+    fun lastName(lastName: String?): Builder
+    fun displayName(displayName: String?): Builder
+    override fun build(): User
+  }
+}
+```
 
 `Object` is a tagging interface (i.e., an interface with no methods) for GRTs representing GraphQL object types.  `DynamicValueOutputBuilder<T>` is an interface for builders of such types (it defines a `build` function that returns a `T`).
 
-As described below, Viaduct Modern does *not* use the Apollo to generate fragment classes; instead, the values from a fragment on `User` (for example) are accessed through the GRT for `User`.  As a result, the GRTs API Modern GRTs for object types distinguish fields that are “not set,” because they haven’t been requested for in the fragment, from fields that are in the fragment and thus are “set.”  If you attempt to access a field that has not been set, a `UnsetSelectionException` exception will be thrown, even if that field is nullable.  Also, when you build an object-type value, you do *not* have to set all fields, even if those fields are required.
+The values from a fragment on `User` (for example) are accessed through the GRT for `User`.  As a result, the Viaduct GRTs for object types distinguish fields that are "not set," because they haven’t been requested for in the fragment, from fields that are in the fragment and thus are "set."  If you attempt to access a field that has not been set, a `UnsetSelectionException` exception will be thrown, even if that field is nullable.  Also, when you build an object-type value, you do *not* have to set all fields, even if those fields are non-nullable.
 
-As in API Classic, the GRTs for interface types are Kotlin interfaces with suspending getters (but no builders); for union types are simply Kotlin “tagging” interfaces (i.e.,Kotlin  interfaces with no members).
+The GRTs for interface types are Kotlin interfaces with suspending getters (but no builders), while the GRTs for union types are simply Kotlin "tagging" interfaces (i.e., Kotlin interfaces with no members).
 
-For GraphQL input-object types, the pattern for GRTs is similar to that for output-object types illustrated by `User`.  However, instead of suspending getter functions, the GRTs for input-object types use Kotlin properties for accessing fields.  “Partial” input-object types are not possible: every field of an input-object GRT instance is defined (thus, `FieldNotSet` is never thrown when accessing their fields).  To achieve this invariant, builders for input-object types are stricter than those for object types: if you call `build` on an `InputType.Builder` instance without having set all required fields of that type, then `build` will raise a runtime error.  A field is “required” if it’s defined with the \`\!\` (non-null) wrapper *and* it has no default value.
+For GraphQL input-object types, the pattern for GRTs is similar to that for output-object types illustrated by `User`.  However, instead of suspending getter functions, the GRTs for input-object types use Kotlin properties for accessing fields.  "Partial" input-object types are not possible: every field of an input-object GRT instance is defined (thus, `FieldNotSet` is never thrown when accessing their fields).  To achieve this invariant, builders for input-object types are stricter than those for object types: if you call `build` on an `InputType.Builder` instance without having set all required fields of that type, then `build` will raise a runtime error.  A field is "required" if it’s defined with the \`\!\` (non-null) wrapper *and* it has no default value.
 
-### Reflective Types
+Viaduct is what is known as a "schema-first" GraphQL system: developers write GraphQL schema directly, and the Viaduct system generates "GraphQL representational types (GRTs)" to allow developers to read and write the types expressed by the schema.
 
-[James Bellenger](mailto:james.bellenger@airbnb.com) \- can you fill in this section and also the reflective-types section of RFC-140?  Thanks.
+Any single tenant module consumes only a small fraction of the central schema, so building representational types for the entire schema for every tenant is wasteful. Instead, Viaduct uses "compilation schemas", a per-tenant, private view of the central schema consisting of only the schema elements used by a tenant. This makes Viaduct builds fast and scalable by ensuring that tenants are built in parallel and are only rebuilt when needed.
 
-### Compilation Schema
+The tenant compilation schema is used to generate the GRTs described above. The compilation schema is a *subset* of the total schema visible to a tenant, a subset generated by looking at the import statements in the tenant’s source code. Tenant compilation schemas are always valid, self-contained GraphQL schemas.
 
-As in Viaduct Classic, the [tenant compilation schema](https://developers.a.musta.ch/docs/default/component/viaduct/tenant-compilation-schemas/) is used to generate the GRTs described above.  The compilation schema is a *subset* of the total schema visible to a tenant, a subset generated by looking at the import statements in the tenant’s source code.  As in Viaduct Classic, the algorithm for computing the compilation schema will occasionally miss a needed type, leading to a type-not-found error during compilation.  In these cases you will need to include types used in the fragments in the compilation schema by adding them to your tenant’s `explicit_compilation_schema_types.txt` file. 
+[//]: # (## Addressing an unresolved GraphQL object type)
 
+[//]: # ()
+[//]: # (The algorithm for computing the compilation schema will occasionally miss a needed type, leading to a type-not-found error during compilation.  In these cases you will need to include types used in the fragments in the compilation schema by adding them to your tenant’s explicit\_compilation\_schema\_types.txt file.)
+
+[//]: # ()
+[//]: # (If a GraphQL object type is missing, the build will throw an unresolved reference error:)
+
+[//]: # ()
+[//]: # (```)
+
+[//]: # (error: unresolved reference: NewType)
+
+[//]: # ()
+[//]: # (            import com.example.generated.schema.NewType)
+
+[//]: # ()
+[//]: # (             ^)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (To resolve this, add the field's GraphQL type to your tenant's explicit\_compilation\_schema\_types.txt file and rebuild.)

@@ -2,6 +2,7 @@
 title: Field Classification
 description: Types of fields in Viaduct and their usage.
 weight: 2
+draft: true
 ---
 
 ### Private Fields
