@@ -1,7 +1,6 @@
 ---
 title: Selection Sets
 description: The fields requested in a query.
-weight: 2
 ---
 
 The selection set is the set of fields requested in a query. It is a key part of how Viaduct executes queries, as it determines which data will be returned to the client. This set defines which fields the resolver is expected to retrieve from the data source.
