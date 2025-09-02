@@ -29,7 +29,8 @@ class VariablesProviderFeatureAppTest : FeatureAppTestBase() {
         |   fromVariablesProviderWithGlobalID: String @resolver
         |   fromVariablesProviderWithNestedComplexInput: String @resolver
         | }
-        | type MyType { x: Int! } # Just used to have a valid type for a global ID
+        | interface Node { id: ID! }
+        | type MyType implements Node { id: ID!, x: Int! } # Just used to have a valid type for a global ID
         | input MyInput { x: Int! }
         | input MyInputWithGlobalID { globalId: ID! }
         | enum Color { RED, GREEN, BLUE }

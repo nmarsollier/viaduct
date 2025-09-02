@@ -4,6 +4,7 @@ package viaduct.tenant.runtime.execution.idof
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
+import viaduct.api.globalid.GlobalID
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.execution.idof.resolverbases.QueryResolvers
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
@@ -12,7 +13,7 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class Query_UserResolver : QueryResolvers.User() {
     override suspend fun resolve(ctx: Context): User {
         return User.Builder(ctx)
-            .id(ctx.arguments.id)
+            .id(ctx.arguments.id as GlobalID<User>)
             .name("Alice")
             .build()
     }
@@ -27,8 +28,12 @@ class IdOfFeatureAppTest : FeatureAppTestBase() {
         |   user(id: ID! @idOf(type: "User")): User @resolver
         | }
         |
-        | type User {
-        |   id: ID! @idOf(type: "User")
+        | interface Node {
+        |   id: ID!
+        | }
+        |
+        | type User implements Node {
+        |   id: ID!
         |   name: String
         | }
         |#END_SCHEMA

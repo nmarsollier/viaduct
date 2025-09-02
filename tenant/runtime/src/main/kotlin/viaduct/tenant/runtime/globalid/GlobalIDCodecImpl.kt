@@ -9,14 +9,14 @@ import viaduct.api.globalid.GlobalID
 import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.ReflectionLoader
 import viaduct.api.reflect.Type
-import viaduct.api.types.CompositeOutput
-import viaduct.api.types.Object
+import viaduct.api.types.NodeCompositeOutput
+import viaduct.api.types.NodeObject
 
 class GlobalIDCodecImpl(private val mirror: ReflectionLoader) : GlobalIDCodec {
     private val enc = Base64.getEncoder()
     private val dec = Base64.getDecoder()
 
-    override fun <T : CompositeOutput> serialize(id: GlobalID<T>): String =
+    override fun <T : NodeCompositeOutput> serialize(id: GlobalID<T>): String =
         enc.encodeToString(
             arrayListOf(
                 id.type.name,
@@ -24,7 +24,7 @@ class GlobalIDCodecImpl(private val mirror: ReflectionLoader) : GlobalIDCodec {
             ).joinToString(delim).toByteArray()
         )
 
-    override fun <T : CompositeOutput> deserialize(str: String): GlobalID<T> =
+    override fun <T : NodeCompositeOutput> deserialize(str: String): GlobalID<T> =
         dec.decode(str).decodeToString().let { decodedStr ->
             val parts = decodedStr.split(delim)
             require(parts.size == 2) {
@@ -36,8 +36,8 @@ class GlobalIDCodecImpl(private val mirror: ReflectionLoader) : GlobalIDCodec {
             val localId = URLDecoder.decode(id, "UTF-8")
 
             val type = mirror.reflectionFor(name).let {
-                require(it.kcls.isSubclassOf(Object::class)) {
-                    "type `$name` is not an Object"
+                require(it.kcls.isSubclassOf(NodeObject::class)) {
+                    "type `$name` is not a NodeObject"
                 }
                 @Suppress("UNCHECKED_CAST")
                 it as Type<T>

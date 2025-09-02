@@ -13,7 +13,7 @@ import viaduct.api.internal.internal
 import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.MockReflectionLoader
 import viaduct.api.reflect.Type
-import viaduct.api.types.Object
+import viaduct.api.types.NodeObject
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
 
@@ -42,7 +42,7 @@ class InternalContextImplTest {
 }
 
 private open class TestExecutionContext : ExecutionContext {
-    override fun <T : Object> globalIDFor(
+    override fun <T : NodeObject> globalIDFor(
         type: Type<T>,
         internalID: String
     ): GlobalID<T> = TODO()

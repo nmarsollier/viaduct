@@ -25,6 +25,7 @@ import viaduct.api.ViaductTenantException
 import viaduct.api.ViaductTenantUsageException
 import viaduct.api.globalid.GlobalID
 import viaduct.api.handleTenantAPIErrors
+import viaduct.api.types.NodeObject
 import viaduct.api.types.Object
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.UnsetSelectionException
@@ -135,7 +136,7 @@ abstract class ObjectBase(
             }
             return value
         } else if (baseFieldTypeClass == GlobalID::class) {
-            return context.globalIDCodec.deserialize<Object>(value as String)
+            return context.globalIDCodec.deserialize<NodeObject>(value as String)
         }
         return type.coercing.parseValue(value, GraphQLContext.getDefault(), Locale.getDefault()) ?: throw RuntimeException(
             "Failed to parse value $value for scalar type ${type.name}"

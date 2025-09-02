@@ -18,8 +18,8 @@ import viaduct.api.select.SelectionSet
 import viaduct.api.types.CompositeOutput
 import viaduct.api.types.GRT
 import viaduct.api.types.Mutation
+import viaduct.api.types.NodeCompositeOutput
 import viaduct.api.types.NodeObject
-import viaduct.api.types.Object
 import viaduct.api.types.Query
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockSchema
@@ -77,7 +77,7 @@ class MockInternalContext(
 }
 
 open class MockExecutionContext(internalContext: InternalContext) : ExecutionContext, InternalContext by internalContext {
-    override fun <T : Object> globalIDFor(
+    override fun <T : NodeObject> globalIDFor(
         type: Type<T>,
         internalID: String
     ) = throw UnsupportedOperationException()
@@ -98,7 +98,7 @@ class MockResolverExecutionContext(internalContext: InternalContext) : MockExecu
 
     override fun <T : NodeObject> nodeFor(id: GlobalID<T>): T = throw UnsupportedOperationException()
 
-    override fun <T : Object> globalIDStringFor(
+    override fun <T : NodeObject> globalIDStringFor(
         type: Type<T>,
         internalID: String
     ): String = throw UnsupportedOperationException()
@@ -110,9 +110,9 @@ class MockResolverExecutionContext(internalContext: InternalContext) : MockExecu
 
 @Suppress("UNCHECKED_CAST")
 class MockGlobalIDCodec : GlobalIDCodec {
-    override fun <T : CompositeOutput> serialize(id: GlobalID<T>): String = "${id.type.name}:${id.internalID}"
+    override fun <T : NodeCompositeOutput> serialize(id: GlobalID<T>): String = "${id.type.name}:${id.internalID}"
 
-    override fun <T : CompositeOutput> deserialize(str: String): GlobalID<T> =
+    override fun <T : NodeCompositeOutput> deserialize(str: String): GlobalID<T> =
         str.split(":", limit = 2).let { (typeName, internalId) ->
             MockGlobalID(
                 MockType(typeName, NodeObject::class),
@@ -121,7 +121,7 @@ class MockGlobalIDCodec : GlobalIDCodec {
         }
 }
 
-class MockGlobalID<T : Object>(
+class MockGlobalID<T : NodeObject>(
     override val type: Type<T>,
     override val internalID: String
 ) : GlobalID<T> {

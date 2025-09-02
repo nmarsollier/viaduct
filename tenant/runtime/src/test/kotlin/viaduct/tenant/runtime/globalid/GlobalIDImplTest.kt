@@ -48,7 +48,12 @@ class GlobalIDImplTest {
     @Test
     fun `throws exception when type is not a concrete node object`() {
         assertFailsWith<IllegalArgumentException> {
-            GlobalIDImpl(Type.ofClass(NotNode::class), "123")
+            // This should fail at runtime because NotNode doesn't extend NodeObject
+            // We need to suppress the unchecked cast warning because we're intentionally
+            // testing the runtime check
+            @Suppress("UNCHECKED_CAST")
+            val notNodeType = Type.ofClass(NotNode::class) as Type<NodeObject>
+            GlobalIDImpl(notNodeType, "123")
         }
     }
 }

@@ -14,7 +14,7 @@ import viaduct.api.ViaductTenantUsageException
 import viaduct.api.globalid.GlobalID
 import viaduct.api.handleTenantAPIErrors
 import viaduct.api.types.InputLike
-import viaduct.api.types.Object
+import viaduct.api.types.NodeObject
 
 /**
  * Base class for input & field argument GRTs
@@ -97,7 +97,7 @@ abstract class InputLikeBase : InputLike {
                 throw RuntimeException("Expecting OffsetDateTime for DateTime scalar, got $value")
             }
         } else if (baseFieldTypeClass == GlobalID::class) {
-            return context.globalIDCodec.deserialize<Object>(value as String)
+            return context.globalIDCodec.deserialize<NodeObject>(value as String)
         }
         // For all other types, graphql-java and the engine should already have coerced the value
         return value

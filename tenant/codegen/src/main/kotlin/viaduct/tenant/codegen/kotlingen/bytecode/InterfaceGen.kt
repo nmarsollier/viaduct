@@ -9,6 +9,7 @@ import viaduct.codegen.st.stTemplate
 import viaduct.codegen.utils.JavaName
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.tenant.codegen.bytecode.config.cfg
+import viaduct.tenant.codegen.bytecode.config.isNode
 import viaduct.tenant.codegen.bytecode.config.kmType
 
 fun KotlinGRTFilesBuilder.interfaceKotlinGen(typeDef: ViaductExtendedSchema.Interface) = STContents(interfaceSTGroup, InterfaceModelImpl(typeDef, pkg, reflectedTypeGen(typeDef), baseTypeMapper))
@@ -74,6 +75,12 @@ private class InterfaceModelImpl(
 
     override val superTypes = run {
         val result = mutableListOf(cfg.INTERFACE_GRT.toString())
+
+        // Add NodeCompositeOutput for Node interfaces
+        if (typeDef.isNode) {
+            result.add("viaduct.api.types.NodeCompositeOutput")
+        }
+
         for (s in typeDef.supers) {
             result.add("$pkg.${s.name}")
         }
