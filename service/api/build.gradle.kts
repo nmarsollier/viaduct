@@ -10,8 +10,9 @@ dependencies {
     api(libs.graphql.java)
     api(project(":engine:engine-api"))
 
-    testImplementation(project(":service"))
     testImplementation(libs.kotest.property.jvm)
+    testImplementation(libs.kotlin.reflect)
+    testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.kotlinx.coroutines.test)
 
