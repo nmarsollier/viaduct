@@ -6,7 +6,6 @@ import viaduct.api.select.SelectionSet
 import viaduct.api.select.Selections
 import viaduct.api.types.CompositeOutput
 import viaduct.api.types.NodeObject
-import viaduct.api.types.Object
 import viaduct.api.types.Query as QueryType
 
 /** A generic context for resolving fields or types */
@@ -37,7 +36,7 @@ interface ResolverExecutionContext : ExecutionContext {
      * Creates a GlobalID and returns it as a String. Example usage:
      *   globalIDStringFor(User.Reflection, "123")
      */
-    fun <T : Object> globalIDStringFor(
+    fun <T : NodeObject> globalIDStringFor(
         type: Type<T>,
         internalID: String
     ): String

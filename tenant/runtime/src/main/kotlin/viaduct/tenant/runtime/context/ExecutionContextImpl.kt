@@ -3,7 +3,7 @@ package viaduct.tenant.runtime.context
 import viaduct.api.context.ExecutionContext
 import viaduct.api.internal.InternalContext
 import viaduct.api.reflect.Type
-import viaduct.api.types.Object
+import viaduct.api.types.NodeObject
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 
 /**
@@ -12,7 +12,7 @@ import viaduct.tenant.runtime.globalid.GlobalIDImpl
 open class ExecutionContextImpl(
     private val internal: InternalContext
 ) : ExecutionContext, InternalContext by internal {
-    override fun <T : Object> globalIDFor(
+    override fun <T : NodeObject> globalIDFor(
         type: Type<T>,
         internalID: String
     ) = GlobalIDImpl(type, internalID)

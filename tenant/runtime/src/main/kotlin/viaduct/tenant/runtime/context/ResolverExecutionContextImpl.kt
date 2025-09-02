@@ -11,7 +11,6 @@ import viaduct.api.reflect.Type
 import viaduct.api.select.SelectionSet
 import viaduct.api.types.CompositeOutput
 import viaduct.api.types.NodeObject
-import viaduct.api.types.Object
 import viaduct.api.types.Query
 
 /**
@@ -33,7 +32,7 @@ class ResolverExecutionContextImpl(
 
     override fun <T : NodeObject> nodeFor(id: GlobalID<T>) = nodeReferenceFactory.nodeFor(id, this)
 
-    override fun <T : Object> globalIDStringFor(
+    override fun <T : NodeObject> globalIDStringFor(
         type: Type<T>,
         internalID: String,
     ) = globalIDCodec.serialize(globalIDFor(type, internalID))

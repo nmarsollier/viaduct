@@ -88,9 +88,9 @@ class ExecutionContextImplTest {
         val ctx = mk()
 
         @Suppress("UNCHECKED_CAST")
-        val fakeTypeWithWrongKClass = object : Type<Object> {
+        val fakeTypeWithWrongKClass = object : Type<NodeObject> {
             override val name: String = "User"
-            override val kcls: KClass<out Object> = String::class as KClass<out Object>
+            override val kcls: KClass<out NodeObject> = String::class as KClass<out NodeObject>
         }
 
         val exception = assertThrows<IllegalArgumentException> {
@@ -98,8 +98,8 @@ class ExecutionContextImplTest {
         }
 
         assertTrue(
-            exception.message?.contains("concrete object") == true,
-            "Error message should mention 'concrete object': ${exception.message}"
+            exception.message?.contains("NodeObject") == true,
+            "Error message should mention 'NodeObject': ${exception.message}"
         )
     }
 

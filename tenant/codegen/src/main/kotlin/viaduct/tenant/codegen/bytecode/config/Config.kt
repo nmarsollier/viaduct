@@ -140,6 +140,7 @@ object cfg {
     val ENUM_GRT = JavaBinaryName("viaduct.api.types.Enum")
     val INPUT_GRT = JavaBinaryName("viaduct.api.types.Input")
     val INTERFACE_GRT = JavaBinaryName("viaduct.api.types.Interface")
+    val NODE_COMPOSITE_OUTPUT_GRT = JavaBinaryName("viaduct.api.types.NodeCompositeOutput")
     val NODE_OBJECT_GRT = JavaBinaryName("viaduct.api.types.NodeObject")
     val QUERY_OBJECT_GRT = JavaBinaryName("viaduct.api.types.Query")
     val MUTATION_OBJECT_GRT = JavaBinaryName("viaduct.api.types.Mutation")

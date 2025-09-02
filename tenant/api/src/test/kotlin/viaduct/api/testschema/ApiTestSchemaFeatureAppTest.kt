@@ -12,7 +12,8 @@ class ApiTestSchemaFeatureAppTest {
     | type Query {
     |   foo: String
     | }
-    | type O1 {
+    | type O1 implements Node {
+    |   id: ID!
     |   stringField: String
     |   listField: [[O2]]
     |   objectField: O2
@@ -21,7 +22,8 @@ class ApiTestSchemaFeatureAppTest {
     |   listFieldNonNullBaseType: [[O2!]!]
     |   backingDataList: [BackingData!] @backingData(class: "java.lang.Integer")
     | }
-    | type O2 {
+    | type O2 implements Node {
+    |   id: ID!
     |   intField: Int!
     |   objectField: O1
     |   dateTimeField: DateTime

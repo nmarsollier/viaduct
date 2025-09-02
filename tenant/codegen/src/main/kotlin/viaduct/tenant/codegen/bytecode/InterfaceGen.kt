@@ -15,6 +15,7 @@ import viaduct.codegen.utils.KmName
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.tenant.codegen.bytecode.config.cfg
 import viaduct.tenant.codegen.bytecode.config.codegenIncludedFields
+import viaduct.tenant.codegen.bytecode.config.isNode
 import viaduct.tenant.codegen.bytecode.config.kmType
 
 internal fun GRTClassFilesBuilder.interfaceGen(def: ViaductExtendedSchema.Interface) {
@@ -23,6 +24,12 @@ internal fun GRTClassFilesBuilder.interfaceGen(def: ViaductExtendedSchema.Interf
         def.name.kmFQN(pkg),
     ).also {
         it.addSupertype(cfg.INTERFACE_GRT.asKmName.asType())
+
+        // Add NodeCompositeOutput for Node interfaces
+        if (def.isNode) {
+            it.addSupertype(cfg.NODE_COMPOSITE_OUTPUT_GRT.asKmName.asType())
+        }
+
         if (def.supers.isNotEmpty()) {
             for (s in def.supers) {
                 it.addSupertype(s.name.kmFQN(pkg).asType())

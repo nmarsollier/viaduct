@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.api.internal.MissingReflection
 import viaduct.api.reflect.Type
-import viaduct.api.types.CompositeOutput
+import viaduct.api.types.NodeObject
 import viaduct.arbitrary.common.KotestPropertyBase
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
@@ -27,44 +27,51 @@ import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 @OptIn(ExperimentalCoroutinesApi::class)
 class GlobalIDCodecImplTest : KotestPropertyBase() {
     private lateinit var codec: GlobalIDCodecImpl
-    private lateinit var objects: List<GraphQLNamedType>
-    private lateinit var nonObjects: List<GraphQLNamedType>
+    private lateinit var nodeObjectTypes: List<GraphQLNamedType>
+    private lateinit var nonNodeObjectTypes: List<GraphQLNamedType>
     private val mirror = ReflectionLoaderImpl { name -> Class.forName("viaduct.tenant.runtime.globalid.$name").kotlin }
 
     @Suppress("UNCHECKED_CAST")
-    private fun compositeOutputType(name: String): Type<CompositeOutput> = mirror.reflectionFor(name) as Type<CompositeOutput>
+    private fun nodeObjectType(name: String): Type<NodeObject> = mirror.reflectionFor(name) as Type<NodeObject>
 
     @BeforeEach
     fun setup() {
         val schema = GlobalIdFeatureAppTest.schema
         codec = GlobalIDCodecImpl(mirror)
 
-        val (objectsResults, nonObjectsResults) = schema.schema.allTypesAsList
-            .filter { !it.name.startsWith("_") }
-            .partition {
-                it is GraphQLObjectType
-            }
-        objects = objectsResults
-        nonObjects = nonObjectsResults
+        val allTypes = schema.schema.allTypesAsList.filter { !it.name.startsWith("_") }
+
+        // Types that can have GlobalIDs created (GraphQL object types that implement Node)
+        nodeObjectTypes = allTypes
+            .filterIsInstance<GraphQLObjectType>()
+            .filter { gjType -> gjType.interfaces.any { it.name == "Node" } }
+
+        // Types that should fail GlobalID creation (everything else)
+        nonNodeObjectTypes = allTypes.filter { gjType ->
+            // Non-object types (interfaces, inputs, etc.)
+            gjType !is GraphQLObjectType ||
+                // Object types that don't implement Node
+                !(gjType as GraphQLObjectType).interfaces.any { it.name == "Node" }
+        }
     }
 
     @Test
     fun `test serialize and deserialize`() =
         runBlockingTest {
-            Arb.element(objects).forAll { gjType ->
-                val type = compositeOutputType(gjType.name)
+            Arb.element(nodeObjectTypes).forAll { gjType ->
+                val type = nodeObjectType(gjType.name)
                 val globalId = GlobalIDImpl(type, Arb.string().bind())
-                val globalId2 = codec.deserialize<CompositeOutput>(codec.serialize(globalId))
+                val globalId2 = codec.deserialize<NodeObject>(codec.serialize(globalId))
                 globalId == globalId2
             }
         }
 
     @Test
-    fun `test globalid on non-objects type`() =
+    fun `test globalid on non-NodeObject types`() =
         runBlockingTest {
-            Arb.element(nonObjects).checkAll { gjType ->
+            Arb.element(nonNodeObjectTypes).checkAll { gjType ->
                 val type = try {
-                    compositeOutputType(gjType.name)
+                    nodeObjectType(gjType.name)
                 } catch (err: MissingReflection) {
                     return@checkAll
                 }
@@ -82,7 +89,7 @@ class GlobalIDCodecImplTest : KotestPropertyBase() {
         runBlockingTest {
             val type = User.Reflection
             val globalId = GlobalIDImpl(type, "internalid:1:2:3:4:5")
-            val globalId2 = codec.deserialize<CompositeOutput>(codec.serialize(globalId))
+            val globalId2 = codec.deserialize<User>(codec.serialize(globalId))
             assertEquals(globalId, globalId2)
             assertEquals("internalid:1:2:3:4:5", globalId2.internalID)
         }

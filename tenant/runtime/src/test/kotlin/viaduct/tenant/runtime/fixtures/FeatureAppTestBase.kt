@@ -10,6 +10,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import viaduct.api.reflect.Type
+import viaduct.api.types.NodeObject
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.mocks.MockFlagManager
 import viaduct.service.runtime.StandardViaduct
@@ -130,7 +131,7 @@ abstract class FeatureAppTestBase {
      * @param internalId The internal ID to create a GlobalID for
      * @return A GlobalID string
      */
-    fun <T : viaduct.api.types.Object> createGlobalIdString(
+    fun <T : NodeObject> createGlobalIdString(
         type: Type<T>,
         internalId: String
     ): String {
