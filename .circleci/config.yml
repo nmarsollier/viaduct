@@ -360,6 +360,10 @@ jobs:
       - attach_workspace:
           at: ~/project/
 
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:BVtkRhB6f0RHdEW8kTWcidy5v3r6vUQ2tzpW/40DV9U" # viaductbot key
+
       - run:
           name: Install gh-pages tool
           command: npm install gh-pages@6.3.0 --silent
