@@ -473,7 +473,7 @@ workflows:
       - build
       - test:
           requires:
-zsh:1: command not found: :q
+            - build
       - lint:
           requires:
             - build
