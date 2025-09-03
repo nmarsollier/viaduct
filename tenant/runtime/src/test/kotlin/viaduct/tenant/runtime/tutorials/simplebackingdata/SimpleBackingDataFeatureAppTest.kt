@@ -57,7 +57,7 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
     // Resolves User nodes by ID, fetching basic user data from a simulated database.
     // This acts as the primary data source for User objects in the graph.
     @Resolver
-    class UserNodeResolver : Nodes.User() {
+    class UserNodeResolver : NodeResolvers.User() {
         override suspend fun resolve(ctx: Context): User {
             val userData = when (val internalId = ctx.id.internalID) {
                 "user-123" -> Pair("John Smith", "john@example.com")

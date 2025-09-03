@@ -39,7 +39,7 @@ private class NodeResolverGenerator(
             .map { it.name }
 
         genNodeResolvers(tenantOwnedNodes, tenantPackage, grtPackage)?.let { contents ->
-            val file = File(resolverGeneratedDir, "Nodes.kt")
+            val file = File(resolverGeneratedDir, "NodeResolvers.kt")
             contents.write(file)
         }
     }
@@ -98,7 +98,7 @@ private val nodesSt = stTemplate(
         import viaduct.api.internal.NodeResolverFor
         import viaduct.api.FieldValue
 
-        object Nodes {
+        object NodeResolvers {
             <mdl.nodes:node(); separator="\n">
         }
     """.trimIndent()

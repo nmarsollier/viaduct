@@ -44,7 +44,7 @@ class SimpleNodeResolverFeatureAppTest : FeatureAppTestBase() {
      * from the schema and calls this resolver whenever ctx.nodeFor() is used
      * with a Foo GlobalID. This is where you define how to create/fetch Foo objects.
      */
-    class FooNodeResolver : Nodes.Foo() {
+    class FooNodeResolver : NodeResolvers.Foo() {
         override suspend fun resolve(ctx: Context): Foo {
             // Static data simulation - in reality this would be a database call
             val message = when (val internalID = ctx.id.internalID) {

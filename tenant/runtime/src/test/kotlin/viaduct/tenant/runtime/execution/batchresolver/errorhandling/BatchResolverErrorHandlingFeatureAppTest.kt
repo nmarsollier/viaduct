@@ -39,7 +39,7 @@ class BatchResolverErrorHandlingFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
-    class FooResolver : Nodes.Foo() {
+    class FooResolver : NodeResolvers.Foo() {
         companion object {
             var shouldReturnWrongNumberOfResults = false
         }

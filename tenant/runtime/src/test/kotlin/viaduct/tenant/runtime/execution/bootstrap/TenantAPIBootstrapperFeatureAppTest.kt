@@ -59,14 +59,14 @@ class TenantAPIBootstrapperFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Resolver
-    class TestNodeResolver : Nodes.TestNode() {
+    class TestNodeResolver : NodeResolvers.TestNode() {
         override suspend fun resolve(ctx: Context): TestNode {
             return TestNode.Builder(ctx).id(ctx.id).value("test-value").build()
         }
     }
 
     @Resolver
-    class TestBatchNodeResolver : Nodes.TestBatchNode() {
+    class TestBatchNodeResolver : NodeResolvers.TestBatchNode() {
         override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<TestBatchNode>> {
             return contexts.map { FieldValue.Companion.ofValue(TestBatchNode.Builder(it).id(it.id).value("test-value").build()) }
         }

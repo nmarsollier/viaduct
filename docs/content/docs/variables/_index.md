@@ -103,7 +103,7 @@ In the node resolver for `Listing` we would have:
 
 ```kotlin
 @Resolver
-class ListingNodeResolver @Inject constructor(val client: ListingClient) : Nodes.Listing() {
+class ListingNodeResolver @Inject constructor(val client: ListingClient) : NodeResolvers.Listing() {
     override suspend fun resolve(ctx: Context): TaxProfile {
         val data = client.fetch(ctx.id.internalID)
         return ctx.builderFor(Listing::class)

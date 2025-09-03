@@ -65,7 +65,7 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
      * batchResolve() receives all contexts that need Product objects and returns
      * corresponding FieldValue results in the same order.
      */
-    class ProductNodeResolver : Nodes.Product() {
+    class ProductNodeResolver : NodeResolvers.Product() {
         override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Product>> {
             // Extract all internal IDs from the batch of GlobalIDs
             val productIds = contexts.map { ctx -> ctx.id.internalID }

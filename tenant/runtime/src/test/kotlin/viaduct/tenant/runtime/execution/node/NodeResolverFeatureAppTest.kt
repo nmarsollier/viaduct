@@ -48,7 +48,7 @@ class NodeResolverFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
-    class TestGlobalIdResolver : Nodes.TestGlobalId() {
+    class TestGlobalIdResolver : NodeResolvers.TestGlobalId() {
         override suspend fun resolve(ctx: Context): TestGlobalId {
             return TestGlobalId.Builder(ctx).id(ctx.id).build()
         }

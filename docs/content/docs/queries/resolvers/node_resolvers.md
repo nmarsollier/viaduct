@@ -23,7 +23,7 @@ You supply the implementation of a node resolver by subclassing its resolver bas
 @Resolver
 class UserNodeResolver @Inject constructor(
   val userService: UserServiceClient
-): Nodes.User() {
+): NodeResolvers.User() {
   override suspend fun resolve(ctx: Context): User {
     val data = userService.fetch(ctx.id.internalId)
     return User.builder(ctx)
@@ -41,7 +41,7 @@ Or,
 @Resolver
 class UserNodeResolver @Inject constructor(
   val userService: UserServiceClient
-): Nodes.User() {
+): NodeResolvers.User() {
   override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<User>> {
     val ids = contexts.map { it.id.internalId }
     val responses = userService.fetch(ids)
