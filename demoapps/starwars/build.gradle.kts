@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.springBoot)
     alias(libs.plugins.dependencyManagement)
     id("viaduct-app")
+    jacoco
 }
 
 dependencies {

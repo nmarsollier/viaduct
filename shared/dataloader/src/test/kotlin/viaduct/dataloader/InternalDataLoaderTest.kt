@@ -22,7 +22,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
@@ -52,7 +51,8 @@ import viaduct.utils.collections.parallelMap
  * actual results.
  *
  */
-@CoroutinesTimeout(5000, true)
+// @CoroutinesTimeout(5000, true) // JaCoCo bytecode instrumentation conflicts with coroutines debug instrumentation
+// See: https://github.com/jacoco/jacoco/issues/1357
 class InternalDataLoaderTest {
     enum class TestDispatchStrategy {
         BATCH,
