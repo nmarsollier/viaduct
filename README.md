@@ -10,6 +10,9 @@
     See the <a href="https://viaduct.airbnb.tech/docs/">User Manual</a> for deployment instructions and end user documentation.
 </p>
 
+> [!WARNING]
+> The Viaduct engine is in production, at scale, at Airbnb where it has proven reliable. The developer API of Viaduct is under active development. In [our roadmap](https://viaduct.airbnb.tech/roadmap) we indicate which parts of the API are more or less subject to future change.  This is a good time to join the project and influence the direction that this API takes!
+
 # Vision
 
 Viaduct is an open source data-oriented service mesh. As an open source initiative, Viaduct is committed to fostering an inclusive and collaborative community where external developers can contribute, innovate, and help shape the future of data-oriented development.
@@ -20,6 +23,25 @@ Three principles have guided Viaduct since day one and still anchor the project:
 * Re-entrancy: At the heart of Viaduct's developer experience is what we call re-entrancy: Logic hosted on Viaduct composes with other logic hosted on Viaduct by issuing GraphQL fragments and queries.  Re-entrancy is crucial for maintaining modularity in a large codebase and avoiding classic monolith hazards.
 
 This vision embodies our commitment to creating a thriving open source project that not only meets internal Airbnb needs but also provides value to the wider developer community in building powerful, scalable applications with ease and confidence.
+
+## Getting Started
+
+Using a set of scripts bundled with the Viaduct release, this document will walk you through the process of setting up and modifying a very simple Viaduct application.  Viaduct comes with built-in, Gradle-based tooling for building, testing, and running your sample application.  This guide uses that tooling and assumes a basic familiarity with Gradle.
+
+### System Requirements
+
+Gradle 8+ and Java 21\.
+
+### Running the Simple Application
+
+Viaduct comes with a number of demonstration applications you can find in the `demoapps` directory.  Let’s start with the `demoapps/simple` application.  Change into that directory and type:
+
+```
+./doctor.sh
+./gradlew -q run --args="'{ author }'"
+```
+
+The first command runs a script that ensures you have the needed dependencies (at the right versions).  The second command will build the simple application and will run a query against it.
 
 ## Development
 

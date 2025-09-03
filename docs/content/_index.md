@@ -22,6 +22,12 @@ It can be used by services as a way to access data (efficiently and safely), as 
 Viaduct provides you with one global schema and query system. Regardless of the engineering ownership or backing service,
 data access and mutations should follow a reliable and consistent pattern. The code which hydrates such queries should
 be maintained by the team which owns the data, to prevent the need to implement such logic by every team querying it.
+
+{{% pageinfo color="info" %}}
+
+  The Viaduct engine is in production, at scale, at Airbnb where it has proven reliable. The developer API of Viaduct is under active development. In [our roadmap](/roadmap) we indicate which parts of the API are more or less subject to future change.  This is a good time to join the project and influence the direction that this API takes!
+{.-text-dark}
+{{% /pageinfo %}}
 {{% /blocks/lead %}}
 
 {{% blocks/section type="row justify-content-center" color="white" %}}
