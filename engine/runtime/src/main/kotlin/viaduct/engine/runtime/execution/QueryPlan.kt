@@ -78,6 +78,7 @@ data class QueryPlan(
         val selectionSet: SelectionSet?,
         val mergedField: MergedField,
         val childPlans: List<QueryPlan>,
+        val fieldTypeChildPlans: Map<GraphQLObjectType, List<QueryPlan>>,
     ) : Selection {
         override val constraints: Constraints get() = Constraints.Unconstrained
         val sourceLocation: SourceLocation get() = mergedField.singleField.sourceLocation

@@ -36,7 +36,8 @@ class CollectFieldsTest {
                             "x",
                             null,
                             MergedField.newMergedField().addField(xField.field).build(),
-                            emptyList()
+                            emptyList(),
+                            emptyMap()
                         )
                     )
                 )
@@ -88,7 +89,8 @@ class CollectFieldsTest {
                                 .addField(x0.field)
                                 .addField(x1.field)
                                 .build(),
-                            emptyList()
+                            emptyList(),
+                            emptyMap()
                         )
                     )
                 )
@@ -118,7 +120,8 @@ class CollectFieldsTest {
                             "x",
                             null,
                             MergedField.newMergedField().addField(xField.field).build(),
-                            emptyList()
+                            emptyList(),
+                            emptyMap()
                         )
                     )
                 )
@@ -153,7 +156,8 @@ class CollectFieldsTest {
                             "x",
                             null,
                             MergedField.newMergedField().addField(xField.field).build(),
-                            emptyList()
+                            emptyList(),
+                            emptyMap()
                         )
                     )
                 )

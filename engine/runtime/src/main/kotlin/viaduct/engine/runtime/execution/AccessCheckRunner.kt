@@ -1,5 +1,6 @@
 package viaduct.engine.runtime.execution
 
+import graphql.execution.CoercedVariables
 import graphql.execution.instrumentation.parameters.InstrumentationExecutionStrategyParameters
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLCompositeType
@@ -15,6 +16,7 @@ import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
 import viaduct.engine.runtime.Value
+import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveVariables
 import viaduct.engine.runtime.findLocalContextForType
 
 /**
@@ -56,7 +58,10 @@ class AccessCheckRunner(
         parameters: ExecutionParameters,
         dataFetchingEnvironmentSupplier: Supplier<DataFetchingEnvironment>,
         objectEngineResult: ObjectEngineResultImpl,
+        fieldResolutionResult: FieldResolutionResult,
+        fieldResolver: FieldResolver
     ): Value<out CheckerResult?> {
+        val field = checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
         val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
 
@@ -67,6 +72,29 @@ class AccessCheckRunner(
             return Value.nullValue
         }
 
+        // fetch the selection sets of any child plans for this type
+        val fieldTypeChildPlans = field.fieldTypeChildPlans[objectEngineResult.graphQLObjectType] ?: emptyList()
+        if (fieldTypeChildPlans.isNotEmpty()) {
+            // Produce the object data and field arguments for the current field and make them available to child
+            // plan VariablesResolver.
+            val arguments = FieldExecutionHelpers.getArgumentValues(
+                parameters,
+                parameters.executionStepInfo.fieldDefinition.arguments,
+                field.mergedField.arguments,
+            ).get()
+
+            fieldTypeChildPlans.forEach { childPlan ->
+                parameters.launchOnRootScope {
+                    val variables = resolveVariables(childPlan.variablesResolvers, arguments, parameters.parentEngineResult, parameters.queryEngineResult, engineExecutionContext)
+                    val planParameters = parameters.forFieldTypeChildPlan(
+                        childPlan,
+                        CoercedVariables(variables),
+                        fieldResolutionResult
+                    )
+                    fieldResolver.fetchObject(childPlan.parentType as GraphQLObjectType, planParameters)
+                }
+            }
+        }
         return executeChecker(parameters, dataFetchingEnvironmentSupplier, checkerDispatcher, objectEngineResult, emptyMap())
     }
 
@@ -83,7 +111,9 @@ class AccessCheckRunner(
         fieldCheckerResultValue: Value<out CheckerResult?>,
         fieldType: GraphQLOutputType,
         fieldResolutionResultValue: Value<FieldResolutionResult>,
+        fieldResolver: FieldResolver
     ): Value<out CheckerResult?> {
+        val field = checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
         val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         // Exit early if there is definitely no type check
         if (fieldType !is GraphQLCompositeType ||
@@ -98,7 +128,7 @@ class AccessCheckRunner(
                 val oer = checkNotNull(engineResult as? ObjectEngineResultImpl) {
                     "Expected engineResult to be instance of ObjectEngineResultImpl, got ${engineResult.javaClass}"
                 }
-                val typeCheckerResultValue = typeCheck(parameters, dataFetchingEnvironmentSupplier, oer)
+                val typeCheckerResultValue = typeCheck(parameters, dataFetchingEnvironmentSupplier, oer, it, fieldResolver)
                 when {
                     typeCheckerResultValue == Value.nullValue -> fieldCheckerResultValue
                     fieldCheckerResultValue == Value.nullValue -> typeCheckerResultValue

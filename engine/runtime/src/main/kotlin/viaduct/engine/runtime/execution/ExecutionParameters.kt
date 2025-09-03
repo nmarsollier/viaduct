@@ -27,6 +27,7 @@ import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.EngineExecutionContextImpl
+import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.findLocalContextForType
 import viaduct.engine.runtime.updateCompositeLocalContext
@@ -145,10 +146,10 @@ data class ExecutionParameters(
     /**
      * Creates ExecutionParameters for executing a child plan (Query or Object type).
      *
-     * For Query-type child plans: Creates a fresh execution context with root path
-     * and uses the queryEngineResult as the root.
-     * For Object-type child plans: Maintains the parent object's path context
-     * and uses the current field's parent engine result.
+     * For Query-type child plans: Uses the queryEngineResult as the root with root
+     * as source.
+     * For Object-type child plans: Uses the current field's parent engine result
+     * with current source.
      *
      * @param childPlan The child QueryPlan to execute
      * @param variables Resolved variables for the child plan
@@ -162,6 +163,103 @@ data class ExecutionParameters(
             ?: throw IllegalArgumentException("Child plan must have a parent type of GraphQLObjectType")
         val isRootQueryQueryPlan = objectType == executionContext.graphQLSchema.queryType
 
+        val newParentOER = if (isRootQueryQueryPlan) {
+            // For root query plans, we use the query engine result
+            constants.queryEngineResult
+        } else {
+            // For object plans, we use the current parent engine result
+            parentEngineResult
+        }
+
+        val source = if (isRootQueryQueryPlan) {
+            executionContext.getRoot()
+        } else {
+            // For object plans, we use the current source
+            source
+        }
+
+        return forChildPlan(
+            childPlan,
+            variables,
+            isRootQueryQueryPlan,
+            objectType,
+            newParentOER,
+            source
+        )
+    }
+
+    /**
+     * Creates ExecutionParameters for executing a field type child plan (Query or Object type).
+     * This is used when the child plan is for a field type.
+     *
+     * For Query-type child plans: Uses the queryEngineResult as the root with root
+     * as source.
+     * For Object-type child plans: Uses the field's engine result as the new parent OER
+     * with field's original source to continue fetching field's type RSS.
+     *
+     * @param childPlan The child QueryPlan to execute
+     * @param variables Resolved variables for the child plan
+     * @param fieldResolutionResult The FieldResolutionResult containing the field's engine result and original source
+     * @return New ExecutionParameters configured for field's type child plan execution
+     */
+    fun forFieldTypeChildPlan(
+        childPlan: QueryPlan,
+        variables: CoercedVariables,
+        fieldResolutionResult: FieldResolutionResult
+    ): ExecutionParameters {
+        val objectType = childPlan.parentType as? GraphQLObjectType
+            ?: throw IllegalArgumentException("Child plan must have a parent type of GraphQLObjectType")
+        val isRootQueryQueryPlan = objectType == executionContext.graphQLSchema.queryType
+
+        val newParentOER = if (isRootQueryQueryPlan) {
+            // For root query plans, we use the query engine result
+            constants.queryEngineResult
+        } else {
+            // For object plans, we use the field's engine result as the containing OER
+            // to continue fetching field's type RSS. Hence it is expected to be a non-null
+            // ObjectEngineResultImpl.
+            checkNotNull(fieldResolutionResult.engineResult as? ObjectEngineResultImpl) {
+                "Expected ObjectEngineResultImpl but got ${fieldResolutionResult.engineResult}"
+            }
+        }
+
+        val source = if (isRootQueryQueryPlan) {
+            executionContext.getRoot()
+        } else {
+            // For object plans, we use field's original source to continue fetching
+            // field's type RSS.
+            fieldResolutionResult.originalSource
+        }
+
+        return forChildPlan(
+            childPlan,
+            variables,
+            isRootQueryQueryPlan,
+            objectType,
+            newParentOER,
+            source
+        )
+    }
+
+    /**
+     * Internal helper to create ExecutionParameters for a child plan.
+     *
+     * @param childPlan The child QueryPlan to execute
+     * @param variables Resolved variables for the child plan
+     * @param isRootQueryQueryPlan True if the child plan is for the root query type
+     * @param objectType The GraphQLObjectType that owns the child plan
+     * @param newParentOER The ObjectEngineResult to use as parent for the child plan
+     * @param source The source object for the child plan execution
+     * @return New ExecutionParameters configured for child plan execution
+     */
+    private fun forChildPlan(
+        childPlan: QueryPlan,
+        variables: CoercedVariables,
+        isRootQueryQueryPlan: Boolean,
+        objectType: GraphQLObjectType,
+        newParentOER: ObjectEngineResultImpl,
+        source: Any?
+    ): ExecutionParameters {
         // Build execution step info based on plan type
         val childExecutionStepInfo = if (isRootQueryQueryPlan) {
             // Query-type child plans get a completely fresh execution context
@@ -180,14 +278,6 @@ data class ExecutionParameters(
                 .build()
         }
 
-        val newParentOER = if (isRootQueryQueryPlan) {
-            // For root query plans, we use the query engine result
-            constants.queryEngineResult
-        } else {
-            // For object plans, we use the current parent engine result
-            parentEngineResult
-        }
-
         val localContext = if (isRootQueryQueryPlan) {
             // For root query plans, we use the root local context
             executionContext.getLocalContext()
@@ -199,13 +289,6 @@ data class ExecutionParameters(
                 attribution = childPlan.attribution
             )
         )
-
-        val source = if (isRootQueryQueryPlan) {
-            executionContext.getRoot()
-        } else {
-            // For object plans, we use the current source
-            source
-        }
 
         return copy(
             coercedVariables = variables,

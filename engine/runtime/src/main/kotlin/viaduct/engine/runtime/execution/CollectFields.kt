@@ -112,6 +112,7 @@ object CollectFields {
                             sel.selectionSet,
                             MergedField.newMergedField(sel.field).build(),
                             childPlans = sel.childPlans,
+                            fieldTypeChildPlans = sel.fieldTypeChildPlans
                         )
                     )
 

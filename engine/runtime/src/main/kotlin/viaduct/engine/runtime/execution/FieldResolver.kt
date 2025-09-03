@@ -279,6 +279,7 @@ class FieldResolver(
                 fieldCheckerResultValue,
                 fieldType,
                 result,
+                this
             )
 
             slotSetter.setRawValue(result)
@@ -335,6 +336,7 @@ class FieldResolver(
         fieldType: GraphQLOutputType,
         fetchedValue: FetchedValue,
     ): FieldResolutionResult {
+        val field = checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
         val data = fetchedValue.fetchedValue ?: return FieldResolutionResult.fromFetchedValue(null, fetchedValue)
 
         // if the type has a non-null wrapper, unwrap one level and recurse
@@ -365,11 +367,10 @@ class FieldResolver(
                         val typeCheckerResult = if (oer == null) {
                             Value.nullValue
                         } else {
-                            val mergedField = checkNotNull(parameters.field?.mergedField)
+                            val mergedField = checkNotNull(field.mergedField)
                             val newParams = updateListItemParameters(parameters, index)
                             val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, mergedField, parameters.parentEngineResult) }
-
-                            accessCheckRunner.typeCheck(parameters, itemDfeSupplier, oer)
+                            accessCheckRunner.typeCheck(parameters, itemDfeSupplier, oer, itemFieldResolutionResult, this)
                         }
                         slotSetter.setCheckerValue(typeCheckerResult)
                     }
@@ -386,7 +387,7 @@ class FieldResolver(
         if (GraphQLTypeUtil.isInterfaceOrUnion(fieldType)) {
             val resolvedType = typeResolver.resolveType(
                 parameters.executionContext,
-                parameters.field!!.mergedField,
+                field.mergedField,
                 data,
                 parameters.executionStepInfo,
                 fieldType,

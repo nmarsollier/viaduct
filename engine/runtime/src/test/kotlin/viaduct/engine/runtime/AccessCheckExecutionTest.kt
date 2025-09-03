@@ -1,5 +1,6 @@
 package viaduct.engine.runtime
 
+import kotlin.test.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -27,6 +28,8 @@ class AccessCheckExecutionTest {
                 baz: Baz
                 bazList: [Baz]
                 node: Node
+                nonNullBaz: Baz!
+                nodes: [Node]
             }
 
             type Mutation {
@@ -42,11 +45,17 @@ class AccessCheckExecutionTest {
                 x: Int
                 y: String
             }
+
+            type Bar implements Node {
+                id: ID!
+                z: Int
+            }
         """.trimIndent()
 
         private val schema = mkSchemaWithWiring(SDL)
         private val booType = schema.schema.getObjectType("Boo")
         private val bazType = schema.schema.getObjectType("Baz")
+        private val barType = schema.schema.getObjectType("Bar")
         private val queryType = schema.schema.getObjectType("Query")
     }
 
@@ -419,6 +428,32 @@ class AccessCheckExecutionTest {
     }
 
     @Test
+    fun `field check succeeds, type check succeeds`() {
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "baz") {
+                resolver {
+                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                }
+                checker {
+                    fn { _, _ -> /* access granted */ }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    fn { _, _ -> /* access granted */ }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ baz { id } }")
+            assertEquals(mapOf("baz" to mapOf("id" to "1")), result.getData())
+            assertEquals(0, result.errors.size)
+        }
+    }
+
+    @Test
     fun `no field check, type check fails`() {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
@@ -440,6 +475,32 @@ class AccessCheckExecutionTest {
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
             assertEquals(listOf("baz"), error.path)
+            assertTrue(error.message.contains("type checker failed"))
+        }
+    }
+
+    @Test
+    fun `no field check, type check fails on non-null field`() {
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "nonNullBaz") {
+                resolver {
+                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    fn { _, _ -> throw RuntimeException("type checker failed") }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ nonNullBaz { id } }")
+            assertNull(result.getData())
+            assertEquals(1, result.errors.size)
+            val error = result.errors[0]
+            assertEquals(listOf("nonNullBaz"), error.path)
             assertTrue(error.message.contains("type checker failed"))
         }
     }
@@ -524,8 +585,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            // TODO: remove "y" from the query here once we add type checker RSSs to the query plan
-            val result = viaduct.runQuery("{ baz { id y } }")
+            val result = viaduct.runQuery("{ baz { id } }")
             assertEquals(mapOf("baz" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -535,7 +595,7 @@ class AccessCheckExecutionTest {
     }
 
     @Test
-    fun `type checks for list of objects`() {
+    fun `type checks with rss for list of objects - fail one of them`() {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "bazList") {
                 resolver {
@@ -573,13 +633,12 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            // TODO: remove "y" from the query here once we add type checker RSSs to the query plan
-            val result = viaduct.runQuery("{ bazList { id y } }")
+            val result = viaduct.runQuery("{ bazList { id } }")
             val expectedData = mapOf(
                 "bazList" to listOf(
-                    mapOf("id" to "1", "y" to "1"),
+                    mapOf("id" to "1"),
                     null,
-                    mapOf("id" to "3", "y" to "3")
+                    mapOf("id" to "3")
                 )
             )
             assertEquals(expectedData, result.getData())
@@ -587,6 +646,128 @@ class AccessCheckExecutionTest {
             val error = result.errors[0]
             assertEquals(listOf("bazList", 1), error.path)
             assertTrue(error.message.contains("permission denied for baz with internal ID 2"))
+        }
+    }
+
+    @Test
+    fun `type checks with rss for list of objects - all succeed`() {
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "bazList") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        listOf(
+                            ctx.createNodeEngineObjectData("1", bazType),
+                            ctx.createNodeEngineObjectData("2", bazType),
+                            ctx.createNodeEngineObjectData("3", bazType),
+                        )
+                    }
+                }
+            }
+            field("Baz" to "y") {
+                resolver {
+                    objectSelections("x")
+                    fn { _, obj, _, _, _ ->
+                        val x = obj.fetch("x")
+                        x.toString()
+                    }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    objectSelections("key", "fragment _ on Baz { y }")
+                    fn { _, objectDataMap ->
+                        val eod = objectDataMap["key"]!!
+                        val y = eod.fetch("y")
+                        if (y == null) {
+                            throw RuntimeException("should not get here")
+                        }
+                    }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ bazList { id } }")
+            val expectedData = mapOf(
+                "bazList" to listOf(
+                    mapOf("id" to "1"),
+                    mapOf("id" to "2"),
+                    mapOf("id" to "3")
+                )
+            )
+            assertEquals(expectedData, result.getData())
+            assertEquals(0, result.errors.size)
+        }
+    }
+
+    @Test
+    fun `type checks with rss for list of polymorphism objects - fail one of them`() {
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "nodes") {
+                resolver {
+                    fn { _, _, _, _, ctx ->
+                        listOf(
+                            ctx.createNodeEngineObjectData("1", bazType),
+                            ctx.createNodeEngineObjectData("2", barType),
+                            ctx.createNodeEngineObjectData("3", barType),
+                        )
+                    }
+                }
+            }
+            field("Baz" to "y") {
+                resolver {
+                    objectSelections("x")
+                    fn { _, obj, _, _, _ ->
+                        val x = obj.fetch("x")
+                        x.toString()
+                    }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    objectSelections("key", "fragment _ on Baz { y }")
+                    fn { _, objectDataMap ->
+                        val eod = objectDataMap["key"]!!
+                        val y = eod.fetch("y")
+                        if (y == null) {
+                            throw RuntimeException("should not get here")
+                        }
+                    }
+                }
+            }
+            type("Bar") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(barType, mapOf("id" to id, "z" to id.toInt()))
+                }
+                checker {
+                    objectSelections("key", "fragment _ on Bar { z }")
+                    fn { _, objectDataMap ->
+                        val eod = objectDataMap["key"]!!
+                        val z = eod.fetch("z")
+                        if (z == 2) {
+                            throw RuntimeException("permission denied for bar with internal ID 2")
+                        }
+                    }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ nodes { id } }")
+            val expectedData = mapOf(
+                "nodes" to listOf(
+                    mapOf("id" to "1"),
+                    null,
+                    mapOf("id" to "3")
+                )
+            )
+            assertEquals(expectedData, result.getData())
+            assertEquals(1, result.errors.size)
+            val error = result.errors[0]
+            assertEquals(listOf("nodes", 1), error.path)
+            assertTrue(error.message.contains("permission denied for bar with internal ID 2"))
         }
     }
 }

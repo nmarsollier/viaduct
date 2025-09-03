@@ -118,6 +118,7 @@ class AccessCheckRunnerTest {
             Value.fromValue(CheckerResult.Success),
             mockk<GraphQLScalarType>(),
             Value.fromValue(mockk<FieldResolutionResult>()),
+            mockk(),
         )
         assertEquals(Value.fromValue(CheckerResult.Success), result)
     }
@@ -133,6 +134,7 @@ class AccessCheckRunnerTest {
             Value.fromValue(CheckerResult.Success),
             fooObjectType,
             Value.fromValue(mockk<FieldResolutionResult>()),
+            mockk(),
         )
         assertEquals(Value.fromValue(CheckerResult.Success), result)
     }
@@ -161,6 +163,7 @@ class AccessCheckRunnerTest {
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
                     Value.fromValue(frr),
+                    mockk(),
                 )
                 val error = result.await()?.asError?.error
                 assertTrue(error is IllegalAccessException)
@@ -189,6 +192,7 @@ class AccessCheckRunnerTest {
                     Value.fromValue(CheckerResult.Success),
                     mockk<GraphQLInterfaceType>(),
                     Value.fromValue(frr),
+                    mockk(),
                 )
                 assertEquals(CheckerResult.Success, result.await())
             }
@@ -211,7 +215,13 @@ class AccessCheckRunnerTest {
             data = emptyMap()
         }
         val params = createMockExecutionParameters(engineExecutionContext)
-        return runner.typeCheck(params, mockSupplier, oer)
+        return runner.typeCheck(
+            params,
+            mockSupplier,
+            oer,
+            mockk(),
+            mockk()
+        )
     }
 
     private fun checkField(
@@ -254,6 +264,9 @@ class AccessCheckRunnerTest {
                 engineExecutionContext?.let { every { getLocalContextForType<EngineExecutionContextImpl>() } returns it }
             }
             every { gjParameters } returns mockk()
+            every { field } returns mockk {
+                every { fieldTypeChildPlans } returns emptyMap()
+            }
         }
     }
 
