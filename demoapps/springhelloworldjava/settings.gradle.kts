@@ -1,19 +1,16 @@
 rootProject.name = "hello-world-java"
 
 pluginManagement {
-    includeBuild("../../plugins")
+    plugins {
+        id("viaduct-app") version "0.1.0"
+        id("viaduct-schema") version "0.1.0"
+        id("viaduct-tenant") version "0.1.0"
+    }
     repositories {
         mavenLocal()
         gradlePluginPortal()
     }
 }
-
-plugins {
-    id("viaduct-settings") version "0.1.0"
-}
-
-include(":server")
-viaduct.viaductInclude("viaduct")
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -22,3 +19,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
+include(":server")
+include(":viaduct:schema")
+include(":viaduct:tenants:tenant1")

@@ -7,19 +7,24 @@ plugins {
 
 project.version = libs.versions.project.get()
 
-// These are the plugins we're publishing externally for demoapp usage
+// These are the test plugins for internal Viaduct build usage
+// (test-feature-app is not published: it's for internal testing purposes)
 gradlePlugin {
     plugins {
-        create("viaductSchema") {
-            id = "viaduct-schema"
+        create("testSchema") {
+            id = "test-schema"
             implementationClass = "viaduct.gradle.schema.ViaductSchemaPlugin"
         }
-        create("viaductTenant") {
-            id = "viaduct-tenant"
+        create("testClassDiff") {
+            id = "test-classdiff"
+            implementationClass = "viaduct.gradle.classdiff.ViaductClassDiffPlugin"
+        }
+        create("testTenant") {
+            id = "test-tenant"
             implementationClass = "viaduct.gradle.tenant.ViaductTenantPlugin"
         }
-        create("viaductApp") {
-            id = "viaduct-app"
+        create("testApp") {
+            id = "test-app"
             implementationClass = "viaduct.gradle.app.ViaductAppPlugin"
         }
     }

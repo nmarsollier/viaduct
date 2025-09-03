@@ -2,7 +2,7 @@ plugins {
     `java-library`
     id("kotlin-project")
     `maven-publish`
-    id("viaduct-feature-app")
+    id("test-feature-app")
     `java-test-fixtures`
     id("kotlin-static-analysis")
 }

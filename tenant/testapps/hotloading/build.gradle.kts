@@ -1,6 +1,6 @@
 plugins {
     id("kotlin-project")
-    id("viaduct-app")
+    id("test-app")
 }
 
 dependencies {

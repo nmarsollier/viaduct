@@ -6,6 +6,7 @@ pluginManagement {
     includeBuild("build-logic-root")
     includeBuild("build-logic")
     includeBuild("plugins")
+    includeBuild("build-test-plugins")
 }
 
 @Suppress("UnstableApiUsage")

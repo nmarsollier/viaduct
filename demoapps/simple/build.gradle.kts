@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.24"
-    id("viaduct-app") version "0.1.0"
+    id("viaduct-app")
     application
 }
 

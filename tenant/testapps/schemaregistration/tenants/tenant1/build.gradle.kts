@@ -1,6 +1,6 @@
 plugins {
     id("kotlin-project-without-tests")
-    id("viaduct-tenant")
+    id("test-tenant")
 }
 
 viaductTenant {

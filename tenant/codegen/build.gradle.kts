@@ -1,7 +1,7 @@
 plugins {
     id("kotlin-project")
     id("kotlin-static-analysis")
-    id("viaduct-classdiff")
+    id("test-classdiff")
 }
 
 viaductClassDiff {
