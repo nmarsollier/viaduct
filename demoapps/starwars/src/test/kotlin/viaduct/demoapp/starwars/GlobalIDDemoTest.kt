@@ -16,7 +16,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import viaduct.api.grts.Character
 import viaduct.api.reflect.Type
-import viaduct.api.types.CompositeOutput
+import viaduct.api.types.NodeCompositeOutput
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
@@ -50,7 +50,8 @@ class GlobalIDDemoTest {
         typeClass: KClass<*>,
         internalId: String
     ): String {
-        val type = mirror.reflectionFor(typeClass.simpleName!!) as Type<CompositeOutput>
+        @Suppress("UNCHECKED_CAST")
+        val type = mirror.reflectionFor(typeClass.simpleName!!) as Type<NodeCompositeOutput>
         val globalId = GlobalIDImpl(type, internalId)
         return globalIDCodec.serialize(globalId)
     }
