@@ -91,12 +91,7 @@ class DispatcherRegistryFactory(
         }
         val dispatcherRegistry = DispatcherRegistry(fieldResolverDispatchers.toMap(), nodeResolverDispatchers.toMap(), fieldCheckerDispatchers.toMap(), typeCheckerDispatchers.toMap())
         if (dispatcherRegistry.isEmpty() && nonContributingModernBootstrappersPresent) {
-            try {
-                throw TenantModuleException("Refusing to create an empty executor registry for $tenantModuleBootstrappers")
-            } catch (e: Exception) {
-                log.warn("Could not bootstrap", e)
-                throw e
-            }
+            log.warn("Empty executor registry for {}.", tenantModuleBootstrappers)
         }
 
         validator.validate(
