@@ -10,6 +10,7 @@ import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.fetchAs
 import viaduct.engine.api.mocks.getAs
 import viaduct.engine.api.mocks.runFeatureTest
+import viaduct.engine.api.mocks.toViaductBuilder
 
 /**
  * Example test demonstrating the EngineFeatureTest framework usage.
@@ -161,10 +162,12 @@ class EngineFeatureTestExample {
                     )
                 }
             }
-        }.runFeatureTest {
-            viaduct.runQuery("{ node(id: 123) { id ... on TestNode { name } } }")
-                .assertJson("""{data: { node: { id: "123", name: "Test Node 123"} } }""")
-        }
+        }.toViaductBuilder()
+            .withoutDefaultQueryNodeResolvers() // Disabling system level node resolvers for test
+            .build().runFeatureTest {
+                viaduct.runQuery("{ node(id: 123) { id ... on TestNode { name } } }")
+                    .assertJson("""{data: { node: { id: "123", name: "Test Node 123"} } }""")
+            }
     }
 
     @Test

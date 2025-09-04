@@ -38,6 +38,7 @@ import viaduct.service.api.ExecutionInput
 import viaduct.service.api.Viaduct
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
+import viaduct.service.runtime.noderesolvers.ViaductNodeResolverAPIBootstrapper
 
 /**
  * An immutable implementation of Viaduct interface, it configures and executes queries against the Viaduct runtime
@@ -123,6 +124,7 @@ class StandardViaduct internal constructor(
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
         private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperBuilder> = emptyList()
         private var chainInstrumentationWithDefaults: Boolean = false
+        private var defaultQueryNodeResolversEnabled: Boolean = true
 
         fun enableAirbnbBypassDoNotUse(
             fragmentLoader: FragmentLoader,
@@ -157,6 +159,17 @@ class StandardViaduct internal constructor(
          * this is a programming error that should be flagged early.
          */
         fun withNoTenantAPIBootstrapper() = apply { withTenantAPIBootstrapperBuilders(emptyList()) }
+
+        /**
+         * By default, Viaduct instances implement `Query.node` and `Query.nodes`
+         * resolvers automatically.  Calling this function turns off that default behavior.
+         * (If your schema does not have the `Query.node/s` field(s), you do
+         * _not_ have to explicitly turn off the default behavior.)
+         */
+        fun withoutDefaultQueryNodeResolvers(): Builder =
+            apply {
+                this.defaultQueryNodeResolversEnabled = false
+            }
 
         fun withCheckerExecutorFactory(checkerExecutorFactory: CheckerExecutorFactory): Builder =
             apply {
@@ -230,8 +243,13 @@ class StandardViaduct internal constructor(
                 resolverErrorReporter ?: ResolverErrorReporter.NoOpResolverErrorReporter,
                 resolverErrorBuilder ?: ResolverErrorBuilder.NoOpResolverErrorBuilder
             )
+            val tenantBootstrapper = buildList {
+                addAll(tenantAPIBootstrapperBuilders)
+                if (defaultQueryNodeResolversEnabled) {
+                    add(ViaductNodeResolverAPIBootstrapper.Builder())
+                }
+            }.map { it.create() }.flatten()
 
-            val tenantBootstrapper = tenantAPIBootstrapperBuilders.map { it.create() }.flatten()
             val executionStrategyModuleConfig = ViaductExecutionStrategyModule.Config(
                 chainInstrumentationWithDefaults = chainInstrumentationWithDefaults,
             )

@@ -18,7 +18,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.jdk8)
 
     testImplementation(testFixtures(project(":engine:engine-api")))
+    testImplementation(testFixtures(project(":shared:graphql")))
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.jspecify)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
