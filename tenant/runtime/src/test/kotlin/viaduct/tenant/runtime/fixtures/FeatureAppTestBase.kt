@@ -140,6 +140,13 @@ abstract class FeatureAppTestBase {
     }
 
     /**
+     * Helper function to get internalId from the GlobalID given a generated Type.
+     */
+    fun <T : NodeObject> getInternalId(globalID: String): String {
+        return globalIdCodec.deserialize<T>(globalID).internalID
+    }
+
+    /**
      * Executes a query against the test application.
      *
      * @param scopeId The scope ID to use for the query.
