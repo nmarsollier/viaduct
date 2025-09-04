@@ -44,7 +44,7 @@ Learn the foundation of Viaduct's object system.
 
 - **Example**: A `Foo` type that implements `Node` and can be resolved by ID
 
-- **Generated classes**: `Nodes.*`, Global ID encoding/decoding
+- **Generated classes**: `NodeResolvers.*`, Global ID encoding/decoding
 
 - **Why it matters**: Foundation for all object resolution in Viaduct
 
@@ -58,7 +58,7 @@ See how Field and Node resolvers work together.
 
 - **Example**: A `User` with computed `fullName` field using `firstname` + `lastname`
 
-- **Generated classes**: `QueryResolvers.*`, `UserResolvers.*`, `Nodes.*`
+- **Generated classes**: `QueryResolvers.*`, `UserResolvers.*`, `NodeResolvers.*`
 
 - **Advanced feature**: Field resolvers accessing parent object data
 
@@ -72,7 +72,7 @@ directive @resolver on FIELD_DEFINITION | OBJECT
 
 This tells Viaduct "generate a resolver for this". Different placements create different resolver types:
 
-- **On object types**: `type User @resolver` → Creates `Nodes.User()` (Node Resolver)
+- **On object types**: `type User @resolver` → Creates `NodeResolvers.User()` (Node Resolver)
 
 - **On Query fields**: `foo: String! @resolver` → Creates `QueryResolvers.Foo()`
 
@@ -82,7 +82,7 @@ This tells Viaduct "generate a resolver for this". Different placements create d
 
 | Resolver Type             | Purpose                          | Generated Class              | When to Use                                 |
 |---------------------------|----------------------------------|------------------------------|---------------------------------------------|
-| **Node Resolver**         | Create/fetch objects by GlobalID | `Nodes.TypeName()`           | Objects that implement `Node` interface     |
+| **Node Resolver**         | Create/fetch objects by GlobalID | `NodeResolvers.TypeName()`   | Objects that implement `Node` interface     |
 | **Query Field Resolver**  | Handle root query fields         | `QueryResolvers.FieldName()` | Top-level API entry points                  |
 | **Object Field Resolver** | Compute derived fields           | `TypeResolvers.FieldName()`  | Fields that need parent data or computation |
 

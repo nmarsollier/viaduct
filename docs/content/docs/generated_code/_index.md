@@ -4,11 +4,11 @@ description: What code does Viaduct generate for you?
 weight: 30
 ---
 
-# Generated Code
+## GraphQL Representational Type (GRT)
 
-The API generates two kinds of classes: *GraphQL Representational Types* (GRTs), and *resolver base classes,* i.e., the classes mentioned above that contain tenant-provided resolver functions.  This subsection discusses GRTS.  The next section will discuss resolver base classes.
+The API generates two kinds of classes: *GraphQL Representational Types* (GRTs), and *resolver base classes,* described in the [Resolvers](/docs/resolvers/) section.
 
-For each GraphQL type, Viaduct generates a number of Kotlin classes to represent its values.  These classes are found in the `viaduct.api.grts` package.  In Viaduct we generate just two classes for each GraphQL type: a class representing a *value* of a given type, and a builder-class allowing you to construct a value of a given type.  Consider this simple schema:
+For each GraphQL type, Viaduct generates a number of Kotlin classes to represent its values.  These classes are found in the `viaduct.api.grts` package. We generate two classes for each GraphQL type: a class representing a *value* of a given type, and a builder-class allowing you to construct a value of a given type.  Consider this simple schema:
 
 ```graphql
 type User implements Node {
@@ -22,15 +22,15 @@ type User implements Node {
 The signature of the GRT for this type would look approximately like this:
 
 ```kotlin
-package viaduct.api.grts.User
+package viaduct.api.grts
 
-class User private constructor(...): NodeObject, Object {
+class User private constructor(...): NodeObject {
   suspend fun getId(alias: String? = null): GlobalID<User>
   suspend fun getFirstName(alias: String? = null): String?
   suspend fun getLastName(alias: String? = null): String?
   suspend fun getDisplayName(alias: String? = null): String?
 
-  class Builder(): DynamicValueOutputBuilder<User> {
+  class Builder(ctx: ExecutionContext): DynamicValueOutputBuilder<User> {
     fun id(id: GlobalID<User>): Builder
     fun firstName(firstName: String?): Builder
     fun lastName(lastName: String?): Builder
@@ -40,7 +40,7 @@ class User private constructor(...): NodeObject, Object {
 }
 ```
 
-`Object` is a tagging interface (i.e., an interface with no methods) for GRTs representing GraphQL object types.  `DynamicValueOutputBuilder<T>` is an interface for builders of such types (it defines a `build` function that returns a `T`).
+`NodeObject` is a tagging interface (i.e., an interface with no methods) for GRTs representing GraphQL object types.  `DynamicValueOutputBuilder<T>` is an interface for builders of such types (it defines a `build` function that returns a `T`).
 
 The values from a fragment on `User` (for example) are accessed through the GRT for `User`.  As a result, the Viaduct GRTs for object types distinguish fields that are "not set," because they haven’t been requested for in the fragment, from fields that are in the fragment and thus are "set."  If you attempt to access a field that has not been set, a `UnsetSelectionException` exception will be thrown, even if that field is nullable.  Also, when you build an object-type value, you do *not* have to set all fields, even if those fields are non-nullable.
 

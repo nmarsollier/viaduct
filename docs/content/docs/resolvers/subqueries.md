@@ -1,9 +1,10 @@
 ---
 title: Subqueries
 description: Executing subqueries in resolvers
+weight: 6
 ---
 
-We noted earlier that `Context.query` is used to execute a subquery, i.e., a GraphQL query operation rooted in the full-schema’s `Query` root type.  As an example, we can modify the resolver for User.displayName to incorporate data that it loads from Query:
+`Context.query` can be used to execute a subquery, i.e., a GraphQL query operation rooted in the full-schema’s `Query` root type.  As an example, we can modify the resolver for User.displayName to incorporate data that it loads from Query:
 
 ```kotlin
 @Resolver(
@@ -37,4 +38,4 @@ class UserDisplayNameResolver: UserResolvers.DisplayName() {
 }
 ```
 
-We call this process of loading a selection set an "imperative subquery", which is distinguished from the more "declarative" method of data loading used by the `@Resolver` annotation. It can be used to load selections that are not known until runtime, which can be loaded from either the Query or Mutation objects.
+We call this process of loading a selection set an "imperative subquery", which is distinguished from the more "declarative" method of data loading used by the `@Resolver` annotation. It can be used to load selections on the root Query object that are not known until runtime.

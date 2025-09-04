@@ -1,7 +1,7 @@
 ---
 title: Scopes
 description: Schema visibility and access control in Viaduct.
-weight: 20
+weight: 23
 ---
 
 # Scopes
