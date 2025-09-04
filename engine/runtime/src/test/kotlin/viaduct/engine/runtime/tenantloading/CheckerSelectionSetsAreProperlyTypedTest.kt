@@ -36,35 +36,53 @@ class CheckerSelectionSetsAreProperlyTypedTest {
     }
 
     @Test
-    fun `invalid -- single selection set with wrong type`() {
-        val rss = mkRSS("Query", "currentUser") // Wrong! Should be "User"
-        assertInvalid("User", "name", mapOf("key1" to rss), "Query")
+    fun `valid -- single selection set on rooot query`() {
+        val rss = mkRSS("Query", "currentUser")
+        assertValid("User", "name", mapOf("key1" to rss))
     }
 
     @Test
-    fun `invalid -- multiple selection sets with wrong types`() {
-        val rss1 = mkRSS("Query", "currentUser") // Wrong! Should be "User"
-        val rss2 = mkRSS("Post", "title") // Wrong! Should be "User"
-        assertInvalid("User", "name", mapOf("key1" to rss1, "key2" to rss2), "Query", "Post")
+    fun `valid -- multiple selection sets with object type and root query`() {
+        val validRss = mkRSS("User", "id")
+        val invalidRss = mkRSS("Query", "currentUser")
+        assertValid("User", "name", mapOf("valid" to validRss, "invalid" to invalidRss))
+    }
+
+    @Test
+    fun `invalid -- single selection set with wrong type`() {
+        val rss = mkRSS("Post", "title") // Wrong! Should be on either "User" or "Query"
+        assertInvalid("User", "name", mapOf("key1" to rss), "Post")
+    }
+
+    @Test
+    fun `invalid -- all selection sets with wrong types`() {
+        val rss1 = mkRSS("Comment", "body") // Wrong! Should be on either "User" or "Query"
+        val rss2 = mkRSS("Post", "title") // Wrong! Should be on either "User" or "Query"
+        assertInvalid("User", "name", mapOf("key1" to rss1, "key2" to rss2), "Comment", "Post")
     }
 
     @Test
     fun `invalid -- mixed valid and invalid selection sets`() {
-        val validRss = mkRSS("User", "id") // Correct
-        val invalidRss = mkRSS("Query", "currentUser") // Wrong! Should be "User"
-        assertInvalid("User", "name", mapOf("valid" to validRss, "invalid" to invalidRss), "Query")
+        val validRss1 = mkRSS("User", "id") // Correct
+        val validRss2 = mkRSS("Query", "currentUser") // Correct
+        val invalidRss = mkRSS("Post", "title") // Wrong! Should on either "User" or "Query"
+        assertInvalid(
+            "User",
+            "name",
+            mapOf("valid1" to validRss1, "valid2" to validRss2, "invalid" to invalidRss),
+            "Post"
+        )
     }
 
     @Test
     fun `invalid -- multiple different wrong types`() {
-        val rss1 = mkRSS("Query", "currentUser")
-        val rss2 = mkRSS("Post", "title")
-        val rss3 = mkRSS("Comment", "body")
+        val rss1 = mkRSS("Query", "currentUser") // Correct
+        val rss2 = mkRSS("Post", "title") // Wrong! Should on either "User" or "Query"
+        val rss3 = mkRSS("Comment", "body") // Wrong! Should on either "User" or "Query"
         assertInvalid(
             "User",
             "name",
             mapOf("key1" to rss1, "key2" to rss2, "key3" to rss3),
-            "Query",
             "Post",
             "Comment"
         )
