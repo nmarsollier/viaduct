@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.kotlinx.coroutines.core.jvm)
     implementation(libs.kotlinx.coroutines.jdk8)
+    implementation(libs.micrometer.core)
 
     testImplementation(testFixtures(project(":engine:engine-api")))
     testImplementation(testFixtures(project(":shared:graphql")))

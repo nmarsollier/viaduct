@@ -7,6 +7,7 @@ import com.google.inject.name.Named
 import graphql.execution.DataFetcherExceptionHandler
 import graphql.execution.ExecutionStrategy
 import graphql.execution.instrumentation.Instrumentation
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.FieldCheckerDispatcherRegistry
@@ -27,6 +28,7 @@ import viaduct.engine.runtime.execution.ViaductExecutionStrategy
 import viaduct.engine.runtime.execution.WrappedCoroutineExecutionStrategy
 import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
 import viaduct.engine.runtime.instrumentation.ScopeInstrumentation
+import viaduct.engine.runtime.instrumentation.TaggedMetricInstrumentation
 import viaduct.engine.runtime.tenantloading.CheckerSelectionSetsAreProperlyTyped
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
 import viaduct.engine.runtime.tenantloading.ExecutorValidator
@@ -48,7 +50,8 @@ class ViaductExecutionStrategyModule(
     val instrumentation: Instrumentation? = null,
     val tenantBootstrapper: TenantAPIBootstrapper,
     val fragmentLoader: FragmentLoader? = null,
-    val config: Config
+    val meterRegistry: MeterRegistry? = null,
+    val config: Config,
 ) : AbstractModule() {
     companion object {
         private val log by logger()
@@ -194,9 +197,13 @@ class ViaductExecutionStrategyModule(
         resolverInstrumentation: ResolverInstrumentation,
         scopeInstrumentation: ScopeInstrumentation
     ): Instrumentation {
-        val defaultInstrumentations = listOf(
+        val taggedMetricInstrumentation = meterRegistry?.let {
+            TaggedMetricInstrumentation(meterRegistry = it)
+        }
+        val defaultInstrumentations = listOfNotNull(
             scopeInstrumentation.asStandardInstrumentation,
             resolverInstrumentation,
+            taggedMetricInstrumentation?.asStandardInstrumentation
         )
         return if (config.chainInstrumentationWithDefaults) {
             ChainedInstrumentation(defaultInstrumentations + listOfNotNull(instrumentation))

@@ -16,6 +16,7 @@ import graphql.execution.ExecutionId
 import graphql.execution.ExecutionStrategy
 import graphql.execution.instrumentation.Instrumentation
 import graphql.schema.GraphQLSchema
+import io.micrometer.core.instrument.MeterRegistry
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.future.await
 import viaduct.engine.api.CheckerExecutorFactory
@@ -124,6 +125,7 @@ class StandardViaduct internal constructor(
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
         private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperBuilder> = emptyList()
         private var chainInstrumentationWithDefaults: Boolean = false
+        private var meterRegistry: MeterRegistry? = null
         private var defaultQueryNodeResolversEnabled: Boolean = true
 
         fun enableAirbnbBypassDoNotUse(
@@ -224,6 +226,11 @@ class StandardViaduct internal constructor(
         @Deprecated("For advance uses, Airbnb-use only.", level = DeprecationLevel.WARNING)
         fun getSchemaRegistryBuilder(): ViaductSchemaRegistryBuilder = viaductSchemaRegistryBuilder
 
+        fun withMeterRegistry(meterRegistry: MeterRegistry) =
+            apply {
+                this.meterRegistry = meterRegistry
+            }
+
         /**
          * Builds the Guice Module within Viaduct and gets Viaduct from the injector.
          *
@@ -260,6 +267,7 @@ class StandardViaduct internal constructor(
                     instrumentation,
                     tenantBootstrapper,
                     fragmentLoader,
+                    meterRegistry,
                     executionStrategyModuleConfig
                 ),
                 internalEngineModule

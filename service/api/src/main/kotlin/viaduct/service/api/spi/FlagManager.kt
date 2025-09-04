@@ -20,6 +20,7 @@ interface FlagManager {
         override fun isEnabled(flag: Flag): Boolean =
             when (flag) {
                 EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY -> true
+
                 else -> false
             }
     }

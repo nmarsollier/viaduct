@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":shared:logging"))
     implementation(project(":snipped:errors"))
     implementation(project(":tenant:tenant-api"))
+    implementation(libs.micrometer.core)
 
     testFixturesApi(libs.graphql.java)
     testFixturesApi(libs.kotest.property.jvm)

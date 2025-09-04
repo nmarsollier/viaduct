@@ -41,6 +41,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.jdk8)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.strikt.core)
+    testImplementation(libs.micrometer.core)
 }
 
 afterEvaluate {

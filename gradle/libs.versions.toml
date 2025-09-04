@@ -29,6 +29,7 @@ reflections = "0.10.2"
 slf4j = "2.0.7"
 jspecify = "1.0.0"
 strikt = "0.34.1"
+micrometer = "1.10.8"
 
 # Plugins
 ktlintPluginVersion = "13.1.0"
@@ -75,6 +76,7 @@ net-bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy"
 reflections = { module = "org.reflections:reflections", version.ref = "reflections" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 
 # Testing
 guava = { module = "com.google.guava:guava", version.ref = "guava" }

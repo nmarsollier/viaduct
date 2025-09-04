@@ -1,6 +1,7 @@
 package viaduct.tenant.runtime.featuretests.fixtures
 
 import graphql.execution.instrumentation.Instrumentation
+import io.micrometer.core.instrument.MeterRegistry
 import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.api.FieldValue
@@ -59,6 +60,7 @@ class FeatureTestBuilder {
     private val fieldCheckerStubs = mutableMapOf<Coordinate, CheckerExecutorStub>()
     private val typeCheckerStubs = mutableMapOf<String, CheckerExecutorStub>()
     private var instrumentation: Instrumentation? = null
+    private var meterRegistry: MeterRegistry? = null
 
     /**
      * Configure a resolver that binds the provided [resolveFn] to the provided schema [coordinate].
@@ -385,6 +387,11 @@ class FeatureTestBuilder {
             this.instrumentation = instrumentation
     }
 
+    fun meterRegistry(meterRegistry: MeterRegistry) =
+        this.also {
+            this.meterRegistry = meterRegistry
+        }
+
     fun build(): FeatureTest {
         val tenantPackageFinder = TestTenantPackageFinder(packageToResolverBases)
 
@@ -406,7 +413,9 @@ class FeatureTestBuilder {
         val standardViaduct = StandardViaduct.Builder()
             .withTenantAPIBootstrapperBuilders(builders)
             .withFlagManager(
-                MockFlagManager.mk(Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY)
+                MockFlagManager.mk(
+                    Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY
+                )
             )
             .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
             .withCheckerExecutorFactory(
@@ -426,6 +435,10 @@ class FeatureTestBuilder {
                 it,
                 chainInstrumentationWithDefaults = true
             )
+        }
+
+        meterRegistry?.let {
+            standardViaduct.withMeterRegistry(it)
         }
 
         return FeatureTest(standardViaduct.build())

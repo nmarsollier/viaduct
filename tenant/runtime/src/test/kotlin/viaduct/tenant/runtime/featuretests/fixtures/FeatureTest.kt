@@ -41,24 +41,27 @@ open class FeatureTest(
 ) {
     private fun executeAsync(
         query: String,
-        variables: Map<String, Any?> = mapOf()
+        variables: Map<String, Any?> = mapOf(),
+        operationName: String? = null,
     ): CompletableFuture<ExecutionResult> {
         val executionInput = ExecutionInput(
             query = query,
             variables = variables,
             requestContext = mockk(),
-            schemaId = FeatureTestBuilder.SCHEMA_ID
+            schemaId = FeatureTestBuilder.SCHEMA_ID,
+            operationName = operationName
         )
         return standardViaduct.executeAsync(executionInput)
     }
 
     open fun execute(
         query: String,
-        variables: Map<String, Any?> = mapOf()
+        variables: Map<String, Any?> = mapOf(),
+        operationName: String? = null,
     ): ExecutionResult {
         lateinit var result: ExecutionResult
         runBlocking {
-            result = executeAsync(query, variables).await()
+            result = executeAsync(query, variables, operationName).await()
         }
         return result
     }
@@ -66,7 +69,7 @@ open class FeatureTest(
     fun assertJson(
         expectedJson: String,
         query: String,
-        variables: Map<String, Any?> = mapOf(),
+        variables: Map<String, Any?> = mapOf()
     ): Unit = execute(query, variables).assertJson(expectedJson)
 }
 
