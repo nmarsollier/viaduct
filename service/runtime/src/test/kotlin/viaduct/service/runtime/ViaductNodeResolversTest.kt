@@ -96,7 +96,7 @@ class ViaductNodeResolversTest {
               """
                 ).assertJson(
                     """
-                    {data: {node: {id: "$INTERNAL_ID_1", name: "User-$INTERNAL_ID_1" }}}
+                    {data: {node: {id: "$GLOBAL_ID_1", name: "User-$GLOBAL_ID_1"}}}"
                 """
                 )
             }
@@ -121,8 +121,8 @@ class ViaductNodeResolversTest {
                 ).assertJson(
                     """
                     {data: { nodes: [
-                            {id: "$INTERNAL_ID_1", name: "User-$INTERNAL_ID_1"},
-                            {id: "$INTERNAL_ID_2", name: "User-$INTERNAL_ID_2"}
+                            {id: "$GLOBAL_ID_1", name: "User-$GLOBAL_ID_1"},
+                            {id: "$GLOBAL_ID_2", name: "User-$GLOBAL_ID_2"}
                         ] } }
                         """
                 )

@@ -96,7 +96,7 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
         val implementsNode = graphQLObjectType.interfaces.any { it.name == "Node" }
         require(implementsNode) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type that extends the Node interface" }
 
-        return context.createNodeEngineObjectData(localId, graphQLObjectType)
+        return context.createNodeEngineObjectData(globalId, graphQLObjectType)
     }
 
     /**
