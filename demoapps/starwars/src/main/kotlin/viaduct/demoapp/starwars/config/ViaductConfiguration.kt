@@ -7,8 +7,13 @@ import org.springframework.context.annotation.ClassPathBeanDefinitionScanner
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar
+import org.springframework.core.annotation.Order
+import org.springframework.core.io.ClassPathResource
 import org.springframework.core.type.AnnotationMetadata
 import org.springframework.core.type.filter.AnnotationTypeFilter
+import org.springframework.web.servlet.function.RouterFunction
+import org.springframework.web.servlet.function.RouterFunctions
+import org.springframework.web.servlet.function.ServerResponse
 import viaduct.api.Resolver
 import viaduct.service.api.Viaduct
 import viaduct.service.runtime.StandardViaduct
@@ -50,4 +55,15 @@ class ViaductConfiguration {
                     .registerScopedSchema(SCHEMA_ID, setOf("default"))
                     .registerScopedSchema(SCHEMA_ID_WITH_EXTRAS, setOf("default", EXTRAS_SCOPE_ID))
             ).build()
+
+    @Bean
+    @Order(0)
+    fun graphiQlRouterFunction(): RouterFunction<ServerResponse> {
+        val resource = ClassPathResource("graphiql/index.html")
+        return RouterFunctions.route()
+            .GET("/graphiql") { _ ->
+                ServerResponse.ok().body(resource)
+            }
+            .build()
+    }
 }
