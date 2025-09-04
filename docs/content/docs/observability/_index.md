@@ -41,4 +41,26 @@ Due to the async nature of Viaduct’s execution strategy and use of caching, th
 
 # Available Metrics
 
-TODO
+1. viaduct.execution
+* Full execution lifecycle metric which measures end-to-end execution time for the entire GraphQL request
+  * Measurements:
+    * Latency (p50, p75, p90, p95) and count
+  * Tags:
+    * operation_name: GraphQL operation name (if available)
+    * success: true if no throwable and data is present, false otherwise
+
+2. viaduct.operation
+* Operation-level metric which measures the time to execute the specific GraphQL operation
+  * Measurements:
+     * Latency (p50, p75, p90, p95) and count
+  * Tags:
+    * operation_name: GraphQL operation definition name (if available)
+
+3. viaduct.field
+* Field-level metric which measures the time to fetch/resolve individual GraphQL fields
+  * Measurements:
+    * Latency (p50, p75, p90, p95) and count
+  * Tags:
+    * operation_name: GraphQL operation name (if available)
+    * field: Field path in format ParentType.fieldName or just fieldName for root fields
+    * success: true if no exception thrown during field fetch, false otherwise
