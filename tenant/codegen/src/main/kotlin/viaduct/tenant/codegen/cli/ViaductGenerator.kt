@@ -23,12 +23,12 @@ import viaduct.tenant.codegen.util.ZipUtil.zipAndWriteDirectories
 class ViaductGenerator : CliktCommand() {
     // modern module args
     private val tenantPkg: String by option("--tenant_pkg").required()
-    private val modernModuleGeneratedDir: File by option("--modern_module_generated_directory")
-        .file(mustExist = false, canBeFile = false).required()
+    private val modernModuleGeneratedDir: File? by option("--modern_module_generated_directory")
+        .file(mustExist = false, canBeFile = false)
     private val modernModuleOutputArchive: File? by option("--modern_module_output_archive")
         .file(mustExist = false, canBeDir = false)
-    private val metainfGeneratedDir: File by option("--metainf_generated_directory")
-        .file(mustExist = false, canBeFile = false).required()
+    private val metainfGeneratedDir: File? by option("--metainf_generated_directory")
+        .file(mustExist = false, canBeFile = false)
     private val metainfOutputArchive: File? by option("--metainf_output_archive")
         .file(mustExist = false, canBeDir = false)
 
@@ -82,10 +82,14 @@ class ViaductGenerator : CliktCommand() {
 
         if (resolverGeneratedDir.exists()) resolverGeneratedDir.deleteRecursively()
         resolverGeneratedDir.mkdirs()
-        if (modernModuleGeneratedDir.exists()) modernModuleGeneratedDir.deleteRecursively()
-        modernModuleGeneratedDir.mkdirs()
-        if (metainfGeneratedDir.exists()) metainfGeneratedDir.deleteRecursively()
-        metainfGeneratedDir.mkdirs()
+        modernModuleGeneratedDir?.let { dir ->
+            if (dir.exists()) dir.deleteRecursively()
+            dir.mkdirs()
+        }
+        metainfGeneratedDir?.let { dir ->
+            if (dir.exists()) dir.deleteRecursively()
+            dir.mkdirs()
+        }
 
         schema.generateFieldResolvers(args)
         schema.generateNodeResolvers(args)
@@ -95,12 +99,12 @@ class ViaductGenerator : CliktCommand() {
             resolverGeneratedDir.deleteRecursively()
         }
         modernModuleOutputArchive?.let {
-            it.zipAndWriteDirectories(modernModuleGeneratedDir)
-            modernModuleGeneratedDir.deleteRecursively()
+            it.zipAndWriteDirectories(modernModuleGeneratedDir!!)
+            modernModuleGeneratedDir!!.deleteRecursively()
         }
         metainfOutputArchive?.let {
-            it.zipAndWriteDirectories(metainfGeneratedDir)
-            metainfGeneratedDir.deleteRecursively()
+            it.zipAndWriteDirectories(metainfGeneratedDir!!)
+            metainfGeneratedDir!!.deleteRecursively()
         }
         // TODO(https://app.asana.com/1/150975571430/project/1207604899751448/task/1210764159508822?focus=true): Remove this global mutable state, see https://docs.google.com/document/d/18FKs13huMY3JyslnO11_V_WtYPcSA7Xb_vNQAf79yP0/edit?tab=t.0#heading=h.a24h0oe8myl2
         cfg.moduleExtractor = BUILD_TIME_MODULE_EXTRACTOR

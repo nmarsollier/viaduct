@@ -44,8 +44,8 @@ class SchemaObjectsBytecode : CliktCommand() {
     private val pkgForGeneratedClassesAsFile: File? by option("--pkg_for_generated_classes_as_file")
         .file(mustExist = false, canBeDir = false)
 
-    private val workerNumber: Int by option("--bytecode_worker_number").int().required()
-    private val workerCount: Int by option("--bytecode_worker_count").int().required()
+    private val workerNumber: Int by option("--bytecode_worker_number").int().default(0)
+    private val workerCount: Int by option("--bytecode_worker_count").int().default(1)
 
     private val appliedScopes: List<String>? by option("--applied_scopes").split(",")
 
