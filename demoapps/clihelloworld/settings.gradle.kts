@@ -1,4 +1,4 @@
-rootProject.name = "hello-world-java"
+rootProject.name = "hello-world"
 
 pluginManagement {
     plugins {
@@ -13,13 +13,11 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenLocal()
         mavenCentral()
     }
 }
 
-include(":server")
-include(":viaduct:schema")
-include(":viaduct:tenants:tenant1")
+include(":schema")
+include(":tenants:helloworld")

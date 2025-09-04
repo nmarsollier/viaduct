@@ -1,3 +1,0 @@
-plugins {
-    id("viaduct-app")
-}
