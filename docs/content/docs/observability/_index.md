@@ -4,18 +4,18 @@ description: Monitoring and Logging in Viaduct
 weight: 20
 ---
 
-# Metrics
+## Metrics
 
 Viaduct provides built-in metrics on fields, field resolvers, node resolvers and access checkers ("measured entities"). These metrics are focused on latency, error rates and attribution. Viaduct offers observability to support the following use cases:
 
-## Latency
+### Latency
 
 * Determine latency (across various percentiles) in aggregate for measured entities
 * Figure out the sequence of executions of measured entities happening in a given request that is contributing to latency (critical path)
 * Understand why each measured entity is getting called / executed
 * Attribute each measured entity running in a request to a specific tenant
 
-## Error Rate
+### Error Rate
 
 * Monitor fail states of operations (either partial or full failure) on Viaduct
   * What is the error rate for a given operation?
@@ -28,7 +28,7 @@ Viaduct provides built-in metrics on fields, field resolvers, node resolvers and
 * Monitor operation for error rate
   * Errors are eventually propagated to the top level operation to signify if the operation failed or not
 
-## Attribution
+### Attribution
 
 Due to the async nature of Viaduct’s execution strategy and use of caching, this requires special callout. Viaduct’s observability supports the following use cases:
 
@@ -39,7 +39,7 @@ Due to the async nature of Viaduct’s execution strategy and use of caching, th
 * Developers are also able to understand what code component triggered the fetch for their field, and what the frequency is for the fetch.
   * If taking the above example, field A should be able to know DFP B triggers its fetch and the frequency of the fetch.
 
-# Available Metrics
+## Available Metrics
 
 1. viaduct.execution
 * Full execution lifecycle metric which measures end-to-end execution time for the entire GraphQL request
@@ -48,14 +48,12 @@ Due to the async nature of Viaduct’s execution strategy and use of caching, th
   * Tags:
     * operation_name: GraphQL operation name (if available)
     * success: true if no throwable and data is present, false otherwise
-
 2. viaduct.operation
 * Operation-level metric which measures the time to execute the specific GraphQL operation
   * Measurements:
      * Latency (p50, p75, p90, p95) and count
   * Tags:
     * operation_name: GraphQL operation definition name (if available)
-
 3. viaduct.field
 * Field-level metric which measures the time to fetch/resolve individual GraphQL fields
   * Measurements:

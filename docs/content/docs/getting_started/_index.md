@@ -4,15 +4,15 @@ description: Setting up and modifying a simple Viaduct application
 weight: 1
 ---
 
-# Getting Started with Viaduct
+## Getting Started with Viaduct
 
 Using a set of scripts bundled with the Viaduct release, this document will walk you through the process of setting up and modifying a very simple Viaduct application.  Viaduct comes with built-in, Gradle-based tooling for building, testing, and running your sample application.  This guide uses that tooling and assumes a basic familiarity with Gradle.
 
-# System Requirements
+## System Requirements
 
 Gradle 8+ and Java 21\.
 
-# Installing Viaduct
+## Installing Viaduct
 
 Clone the Viaduct repository from GitHub and use Gradle to build and publish Viaduct's artifacts.
 
@@ -24,13 +24,13 @@ cd viaduct
 
 This will build Viaduct’s artifacts and install them into your local Maven repository.
 
-Assuming you’re still in the `viaduct` directory, it will be convenient to 
+Assuming you’re still in the `viaduct` directory, it will be convenient to
 
 ```shell
 export VIADUCT="$(pwd)"
 ```
 
-# Bootstrapping an Application
+## Bootstrapping an Application
 
 Viaduct comes with built-in Gradle tooling for building, testing, and publishing applications.  This tooling includes a “bootstrap” script that configures a working “Hello, World\!” application.
 
@@ -46,7 +46,7 @@ This should turn your empty directory into a Viaduct “Hello, World\!” applic
 ./gradlew -q run --args="'{ author }'"
 ```
 
-# Touring the Application
+## Touring the Application
 
 The bootstrap script created a Viaduct application project for you with the following shape:
 
@@ -74,7 +74,7 @@ Note that the containing application code does not need to be inside the `yourro
 
 The **`modules` directory** contains the Viaduct modules containing the schema and business logic of your application.  Each of these modules needs to use the `viaduct-module` plugin.  Each of these modules should have a directory `src/resources/schema` containing `.graphqls` files with the schema being defined by that module.  (This `schema` directory is searched recursively for such schema-containing files.)
 
-The `modules` directory can contain multiple Viaduct modules organized in an arbitrary directory structure.  At Airbnb, for example, this directory contains subdirectories named `entity`, `data`, and `presentation`, each representing a “layer” in our schema.  The GraphQL modules are put under these directories.  The `modules` directory can also contain “regular” Gradle projects, e.g., a `modules/common` project containing a library of common code shared by all modules.  
+The `modules` directory can contain multiple Viaduct modules organized in an arbitrary directory structure.  At Airbnb, for example, this directory contains subdirectories named `entity`, `data`, and `presentation`, each representing a “layer” in our schema.  The GraphQL modules are put under these directories.  The `modules` directory can also contain “regular” Gradle projects, e.g., a `modules/common` project containing a library of common code shared by all modules.
 
 A `viaduct-module` project may *not* contain other `viaduct-module` projects.  Also, `viaduct-module` projects cannot take Gradle dependencies on other `viaduct-module` projects: shared code *must* be put in a shared library, and the business logic of `viaduct-modules` should *only* interact using Viaduct GraphQL-based mechanisms.
 
@@ -82,9 +82,9 @@ At startup, the `viaduct-app` plugin will search for `viaduct-module` projects i
 
 (You might notice the directory `.viaduct/schema` in your application directory.  This is a Gradle project managed entirely by Viaduct: it’s used at build time to collect up the schema definitions across all Viaduct modules and aggregating them into a single, consolidated schema.  If you handcraft or write your own scripts to create Viaduct applications, this project must exist for the `viaduct-app` and `viaduct-schema` plugins to work correctly.
 
-# Extending the Application
+## Extending the Application
 
-## Extending the Schema
+### Extending the Schema
 
 Let’s explore our sample application more deeply by extending its functionality.  Viaduct is a “schema first” GraphQL environment, meaning you write your schema first, and then generate classes to write your code against.  So in that spirit, let’s start by extending the schema, which as noted above you’ll find in `src/main/resources/schema/schema.graphqls` (paths in this section are relative to `modules/helloworld/).`  You should see the following in that file:
 
@@ -158,13 +158,8 @@ Let’s examine some of the details of Viaduct that are illustrated by this file
 
     Resolver classes are implemented by subclassing a generated *resolver base class,* which are found in the `resolverbases` subpackage.  For each type `T` that has one or more `@resolver` fields, a static Kotlin `object` named `TResolvers` is created.  For each field `T.f` that has a resolver, we generate a resolver base class named `TResolvers.F` (where the first letter of `f` is capitalized).  To write a resolver for `T.f`, you subclass `TResolvers.F` and override the `resolve` function.  (This subclassing approach is friendly to IDE autocomplete and genAI automation.  Also, the type parameters on the `Context` argument are extensive, and this approach allows us to hide those from developers.)
 
-* In addition to subclassing the correct resolver base class, resolver classes must also be annotated with `@Resolver`, otherwise they won’t be recognized as resolver classes.  (This supports testing and experimentation, where an “inactive” version of a resolver class with `@Resolver` can be written and tested before it replaces the current “live” version annotation.)  
+* In addition to subclassing the correct resolver base class, resolver classes must also be annotated with `@Resolver`, otherwise they won’t be recognized as resolver classes.  (This supports testing and experimentation, where an “inactive” version of a resolver class with `@Resolver` can be written and tested before it replaces the current “live” version annotation.)
   As illustrated here, the `@Resolver` annotation can take what’s called a *required selection set* (RSS) which specifies what data the resolver wants to consume.  The RSS is a GraphQL fragment on the containing-type of the field being resolved.  In our example, since `attributedGreeting` is a field on `Query`, the RSS is a fragment on the `Query` type.  As mentioned earlier, if a resolver attempts to access data it hasn’t requested in its RSS, an error is raised.  Required selection sets are the *only* way the different modules of an application can interact with each other, creating strong encapsulation of the code inside a module.
 
 * In all resolvers, the `ctx.objectValue` property is how you access the values requested in your RSS.  For a field on GraphQL type `T`, `objectValue` for the resolver for that field will be the GRT representing `T` (`Query` in our example).  Note that the getters for the fields of `objectValue` are functions, not properties.  It turns out these are suspending functions, which will wait for a value to be resolved by the responsible resolver before it returns.  This asynchrony allows the engine to execute resolvers in parallel.  (To prevent deadlocks, cycles between RSSs are checked-for at build time and also again at server startup time.)
 
-# What’s Next
-
-* Point to demo apps  
-* Point to MVP document  
-* ???

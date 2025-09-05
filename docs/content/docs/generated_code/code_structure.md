@@ -4,9 +4,9 @@ description: Tenant API Code Structure
 weight: 2
 ---
 
-# Code Structure
+## Code Structure
 
-## Packages
+### Packages
 
 There are three main packages in particular making up the Tenant API:
 

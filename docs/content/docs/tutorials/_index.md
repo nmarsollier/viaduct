@@ -4,11 +4,11 @@ description: Step-by-step guides to using Viaduct
 weight: 5
 ---
 
-# Tutorials
+## Tutorials
 
 These step-by-step guides will teach you how to build powerful GraphQL APIs with minimal code.
 
-## How It Works:
+### How It Works:
 
 1. **Write GraphQL schema** with `@resolver` directives
 
@@ -18,11 +18,11 @@ These step-by-step guides will teach you how to build powerful GraphQL APIs with
 
 4. **Get a working API** - Type-safe, performant GraphQL server
 
-## Tutorial Path
+### Tutorial Path
 
 Follow these tutorials in order to master Viaduct's resolver patterns:
 
-### 1. [Field Resolver Tutorial](https://github.com/airbnb/viaduct/blob/main/tenant/runtime/src/test/kotlin/viaduct/tenant/runtime/tutorials/fieldresolver/SimpleFieldResolverFeatureAppTest.kt)
+#### 1. [Field Resolver Tutorial](https://github.com/airbnb/viaduct/blob/main/tenant/runtime/src/test/kotlin/viaduct/tenant/runtime/tutorials/fieldresolver/SimpleFieldResolverFeatureAppTest.kt)
 
 **Start here!** Learn the most basic resolver type.
 
@@ -34,7 +34,7 @@ Follow these tutorials in order to master Viaduct's resolver patterns:
 
 - **Generated classes**: `QueryResolvers.*`
 
-### 2. [Node Resolver Tutorial](https://github.com/airbnb/viaduct/blob/main/tenant/runtime/src/test/kotlin/viaduct/tenant/runtime/tutorials/noderesolver/SimpleNodeResolverFeatureAppTest.kt)
+#### 2. [Node Resolver Tutorial](https://github.com/airbnb/viaduct/blob/main/tenant/runtime/src/test/kotlin/viaduct/tenant/runtime/tutorials/noderesolver/SimpleNodeResolverFeatureAppTest.kt)
 
 Learn the foundation of Viaduct's object system.
 
@@ -48,7 +48,7 @@ Learn the foundation of Viaduct's object system.
 
 - **Why it matters**: Foundation for all object resolution in Viaduct
 
-### 3. [Simple Resolvers Tutorial](https://github.com/airbnb/viaduct/blob/main/tenant/runtime/src/test/kotlin/viaduct/tenant/runtime/tutorials/simpleresolvers/SimpleResolversFeatureAppTest.kt)
+#### 3. [Simple Resolvers Tutorial](https://github.com/airbnb/viaduct/blob/main/tenant/runtime/src/test/kotlin/viaduct/tenant/runtime/tutorials/simpleresolvers/SimpleResolversFeatureAppTest.kt)
 
 See how Field and Node resolvers work together.
 
@@ -62,9 +62,9 @@ See how Field and Node resolvers work together.
 
 - **Advanced feature**: Field resolvers accessing parent object data
 
-## Key Concepts Across All Tutorials
+### Key Concepts Across All Tutorials
 
-### The `@resolver` Directive
+#### The `@resolver` Directive
 
 ```graphql
 directive @resolver on FIELD_DEFINITION | OBJECT
@@ -78,7 +78,7 @@ This tells Viaduct "generate a resolver for this". Different placements create d
 
 - **On object fields**: `fullName: String! @resolver` → Creates `UserResolvers.FullName()`
 
-### Resolver Types
+#### Resolver Types
 
 | Resolver Type             | Purpose                          | Generated Class              | When to Use                                 |
 |---------------------------|----------------------------------|------------------------------|---------------------------------------------|
@@ -86,7 +86,7 @@ This tells Viaduct "generate a resolver for this". Different placements create d
 | **Query Field Resolver**  | Handle root query fields         | `QueryResolvers.FieldName()` | Top-level API entry points                  |
 | **Object Field Resolver** | Compute derived fields           | `TypeResolvers.FieldName()`  | Fields that need parent data or computation |
 
-### The GlobalID System
+#### The GlobalID System
 
 Viaduct's built-in global object identification:
 
@@ -98,7 +98,7 @@ Viaduct's built-in global object identification:
 
 - **Standard**: Follows Relay specification for global object identification
 
-### Field Resolver Data Access
+#### Field Resolver Data Access
 
 Field resolvers can access parent object data:
 

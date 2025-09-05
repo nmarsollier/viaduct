@@ -4,9 +4,9 @@ description: Best practices for managing schema changes in Viaduct.
 weight: 40
 ---
 
-# Schema Change Management
+## Schema Change Management
 
-## Key Principles for Schema Changes
+### Key Principles for Schema Changes
 
 1. **Backward Compatibility:**
   Any schema change must ensure backward compatibility unless explicitly intended otherwise. Additive changes, such as adding new fields, are usually safe, while subtractive changes (like removing fields) often break client operations
@@ -21,7 +21,7 @@ weight: 40
 5. **Schema Freeze and Deprecation:**
   Fields being deprecated can be annotated with `@deprecated` tags and remain in the schema until older client versions are no longer in use.
 
-## Examples of Practical Schema Updates:
+### Examples of Practical Schema Updates:
 
 1. Extending Types:
   Adding new fields to an existing type via `extend type`. For example:

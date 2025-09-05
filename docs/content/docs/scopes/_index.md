@@ -4,11 +4,11 @@ description: Schema visibility and access control in Viaduct.
 weight: 23
 ---
 
-# Scopes
+## Scopes
 
 This document provides an overview on how to define scopes on the Viaduct GraphQL schema.
 
-## The scoop on scopes
+### The scoop on scopes
 
 In order to make schema visibility control more explicit and intuitive, we introduced Scopes.
 
@@ -42,15 +42,15 @@ Either nothing is scoped or *everything* has a scope applied to it. There is no 
 
 [/alert]
 
-## Multiple Schemas
+### Multiple Schemas
 
 A single instance of the Viaduct framework can expose multiple schemas. Within Airbnb, for instance, the Viaduct service itself, exposes a different, more complete schema to internal clients than it exposes to external Web and mobile clients. Scopes also provide encapsulation that allows us to hide implementation details present in your central schema.
 
 Every schema exported by an instance of the Viaduct framework is called a scope set. A scope set is identified by a schema ID. The particular scope set seen by a given request to the Viaduct framework is controlled by the `schemaId` field of `viaduct.service.api.ExecutionInput`. In the above example, `viaduct` and `viaduct:public` are both schema IDs. You can use as many schema IDs as you like with whatever naming scheme fits your use case.
 
-## Guidelines for annotating types with @scope
+### Guidelines for annotating types with @scope
 
-### Always append `@scope` to the main type
+#### Always append `@scope` to the main type
 
 Whenever you are creating a new type (including `object type`, `input type`, `interface`, `union`, and `enum`), always append `@scope(to: ["scope1", "scope2", ...])` to the type itself. (Replace `"scope1"`, `"scope2"`, etc. with your desired scopes)
 
@@ -75,7 +75,7 @@ input Baz @scope(to: ["viaduct"]) {
 }
 ```
 
-### Create type extensions and move fields with narrower scopes to this extension
+#### Create type extensions and move fields with narrower scopes to this extension
 
 If you need to limit the visible scopes for certain fields, create a type extension, move those fields over, and append `@scope` with proper scopes.
 
@@ -93,13 +93,13 @@ extend type Foo @scope(to: ["private"]) {
 
 ```
 
-## Validation
+### Validation
 
 In GraphQL SDL, scopes are referenced by their string value, and in Kotlin are referenced by the strongly typed enum member. The SDL will be validated at build time to ensure invalid scope names were not referenced.
 
 In addition to detecting invalid scope names, the Viaduct Bazel validators will perform other static analysis on the schema in order to detect invalid or confusing scope usage.
 
-### Detecting inaccessible fields when referencing another type
+#### Detecting inaccessible fields when referencing another type
 
 Static analysis tooling will detect `@scope` usages that cause inaccessible fields. Take the following schema excerpt:
 
@@ -122,7 +122,7 @@ This invariant can be corrected in two ways:
 * The `Listing` type’s scope should be modified to include `scope1` or `scope2`, OR
 * The `User` type’s scope should be modified to include the `scope3` scope.
 
-### Auto prune a type when all of its fields are out of scope
+#### Auto prune a type when all of its fields are out of scope
 
 When all the fields of a type are out of scope, this type will not be accessible, even if it is within the scope. Therefore, Viaduct prunes such empty types recursively in the generated schema. For example:
 
@@ -148,7 +148,7 @@ type StayBedroomMetadata @scope(to: ["viaduct", "viaduct:private"]) {
 
 Filtering the above schema excerpt to `listing-block` will make `SpaceMetadata` an empty type, since both `StayBathroomMetadata` and `StayBedroomMetadata` will not be in the scope. Thus, `SpaceMetadata` attribute will be pruned from `StaySpace` in the `listing-block` scope, as it will not be reachable, despite that this type has annotated with `listing-block` scope.
 
-### Detect invalid scope usage within a type
+#### Detect invalid scope usage within a type
 
 When leveraging a type extension to define fields that are available in a specific scope, it’s essential that the scope specified in the directive on the type extension be one of the scopes specified in the original definition of the type.
 
@@ -184,7 +184,7 @@ extend type User @scope(to: ["viaduct:internal-tools"]) {
 
 This validation rule enforces the convention that common fields be defined in the original type definition, and fields that are defined in specific scopes be specified using type extensions.
 
-### Troubleshooting
+#### Troubleshooting
 
 If you get an error like `Unable to find concrete type ... for interface ... in the type map` or `Unable to find concrete type ... for union ... in the type map`, it's because the interface or union type is defined in schema module A, and the concrete type that implements the interface or extends the union is defined in schema module B, and B does not depend on A.
 
