@@ -1,0 +1,24 @@
+package viaduct.tenant.testing
+
+import viaduct.api.context.ExecutionContext
+import viaduct.tenant.runtime.context.ResolverExecutionContextImpl
+
+abstract class DefaultAbstractResolverTestBase : ResolverTestBase {
+    override val selectionsLoaderFactory by lazy {
+        mkSelectionsLoaderFactory()
+    }
+
+    /**
+     * An ExecutionContext that can be used to construct a builder, e.g. Foo.Builder(context).
+     * This cannot be passed as the `ctx` param to the `resolve` function of a resolver, since
+     * that's a subclass unique to the resolver.
+     **/
+    override val context: ExecutionContext by lazy {
+        ResolverExecutionContextImpl(
+            mkInternalContext(),
+            queryLoader = mkQueryLoader(),
+            selectionSetFactory = mkSelectionSetFactory(),
+            nodeReferenceFactory = mkNodeReferenceFactory()
+        )
+    }
+}

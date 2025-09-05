@@ -2,6 +2,7 @@ plugins {
     id("kotlin-project")
     id("test-feature-app")
     id("kotlin-static-analysis")
+    `java-test-fixtures`
 }
 
 viaductFeatureApp {
@@ -23,6 +24,16 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.core.jvm)
+
+    testFixturesImplementation(project(":engine:engine-api"))
+    testFixturesImplementation(project(":engine:engine-runtime"))
+    testFixturesImplementation(project(":service:service-api"))
+    testFixturesImplementation(project(":tenant:tenant-api"))
+    testFixturesImplementation(testFixtures(project(":tenant:tenant-api")))
+    testFixturesImplementation(libs.graphql.java)
+    testFixturesImplementation(libs.io.mockk.jvm)
+    testFixturesImplementation(libs.kotlin.reflect)
+    testFixturesImplementation(libs.kotlinx.coroutines.core)
 
     testImplementation(testFixtures(project(":engine:engine-api")))
     testImplementation(testFixtures(project(":service:service-api")))
