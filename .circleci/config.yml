@@ -238,7 +238,7 @@ jobs:
                 name: Run ktlint
                 command: |
                   echo "🧹 Running ktlint code style checks..."
-                  ./gradlew ktlintCheck --no-scan || {
+                  ./gradlew ktlintCheck --rerun --no-scan || {
                     echo "❌ ktlint found code style violations"
                     exit 1
                   }
@@ -248,7 +248,7 @@ jobs:
                 name: Run Detekt
                 command: |
                   echo "🔍 Running Detekt static analysis..."
-                  ./gradlew detekt --no-scan || {
+                  ./gradlew detekt --rerun --no-scan || {
                     echo "❌ Detekt found code quality issues"
                     exit 1
                   }
