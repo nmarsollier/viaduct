@@ -1,0 +1,469 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="alternate" type="application/rss&#43;xml" href="https://viaduct.airbnb.tech/docs/getting_started/index.xml">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Getting Started | Viaduct</title>
+<meta name="description" content="Setting up and modifying a simple Viaduct application">
+<meta property="og:url" content="https://viaduct.airbnb.tech/docs/getting_started/">
+  <meta property="og:site_name" content="Viaduct">
+  <meta property="og:title" content="Getting Started">
+  <meta property="og:description" content="Setting up and modifying a simple Viaduct application">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+
+  <meta itemprop="name" content="Getting Started">
+  <meta itemprop="description" content="Setting up and modifying a simple Viaduct application">
+  <meta itemprop="wordCount" content="1764">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Getting Started">
+  <meta name="twitter:description" content="Setting up and modifying a simple Viaduct application">
+<link rel="preload" href="/scss/main.min.14ba7c8a19450bf567c3f0bc2bbac4a9bed940108c04fa903c820a598c60ae94.css" as="style" integrity="sha256-FLp8ihlFC/Vnw/C8K7rEqb7ZQBCMBPqQPIIKWYxgrpQ=" crossorigin="anonymous">
+<link href="/scss/main.min.14ba7c8a19450bf567c3f0bc2bbac4a9bed940108c04fa903c820a598c60ae94.css" rel="stylesheet" integrity="sha256-FLp8ihlFC/Vnw/C8K7rEqb7ZQBCMBPqQPIIKWYxgrpQ=" crossorigin="anonymous">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-79P40SMGG8"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-79P40SMGG8');
+        }
+      </script>
+  </head>
+  <body class="td-section">
+    <header>
+      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 400.94"><defs><style>.cls-1{fill:#fff}</style></defs><g id="Line"><path class="cls-1" d="M94.31 97.99c-.94.0-1.88-.36-2.6-1.08L17.43 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0L96.92 91.7c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M94.31 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.27c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L96.92 96.92c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M317.16 172.27c-.94.0-1.88-.36-2.6-1.08L165.99 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M168.59 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L314.55 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L171.2 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M317.16 320.84c-.94.0-1.88-.36-2.6-1.08L166 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M168.59 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l148.56-148.56c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L171.2 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M391.44 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l74.28 74.28c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M391.44 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21l-74.28 74.28c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M614.28 172.27c-.94.0-1.88-.36-2.6-1.08L463.12 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M465.72 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L611.68 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L468.33 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M614.28 320.84c-.94.0-1.88-.36-2.6-1.08L463.12 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M465.72 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l148.56-148.56c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L468.33 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M688.56 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l74.28 74.28c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M688.56 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0 1.44 1.44 1.44 3.77.0 5.21l-74.28 74.28c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M911.41 172.27c-.94.0-1.88-.36-2.6-1.08L760.24 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M762.84 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L908.8 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L765.45 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M911.41 320.84c-.94.0-1.88-.36-2.6-1.08L760.25 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M762.84 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L908.8 165.99c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L765.45 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M985.69 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0L988.3 91.7c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M985.69 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L988.3 96.91c-.72.72-1.66 1.08-2.6 1.08z"/></g><g id="Container"><path class="cls-1" d="M911.41 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M911.41 320.84H762.85c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M762.84 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6s-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68s-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96s77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M614.28 320.84H465.72c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M465.72 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6s-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68s-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96s77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M317.16 320.84H168.6c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M168.59 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6H20.03c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h74.28c42.99.0 77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M20.03 97.99c-2.03.0-3.68-1.65-3.68-3.68V20.03c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v74.28c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M1059.97 23.71H20.03c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h1039.94c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M1059.97 97.99c-2.03.0-3.68-1.65-3.68-3.68V20.03c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v74.28c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M911.41 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96h74.28c2.03.0 3.68 1.65 3.68 3.68S1062 98 1059.97 98h-74.28c-38.93.0-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68z"/></g><g id="Dot"><circle class="cls-1" cx="20.03" cy="20.03" r="20.03"/><circle class="cls-1" cx="94.31" cy="94.31" r="20.03"/><circle class="cls-1" cx="168.59" cy="20.03" r="20.03"/><circle class="cls-1" cx="168.59" cy="168.59" r="20.03"/><circle class="cls-1" cx="168.59" cy="317.16" r="20.03"/><circle class="cls-1" cx="242.87" cy="94.31" r="20.03"/><circle class="cls-1" cx="242.87" cy="242.87" r="20.03"/><circle class="cls-1" cx="317.16" cy="20.03" r="20.03"/><circle class="cls-1" cx="317.16" cy="168.59" r="20.03"/><circle class="cls-1" cx="317.16" cy="317.16" r="20.03"/><circle class="cls-1" cx="391.44" cy="94.31" r="20.03"/><circle class="cls-1" cx="465.72" cy="20.03" r="20.03"/><circle class="cls-1" cx="465.72" cy="168.59" r="20.03"/><circle class="cls-1" cx="465.72" cy="316.79" r="20.03"/><circle class="cls-1" cx="540" cy="94.31" r="20.03"/><circle class="cls-1" cx="540" cy="242.87" r="20.03"/><circle class="cls-1" cx="614.28" cy="20.4" r="20.03"/><circle class="cls-1" cx="614.28" cy="168.59" r="20.03"/><circle class="cls-1" cx="614.28" cy="316.79" r="20.03"/><circle class="cls-1" cx="688.56" cy="94.31" r="20.03"/><circle class="cls-1" cx="762.84" cy="20.03" r="20.03"/><circle class="cls-1" cx="762.84" cy="168.59" r="20.03"/><circle class="cls-1" cx="762.84" cy="316.79" r="20.03"/><circle class="cls-1" cx="837.13" cy="94.31" r="20.03"/><circle class="cls-1" cx="837.13" cy="242.87" r="20.03"/><circle class="cls-1" cx="911.41" cy="20.03" r="20.03"/><circle class="cls-1" cx="911.41" cy="168.59" r="20.03"/><circle class="cls-1" cx="911.41" cy="317.16" r="20.03"/><circle class="cls-1" cx="985.69" cy="94.31" r="20.03"/><circle class="cls-1" cx="1059.97" cy="20.03" r="20.03"/></g></svg></span><span class="navbar-brand__name">Viaduct</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/about/"><span>About</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://medium.com/airbnb-engineering" target="_blank" rel="noopener"><span>Blog</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/docs/"><span>Docs</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/roadmap/"><span>Roadmap</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/community/"><span>Community</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.bb9f71210a4a9750b28bfa1fa7603f12.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <div id="content-mobile">
+  <form class="td-sidebar__search d-flex align-items-center">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.bb9f71210a4a9750b28bfa1fa7603f12.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  </div>
+  <div id="content-desktop"></div>
+  <nav class="td-sidebar-nav collapse td-sidebar-nav--search-disabled" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-docs-li">
+  <a href="/docs/" title="Documentation" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-docs"><span class="">Docs</span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-docsgetting_started-li">
+  <a href="/docs/getting_started/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__section" id="m-docsgetting_started"><span class="td-sidebar-nav-active-item">Getting Started</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docstutorials-li">
+  <a href="/docs/tutorials/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docstutorials"><span class="">Tutorials</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-docsresolvers-li">
+  <a href="/docs/resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsresolvers"><span class="">Resolvers</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolversnode_resolvers-li">
+  <a href="/docs/resolvers/node_resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolversnode_resolvers"><span class="">Node Resolvers</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolversfield_resolvers-li">
+  <a href="/docs/resolvers/field_resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolversfield_resolvers"><span class="">Field Resolvers</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolversbatch_resolution-li">
+  <a href="/docs/resolvers/batch_resolution/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolversbatch_resolution"><span class="">Batch Resolution</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolversresolver_annotation-li">
+  <a href="/docs/resolvers/resolver_annotation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolversresolver_annotation"><span class="">Resolver Annotation</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolversnode_references-li">
+  <a href="/docs/resolvers/node_references/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolversnode_references"><span class="">Node References</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolverssubqueries-li">
+  <a href="/docs/resolvers/subqueries/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolverssubqueries"><span class="">Subqueries</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsresolversmutations-li">
+  <a href="/docs/resolvers/mutations/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsresolversmutations"><span class="">Mutations</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-docsobservability-li">
+  <a href="/docs/observability/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsobservability"><span class="">Observability</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsobservabilityerror_handling-li">
+  <a href="/docs/observability/error_handling/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsobservabilityerror_handling"><span class="">Error Handling</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsobservabilityinstrumentation-li">
+  <a href="/docs/observability/instrumentation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsobservabilityinstrumentation"><span class="">Instrumentation</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docstesting-li">
+  <a href="/docs/testing/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docstesting"><span class="">Testing</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsglobalids-li">
+  <a href="/docs/globalids/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsglobalids"><span class="">GlobalIDs</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsscopes-li">
+  <a href="/docs/scopes/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsscopes"><span class="">Scopes</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-docsgenerated_code-li">
+  <a href="/docs/generated_code/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsgenerated_code"><span class="">Generated Code</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsgenerated_codecode_structure-li">
+  <a href="/docs/generated_code/code_structure/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docsgenerated_codecode_structure"><span class="">Code Structure</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsmultiple_modules-li">
+  <a href="/docs/multiple_modules/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsmultiple_modules"><span class="">Multiple Modules</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsschema_change_management-li">
+  <a href="/docs/schema_change_management/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsschema_change_management"><span class="">Schema Change Management</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docsservice_calls-li">
+  <a href="/docs/service_calls/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-docsservice_calls"><span class="">Service Calls</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+<a href="https://github.com/airbnb/viaduct/tree/main/docs/content/docs/getting_started/_index.md" class="td-page-meta--view td-page-meta__view" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
+  <a href="https://github.com/airbnb/viaduct/edit/main/docs/content/docs/getting_started/_index.md" class="td-page-meta--edit td-page-meta__edit" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
+  <a href="https://github.com/airbnb/viaduct/new/main/docs/content/docs/getting_started?filename=change-me.md&amp;value=---%0Atitle%3A&#43;%22Long&#43;Page&#43;Title%22%0AlinkTitle%3A&#43;%22Short&#43;Nav&#43;Title%22%0Aweight%3A&#43;100%0Adescription%3A&#43;%3E-%0A&#43;&#43;&#43;&#43;&#43;Page&#43;description&#43;for&#43;heading&#43;and&#43;indexes.%0A---%0A%0A%23%23&#43;Heading%0A%0AEdit&#43;this&#43;template&#43;to&#43;create&#43;your&#43;new&#43;page.%0A%0A%2A&#43;Give&#43;it&#43;a&#43;good&#43;name%2C&#43;ending&#43;in&#43;%60.md%60&#43;-&#43;e.g.&#43;%60getting-started.md%60%0A%2A&#43;Edit&#43;the&#43;%22front&#43;matter%22&#43;section&#43;at&#43;the&#43;top&#43;of&#43;the&#43;page&#43;%28weight&#43;controls&#43;how&#43;its&#43;ordered&#43;amongst&#43;other&#43;pages&#43;in&#43;the&#43;same&#43;directory%3B&#43;lowest&#43;number&#43;first%29.%0A%2A&#43;Add&#43;a&#43;good&#43;commit&#43;message&#43;at&#43;the&#43;bottom&#43;of&#43;the&#43;page&#43;%28%3C80&#43;characters%3B&#43;use&#43;the&#43;extended&#43;description&#43;field&#43;for&#43;more&#43;detail%29.%0A%2A&#43;Create&#43;a&#43;new&#43;branch&#43;so&#43;you&#43;can&#43;preview&#43;your&#43;new&#43;file&#43;and&#43;request&#43;a&#43;review&#43;via&#43;Pull&#43;Request.%0A" class="td-page-meta--child td-page-meta__child" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
+  <a href="https://github.com/airbnb/viaduct/issues/new?title=Getting%20Started" class="td-page-meta--issue td-page-meta__issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
+  
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#getting-started-with-viaduct">Getting Started with Viaduct</a></li>
+    <li><a href="#system-requirements">System Requirements</a></li>
+    <li><a href="#installing-viaduct">Installing Viaduct</a></li>
+    <li><a href="#bootstrapping-an-application">Bootstrapping an Application</a></li>
+    <li><a href="#touring-the-application">Touring the Application</a></li>
+    <li><a href="#extending-the-application">Extending the Application</a>
+      <ul>
+        <li><a href="#extending-the-schema">Extending the Schema</a></li>
+      </ul>
+    </li>
+    <li><a href="#extending-the-code">Extending the code</a></li>
+  </ul>
+</nav>
+      </div>
+    
+            
+	
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+  
+
+            <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/docs/">Docs</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    Getting Started</li>
+  </ol>
+</nav>
+<div class="td-content">
+	<h1>Getting Started</h1>
+  <div class="lead">Setting up and modifying a simple Viaduct application</div>
+	<header class="article-meta">
+		
+  </header>
+	<h2 id="getting-started-with-viaduct">Getting Started with Viaduct<a class="td-heading-self-link" href="#getting-started-with-viaduct" aria-label="Heading self-link"></a></h2><p>Using a set of scripts bundled with the Viaduct release, this document will walk you through the process of setting up and modifying a very simple Viaduct application.  Viaduct comes with built-in, Gradle-based tooling for building, testing, and running your sample application.  This guide uses that tooling and assumes a basic familiarity with Gradle.</p>
+<h2 id="system-requirements">System Requirements<a class="td-heading-self-link" href="#system-requirements" aria-label="Heading self-link"></a></h2><p>Gradle 8+ and Java 21.</p>
+<h2 id="installing-viaduct">Installing Viaduct<a class="td-heading-self-link" href="#installing-viaduct" aria-label="Heading self-link"></a></h2><p>Clone the Viaduct repository from GitHub and use Gradle to build and publish Viaduct&rsquo;s artifacts.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>git@github.com:airbnb/viaduct.git
+</span></span><span style="display:flex;"><span><span style="color:#6639ba">cd</span> viaduct
+</span></span><span style="display:flex;"><span>./gradlew cleanBuildAndPublish
+</span></span></code></pre></div><p>This will build Viaduct’s artifacts and install them into your local Maven repository.</p>
+<p>Assuming you’re still in the <code>viaduct</code> directory, it will be convenient to</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#6639ba">export</span> <span style="color:#953800">VIADUCT</span><span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;</span><span style="color:#cf222e">$(</span><span style="color:#6639ba">pwd</span><span style="color:#cf222e">)</span><span style="color:#0a3069">&#34;</span>
+</span></span></code></pre></div><h2 id="bootstrapping-an-application">Bootstrapping an Application<a class="td-heading-self-link" href="#bootstrapping-an-application" aria-label="Heading self-link"></a></h2><p>Viaduct comes with built-in Gradle tooling for building, testing, and publishing applications.  This tooling includes a “bootstrap” script that configures a working “Hello, World!” application.</p>
+<p>The first step is to create a basically blank, but functional, gradle project.  To do this, in an empty directory (which we’ll henceforth refer to as your “root directory”), type the following:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#953800">$VIADUCT</span>/bootstrap-viaduct.sh
+</span></span></code></pre></div><p>This should turn your empty directory into a Viaduct “Hello, World!” application.  That script will also run a test query against it.  You can run a query yourself by typing:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>./gradlew -q run --args<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;&#39;{ author }&#39;&#34;</span>
+</span></span></code></pre></div><h2 id="touring-the-application">Touring the Application<a class="td-heading-self-link" href="#touring-the-application" aria-label="Heading self-link"></a></h2><p>The bootstrap script created a Viaduct application project for you with the following shape:</p>
+<pre tabindex="0"><code>yourroot/
+  build.gradle.gts
+  src/
+    ...
+  modules/
+    helloworld/
+      build.gradle.kts
+      src/
+        ...
+</code></pre><p>(NOTE TO REVIEWERS: you’ll also see a directory called <code>schema</code>: as suggested below, this will be moved to <code>.viaduct/schema</code> to hide it.  Also what’s called <code>modules</code> above is currently named <code>tenants</code> and uses the <code>viaduct-tenant</code> plugin rather than the <code>viaduct-module</code> one.)</p>
+<p>You can see that a viaduct application is a multi-project Gradle project:</p>
+<p>The <strong>root directory</strong> of the application uses the <code>viaduct-app</code> Gradle plugin, telling gradle this directory contains a Viaduct application.  Note that the Gradle project in this directory does <em>not</em> need to be a Gradle root project: Viaduct apps can be embedded in larger code repositories.</p>
+<p>The root project of our sample application has its own <code>src</code> directory: this directory contains the top-level “containing” application that sets up and runs the Viaduct application.  Right now, this application is a command-line application that runs queries passed to it as a CLI argument.  Later in this tutorial we will turn this into an actual web server.</p>
+<p>Note that the containing application code does not need to be inside the <code>yourroot</code> directory: it can be in a sibling directory, for example, or someplace else altogether.  We’ll discuss this further below.</p>
+<p>The <strong><code>modules</code> directory</strong> contains the Viaduct modules containing the schema and business logic of your application.  Each of these modules needs to use the <code>viaduct-module</code> plugin.  Each of these modules should have a directory <code>src/resources/schema</code> containing <code>.graphqls</code> files with the schema being defined by that module.  (This <code>schema</code> directory is searched recursively for such schema-containing files.)</p>
+<p>The <code>modules</code> directory can contain multiple Viaduct modules organized in an arbitrary directory structure.  At Airbnb, for example, this directory contains subdirectories named <code>entity</code>, <code>data</code>, and <code>presentation</code>, each representing a “layer” in our schema.  The GraphQL modules are put under these directories.  The <code>modules</code> directory can also contain “regular” Gradle projects, e.g., a <code>modules/common</code> project containing a library of common code shared by all modules.</p>
+<p>A <code>viaduct-module</code> project may <em>not</em> contain other <code>viaduct-module</code> projects.  Also, <code>viaduct-module</code> projects cannot take Gradle dependencies on other <code>viaduct-module</code> projects: shared code <em>must</em> be put in a shared library, and the business logic of <code>viaduct-modules</code> should <em>only</em> interact using Viaduct GraphQL-based mechanisms.</p>
+<p>At startup, the <code>viaduct-app</code> plugin will search for <code>viaduct-module</code> projects in the <code>modules</code> directory and automatically add them to the application-level project.  So to add a new module, you simply need to create a <code>viaduct-module</code> project for it someplace under <code>modules</code>.</p>
+<p>(You might notice the directory <code>.viaduct/schema</code> in your application directory.  This is a Gradle project managed entirely by Viaduct: it’s used at build time to collect up the schema definitions across all Viaduct modules and aggregating them into a single, consolidated schema.  If you handcraft or write your own scripts to create Viaduct applications, this project must exist for the <code>viaduct-app</code> and <code>viaduct-schema</code> plugins to work correctly.</p>
+<h2 id="extending-the-application">Extending the Application<a class="td-heading-self-link" href="#extending-the-application" aria-label="Heading self-link"></a></h2><h3 id="extending-the-schema">Extending the Schema<a class="td-heading-self-link" href="#extending-the-schema" aria-label="Heading self-link"></a></h3><p>Let’s explore our sample application more deeply by extending its functionality.  Viaduct is a “schema first” GraphQL environment, meaning you write your schema first, and then generate classes to write your code against.  So in that spirit, let’s start by extending the schema, which as noted above you’ll find in <code>src/main/resources/schema/schema.graphqls</code> (paths in this section are relative to <code>modules/helloworld/).</code>  You should see the following in that file:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-graphql" data-lang="graphql"><span style="display:flex;"><span><span style="color:#cf222e">extend</span><span style="color:#fff"> </span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">Query</span><span style="color:#fff"> </span><span style="color:#0550ae">@scope</span><span style="color:#1f2328">(</span>to<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;publicScope&#34;</span><span style="color:#1f2328">])</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#1f2328">greeting</span><span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span>author<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Viaduct itself has built-in definitions for the root GraphQL types <code>Query</code> and <code>Mutation</code>, although Viaduct doesn’t yet support subscriptions.  (As explained in our SRE guide, the <code>Mutation</code> type can be removed, and the names of both root types can be configured.)  Since <code>Query</code> is built-in, application code needs to extend it as illustrated above.  You’ll also see in this schema fragment that both fields have <code>@resolver</code> applied to them, meaning that a developer-provided function is needed to compute their respective value.  (<em>All</em> fields of <code>Query</code> must have <code>@resolver</code> applied to them.)</p>
+<p>Let’s extend this schema to add a new field, <code>attributedGreeting</code>, which will attribute the greeting to its author:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-graphql" data-lang="graphql"><span style="display:flex;"><span><span style="color:#cf222e">extend</span><span style="color:#fff"> </span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">Query</span><span style="color:#fff"> </span><span style="color:#0550ae">@scope</span><span style="color:#1f2328">(</span>to<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;publicScope&#34;</span><span style="color:#1f2328">])</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span><span style="color:#1f2328">greeting</span><span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span>author<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span>attributedGreeting<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">AttributedGreeting</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">AttributedGreeting</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">  </span>greeting<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>There’s no practical reason to have the <code>AttributedGreeting</code> type here: <code>attributedGreeting</code> could’ve just been a <code>String</code>.  We’re using a GraphQL object-type here in order to demonstrate some features of our API.</p>
+<h2 id="extending-the-code">Extending the code<a class="td-heading-self-link" href="#extending-the-code" aria-label="Heading self-link"></a></h2><p>The resolvers for our sample app have been put in <code>src/main/kotlin/com/example/viadapp/helloworld/HelloWorldResolvers.kt</code>.  We won’t copy its current content, but to support our new field apply the following changes to that file:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#cf222e">package</span> <span style="color:#24292e">com.example.viadapp.helloworld</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">viaduct.api.Resolver</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">com.example.viadapp.helloworld.resolverbases.QueryResolvers</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">viaduct.api.grts.AttributedGreeting</span>  <span style="color:#57606a">// New import
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a"></span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">// New code:
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a"></span><span style="color:#0550ae">@Resolver</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  greeting
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  author
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AttributedGreetingResolver</span> <span style="color:#1f2328">:</span> <span style="color:#1f2328">QueryResolvers</span><span style="color:#1f2328">.</span>AttributedGreeting<span style="color:#1f2328">()</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">override</span> <span style="color:#cf222e">suspend</span> <span style="color:#cf222e">fun</span> <span style="color:#6639ba">resolve</span><span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">:</span> Context<span style="color:#1f2328">):</span> AttributedGreeting <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">val</span> greeting <span style="color:#1f2328">=</span> ctx<span style="color:#1f2328">.</span>objectValue<span style="color:#1f2328">.</span>getGreeting<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">val</span> author <span style="color:#1f2328">=</span> ctx<span style="color:#1f2328">.</span>objectValue<span style="color:#1f2328">.</span>getAuthor<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">AttributedGreeting</span><span style="color:#1f2328">.</span>Builder<span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>greeting<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">$author</span><span style="color:#0a3069"> says: </span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">$greeting</span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>build<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><p>As you make these changes you’ll notice two similar classes already in <code>HelloWorldResolvers.kt</code>,  <code>GreetingResolver</code> which contains the resolver for the <code>greeting</code> field and <code>AuthorResolver</code> for the <code>author</code> field.</p>
+<p>We’ll dive into this file in some detail, but let’s summarize what our new resolver does.  The basic idea is that the resolver for <code>attributedGreeting</code> will combine the <code>author</code> and <code>greeting</code> fields into a string that attributes the greeting to the author.  The resolver has access to these two fields because its <code>@Resolver</code> annotation indicates that it needs those fields: if the <code>@Resolver</code> annotation didn’t mention the <code>author</code> field, for example, then the attempt to read <code>objectValue.author()</code> would fail at runtime.</p>
+<p>Let’s examine some of the details of Viaduct that are illustrated by this file:</p>
+<ul>
+<li>
+<p>To support code-generation, Viaduct requires that the code that makes up an application be placed in packages whose fully-qualified names (FQNs) share a common prefix, called the <em>application package prefix</em>, or app prefix for short.  This prefix can be anything; in our example, this prefix is <code>com.example.viadapp</code>.  This prefix is declared in the <code>build.gradle.kts</code> file of the <code>viaduct-app</code> project.</p>
+</li>
+<li>
+<p>Each module has a fully-qualified module name based on its path in the <code>modules</code> directory.  In the case of our hello-world module, since its Gradle project is found in <code>modules/helloworld</code>, its module name is <code>helloworld</code>.  If our application had a module in <code>modules/entity/users</code>, that module’s name would be <code>entity.users</code>.  The code that makes up a module should be placed in packages whose FQNs start with the concatenation of the app prefix and the module name, which is <code>com.example.viadapp.helloworld</code> in our example.  We call this the <em>module package prefix,</em> or <em>module prefix</em> for short.</p>
+</li>
+<li>
+<p>Viaduct generates code into two packages: <code>viaduct.api.grts</code> and <code>&lt;moduleprefix&gt;.resolverbases</code>:</p>
+<ul>
+<li>
+<p>The acronym GRT stands for <em>GraphQL Representational Type.</em>  These are generated Kotlin classes intended to represent GraphQL values.  In our code fragment above, we import the GRT for the <code>AttributedGreeting</code> class because our resolver for <code>attributedGreeting</code> will need to return an instance of one.</p>
+</li>
+<li>
+<p><em>Resolver classes</em> are classes that contain the application logic that should be executed to resolve the value of a field.  Each time a field is to be resolved, an instance of its resolver class is created (using an arbitrary dependency-injection framework if desired), and the resolver function in that class is then called.</p>
+<p>Resolver classes are implemented by subclassing a generated <em>resolver base class,</em> which are found in the <code>resolverbases</code> subpackage.  For each type <code>T</code> that has one or more <code>@resolver</code> fields, a static Kotlin <code>object</code> named <code>TResolvers</code> is created.  For each field <code>T.f</code> that has a resolver, we generate a resolver base class named <code>TResolvers.F</code> (where the first letter of <code>f</code> is capitalized).  To write a resolver for <code>T.f</code>, you subclass <code>TResolvers.F</code> and override the <code>resolve</code> function.  (This subclassing approach is friendly to IDE autocomplete and genAI automation.  Also, the type parameters on the <code>Context</code> argument are extensive, and this approach allows us to hide those from developers.)</p>
+</li>
+</ul>
+</li>
+<li>
+<p>In addition to subclassing the correct resolver base class, resolver classes must also be annotated with <code>@Resolver</code>, otherwise they won’t be recognized as resolver classes.  (This supports testing and experimentation, where an “inactive” version of a resolver class with <code>@Resolver</code> can be written and tested before it replaces the current “live” version annotation.)
+As illustrated here, the <code>@Resolver</code> annotation can take what’s called a <em>required selection set</em> (RSS) which specifies what data the resolver wants to consume.  The RSS is a GraphQL fragment on the containing-type of the field being resolved.  In our example, since <code>attributedGreeting</code> is a field on <code>Query</code>, the RSS is a fragment on the <code>Query</code> type.  As mentioned earlier, if a resolver attempts to access data it hasn’t requested in its RSS, an error is raised.  Required selection sets are the <em>only</em> way the different modules of an application can interact with each other, creating strong encapsulation of the code inside a module.</p>
+</li>
+<li>
+<p>In all resolvers, the <code>ctx.objectValue</code> property is how you access the values requested in your RSS.  For a field on GraphQL type <code>T</code>, <code>objectValue</code> for the resolver for that field will be the GRT representing <code>T</code> (<code>Query</code> in our example).  Note that the getters for the fields of <code>objectValue</code> are functions, not properties.  It turns out these are suspending functions, which will wait for a value to be resolved by the responsible resolver before it returns.  This asynchrony allows the engine to execute resolvers in parallel.  (To prevent deadlocks, cycles between RSSs are checked-for at build time and also again at server startup time.)</p>
+</li>
+</ul>
+
+	<div class="section-index">
+    
+    
+    </div>
+<style>
+  .feedback--answer {
+    display: inline-block;
+  }
+  .feedback--answer-no {
+    margin-left: 1em;
+  }
+  .feedback--response {
+    display: none;
+    margin-top: 1em;
+  }
+  .feedback--response__visible {
+    display: block;
+  }
+</style>
+<div class="d-print-none">
+<h2 class="feedback--title">Feedback</h2>
+<p class="feedback--question">Was this page helpful?</p>
+<button class="btn btn-primary mb-4 feedback--answer feedback--answer-yes">Yes</button>
+<button class="btn btn-primary mb-4 feedback--answer feedback--answer-no">No</button>
+<p class="feedback--response feedback--response-yes">
+  Glad to hear it! Please <a href="https://github.com/airbnb/viaduct/issues/new">tell us how we can improve</a>.
+</p>
+<p class="feedback--response feedback--response-no">
+  Sorry to hear that. Please <a href="https://github.com/airbnb/viaduct/issues/new">tell us how we can improve</a>.
+</p>
+</div>
+<script>
+  const yesButton = document.querySelector('.feedback--answer-yes');
+  const noButton = document.querySelector('.feedback--answer-no');
+  const yesResponse = document.querySelector('.feedback--response-yes');
+  const noResponse = document.querySelector('.feedback--response-no');
+  const disableButtons = () => {
+    yesButton.disabled = true;
+    noButton.disabled = true;
+  };
+  const sendFeedback = (value) => {
+    if (typeof gtag !== 'function') return;
+    gtag('event', 'page_helpful', {
+      'event_category': 'Helpful',
+      'event_label': window.location.pathname,
+      'value': value
+    });
+  };
+  yesButton.addEventListener('click', () => {
+    yesResponse.classList.add('feedback--response__visible');
+    disableButtons();
+    sendFeedback( 100 );
+  });
+  noButton.addEventListener('click', () => {
+    noResponse.classList.add('feedback--response__visible');
+    disableButtons();
+    sendFeedback(0);
+  });
+</script>
+<br />
+</div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Discussions" aria-label="Discussions">
+    <a target="_blank" rel="noopener" href="https://github.com/airbnb/viaduct/discussions" aria-label="Discussions">
+      <i class="fa fa-comments"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Mastodon" aria-label="Mastodon">
+    <a target="_blank" rel="noopener" href="https://mastodon.social/@AirbnbViaduct" aria-label="Mastodon">
+      <i class="fab fa-mastodon"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Stack Overflow" aria-label="Stack Overflow">
+    <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/tagged/viaduct" aria-label="Stack Overflow">
+      <i class="fab fa-stack-overflow"></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/airbnb/viaduct" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Code of Conduct" aria-label="Code of Conduct">
+    <a target="_blank" rel="noopener" href="https://airbnb.io/codeofconduct" aria-label="Code of Conduct">
+      <i class="fas fa-scale-balanced"></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2025&ndash;2025
+    <span class="td-footer__authors">Airbnb, Inc. | <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a> |</span></span><span class="td-footer__all_rights_reserved">All Rights Reserved</span><span class="ms-2"><a href="https://www.airbnb.com/help/article/3175" target="_blank" rel="noopener">Privacy Policy</a></span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.min.403ff095218c662472dab60ed98ecbb19431682de5ac7c6159891241cd366af5.js" integrity="sha256-QD/wlSGMZiRy2rYO2Y7LsZQxaC3lrHxhWYkSQc02avU=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>
