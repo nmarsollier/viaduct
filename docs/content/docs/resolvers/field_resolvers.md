@@ -19,6 +19,25 @@ type User implements Node {
 }
 ```
 
+### When to use @resolver
+
+Field resolvers are typically used in the following scenarios:
+
+* Fields with arguments should have their own resolver, since resolvers don't have access to the arguments of nested fields:
+  ```graphql
+  address(format: AddressFormat): Address @resolver
+  ```
+
+* Fields that are backed by a different data source than the core fields on a type should have their own resolver. In the example below, suppose the resolver for `wishlists` is backed by a Wishlist service endpoint, whereas `firstName` and `lastName` are backed by a User service endpoint:
+  ```graphql
+  firstName: String
+  lastName: String
+  wishlists: [Wishlist] @resolver
+  ```
+  This avoids executing the `wishlists` resolver and calling the Wishlist service if the field isn't in the client query.
+
+* Fields that are derived from other fields, such as the `displayName` example shown in more detail below, which is derived from `firstName` and `lastName`. Although this example is simple, in practice there can be complex resolvers that have large required selection sets. This keeps the logic for these fields contained in their own resolvers which is easier to understand and maintain.
+
 ## Generated base class
 
 Viaduct generates an abstract base class for all schema fields with the `@resolver` directive. For `User.displayName`, Viaduct generates the following code:
@@ -86,11 +105,11 @@ interface FieldExecutionContext<T: Object, Q: Query, A: Arguments, O: CompositeO
 
 * `objectValue` gives access to the object that contains the field being resolved. Fields of that object can be accessed, but only if those fields are in the resolver’s required selection set. If the resolver tries to access a field not included within its required selection set, it results in an `UnsetSelectionException` at runtime.
 
-* `queryValue` is similar to objectValue, but applies to the root query object of the Viaduct central schema. Like `objectValue`, fields on `queryValue` can only be accessed if they are in the resolver’s required selection set.
+* `queryValue` is similar to `objectValue`, but applies to the root query object of the Viaduct central schema. Like `objectValue`, fields on `queryValue` can only be accessed if they are in the resolver's required selection set.
 
-* `arguments` gives access to the arguments to the resolver.  When a field takes arguments, the Viaduct build system will generate a GRT representing the values of those arguments.  If `User.displayName` took arguments, for example, Viaduct would generate a type `User_DisplayName_Arguments` having one property per argument taken by `displayName`.  In our example, the field execution context for `displayName` is parameterized by the special type `NoArguments` indicating that the field takes no arguments.
+* `arguments` gives access to the arguments to the resolver. When a field takes arguments, the Viaduct build system will generate a GRT representing the values of those arguments. If `User.displayName` took arguments, for example, Viaduct would generate a type `User_DisplayName_Arguments` having one property per argument taken by `displayName`. In our example, the field execution context for `displayName` is parameterized by the special type `NoArguments` indicating that the field takes no arguments.
 
-* `selections()` returns the selections being requested for this field in the query, same as the `selections` function for the node resolver.  The `SelectionSet` type is parameterized by the type of the selection set.  For example, in the case of `User`’s node resolver, `selections` returned `SelectionSet<User>`.  In the case of `displayName`, `selections` returns `SelectionSet<NotComposite>`, where the special type `NotComposite` indicates that `displayName` does not return a composite type (it returns a scalar instead).
+* `selections()` returns the selections being requested for this field in the query, same as the `selections` function for the node resolver. The `SelectionSet` type is parameterized by the type of the selection set. For example, in the case of `User`'s node resolver, `selections` returned `SelectionSet<User>`. In the case of `displayName`, `selections` returns `SelectionSet<NotComposite>`, where the special type `NotComposite` indicates that `displayName` does not return a composite type (it returns a scalar instead).
 
 Since `NodeExecutionContext` implements `ResolverExecutionContext`, it also includes the utilities provided there, which allow you to:
 * Execute [subqueries](/docs/resolvers/subqueries)

@@ -37,7 +37,7 @@ class UserDisplayNameResolver : UserResolvers.DisplayName()
 The shorthand fragment syntax can also be used for `queryValueFragment`. The selections must be on the root query type:
 
 ```kotlin
-@Resolver(queryValueFragment = "user { firstName lastName } }")
+@Resolver(queryValueFragment = "user { firstName lastName }")
 ```
 
 ### Full fragment syntax
@@ -55,11 +55,11 @@ You can define multiple named fragments and reference them within your main frag
   fragment _ on Query {
     listing {
       cover: coverImage {
-        ...ImageFragment
+        ...ImageDetails
       }
       rooms {
         images {
-          ...ImageFragment
+          ...ImageDetails
         }
       }
     }
@@ -106,14 +106,14 @@ In the Kotlin API, each of the field getters are suspend functions. Your resolve
 
 ## Variables
 
-The fragments in `@Resolver` annotations can contain variables.  These variables can be bound to values in one of two ways:
+The fragments in `@Resolver` annotations can contain variables. These variables can be bound to values in one of two ways:
 
 1. Via the `variables` parameter in `@Resolver`
 2. Via the resolver’s variable provider
 
-#### @Resolver variables Parameter
+#### @Resolver variables parameter
 
-Variables may be bound using the `variables` parameter of `@Resolver`, which is an array of `@Variable` annotations.  For example, consider this Resolver configuration for the field `MyType.foo`: that takes an argument `include`:
+Variables may be bound using the `variables` parameter of `@Resolver`, which is an array of `@Variable` annotations. For example, consider this resolver configuration for the field `MyType.foo` that takes an argument `include`:
 
 ```kotlin
 @Resolver(
@@ -126,19 +126,19 @@ Variables may be bound using the `variables` parameter of `@Resolver`, which is 
 )
 ```
 
-This resolver fragment uses a `shouldInclude` variable. At runtime, the value for this variable will be determined by the value of the `includeMe` argument to `MyType.foo`.  To support nested GraphQL input types, the `fromArgument` string can contain a dot-separated path.
+This resolver fragment uses a `shouldInclude` variable. At runtime, the value for this variable will be determined by the value of the `includeMe` argument to `MyType.foo`. To support nested GraphQL input types, the `fromArgument` string can contain a dot-separated path.
 
 There are three mutually-exclusive parameters to the `@Variable` class that can be used to set the value of a variable:
 
-1. the `fromArgument` parameter just illustrated,
-2. the `fromObjectField` parameter, which takes a dot-separated path relative to the `objectValue` of an execution.  If used, the path must be a selection defined in the resolver’s objectValueFragment.
-3. the `fromQueryField` parameter. This parameter is analogous to `fromObjectField`, but the path describes a selection in the resolver’s `queryValueFragment`.
+1. the `fromArgument` parameter just illustrated
+2. the `fromObjectField` parameter, which takes a dot-separated path relative to the `objectValue` of an execution. If used, the path must be a selection defined in the resolver's objectValueFragment.
+3. the `fromQueryField` parameter. This parameter is analogous to `fromObjectField`, but the path describes a selection in the resolver's `queryValueFragment`.
 
 #### VariablesProvider
 
-The `variables` parameter does not allow arbitrarily-computed values to be used as variables.  To support dynamic use cases, a `VariablesProvider` can be used.
+The `variables` parameter does not allow arbitrarily-computed values to be used as variables. To support dynamic use cases, a `VariablesProvider` can be used.
 
-For example, consider a resolver for `MyType.foo` whose required selection set uses variables named `startDate` and `endDate`.  To provide dynamically-computed values for these variables, the implementation for `MyTypeResolvers.Foo` may nest a class that implements the `VariablesProvider` interface:
+For example, consider a resolver for `MyType.foo` whose required selection set uses variables named `startDate` and `endDate`. To provide dynamically-computed values for these variables, the implementation for `MyTypeResolvers.Foo` may nest a class that implements the `VariablesProvider` interface:
 
 ```kotlin
 @Variables(types = "startDate: Date, endDate: Date")

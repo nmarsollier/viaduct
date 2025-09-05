@@ -4,7 +4,7 @@ description: Executing subqueries in resolvers
 weight: 6
 ---
 
-`Context.query` can be used to execute a subquery, i.e., a GraphQL query operation rooted in the full-schema’s `Query` root type.  As an example, we can modify the resolver for User.displayName to incorporate data that it loads from Query:
+`Context.query` can be used to execute a subquery, i.e., a GraphQL query operation rooted in the full-schema's `Query` root type. As an example, we can modify the resolver for User.displayName to incorporate data that it loads from Query:
 
 ```kotlin
 @Resolver(
