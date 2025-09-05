@@ -1,0 +1,439 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head><script src="/airbnb/viaduct-public/livereload.js?mindelay=10&amp;v=2&amp;port=59480&amp;path=airbnb/viaduct-public/livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:59480/airbnb/viaduct-public/docs/variables/index.xml">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/airbnb/viaduct-public/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/airbnb/viaduct-public/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/airbnb/viaduct-public/favicons/android-192x192.png" sizes="192x192">
+
+<title>Variables | Viaduct</title>
+<meta name="description" content="Using variables in Viaduct resolvers.">
+<meta property="og:url" content="http://localhost:59480/airbnb/viaduct-public/docs/variables/">
+  <meta property="og:site_name" content="Viaduct">
+  <meta property="og:title" content="Variables">
+  <meta property="og:description" content="Using variables in Viaduct resolvers.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+
+  <meta itemprop="name" content="Variables">
+  <meta itemprop="description" content="Using variables in Viaduct resolvers.">
+  <meta itemprop="wordCount" content="838">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Variables">
+  <meta name="twitter:description" content="Using variables in Viaduct resolvers.">
+<link href="/airbnb/viaduct-public/scss/main.css" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-section">
+    <header>
+      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/airbnb/viaduct-public/"><span class="navbar-brand__logo navbar-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 400.94"><defs><style>.cls-1{fill:#fff}</style></defs><g id="Line"><path class="cls-1" d="M94.31 97.99c-.94.0-1.88-.36-2.6-1.08L17.43 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0L96.92 91.7c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M94.31 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.27c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L96.92 96.92c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M317.16 172.27c-.94.0-1.88-.36-2.6-1.08L165.99 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M168.59 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L314.55 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L171.2 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M317.16 320.84c-.94.0-1.88-.36-2.6-1.08L166 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M168.59 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l148.56-148.56c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L171.2 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M391.44 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l74.28 74.28c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M391.44 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21l-74.28 74.28c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M614.28 172.27c-.94.0-1.88-.36-2.6-1.08L463.12 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M465.72 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L611.68 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L468.33 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M614.28 320.84c-.94.0-1.88-.36-2.6-1.08L463.12 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M465.72 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l148.56-148.56c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L468.33 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M688.56 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l74.28 74.28c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M688.56 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0 1.44 1.44 1.44 3.77.0 5.21l-74.28 74.28c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M911.41 172.27c-.94.0-1.88-.36-2.6-1.08L760.24 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M762.84 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L908.8 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L765.45 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M911.41 320.84c-.94.0-1.88-.36-2.6-1.08L760.25 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M762.84 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L908.8 165.99c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L765.45 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M985.69 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0L988.3 91.7c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M985.69 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L988.3 96.91c-.72.72-1.66 1.08-2.6 1.08z"/></g><g id="Container"><path class="cls-1" d="M911.41 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M911.41 320.84H762.85c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M762.84 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6s-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68s-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96s77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M614.28 320.84H465.72c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M465.72 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6s-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68s-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96s77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M317.16 320.84H168.6c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M168.59 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6H20.03c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h74.28c42.99.0 77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M20.03 97.99c-2.03.0-3.68-1.65-3.68-3.68V20.03c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v74.28c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M1059.97 23.71H20.03c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h1039.94c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M1059.97 97.99c-2.03.0-3.68-1.65-3.68-3.68V20.03c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v74.28c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M911.41 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96h74.28c2.03.0 3.68 1.65 3.68 3.68S1062 98 1059.97 98h-74.28c-38.93.0-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68z"/></g><g id="Dot"><circle class="cls-1" cx="20.03" cy="20.03" r="20.03"/><circle class="cls-1" cx="94.31" cy="94.31" r="20.03"/><circle class="cls-1" cx="168.59" cy="20.03" r="20.03"/><circle class="cls-1" cx="168.59" cy="168.59" r="20.03"/><circle class="cls-1" cx="168.59" cy="317.16" r="20.03"/><circle class="cls-1" cx="242.87" cy="94.31" r="20.03"/><circle class="cls-1" cx="242.87" cy="242.87" r="20.03"/><circle class="cls-1" cx="317.16" cy="20.03" r="20.03"/><circle class="cls-1" cx="317.16" cy="168.59" r="20.03"/><circle class="cls-1" cx="317.16" cy="317.16" r="20.03"/><circle class="cls-1" cx="391.44" cy="94.31" r="20.03"/><circle class="cls-1" cx="465.72" cy="20.03" r="20.03"/><circle class="cls-1" cx="465.72" cy="168.59" r="20.03"/><circle class="cls-1" cx="465.72" cy="316.79" r="20.03"/><circle class="cls-1" cx="540" cy="94.31" r="20.03"/><circle class="cls-1" cx="540" cy="242.87" r="20.03"/><circle class="cls-1" cx="614.28" cy="20.4" r="20.03"/><circle class="cls-1" cx="614.28" cy="168.59" r="20.03"/><circle class="cls-1" cx="614.28" cy="316.79" r="20.03"/><circle class="cls-1" cx="688.56" cy="94.31" r="20.03"/><circle class="cls-1" cx="762.84" cy="20.03" r="20.03"/><circle class="cls-1" cx="762.84" cy="168.59" r="20.03"/><circle class="cls-1" cx="762.84" cy="316.79" r="20.03"/><circle class="cls-1" cx="837.13" cy="94.31" r="20.03"/><circle class="cls-1" cx="837.13" cy="242.87" r="20.03"/><circle class="cls-1" cx="911.41" cy="20.03" r="20.03"/><circle class="cls-1" cx="911.41" cy="168.59" r="20.03"/><circle class="cls-1" cx="911.41" cy="317.16" r="20.03"/><circle class="cls-1" cx="985.69" cy="94.31" r="20.03"/><circle class="cls-1" cx="1059.97" cy="20.03" r="20.03"/></g></svg></span><span class="navbar-brand__name">Viaduct</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/airbnb/viaduct-public/about/"><span>About</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://medium.com/airbnb-engineering" target="_blank" rel="noopener"><span>Blog</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/airbnb/viaduct-public/docs/"><span>Docs</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/airbnb/viaduct-public/community/"><span>Community</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/airbnb/viaduct-public/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <div id="content-mobile">
+  <form class="td-sidebar__search d-flex align-items-center">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/airbnb/viaduct-public/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  </div>
+  <div id="content-desktop"></div>
+  <nav class="td-sidebar-nav collapse td-sidebar-nav--search-disabled" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-airbnbviaduct-publicdocs-li">
+  <a href="/airbnb/viaduct-public/docs/" title="Documentation" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-airbnbviaduct-publicdocs"><span class="">Docs</span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-airbnbviaduct-publicdocsgetting_started-li">
+  <a href="/airbnb/viaduct-public/docs/getting_started/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsgetting_started"><span class="">Getting Started</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsgetting_startedright_for_you-li">
+  <a href="/airbnb/viaduct-public/docs/getting_started/right_for_you/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocsgetting_startedright_for_you"><span class="">Is Viaduct Right for You?</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsgetting_startedmy_first_module-li">
+  <a href="/airbnb/viaduct-public/docs/getting_started/my_first_module/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocsgetting_startedmy_first_module"><span class="">My First Module</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsco-resolvers-li">
+  <a href="/airbnb/viaduct-public/docs/co-resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsco-resolvers"><span class="">Co-Resolvers</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsconnections-li">
+  <a href="/airbnb/viaduct-public/docs/connections/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsconnections"><span class="">Connections</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocserror_handling-li">
+  <a href="/airbnb/viaduct-public/docs/error_handling/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocserror_handling"><span class="">Error Handling</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsfield_classification-li">
+  <a href="/airbnb/viaduct-public/docs/field_classification/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsfield_classification"><span class="">Field Classification</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsgenerated_code-li">
+  <a href="/airbnb/viaduct-public/docs/generated_code/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsgenerated_code"><span class="">Generated Code</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsinstrumentation-li">
+  <a href="/airbnb/viaduct-public/docs/instrumentation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsinstrumentation"><span class="">Instrumentation</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsmultiple_modules-li">
+  <a href="/airbnb/viaduct-public/docs/multiple_modules/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsmultiple_modules"><span class="">Multiple Modules</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsmutations-li">
+  <a href="/airbnb/viaduct-public/docs/mutations/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsmutations"><span class="">Mutations</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsoperations-li">
+  <a href="/airbnb/viaduct-public/docs/operations/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsoperations"><span class="">Operating Viaduct</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsparent-child_relationships-li">
+  <a href="/airbnb/viaduct-public/docs/parent-child_relationships/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsparent-child_relationships"><span class="">Parent-Child Relationships</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocspolicy_checks-li">
+  <a href="/airbnb/viaduct-public/docs/policy_checks/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocspolicy_checks"><span class="">Policy Checks</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-airbnbviaduct-publicdocsqueries-li">
+  <a href="/airbnb/viaduct-public/docs/queries/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsqueries"><span class="">Queries</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-airbnbviaduct-publicdocsqueriesresolvers-li">
+  <a href="/airbnb/viaduct-public/docs/queries/resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsqueriesresolvers"><span class="">Resolvers</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsqueriesresolversfield_resolvers-li">
+  <a href="/airbnb/viaduct-public/docs/queries/resolvers/field_resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocsqueriesresolversfield_resolvers"><span class="">Field Resolvers</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsqueriesresolversnode_resolvers-li">
+  <a href="/airbnb/viaduct-public/docs/queries/resolvers/node_resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocsqueriesresolversnode_resolvers"><span class="">Node Resolvers</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsqueriesresponsibility_sets-li">
+  <a href="/airbnb/viaduct-public/docs/queries/responsibility_sets/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocsqueriesresponsibility_sets"><span class="">Responsibility Sets</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsqueriesselection_sets-li">
+  <a href="/airbnb/viaduct-public/docs/queries/selection_sets/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsqueriesselection_sets"><span class="">Selection Sets</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsschema_change_management-li">
+  <a href="/airbnb/viaduct-public/docs/schema_change_management/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsschema_change_management"><span class="">Schema Change Management</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsscopes-li">
+  <a href="/airbnb/viaduct-public/docs/scopes/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsscopes"><span class="">Scopes</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsservice_calls-li">
+  <a href="/airbnb/viaduct-public/docs/service_calls/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsservice_calls"><span class="">Service Calls</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocssubqueries-li">
+  <a href="/airbnb/viaduct-public/docs/subqueries/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocssubqueries"><span class="">Subqueries</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocstesting-li">
+  <a href="/airbnb/viaduct-public/docs/testing/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocstesting"><span class="">Testing</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocsunderstanding_graphql-li">
+  <a href="/airbnb/viaduct-public/docs/understanding_graphql/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsunderstanding_graphql"><span class="">Understanding GraphQL</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-airbnbviaduct-publicdocsvariables-li">
+  <a href="/airbnb/viaduct-public/docs/variables/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocsvariables"><span class="td-sidebar-nav-active-item">Variables</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-airbnbviaduct-publicdocscontributing-li">
+  <a href="/airbnb/viaduct-public/docs/contributing/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-airbnbviaduct-publicdocscontributing"><span class="">Contributing to Viaduct</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocscontributingguide-li">
+  <a href="/airbnb/viaduct-public/docs/contributing/guide/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocscontributingguide"><span class="">Contributors&#39; Guide</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-airbnbviaduct-publicdocscontributingarchitecture-li">
+  <a href="/airbnb/viaduct-public/docs/contributing/architecture/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-airbnbviaduct-publicdocscontributingarchitecture"><span class="">Viaduct Architecture</span></a>
+</li>
+  </ul>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+<a href="https://github.com/airbnb/viaduct/tree/master/content/docs/variables/_index.md" class="td-page-meta--view td-page-meta__view" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
+  <a href="https://github.com/airbnb/viaduct/edit/master/content/docs/variables/_index.md" class="td-page-meta--edit td-page-meta__edit" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
+  <a href="https://github.com/airbnb/viaduct/new/master/content/docs/variables?filename=change-me.md&amp;value=---%0Atitle%3A&#43;%22Long&#43;Page&#43;Title%22%0AlinkTitle%3A&#43;%22Short&#43;Nav&#43;Title%22%0Aweight%3A&#43;100%0Adescription%3A&#43;%3E-%0A&#43;&#43;&#43;&#43;&#43;Page&#43;description&#43;for&#43;heading&#43;and&#43;indexes.%0A---%0A%0A%23%23&#43;Heading%0A%0AEdit&#43;this&#43;template&#43;to&#43;create&#43;your&#43;new&#43;page.%0A%0A%2A&#43;Give&#43;it&#43;a&#43;good&#43;name%2C&#43;ending&#43;in&#43;%60.md%60&#43;-&#43;e.g.&#43;%60getting-started.md%60%0A%2A&#43;Edit&#43;the&#43;%22front&#43;matter%22&#43;section&#43;at&#43;the&#43;top&#43;of&#43;the&#43;page&#43;%28weight&#43;controls&#43;how&#43;its&#43;ordered&#43;amongst&#43;other&#43;pages&#43;in&#43;the&#43;same&#43;directory%3B&#43;lowest&#43;number&#43;first%29.%0A%2A&#43;Add&#43;a&#43;good&#43;commit&#43;message&#43;at&#43;the&#43;bottom&#43;of&#43;the&#43;page&#43;%28%3C80&#43;characters%3B&#43;use&#43;the&#43;extended&#43;description&#43;field&#43;for&#43;more&#43;detail%29.%0A%2A&#43;Create&#43;a&#43;new&#43;branch&#43;so&#43;you&#43;can&#43;preview&#43;your&#43;new&#43;file&#43;and&#43;request&#43;a&#43;review&#43;via&#43;Pull&#43;Request.%0A" class="td-page-meta--child td-page-meta__child" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
+  <a href="https://github.com/airbnb/viaduct/issues/new?title=Variables" class="td-page-meta--issue td-page-meta__issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
+  
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li></li>
+        <li><a href="#globalids">GlobalIDs</a></li>
+        <li><a href="#node-references">Node References</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+	
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+  
+
+            <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/airbnb/viaduct-public/docs/">Docs</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    Variables</li>
+  </ol>
+</nav>
+<div class="td-content">
+	<h1>Variables</h1>
+  <div class="lead">Using variables in Viaduct resolvers.</div>
+	<header class="article-meta">
+		
+  </header>
+	<p>The fragments in <code>@Resolver</code> annotations can contain variables.  These variables can be bound to values in one of two ways:</p>
+<ol>
+<li>Via the <code>variables</code> parameter in <code>@Resolver</code></li>
+<li>Via the resolver’s variable provider</li>
+</ol>
+<h4 id="resolver-variables-parameter">@Resolver variables Parameter<a class="td-heading-self-link" href="#resolver-variables-parameter" aria-label="Heading self-link"></a></h4><p>Variables may be bound using the <code>variables</code> parameter of <code>@Resolver</code>, which is an array of <code>@Variable</code> annotations.  For example, consider this Resolver configuration for the field <code>MyType.foo</code>: that takes an argument <code>include</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#0550ae">@Resolver</span><span style="color:#1f2328">(</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#0a3069">&#34;&#34;&#34;  
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    fragment _ on MyType {  
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">        field @include(if: </span><span style="color:#0a3069">${&#39;$&#39;}</span><span style="color:#0a3069">shouldInclude)  
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    }  
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">    &#34;&#34;&#34;</span><span style="color:#1f2328">,</span>  
+</span></span><span style="display:flex;"><span>    variables <span style="color:#1f2328">=</span> <span style="color:#1f2328">[</span>Variable<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;shouldInclude&#34;</span><span style="color:#1f2328">,</span> fromArgument <span style="color:#1f2328">=</span> <span style="color:#0a3069">&#34;includeMe&#34;</span><span style="color:#1f2328">)]</span>  
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">)</span>
+</span></span></code></pre></div><p>This resolver fragment uses an <code>shouldInclude</code> variable. At runtime, the value for this variable will be determined by starting with the value of the <code>includeMe</code> argument to <code>MyType.foo</code>.  To support nested GraphQL input types, the <code>fromArgument</code> string can contain a dot-separate path.</p>
+<p>There are two mutually-exclusive parameters to the <code>@Variable</code> that can be used to set the value of a variable: the <code>fromArgument</code> parameter just illustrated, and the <code>fromField</code> parameter, which takes a dot-separated path relative to the <code>objectValue</code> of an execution.  In the <code>fromField</code> case, the selection provided as the value of the <code>fromField</code> parameter is automatically inserted into the resolver’s required selection set.</p>
+<h4 id="variable-provider">Variable Provider<a class="td-heading-self-link" href="#variable-provider" aria-label="Heading self-link"></a></h4><p>The <code>variables</code> parameter does not allow arbitrarily-computed values to be passed as variables.  To support more dynamic use cases, a variable-provider can be used.  Let’s say the required selection-set of the resolver for <code>MyType.foo</code> includes variables named <code>startDate</code> and <code>endDate</code>.  To provide dynamically-computed values for those variables, in your resolver subclass for <code>MyTypeResolvers.Foo</code> you add a nested class that implements <code>VariableProvider</code> to your resolver class:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#0550ae">@Variables</span><span style="color:#1f2328">(</span>types <span style="color:#1f2328">=</span> <span style="color:#0a3069">&#34;startDate: Date, endDate: Date&#34;</span><span style="color:#1f2328">)</span>  
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">Vars</span> <span style="color:#1f2328">:</span> VariablesProvider<span style="color:#1f2328">&lt;</span>MyType_Foo_Arguments<span style="color:#1f2328">&gt;</span> <span style="color:#1f2328">{</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">override</span> <span style="color:#cf222e">suspend</span> <span style="color:#cf222e">fun</span> <span style="color:#6639ba">provide</span><span style="color:#1f2328">(</span>args<span style="color:#1f2328">:</span> MyType_Foo_Arguments<span style="color:#1f2328">)</span> <span style="color:#1f2328">=</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">LocalDate</span><span style="color:#1f2328">.</span>now<span style="color:#1f2328">().</span>let <span style="color:#1f2328">{</span>  
+</span></span><span style="display:flex;"><span>            mapOf<span style="color:#1f2328">(</span>  
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;startDate&#34;</span> to <span style="color:#cf222e">it</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;endDate&#34;</span> to <span style="color:#cf222e">it</span><span style="color:#1f2328">.</span>plusDays<span style="color:#1f2328">(</span><span style="color:#0550ae">7</span><span style="color:#1f2328">)</span>  
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">)</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><p>The value of the <code>types</code> parameter to <code>@Variables</code> must conforms to <em>VariableDefinitionlist</em> from <a href="https://spec.graphql.org/draft/#sec-Language.Variables">GraphQL Spec</a>. The <code>args</code> parameter to the <code>provide</code> function is the arguments of the field whose resolver class defines this variable provider, or <code>NoArguments</code> if the field takes no arguments.</p>
+<p>See <a href="https://git.musta.ch/airbnb/treehouse/blob/master/projects/viaduct/modules/data/wishlist/src/main/kotlin/com/airbnb/viaduct/data/wishlist/resolvers/WishlistParameterizedAvailableExperienceIdsResolver.kt">WishlistParameterizedAvailableExperienceIds</a> for an example.</p>
+<h3 id="globalids">GlobalIDs<a class="td-heading-self-link" href="#globalids" aria-label="Heading self-link"></a></h3><p>GlobalIDs are objects in Viaduct that contain &rsquo;type&rsquo; and &lsquo;internalID&rsquo; properties. They are used to uniquely identify node objects in the graph. GlobalID values support structural equality, as opposed to referential equality.</p>
+<p>Viaduct Modern uses two different Kotlin types to represent <code>ID</code>s. Under two conditions will <code>GlobalID&lt;T&gt;</code> be generated, elsewhere, the type will simply be a String.</p>
+<ol>
+<li><code>id</code> field of a <code>Node</code> object type</li>
+<li>A field of type <code>ID</code> with the <code>@idOf(type:&quot;T&quot;)</code> directive, (where T must be a GraphQL object, interface, or union type)</li>
+</ol>
+<p>Elsewhere, String will be used for IDs.</p>
+<p>For the examples below, <code>id</code>, <code>id3</code> and <code>f2</code> are GlobalIDs and while <code>id2</code> and <code>f1</code> are Strings.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-graphql" data-lang="graphql"><span style="display:flex;"><span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">MyNode</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span><span style="color:#1f2328">Node</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>id<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>id2<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>id3<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff"> </span><span style="color:#0550ae">@idOf</span><span style="color:#1f2328">(</span><span style="color:#cf222e">type</span><span style="color:#1f2328">:</span><span style="color:#0a3069">&#34;MyNode&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">input</span><span style="color:#fff"> </span><span style="color:#1f2328">Input</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>f1<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>f2<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff"> </span><span style="color:#0550ae">@idOf</span><span style="color:#1f2328">(</span><span style="color:#cf222e">type</span><span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#0a3069">&#34;MyNode&#34;</span><span style="color:#1f2328">)</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>If a Node object type implements an interface, and that interface has an id field, then that interface must also implement Node.</p>
+<p>Instances of GlobalID can be created using execution-context objects, e.g., <code>ExecutionContext.nodeIDFor(User, 123)</code>.</p>
+<h3 id="node-references">Node References<a class="td-heading-self-link" href="#node-references" aria-label="Heading self-link"></a></h3><p>GraphQL resolvers often need to link to another <code>Node</code>; for example, the <code>Listing.host</code> field might have node type <code>User</code>.  In this case, the service call that backs the referring node (the service for <code>Listing</code>s in our example) will typically have an <em>id</em> for the other node and needs to inform Viaduct that this id should be used to resolve the other node (the <code>User</code> in our example).</p>
+<p>This is achieved by called <code>Context.nodeFor</code> to obtain a <em>node reference.</em>  The <code>nodeFor</code> function takes a global id for a node and returns (in our example) a special GRT for that node.  In our example, if this is the schema for <code>Listing</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-graphql" data-lang="graphql"><span style="display:flex;"><span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">Listing</span><span style="color:#fff"> </span><span style="color:#cf222e">implements</span><span style="color:#fff"> </span><span style="color:#1f2328">Node</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">  
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>id<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff">  
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span>hostId<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">ID</span><span style="color:#1f2328">!</span><span style="color:#fff"> </span><span style="color:#0550ae">@idOf</span><span style="color:#1f2328">(</span><span style="color:#cf222e">type</span><span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#f6f8fa;background-color:#82071e">“</span><span style="color:#1f2328">User</span><span style="color:#f6f8fa;background-color:#82071e">”</span><span style="color:#1f2328">)</span><span style="color:#fff">  
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">host</span><span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">User</span><span style="color:#fff">  
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">...</span>other<span style="color:#fff"> </span>fields<span style="color:#fff">  
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>In the node resolver for <code>Listing</code> we would have:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#0550ae">@Resolver</span>  
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">ListingNodeResolver</span> <span style="color:#0550ae">@Inject</span> <span style="color:#cf222e">constructor</span><span style="color:#1f2328">(</span><span style="color:#cf222e">val</span> client<span style="color:#1f2328">:</span> ListingClient<span style="color:#1f2328">)</span> <span style="color:#1f2328">:</span> <span style="color:#1f2328">Nodes</span><span style="color:#1f2328">.</span>Listing<span style="color:#1f2328">()</span> <span style="color:#1f2328">{</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">override</span> <span style="color:#cf222e">suspend</span> <span style="color:#cf222e">fun</span> <span style="color:#6639ba">resolve</span><span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">:</span> Context<span style="color:#1f2328">):</span> TaxProfile <span style="color:#1f2328">{</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">val</span> data <span style="color:#1f2328">=</span> client<span style="color:#1f2328">.</span>fetch<span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">.</span>id<span style="color:#1f2328">.</span>internalID<span style="color:#1f2328">)</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> ctx<span style="color:#1f2328">.</span>builderFor<span style="color:#1f2328">(</span>Listing<span style="color:#0550ae">::</span><span style="color:#cf222e">class</span><span style="color:#1f2328">)</span>  
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>id<span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">.</span>id<span style="color:#1f2328">)</span>  
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>host<span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">.</span>nodeFor<span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">.</span>globalIDFor<span style="color:#1f2328">(</span>User<span style="color:#0550ae">::</span><span style="color:#cf222e">class</span><span style="color:#1f2328">,</span> <span style="color:#cf222e">data</span><span style="color:#1f2328">.</span>hostID<span style="color:#1f2328">)))</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#57606a">/* ... other fields populated from [data] */</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>build<span style="color:#1f2328">()</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>  
+</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><p>When this resolver returns, the Viaduct engine will invoke the <code>User</code> node resolver to fetch any data needed for the <code>Listing.host</code> field.</p>
+<p>This example illustrates a subtle aspect of the “responsibility set” of resolvers, which is that the “responsibility” for resolving a field that has node type is split between the resolver whose responsibility set contains the field, and the node resolver.  Specifically, the containing resolver is responsible for returning a node reference as illustrated here, effectively resolver the node’s <code>id</code> field.  From there, the node-resolver takes over to resolve the rest of the node’s responsibility set.</p>
+<p>We noted above that the GRT returned by <code>nodeFor</code> is “special.”  It’s special because, in the code that calls <code>nodeFor</code>, <em>only</em> the <code>id</code> field is set; all other fields are not set an will throw an exception on an attempt to read them.  If for some reason a resolver needs a <em>resolved</em> node rather than a node reference, the resolver can use a subquery, which are described in the next subsection.</p>
+
+	<div class="section-index">
+    
+    
+    </div>
+<style>
+  .feedback--answer {
+    display: inline-block;
+  }
+  .feedback--answer-no {
+    margin-left: 1em;
+  }
+  .feedback--response {
+    display: none;
+    margin-top: 1em;
+  }
+  .feedback--response__visible {
+    display: block;
+  }
+</style>
+<div class="d-print-none">
+<h2 class="feedback--title">Feedback</h2>
+<p class="feedback--question">Was this page helpful?</p>
+<button class="btn btn-primary mb-4 feedback--answer feedback--answer-yes">Yes</button>
+<button class="btn btn-primary mb-4 feedback--answer feedback--answer-no">No</button>
+<p class="feedback--response feedback--response-yes">
+  Glad to hear it! Please <a href="https://github.com/airbnb/viaduct/issues/new">tell us how we can improve</a>.
+</p>
+<p class="feedback--response feedback--response-no">
+  Sorry to hear that. Please <a href="https://github.com/airbnb/viaduct/issues/new">tell us how we can improve</a>.
+</p>
+</div>
+<script>
+  const yesButton = document.querySelector('.feedback--answer-yes');
+  const noButton = document.querySelector('.feedback--answer-no');
+  const yesResponse = document.querySelector('.feedback--response-yes');
+  const noResponse = document.querySelector('.feedback--response-no');
+  const disableButtons = () => {
+    yesButton.disabled = true;
+    noButton.disabled = true;
+  };
+  const sendFeedback = (value) => {
+    if (typeof gtag !== 'function') return;
+    gtag('event', 'page_helpful', {
+      'event_category': 'Helpful',
+      'event_label': window.location.pathname,
+      'value': value
+    });
+  };
+  yesButton.addEventListener('click', () => {
+    yesResponse.classList.add('feedback--response__visible');
+    disableButtons();
+    sendFeedback( 100 );
+  });
+  noButton.addEventListener('click', () => {
+    noResponse.classList.add('feedback--response__visible');
+    disableButtons();
+    sendFeedback(0);
+  });
+</script>
+<br />
+</div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Discussions" aria-label="Discussions">
+    <a target="_blank" rel="noopener" href="https://github.com/airbnb/viaduct/discussions" aria-label="Discussions">
+      <i class="fa fa-comments"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Mastodon" aria-label="Mastodon">
+    <a target="_blank" rel="noopener" href="https://mastodon.social/@AirbnbViaduct" aria-label="Mastodon">
+      <i class="fab fa-mastodon"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Stack Overflow" aria-label="Stack Overflow">
+    <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/tagged/viaduct" aria-label="Stack Overflow">
+      <i class="fab fa-stack-overflow"></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/airbnb/viaduct" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Code of Conduct" aria-label="Code of Conduct">
+    <a target="_blank" rel="noopener" href="https://airbnb.io/codeofconduct" aria-label="Code of Conduct">
+      <i class="fas fa-scale-balanced"></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2025&ndash;2025
+    <span class="td-footer__authors">Airbnb, Inc. | <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a> |</span></span><span class="td-footer__all_rights_reserved">All Rights Reserved</span><span class="ms-2"><a href="https://www.airbnb.com/help/article/3175" target="_blank" rel="noopener">Privacy Policy</a></span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/airbnb/viaduct-public/js/main.js"></script>
+<script defer src="/airbnb/viaduct-public/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/airbnb/viaduct-public/js/tabpane-persist.js'></script>
+
+  </body>
+</html>
