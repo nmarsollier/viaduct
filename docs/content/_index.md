@@ -24,9 +24,7 @@ data access and mutations should follow a reliable and consistent pattern. The c
 be maintained by the team which owns the data, to prevent the need to implement such logic by every team querying it.
 
 {{% pageinfo color="info" %}}
-
-  The Viaduct engine is in production, at scale, at Airbnb where it has proven reliable. The developer API of Viaduct is under active development. In [our roadmap](/roadmap) we indicate which parts of the API are more or less subject to future change.  This is a good time to join the project and influence the direction that this API takes!
-{.-text-dark}
+<i class="fa-solid fa-triangle-exclamation fa-sm"></i> The Viaduct engine is in production, at scale, at Airbnb where it has proven reliable. The developer API of Viaduct is under active development. In [our roadmap](/roadmap) we indicate which parts of the API are more or less subject to future change.  This is a good time to join the project and influence the direction that this API takes!
 {{% /pageinfo %}}
 {{% /blocks/lead %}}
 

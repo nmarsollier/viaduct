@@ -129,3 +129,11 @@ nav#TableOfContents::before {
   content: "On this page";
 }
 
+.container .pageinfo {
+  font-weight: normal;
+  color: $dark;
+  a {
+    color: $purple;
+  }
+}
+
