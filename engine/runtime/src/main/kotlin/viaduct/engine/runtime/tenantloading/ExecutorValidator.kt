@@ -23,17 +23,30 @@ class ExecutorValidator(
             )
         }
 
+        val rssValidatedCoords = mutableSetOf<Coordinate>()
         ctx.fieldCheckerExecutors.forEach { (coord, executor) ->
             fieldCheckerExecutorValidator.validate(
                 FieldCheckerExecutorValidationCtx(coord, executor)
             )
+            if (executor.requiredSelectionSets.any { it.value != null } &&
+                rssValidatedCoords.add(coord)
+            ) {
+                requiredSelectionsValidator.validate(
+                    RequiredSelectionsValidationCtx(
+                        coord,
+                        ctx.requiredSelectionSetRegistry
+                    )
+                )
+            }
         }
 
         ctx.fieldResolverExecutors.forEach { (coord, executor) ->
             fieldResolverExecutorValidator.validate(
                 FieldResolverExecutorValidationCtx(coord, executor)
             )
-            if (executor.hasRequiredSelectionSets()) {
+            if (executor.hasRequiredSelectionSets() &&
+                rssValidatedCoords.add(coord)
+            ) {
                 requiredSelectionsValidator.validate(
                     RequiredSelectionsValidationCtx(
                         coord,

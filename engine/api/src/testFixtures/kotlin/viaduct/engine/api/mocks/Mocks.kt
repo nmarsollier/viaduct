@@ -38,6 +38,7 @@ import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
+import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldEntry
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.DispatcherRegistry
@@ -90,7 +91,7 @@ fun mkRSS(
     variableProviders: List<VariablesResolver> = emptyList()
 ) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders)
 
-class MockRequiredSelectionSetRegistry private constructor(
+class MockRequiredSelectionSetRegistry constructor(
     val entries: List<RequiredSelectionSetEntry> = emptyList()
 ) : RequiredSelectionSetRegistry {
     sealed class RequiredSelectionSetEntry {
@@ -98,25 +99,72 @@ class MockRequiredSelectionSetRegistry private constructor(
         abstract val selectionsString: String
         abstract val variableProviders: List<VariablesResolver>
 
-        /**
-         * A RequiredSelectionSet entry for a specific coordinate.
-         */
-        data class EntryForField(
+        abstract class FieldEntry(
             val coord: Coordinate,
-            override val selectionsType: String,
-            override val selectionsString: String,
-            override val variableProviders: List<VariablesResolver>
         ) : RequiredSelectionSetEntry()
 
         /**
-         * A RequiredSelectionSet entry for a specific type.
+         * A RequiredSelectionSet entry for a specific coordinate's resolver.
          */
-        data class EntryForType(
+        class FieldResolverEntry(
+            coord: Coordinate,
+            override val selectionsType: String,
+            override val selectionsString: String,
+            override val variableProviders: List<VariablesResolver>
+        ) : FieldEntry(coord) {
+            constructor(
+                coord: Coordinate,
+                selections: String,
+                variableProviders: List<VariablesResolver> = emptyList()
+            ) : this(
+                coord = coord,
+                selectionsType = coord.first,
+                selectionsString = selections,
+                variableProviders = variableProviders
+            )
+        }
+
+        /**
+         * A RequiredSelectionSet entry for a specific coordinate's checker.
+         */
+        class FieldCheckerEntry(
+            coord: Coordinate,
+            override val selectionsType: String,
+            override val selectionsString: String,
+            override val variableProviders: List<VariablesResolver>
+        ) : FieldEntry(coord) {
+            constructor(
+                coord: Coordinate,
+                selections: String,
+                variableProviders: List<VariablesResolver> = emptyList()
+            ) : this(
+                coord = coord,
+                selectionsType = coord.first,
+                selectionsString = selections,
+                variableProviders = variableProviders
+            )
+        }
+
+        /**
+         * A RequiredSelectionSet entry for a specific type checker.
+         */
+        data class TypeCheckerEntry(
             val typeName: String,
             override val selectionsType: String,
             override val selectionsString: String,
             override val variableProviders: List<VariablesResolver>
-        ) : RequiredSelectionSetEntry()
+        ) : RequiredSelectionSetEntry() {
+            constructor(
+                typeName: String,
+                selections: String,
+                variableProviders: List<VariablesResolver> = emptyList()
+            ) : this(
+                typeName = typeName,
+                selectionsType = typeName,
+                selectionsString = selections,
+                variableProviders = variableProviders
+            )
+        }
     }
 
     /** merge this registry with the provided registry */
@@ -124,6 +172,8 @@ class MockRequiredSelectionSetRegistry private constructor(
 
     companion object {
         val empty: MockRequiredSelectionSetRegistry = MockRequiredSelectionSetRegistry()
+
+        fun mk(vararg entries: RequiredSelectionSetEntry): MockRequiredSelectionSetRegistry = MockRequiredSelectionSetRegistry(entries.toList())
 
         /**
          * Create a MockRequiredSelectionSetRegistry for a table of entries that do not use variables.
@@ -146,13 +196,13 @@ class MockRequiredSelectionSetRegistry private constructor(
                 entries.map { it ->
                     val coordPair = it.first
                     coordPair.second?.let { fieldName ->
-                        RequiredSelectionSetEntry.EntryForField(
+                        RequiredSelectionSetEntry.FieldResolverEntry(
                             coord = Coordinate(coordPair.first, fieldName),
                             selectionsType = coordPair.first,
                             selectionsString = it.second,
                             variableProviders = emptyList()
                         )
-                    } ?: RequiredSelectionSetEntry.EntryForType(
+                    } ?: RequiredSelectionSetEntry.TypeCheckerEntry(
                         typeName = coordPair.first,
                         selectionsType = coordPair.first,
                         selectionsString = it.second,
@@ -180,13 +230,13 @@ class MockRequiredSelectionSetRegistry private constructor(
                 entries.map {
                     val coordPair = it.first.first
                     coordPair.second?.let { fieldName ->
-                        RequiredSelectionSetEntry.EntryForField(
+                        RequiredSelectionSetEntry.FieldResolverEntry(
                             coord = Coordinate(coordPair.first, fieldName),
                             selectionsType = coordPair.first,
                             selectionsString = it.first.second,
                             variableProviders = listOf(it.second)
                         )
-                    } ?: RequiredSelectionSetEntry.EntryForType(
+                    } ?: RequiredSelectionSetEntry.TypeCheckerEntry(
                         typeName = coordPair.first,
                         selectionsType = coordPair.first,
                         selectionsString = it.first.second,
@@ -236,13 +286,13 @@ class MockRequiredSelectionSetRegistry private constructor(
                 entries.map {
                     val coordPair = it.first
                     coordPair.second?.let { fieldName ->
-                        RequiredSelectionSetEntry.EntryForField(
+                        RequiredSelectionSetEntry.FieldResolverEntry(
                             coord = Coordinate(coordPair.first, fieldName),
                             selectionsType = typeName,
                             selectionsString = it.second,
                             variableProviders = emptyList()
                         )
-                    } ?: RequiredSelectionSetEntry.EntryForType(
+                    } ?: RequiredSelectionSetEntry.TypeCheckerEntry(
                         typeName = coordPair.first,
                         selectionsType = typeName,
                         selectionsString = it.second,
@@ -273,13 +323,13 @@ class MockRequiredSelectionSetRegistry private constructor(
                 entries.map {
                     val coordPair = it.first.first
                     coordPair.second?.let { fieldName ->
-                        RequiredSelectionSetEntry.EntryForField(
+                        RequiredSelectionSetEntry.FieldResolverEntry(
                             coord = Coordinate(coordPair.first, fieldName),
                             selectionsType = typeName,
                             selectionsString = it.first.second,
                             variableProviders = it.second
                         )
-                    } ?: RequiredSelectionSetEntry.EntryForType(
+                    } ?: RequiredSelectionSetEntry.TypeCheckerEntry(
                         typeName = coordPair.first,
                         selectionsType = typeName,
                         selectionsString = it.first.second,
@@ -289,18 +339,32 @@ class MockRequiredSelectionSetRegistry private constructor(
             )
     }
 
-    /**
-     * Final overrides the original getRequiredSelectionSets method and exposes a new one without
-     * `executeAccessChecksInModstrat` as it is not relevant for the mock implementation.
-     */
-    override fun getRequiredSelectionSets(
+    override fun getFieldResolverRequiredSelectionSets(
+        typeName: String,
+        fieldName: String,
+    ): List<RequiredSelectionSet> =
+        entries
+            .filterIsInstance<RequiredSelectionSetEntry.FieldResolverEntry>()
+            .filter { it.coord == (typeName to fieldName) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
+
+    final override fun getFieldCheckerRequiredSelectionSets(
         typeName: String,
         fieldName: String,
         executeAccessChecksInModstrat: Boolean
-    ): List<RequiredSelectionSet> = getRequiredSelectionSets(typeName, fieldName)
+    ): List<RequiredSelectionSet> =
+        entries
+            .filterIsInstance<RequiredSelectionSetEntry.FieldCheckerEntry>()
+            .filter { it.coord == (typeName to fieldName) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
+
+    fun getRequiredSelectionSetsForField(
+        typeName: String,
+        fieldName: String
+    ): List<RequiredSelectionSet> = getRequiredSelectionSetsForField(typeName, fieldName, true)
 
     /**
-     * Final overrides the original getRequiredSelectionSetsForType method and exposes a new one without
+     * Overrides the original getRequiredSelectionSetsForType method and exposes a new one without
      * `executeAccessChecksInModstrat` as it is not relevant for the mock implementation.
      */
     override fun getRequiredSelectionSetsForType(
@@ -308,18 +372,9 @@ class MockRequiredSelectionSetRegistry private constructor(
         executeAccessChecksInModstrat: Boolean
     ): List<RequiredSelectionSet> = getRequiredSelectionSetsForType(typeName)
 
-    fun getRequiredSelectionSets(
-        typeName: String,
-        fieldName: String
-    ): List<RequiredSelectionSet> =
-        entries
-            .filterIsInstance<RequiredSelectionSetEntry.EntryForField>()
-            .filter { it.coord == (typeName to fieldName) }
-            .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
-
     fun getRequiredSelectionSetsForType(typeName: String): List<RequiredSelectionSet> =
         entries
-            .filterIsInstance<RequiredSelectionSetEntry.EntryForType>()
+            .filterIsInstance<RequiredSelectionSetEntry.TypeCheckerEntry>()
             .filter { it.typeName == typeName }
             .map { mkRSS(it.selectionsType, it.selectionsString, it.variableProviders) }
 }

@@ -122,11 +122,11 @@ class DispatcherRegistryTest {
     fun `test DispatcherRegistry getRequiredSelectionSet`() {
         val dispatcherRegistry = createDispatcherRegistry()
         // absent
-        assertEquals(listOf<RequiredSelectionSet>(), dispatcherRegistry.getRequiredSelectionSets("Missing", "missing", true))
-        assertEquals(listOf<RequiredSelectionSet>(), dispatcherRegistry.getRequiredSelectionSets("Missing", "missing", false))
+        assertEquals(listOf<RequiredSelectionSet>(), dispatcherRegistry.getRequiredSelectionSetsForField("Missing", "missing", true))
+        assertEquals(listOf<RequiredSelectionSet>(), dispatcherRegistry.getRequiredSelectionSetsForField("Missing", "missing", false))
 
         // present with required selections
-        val required = dispatcherRegistry.getRequiredSelectionSets("TestType", "parameterizedField", true)
+        val required = dispatcherRegistry.getRequiredSelectionSetsForField("TestType", "parameterizedField", true)
         assertTrue(required.isNotEmpty())
         assertEquals(1, required.size)
         assertTrue(
@@ -134,13 +134,13 @@ class DispatcherRegistryTest {
                 .printAstCompact(required[0].selections.toDocument())
                 .contains("fragment _ on TestType")
         )
-        assertEquals(required, dispatcherRegistry.getRequiredSelectionSets("TestType", "parameterizedField", false))
+        assertEquals(required, dispatcherRegistry.getRequiredSelectionSetsForField("TestType", "parameterizedField", false))
     }
 
     @Test
     fun `test getRequiredSelectionSet combined with field checker Rss when executeAccessChecksInModstrat is true`() {
         val dispatcherRegistry = createDispatcherRegistry()
-        val rss = dispatcherRegistry.getRequiredSelectionSets("TestType", "aField", true)
+        val rss = dispatcherRegistry.getRequiredSelectionSetsForField("TestType", "aField", true)
         assertTrue(rss.isNotEmpty())
         assertEquals(1, rss.size)
         assertEquals("TestType", rss[0].selections.typeName)
@@ -154,7 +154,7 @@ class DispatcherRegistryTest {
     @Test
     fun `test getRequiredSelectionSet combined with field checker Rss when executeAccessChecksInModstrat is off but checker is on modern field`() {
         val dispatcherRegistry = createDispatcherRegistry()
-        val rss = dispatcherRegistry.getRequiredSelectionSets("TestType", "aField", false)
+        val rss = dispatcherRegistry.getRequiredSelectionSetsForField("TestType", "aField", false)
         assertTrue(rss.isNotEmpty())
         assertEquals(1, rss.size)
         assertEquals("TestType", rss[0].selections.typeName)

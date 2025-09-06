@@ -351,7 +351,7 @@ private class QueryPlanBuilder(
         field: GJField,
     ): List<QueryPlan> {
         // build plans for required selection sets
-        val requiredSelectionSets = parameters.registry.getRequiredSelectionSets(parentType.name, field.name, parameters.executeAccessChecksInModstrat)
+        val requiredSelectionSets = parameters.registry.getRequiredSelectionSetsForField(parentType.name, field.name, parameters.executeAccessChecksInModstrat)
         return buildChildPlansFromRequiredSelectionSets(requiredSelectionSets)
     }
 

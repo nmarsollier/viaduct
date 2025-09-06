@@ -751,7 +751,7 @@ class FromFieldVariablesHaveValidPathsTest {
             }
 
         private val MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.coord: Coordinate
-            get() = (this as MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.EntryForField).coord
+            get() = (this as MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldEntry).coord
 
         fun validate(
             coord: Coordinate,

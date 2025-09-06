@@ -41,9 +41,7 @@ class ExecutorValidatorTest {
             MockTenantAPIBootstrapper(bootstrappers),
             validator,
             MockCheckerExecutorFactory(
-                mapOf(
-                    "Foo" to "field" to MockCheckerExecutor()
-                )
+                mapOf("Foo" to "field" to MockCheckerExecutor())
             )
         ).create(MockSchema.minimal)
     }
@@ -70,10 +68,26 @@ class ExecutorValidatorTest {
     }
 
     @Test
-    fun `fails on requiredSelectionSet validator failure`() {
+    fun `fails on requiredSelectionSet validator failure for resolver`() {
         assertThrows<IllegalArgumentException> {
             test(requiredSelectionSetValidator = Validator.Invalid)
         }
+    }
+
+    @Test
+    fun `fails on requiredSelectionSet validator validator failure for checker`() {
+        val validator = ExecutorValidator(Validator.Unvalidated, Validator.Invalid, Validator.Unvalidated, Validator.Unvalidated)
+        DispatcherRegistryFactory(
+            MockTenantAPIBootstrapper(),
+            validator,
+            MockCheckerExecutorFactory(
+                mapOf(
+                    "Foo" to "field" to MockCheckerExecutor(
+                        mapOf("rss" to RequiredSelectionSet(SelectionsParser.parse("Foo", "x"), emptyList()))
+                    )
+                )
+            )
+        ).create(MockSchema.minimal)
     }
 
     @Test

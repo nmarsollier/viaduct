@@ -37,7 +37,7 @@ class FromFieldVariablesHaveValidPaths(
         //   2. Create a mapping of all variable sinks: "variableName" -> List<VariableUsageInfo>
         //   3. For each variable sink, lookup its source and validate that the source and sink are compatible
 
-        val allSets = ctx.requiredSelectionSetRegistry.getRequiredSelectionSets(ctx.coord.first, ctx.coord.second, true)
+        val allSets = ctx.requiredSelectionSetRegistry.getRequiredSelectionSetsForField(ctx.coord.first, ctx.coord.second, true)
 
         val variableResolversByName = mutableMapOf<String, FromFieldVariablesResolver>()
         val variableSourceByName = mutableMapOf<String, RequiredSelectionSet>()

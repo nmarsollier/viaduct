@@ -23,7 +23,7 @@ class FromArgumentVariablesHaveValidPaths(
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun validate(ctx: RequiredSelectionsValidationCtx) {
         ctx.requiredSelectionSetRegistry
-            .getRequiredSelectionSets(ctx.coord.first, ctx.coord.second, true)
+            .getRequiredSelectionSetsForField(ctx.coord.first, ctx.coord.second, true)
             .forEach { selectionSet ->
                 validateFromArgumentVariables(ctx, selectionSet)
             }

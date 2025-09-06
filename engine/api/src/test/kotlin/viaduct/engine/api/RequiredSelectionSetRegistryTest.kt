@@ -7,14 +7,18 @@ class RequiredSelectionSetRegistryTest {
     @Test
     fun `Empty`() {
         val reg = RequiredSelectionSetRegistry.Empty
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("Query", "__typename", true))
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("Foo", "foo", true))
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("", "", true))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Query", "__typename", true))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Foo", "foo", true))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("", "", true))
         assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForType("Query", true))
 
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("Query", "__typename", false))
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("Foo", "foo", false))
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("", "", false))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Query", "__typename", false))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Foo", "foo", false))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("", "", false))
         assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForType("Query", false))
+
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getFieldResolverRequiredSelectionSets("Foo", "foo"))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getFieldCheckerRequiredSelectionSets("Foo", "foo", true))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getFieldCheckerRequiredSelectionSets("Foo", "foo", false))
     }
 }

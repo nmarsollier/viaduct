@@ -5,12 +5,13 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import viaduct.engine.api.Coordinate
 import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.FromQueryFieldVariable
 import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
+import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldCheckerEntry as FieldCheckerEntry
+import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldResolverEntry as FieldResolverEntry
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.select.SelectionsParser
 
@@ -24,7 +25,7 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- dependency on sibling`() {
         assertValid(
             "type Subject { x: Int y: Int }",
-            "Subject" to "x" to "y"
+            FieldResolverEntry("Subject" to "x", "y")
         )
     }
 
@@ -35,7 +36,7 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { x: Int }
                 type Subject { x: Int obj: Obj }
             """.trimIndent(),
-            "Subject" to "x" to "obj { x }"
+            FieldResolverEntry("Subject" to "x", "obj { x }")
         )
     }
 
@@ -46,8 +47,8 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { x: Int y: Int }
                 type Subject { x: Int y: Int obj: Obj }
             """.trimIndent(),
-            "Subject" to "x" to "obj { x }",
-            "Subject" to "y" to "obj { y }",
+            FieldResolverEntry("Subject" to "x", "obj { x }"),
+            FieldResolverEntry("Subject" to "y", "obj { y }"),
         )
     }
 
@@ -58,8 +59,8 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { x: Int y: Int }
                 type Subject { x: Int y: Int z: Int obj: Obj }
             """.trimIndent(),
-            "Subject" to "x" to "y z",
-            "Subject" to "y" to "obj { y }",
+            FieldResolverEntry("Subject" to "x", "y z"),
+            FieldResolverEntry("Subject" to "y", "obj { y }"),
         )
     }
 
@@ -70,8 +71,8 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { a: Int }
                 type Subject { x: Int y: Obj z: Int h: Int }
             """.trimIndent(),
-            "Subject" to "x" to "y { a } z",
-            "Subject" to "y" to "h"
+            FieldResolverEntry("Subject" to "x", "y { a } z"),
+            FieldResolverEntry("Subject" to "y", "h")
         )
     }
 
@@ -79,8 +80,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- same required selection sets for same coordinate`() {
         assertValid(
             "type Subject { x: Int y: Int }",
-            "Subject" to "x" to "y",
-            "Subject" to "x" to "y"
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "x", "y")
         )
     }
 
@@ -88,9 +89,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- same required selection sets for same coordinate 1`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            "Subject" to "x" to "y",
-            "Subject" to "x" to "y",
-            "Subject" to "y" to "z",
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "z"),
         )
     }
 
@@ -98,8 +99,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- different required selection sets for same coordinate`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            "Subject" to "x" to "y",
-            "Subject" to "x" to "y z"
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "x", "y z")
         )
     }
 
@@ -107,8 +108,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- different required selection sets for same coordinate 1`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            "Subject" to "x" to "y",
-            "Subject" to "x" to "z"
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "x", "z")
         )
     }
 
@@ -116,10 +117,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- same required selection sets for multiple same coordinate`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            "Subject" to "x" to "y",
-            "Subject" to "x" to "y",
-            "Subject" to "y" to "z",
-            "Subject" to "y" to "z",
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "z"),
+            FieldResolverEntry("Subject" to "y", "z"),
         )
     }
 
@@ -127,7 +128,7 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- concrete system coordinate`() {
         assertValid(
             "type Subject { x: Int }",
-            "Subject" to "x" to "__typename"
+            FieldResolverEntry("Subject" to "x", "__typename")
         )
     }
 
@@ -135,7 +136,7 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- selections on recursive object`() {
         assertValid(
             "type Subject { subj: Subject x: Int }",
-            "Subject" to "x" to "subj { subj { subj { __typename } } }"
+            FieldResolverEntry("Subject" to "x", "subj { subj { subj { __typename } } }")
         )
     }
 
@@ -146,7 +147,7 @@ class RequiredSelectionsAreAcyclicTest {
                 type Other { subj: Subject }
                 type Subject { other: Other, x: Int }
             """.trimIndent(),
-            "Subject" to "x" to "other { subj { other { subj { __typename } } } }"
+            FieldResolverEntry("Subject" to "x", "other { subj { other { subj { __typename } } } }")
         )
     }
 
@@ -157,7 +158,7 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { subj: Subject }
                 type Subject { obj: Obj, x: Int }
             """.trimIndent(),
-            "Subject" to "x" to "obj { subj { obj { subj { __typename } } } }"
+            FieldResolverEntry("Subject" to "x", "obj { subj { obj { subj { __typename } } } }")
         )
     }
 
@@ -168,8 +169,8 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { subj:Subject }
                 type Subject { obj:Obj, x:Int, y:Int }
             """.trimIndent(),
-            "Subject" to "x" to "obj { subj { y } }",
-            "Subject" to "y" to "obj { subj { __typename } }",
+            FieldResolverEntry("Subject" to "x", "obj { subj { y } }"),
+            FieldResolverEntry("Subject" to "y", "obj { subj { __typename } }"),
         )
     }
 
@@ -180,7 +181,59 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject { x: Int u: Union }
                 union Union = Subject
             """.trimIndent(),
-            "Subject" to "x" to "u { __typename }"
+            FieldResolverEntry("Subject" to "x", "u { __typename }")
+        )
+    }
+
+    @Test
+    fun `valid -- field checker rss references self`() {
+        assertValid(
+            "type Subject { x: Int }",
+            FieldCheckerEntry("Subject" to "x", "x"),
+        )
+    }
+
+    @Test
+    fun `valid -- field checker references self with resolver`() {
+        assertValid(
+            "type Subject { x: Int y: Int }",
+            FieldCheckerEntry("Subject" to "x", "x"),
+            FieldResolverEntry("Subject" to "x", "y"),
+        )
+    }
+
+    @Test
+    fun `valid -- field checker with multiple required selections`() {
+        assertValid(
+            "type Subject { x: Int y: Int z: Int }",
+            FieldCheckerEntry("Subject" to "x", "y z")
+        )
+    }
+
+    @Test
+    fun `valid -- multiple field checkers for same field`() {
+        assertValid(
+            "type Subject { x: Int y: Int z: Int }",
+            FieldCheckerEntry("Subject" to "x", "y"),
+            FieldCheckerEntry("Subject" to "x", "z")
+        )
+    }
+
+    @Test
+    fun `valid -- field checker with resolver on different fields`() {
+        assertValid(
+            "type Subject { x: Int y: Int z: Int }",
+            FieldCheckerEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "z", "y")
+        )
+    }
+
+    @Test
+    fun `valid -- mixed field checker and resolver dependencies`() {
+        assertValid(
+            "type Subject { x: Int y: Int z: Int }",
+            FieldCheckerEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "z")
         )
     }
 
@@ -188,7 +241,7 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via self`() {
         assertInvalid(
             "type Subject { x: Int }",
-            "Subject" to "x" to "x"
+            FieldResolverEntry("Subject" to "x", "x")
         )
     }
 
@@ -196,8 +249,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via sibling fields`() {
         assertInvalid(
             "type Subject { x: Int, y: Int }",
-            "Subject" to "x" to "y",
-            "Subject" to "y" to "x",
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "x"),
         )
     }
 
@@ -205,8 +258,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            "Subject" to "x" to "subject { y }",
-            "Subject" to "y" to "subject { x }",
+            FieldResolverEntry("Subject" to "x", "subject { y }"),
+            FieldResolverEntry("Subject" to "y", "subject { x }"),
         )
     }
 
@@ -214,8 +267,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object 1`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            "Subject" to "x" to "y",
-            "Subject" to "y" to "subject { x }",
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "subject { x }"),
         )
     }
 
@@ -223,7 +276,7 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object 2`() {
         assertInvalid(
             "type Subject { x: Subject }",
-            "Subject" to "x" to "x { __typename }"
+            FieldResolverEntry("Subject" to "x", "x { __typename }")
         )
     }
 
@@ -231,8 +284,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object for each coordinate`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            "Subject" to "x" to "subject { x }",
-            "Subject" to "y" to "subject { y }",
+            FieldResolverEntry("Subject" to "x", "subject { x }"),
+            FieldResolverEntry("Subject" to "y", "subject { y }"),
         )
     }
 
@@ -240,8 +293,8 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- same coordinate with cycle itself`() {
         assertInvalid(
             "type Subject { x: Int }",
-            "Subject" to "x" to "x",
-            "Subject" to "x" to "x",
+            FieldResolverEntry("Subject" to "x", "x"),
+            FieldResolverEntry("Subject" to "x", "x"),
         )
     }
 
@@ -249,9 +302,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- same coordinate recursion with cycle from nested object`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            "Subject" to "x" to "y",
-            "Subject" to "x" to "subject { y }",
-            "Subject" to "y" to "subject { x }",
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "x", "subject { y }"),
+            FieldResolverEntry("Subject" to "y", "subject { x }"),
         )
     }
 
@@ -262,7 +315,7 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject implements Interface { x: Int, iface: Interface }
                 interface Interface { x: Int }
             """.trimIndent(),
-            "Subject" to "x" to "iface { x }",
+            FieldResolverEntry("Subject" to "x", "iface { x }"),
         )
     }
 
@@ -273,7 +326,7 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject implements Interface { x: Int, iface: Interface }
                 interface Interface { x: Int }
             """.trimIndent(),
-            "Subject" to "x" to "iface { ... on Subject { x } }",
+            FieldResolverEntry("Subject" to "x", "iface { ... on Subject { x } }"),
         )
     }
 
@@ -284,7 +337,7 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject { x: Int, union: Union }
                 union Union = Subject
             """.trimIndent(),
-            "Subject" to "x" to "union { ... on Subject { x } }",
+            FieldResolverEntry("Subject" to "x", "union { ... on Subject { x } }"),
         )
     }
 
@@ -303,8 +356,8 @@ class RequiredSelectionsAreAcyclicTest {
             """
                 type Subject { x: Int, y: Int }
             """.trimIndent(),
-            "Subject" to "x" to "y",
-            "Subject" to "y" to "y",
+            FieldResolverEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "y"),
         )
     }
 
@@ -434,18 +487,61 @@ class RequiredSelectionsAreAcyclicTest {
     }
 
     @Test
+    fun `invalid -- field checker and resolver create cycle`() {
+        assertInvalid(
+            "type Subject { x: Int y: Int }",
+            FieldCheckerEntry("Subject" to "x", "y"),
+            FieldResolverEntry("Subject" to "y", "x")
+        )
+    }
+
+    @Test
+    fun `invalid -- field checker mixed with resolver cycle through nested object`() {
+        assertInvalid(
+            "type Subject { x: Int y: Int subject: Subject }",
+            FieldCheckerEntry("Subject" to "x", "subject { y }"),
+            FieldResolverEntry("Subject" to "y", "subject { x }")
+        )
+    }
+
+    @Test
+    fun `invalid -- cycle with field checker, resolver, and variables`() {
+        // Field checker on Subject.a requires Subject.b
+        // Resolver for Subject.b requires Subject.c with variable from Subject.a
+        // This creates a cycle: Subject.a -> Subject.b -> Subject.a (via variable)
+        assertInvalid(
+            "type Subject { a(x:Int):Int, b:Int, c(x:Int):Int }",
+            MockRequiredSelectionSetRegistry.mk(
+                FieldCheckerEntry("Subject" to "a", "b"),
+                FieldResolverEntry(
+                    coord = "Subject" to "b",
+                    selectionsType = "Subject",
+                    selectionsString = "c(x:\$varx)",
+                    variableProviders = VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Subject", "a(x:1)"),
+                        null,
+                        listOf(
+                            FromObjectFieldVariable("varx", "a")
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
     fun `error path -- required selection traversal`() {
         val err = assertThrows<RequiredSelectionsCycleException> {
             validateAll(
                 "type Subject { x: Int, y: Int }",
-                "Subject" to "x" to "y",
-                "Subject" to "y" to "x",
+                FieldResolverEntry("Subject" to "x", "y"),
+                FieldResolverEntry("Subject" to "y", "x"),
             )
         }
         err.assertErrorPath(
-            "Subject" to "x",
-            "Subject" to "y",
-            "Subject" to "x"
+            "Subject.x",
+            "Subject.y",
+            "Subject.x"
         )
     }
 
@@ -457,14 +553,14 @@ class RequiredSelectionsAreAcyclicTest {
                     type Foo { x: Int bar: Bar }
                     type Bar { x: Int foo: Foo }
                 """.trimIndent(),
-                "Foo" to "x" to "bar { x }",
-                "Bar" to "x" to "foo { x }"
+                FieldResolverEntry("Foo" to "x", "bar { x }"),
+                FieldResolverEntry("Bar" to "x", "foo { x }")
             )
         }
         err.assertErrorPath(
-            "Foo" to "x",
-            "Bar" to "x",
-            "Foo" to "x"
+            "Foo.x",
+            "Bar.x",
+            "Foo.x"
         )
     }
 
@@ -474,7 +570,7 @@ class RequiredSelectionsAreAcyclicTest {
         val err = assertThrows<IllegalArgumentException> {
             validateAll(
                 "type Foo { x: Int }",
-                ("Foo" to "x") to badSelectionSet
+                FieldResolverEntry("Foo" to "x", badSelectionSet)
             )
         }
         if (!err.message!!.contains(badSelectionSet)) {
@@ -489,9 +585,9 @@ class RequiredSelectionsAreAcyclicTest {
      */
     private fun assertValid(
         sdl: String,
-        vararg requiredSelectionSetEntries: Pair<Coordinate, String>
+        vararg requiredSelectionSetEntries: MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry
     ) {
-        val registry = MockRequiredSelectionSetRegistry.mk(*requiredSelectionSetEntries)
+        val registry = MockRequiredSelectionSetRegistry(requiredSelectionSetEntries.toList())
         assertDoesNotThrow {
             validateAll(sdl, registry)
         }
@@ -503,9 +599,9 @@ class RequiredSelectionsAreAcyclicTest {
      */
     private fun assertInvalid(
         sdl: String,
-        vararg requiredSelectionSetEntries: Pair<Coordinate, String>
+        vararg requiredSelectionSetEntries: MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry
     ) {
-        val registry = MockRequiredSelectionSetRegistry.mk(*requiredSelectionSetEntries)
+        val registry = MockRequiredSelectionSetRegistry(requiredSelectionSetEntries.toList())
         assertThrows<RequiredSelectionsCycleException> {
             validateAll(sdl, registry)
         }
@@ -524,14 +620,14 @@ class RequiredSelectionsAreAcyclicTest {
         }
     }
 
-    private fun RequiredSelectionsCycleException.assertErrorPath(vararg expectedPath: Coordinate) {
+    private fun RequiredSelectionsCycleException.assertErrorPath(vararg expectedPath: String) {
         assertEquals(expectedPath.toList(), this.path.toList())
     }
 
     private fun validateAll(
         sdl: String,
-        vararg requiredSelectionSetEntries: Pair<Coordinate, String>
-    ) = validateAll(sdl, MockRequiredSelectionSetRegistry.mk(*requiredSelectionSetEntries))
+        vararg requiredSelectionSetEntries: MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry
+    ) = validateAll(sdl, MockRequiredSelectionSetRegistry(requiredSelectionSetEntries.toList()))
 
     /**
      * Given a schema and a collection of required selection sets,
@@ -557,7 +653,7 @@ class RequiredSelectionsAreAcyclicTest {
         val validator = RequiredSelectionsAreAcyclic(schema)
 
         val coordToValidate = registry.entries
-            .filterIsInstance<MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.EntryForField>()
+            .filterIsInstance<MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldResolverEntry>()
             .map { it.coord }.filterNotNull().toSet()
         coordToValidate.map { coord ->
             val ctx = RequiredSelectionsValidationCtx(

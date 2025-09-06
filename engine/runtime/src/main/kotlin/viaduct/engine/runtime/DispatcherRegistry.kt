@@ -24,30 +24,34 @@ class DispatcherRegistry(
         fieldName: String
     ) = fieldResolverDispatchers[Pair(typeName, fieldName)]
 
-    override fun getRequiredSelectionSets(
+    override fun getFieldCheckerRequiredSelectionSets(
         typeName: String,
         fieldName: String,
         executeAccessChecksInModstrat: Boolean
-    ): List<RequiredSelectionSet> =
-        buildList {
-            val fieldResolverExecutor = getFieldResolverDispatcher(typeName, fieldName)
-            fieldResolverExecutor?.let {
-                if (it.objectSelectionSet != null) {
-                    add(it.objectSelectionSet!!)
-                }
-                if (it.querySelectionSet != null) {
-                    add(it.querySelectionSet!!)
-                }
-            }
-            // Register checker RSSs when:
-            // 1. all checker execution is running in modstrat, or
-            // 2. if checker is present for a modern field. In this case, even if the checker is still executed
-            //  in resolver data fetcher, we need to register its RSS to query plan to get correct OER
-            //  for checker execution.
-            if (executeAccessChecksInModstrat || fieldResolverExecutor != null) {
-                getFieldCheckerDispatcher(typeName, fieldName)?.requiredSelectionSets?.values?.filterNotNull()?.let { addAll(it) }
-            }
+    ): List<RequiredSelectionSet> {
+        val fieldResolverExecutor = getFieldResolverDispatcher(typeName, fieldName)
+        if (!executeAccessChecksInModstrat && fieldResolverExecutor == null) {
+            return emptyList()
         }
+        val checkerRss = getFieldCheckerDispatcher(typeName, fieldName)?.requiredSelectionSets?.values?.filterNotNull()
+        if (checkerRss.isNullOrEmpty()) return emptyList()
+        return checkerRss
+    }
+
+    override fun getFieldResolverRequiredSelectionSets(
+        typeName: String,
+        fieldName: String
+    ): List<RequiredSelectionSet> {
+        val executor = getFieldResolverDispatcher(typeName, fieldName)
+            ?: return emptyList()
+        if (executor.objectSelectionSet == null && executor.querySelectionSet == null) {
+            return emptyList()
+        }
+        return buildList {
+            executor.objectSelectionSet?.let { add(it) }
+            executor.querySelectionSet?.let { add(it) }
+        }
+    }
 
     override fun getRequiredSelectionSetsForType(
         typeName: String,

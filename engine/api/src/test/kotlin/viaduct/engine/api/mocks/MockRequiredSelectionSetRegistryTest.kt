@@ -19,7 +19,7 @@ class MockRequiredSelectionSetRegistryTest {
             "Bar" to null to "x",
         )
 
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("Foo", "other"))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Foo", "other"))
         assertEquals(
             listOf(
                 RequiredSelectionSet(
@@ -27,7 +27,7 @@ class MockRequiredSelectionSetRegistryTest {
                     emptyList()
                 )
             ),
-            reg.getRequiredSelectionSets("Foo", "f1")
+            reg.getRequiredSelectionSetsForField("Foo", "f1")
         )
 
         assertEquals(
@@ -37,7 +37,7 @@ class MockRequiredSelectionSetRegistryTest {
                     emptyList()
                 )
             ),
-            reg.getRequiredSelectionSets("Foo", "f2")
+            reg.getRequiredSelectionSetsForField("Foo", "f2")
         )
         assertEquals(
             listOf(
@@ -46,7 +46,7 @@ class MockRequiredSelectionSetRegistryTest {
                     emptyList()
                 )
             ),
-            reg.getRequiredSelectionSets("Bar", "b1")
+            reg.getRequiredSelectionSetsForField("Bar", "b1")
         )
         assertEquals(
             listOf(
@@ -79,7 +79,7 @@ class MockRequiredSelectionSetRegistryTest {
             ),
         )
 
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSets("Foo", "other"))
+        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Foo", "other"))
         assertEquals(
             listOf(
                 RequiredSelectionSet(
@@ -87,7 +87,7 @@ class MockRequiredSelectionSetRegistryTest {
                     emptyList()
                 )
             ),
-            reg.getRequiredSelectionSets("Foo", "f1")
+            reg.getRequiredSelectionSetsForField("Foo", "f1")
         )
 
         val rssWithVariable = RequiredSelectionSet(
@@ -104,7 +104,7 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 rssWithVariable
             ),
-            reg.getRequiredSelectionSets("Foo", "f2")
+            reg.getRequiredSelectionSetsForField("Foo", "f2")
         )
         assertEquals(
             listOf(
@@ -121,7 +121,7 @@ class MockRequiredSelectionSetRegistryTest {
             "Foo" to "f1" to "x",
             "Foo" to null to "y"
         )
-        val rsss = reg.getRequiredSelectionSets("Foo", "f1")
+        val rsss = reg.getRequiredSelectionSetsForField("Foo", "f1")
         assertEquals(1, rsss.size)
         val rss = rsss.first()
         assertEquals("Query", rss.selections.typeName)
@@ -151,9 +151,9 @@ class MockRequiredSelectionSetRegistryTest {
                     emptyList()
                 )
             ),
-            result.getRequiredSelectionSets("Foo", "a")
+            result.getRequiredSelectionSetsForField("Foo", "a")
         )
-        result.getRequiredSelectionSets("Foo", "b").shouldContainAll(
+        result.getRequiredSelectionSetsForField("Foo", "b").shouldContainAll(
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "y"),
@@ -176,7 +176,7 @@ class MockRequiredSelectionSetRegistryTest {
                     emptyList()
                 )
             ),
-            result.getRequiredSelectionSets("Foo", "c")
+            result.getRequiredSelectionSetsForField("Foo", "c")
         )
         result.getRequiredSelectionSetsForType("Foo").shouldContainAll(
             listOf(
@@ -192,7 +192,7 @@ class MockRequiredSelectionSetRegistryTest {
         )
         assertEquals(
             listOf<RequiredSelectionSet>(),
-            result.getRequiredSelectionSets("Missing", "a")
+            result.getRequiredSelectionSetsForField("Missing", "a")
         )
     }
 }
