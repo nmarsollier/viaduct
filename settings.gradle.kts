@@ -7,6 +7,10 @@ pluginManagement {
     includeBuild("build-logic")
     includeBuild("plugins")
     includeBuild("build-test-plugins")
+
+    plugins {
+        id("org.jetbrains.dokka") version "2.0.0"
+    }
 }
 
 @Suppress("UnstableApiUsage")
@@ -62,6 +66,8 @@ include("tenant:testapps:schemaregistration")
 include("tenant:testapps:schemaregistration:tenants:tenant1")
 include("tenant:testapps:schemaregistration:tenants:tenant2")
 include("tenant:testapps:schemaregistration:schema")
+
+include("docs")
 
 /**
  * Include a project with a given name that is different from the path.

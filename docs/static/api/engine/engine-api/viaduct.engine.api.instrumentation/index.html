@@ -1,0 +1,246 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>viaduct.engine.api.instrumentation</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    Viaduct
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.1.0
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":engine:engine-api/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":engine:engine-api/main" data-filter=":engine:engine-api/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Viaduct
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="package" id="content" pageids="engine-api::viaduct.engine.api.instrumentation////PointingToDeclaration//1008616373">
+  <div class="breadcrumbs"><a href="../index.html">engine-api</a><span class="delimiter">/</span><span class="current">viaduct.engine.api.instrumentation</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button><button class="section-tab" data-togglable="FUNCTION,EXTENSION_FUNCTION">Functions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="556258912%2FClasslikes%2F1008616373" anchor-label="ChainedInstrumentation" id="556258912%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-chained-instrumentation/index.html"><span>Chained</span><wbr><span><span>Instrumentation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="556258912%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="graphql/PublicApi///PointingToDeclaration/"><span class="token annotation builtin">PublicApi</span></span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-chained-instrumentation/index.html">ChainedInstrumentation</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>instrumentations<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="graphql.execution.instrumentation/Instrumentation///PointingToDeclaration/">Instrumentation</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="graphql.execution.instrumentation/Instrumentation///PointingToDeclaration/">Instrumentation</span></div><div class="brief "><p class="paragraph">EDITORS NOTE: This is a fork of <span data-unresolved-link="graphql.execution.instrumentation/ChainedInstrumentation///PointingToDeclaration/">graphql.execution.instrumentation.ChainedInstrumentation</span>, rewritten in Kotlin. The main value of rewriting this in Kotlin is because this class is called in the hot path -- we may run 1000's of data fetchers have thousands of fields referenced in a given query, and thus the code here will be executed a TON.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="378981314%2FClasslikes%2F1008616373" anchor-label="ChainedModernGJInstrumentation" id="378981314%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-chained-modern-g-j-instrumentation/index.html"><span>Chained</span><wbr><span>Modern</span><wbr><span><span>GJInstrumentation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="378981314%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-chained-modern-g-j-instrumentation/index.html">ChainedModernGJInstrumentation</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>gjInstrumentations<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-viaduct-modern-g-j-instrumentation/index.html">ViaductModernGJInstrumentation</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span> : <a href="-chained-instrumentation/index.html">ChainedInstrumentation</a>, <a href="-viaduct-modern-g-j-instrumentation/index.html">ViaductModernGJInstrumentation</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1791070259%2FClasslikes%2F1008616373" anchor-label="IViaductInstrumentation" id="-1791070259%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-viaduct-instrumentation/index.html"><span>IViaduct</span><wbr><span><span>Instrumentation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1791070259%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-viaduct-instrumentation/index.html">IViaductInstrumentation</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1012567517%2FClasslikes%2F1008616373" anchor-label="ViaductInstrumentationAdapter" id="-1012567517%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-viaduct-instrumentation-adapter/index.html"><span>Viaduct</span><wbr><span>Instrumentation</span><wbr><span><span>Adapter</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1012567517%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-viaduct-instrumentation-adapter/index.html">ViaductInstrumentationAdapter</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">viaductInstrumentation<span class="token operator">: </span><a href="-i-viaduct-instrumentation/index.html">IViaductInstrumentation</a></span></span><span class="token punctuation">)</span> : <a href="-viaduct-modern-g-j-instrumentation/index.html">ViaductModernGJInstrumentation</a></div><div class="brief "><p class="paragraph">Adapts an optimized ViaductInstrumentation into a standard Instrumentation. See also <code class="lang-kotlin">asStandardInstrumentation</code>/<code class="lang-kotlin">asStandardInstrumentations</code> in ViaductInstrumentation.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-361826369%2FClasslikes%2F1008616373" anchor-label="ViaductInstrumentationBase" id="-361826369%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-viaduct-instrumentation-base/index.html"><span>Viaduct</span><wbr><span>Instrumentation</span><wbr><span><span>Base</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-361826369%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-viaduct-instrumentation-base/index.html">ViaductInstrumentationBase</a> : <a href="-i-viaduct-instrumentation/index.html">IViaductInstrumentation</a></div><div class="brief "><p class="paragraph">An optimized instrumentation interface for Viaduct. Provides specialized interface methods that are executed synchronously in every field, allowing OptimizedChainedInstrumentation to only run instrumentations that are needed and optimize the chained instrumentation loop.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1254997618%2FClasslikes%2F1008616373" anchor-label="ViaductModernGJInstrumentation" id="1254997618%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-viaduct-modern-g-j-instrumentation/index.html"><span>Viaduct</span><wbr><span>Modern</span><wbr><span><span>GJInstrumentation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1254997618%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-viaduct-modern-g-j-instrumentation/index.html">ViaductModernGJInstrumentation</a> : <span data-unresolved-link="graphql.execution.instrumentation/Instrumentation///PointingToDeclaration/">Instrumentation</span></div><div class="brief "><p class="paragraph">ViaductModernGJInstrumentation is an implementation of GraphQL Java's Instrumentation interface that contains the additional methods required by ViaductModernInstrumentation.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="828055439%2FClasslikes%2F1008616373" anchor-label="ViaductModernInstrumentation" id="828055439%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-viaduct-modern-instrumentation/index.html"><span>Viaduct</span><wbr><span>Modern</span><wbr><span><span>Instrumentation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="828055439%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-viaduct-modern-instrumentation/index.html">ViaductModernInstrumentation</a></div><div class="brief "><p class="paragraph">ViaductModernInstrumentation is an interface representing the instrumentation methods that are available in Viaduct's execution strategy.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="EXTENSION_FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-275059904%2FFunctions%2F1008616373" anchor-label="asStandardInstrumentations" id="-275059904%2FFunctions%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="as-standard-instrumentations.html"><span>as</span><wbr><span>Standard</span><wbr><span><span>Instrumentations</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-275059904%2FFunctions%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-viaduct-instrumentation-base/index.html">ViaductInstrumentationBase</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="as-standard-instrumentations.html"><span class="token function">asStandardInstrumentations</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-viaduct-modern-g-j-instrumentation/index.html">ViaductModernGJInstrumentation</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

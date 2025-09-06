@@ -1,0 +1,940 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>viaduct.engine.api</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    Viaduct
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">0.1.0
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":engine:engine-api/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":engine:engine-api/main" data-filter=":engine:engine-api/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    Viaduct
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="package" id="content" pageids="engine-api::viaduct.engine.api////PointingToDeclaration//1008616373">
+  <div class="breadcrumbs"><a href="../index.html">engine-api</a><span class="delimiter">/</span><span class="current">viaduct.engine.api</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button><button class="section-tab" data-togglable="FUNCTION,EXTENSION_FUNCTION">Functions</button><button class="section-tab" data-togglable="PROPERTY,EXTENSION_PROPERTY">Properties</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-944569288%2FClasslikes%2F1008616373" anchor-label="CheckerDispatcher" id="-944569288%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-checker-dispatcher/index.html"><span>Checker</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-944569288%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-checker-dispatcher/index.html">CheckerDispatcher</a></div><div class="brief "><p class="paragraph">Interface that dispatches the access checker for a field or a type</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-600274164%2FClasslikes%2F1008616373" anchor-label="CheckerExecutor" id="-600274164%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-checker-executor/index.html"><span>Checker</span><wbr><span><span>Executor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-600274164%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-checker-executor/index.html">CheckerExecutor</a></div><div class="brief "><p class="paragraph">Executor for both tenant-written and Viaduct architect-written access checkers.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2089928884%2FClasslikes%2F1008616373" anchor-label="CheckerExecutorFactory" id="-2089928884%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-checker-executor-factory/index.html"><span>Checker</span><wbr><span>Executor</span><wbr><span><span>Factory</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2089928884%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-checker-executor-factory/index.html">CheckerExecutorFactory</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="855367298%2FClasslikes%2F1008616373" anchor-label="CheckerResult" id="855367298%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-checker-result/index.html"><span>Checker</span><wbr><span><span>Result</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="855367298%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">interface </span><a href="-checker-result/index.html">CheckerResult</a></div><div class="brief "><p class="paragraph">Represents the result of CheckerExecutor.execute, which will be stored into the checker slot of the OER. This is an SPI to be implemented by implementors of Viaduct Tenant APIs.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-122338799%2FClasslikes%2F1008616373" anchor-label="CheckerResultContext" id="-122338799%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-checker-result-context/index.html"><span>Checker</span><wbr><span>Result</span><wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-122338799%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-checker-result-context/index.html">CheckerResultContext</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>fieldQueryDirectives<span class="token operator">: </span><span data-unresolved-link="graphql.execution.directives/QueryDirectives///PointingToDeclaration/">QueryDirectives</span><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Context for CheckerResult.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-954850730%2FClasslikes%2F1008616373" anchor-label="Coordinate" id="-954850730%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-coordinate/index.html"><span><span>Coordinate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-954850730%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-coordinate/index.html">Coordinate</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">A Coordinate describes a unique identifier in a schema. This is a viaduct-flavored version of graphql-java's <span data-unresolved-link="graphql.schema/FieldCoordinates///PointingToDeclaration/">graphql.schema.FieldCoordinates</span></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="942061823%2FClasslikes%2F1008616373" anchor-label="EngineDataReader" id="942061823%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-engine-data-reader/index.html"><span>Engine</span><wbr><span>Data</span><wbr><span><span>Reader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="942061823%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-engine-data-reader/index.html">EngineDataReader</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">path<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="935952789%2FClasslikes%2F1008616373" anchor-label="EngineExecutionContext" id="935952789%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-engine-execution-context/index.html"><span>Engine</span><wbr><span>Execution</span><wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="935952789%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-engine-execution-context/index.html">EngineExecutionContext</a></div><div class="brief "><p class="paragraph">Request-scoped execution context used to pass contextual elements to tenant API implementations</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1078934019%2FClasslikes%2F1008616373" anchor-label="EngineObjectData" id="1078934019%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-engine-object-data/index.html"><span>Engine</span><wbr><span>Object</span><wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1078934019%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-engine-object-data/index.html">EngineObjectData</a></div><div class="brief "><p class="paragraph">This interface can be interpreted as an untyped representation of GRT</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1387582716%2FClasslikes%2F1008616373" anchor-label="EngineObjectDataBuilder" id="-1387582716%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-engine-object-data-builder/index.html"><span>Engine</span><wbr><span>Object</span><wbr><span>Data</span><wbr><span><span>Builder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1387582716%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-engine-object-data-builder/index.html">EngineObjectDataBuilder</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1316560935%2FClasslikes%2F1008616373" anchor-label="ExecutionAttribution" id="1316560935%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-execution-attribution/index.html"><span>Execution</span><wbr><span><span>Attribution</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1316560935%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-execution-attribution/index.html">ExecutionAttribution</a></div><div class="brief "><p class="paragraph">Represents the attribution of a required selection set or a query plan to a specific source.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-847566737%2FClasslikes%2F1008616373" anchor-label="FieldCheckerDispatcherRegistry" id="-847566737%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-field-checker-dispatcher-registry/index.html"><span>Field</span><wbr><span>Checker</span><wbr><span>Dispatcher</span><wbr><span><span>Registry</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-847566737%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-field-checker-dispatcher-registry/index.html">FieldCheckerDispatcherRegistry</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="952467117%2FClasslikes%2F1008616373" anchor-label="FieldResolverDispatcher" id="952467117%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-field-resolver-dispatcher/index.html"><span>Field</span><wbr><span>Resolver</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="952467117%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-field-resolver-dispatcher/index.html">FieldResolverDispatcher</a></div><div class="brief "><p class="paragraph">Class that delegates to a data loader to call <a href="-field-resolver-executor/index.html">FieldResolverExecutor</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2119065840%2FClasslikes%2F1008616373" anchor-label="FieldResolverDispatcherRegistry" id="2119065840%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-field-resolver-dispatcher-registry/index.html"><span>Field</span><wbr><span>Resolver</span><wbr><span>Dispatcher</span><wbr><span><span>Registry</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2119065840%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-field-resolver-dispatcher-registry/index.html">FieldResolverDispatcherRegistry</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-450814271%2FClasslikes%2F1008616373" anchor-label="FieldResolverExecutor" id="-450814271%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-field-resolver-executor/index.html"><span>Field</span><wbr><span>Resolver</span><wbr><span><span>Executor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-450814271%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-field-resolver-executor/index.html">FieldResolverExecutor</a></div><div class="brief "><p class="paragraph">Executor for a tenant-written resolver function.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1825427157%2FClasslikes%2F1008616373" anchor-label="FragmentLoader" id="-1825427157%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-fragment-loader/index.html"><span>Fragment</span><wbr><span><span>Loader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1825427157%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-fragment-loader/index.html">FragmentLoader</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-136506649%2FClasslikes%2F1008616373" anchor-label="FromArgument" id="-136506649%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-from-argument/index.html"><span>From</span><wbr><span><span>Argument</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-136506649%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-from-argument/index.html">FromArgument</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>path<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span> : <a href="-variables-resolver/index.html">VariablesResolver</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-947900981%2FClasslikes%2F1008616373" anchor-label="FromArgumentVariable" id="-947900981%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-from-argument-variable/index.html"><span>From</span><wbr><span>Argument</span><wbr><span><span>Variable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-947900981%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-from-argument-variable/index.html">FromArgumentVariable</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>valueFromPath<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="-selection-set-variable/index.html">SelectionSetVariable</a></div><div class="brief "><p class="paragraph">A variable declaration whose value is derived from a "." delimited path into an argument value of the field that uses this Variable.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1971289192%2FClasslikes%2F1008616373" anchor-label="FromFieldVariable" id="1971289192%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-from-field-variable/index.html"><span>From</span><wbr><span>Field</span><wbr><span><span>Variable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1971289192%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">interface </span><a href="-from-field-variable/index.html">FromFieldVariable</a></div><div class="brief "><p class="paragraph">Interface for a variable declaration that derives its value from a path into a selection set</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1791979935%2FClasslikes%2F1008616373" anchor-label="FromFieldVariablesResolver" id="-1791979935%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-from-field-variables-resolver/index.html"><span>From</span><wbr><span>Field</span><wbr><span>Variables</span><wbr><span><span>Resolver</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1791979935%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-from-field-variables-resolver/index.html">FromFieldVariablesResolver</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>path<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>requiredSelectionSet<span class="token operator">: </span><a href="-required-selection-set/index.html">RequiredSelectionSet</a></span></span><span class="token punctuation">)</span> : <a href="-variables-resolver/index.html">VariablesResolver</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-629086521%2FClasslikes%2F1008616373" anchor-label="FromObjectFieldVariable" id="-629086521%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-from-object-field-variable/index.html"><span>From</span><wbr><span>Object</span><wbr><span>Field</span><wbr><span><span>Variable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-629086521%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-from-object-field-variable/index.html">FromObjectFieldVariable</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>valueFromPath<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="-selection-set-variable/index.html">SelectionSetVariable</a>, <a href="-from-field-variable/index.html">FromFieldVariable</a></div><div class="brief "><p class="paragraph">A variable declaration whose value is derived from a "."-delimited path into an associated selection set.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1220121258%2FClasslikes%2F1008616373" anchor-label="FromQueryFieldVariable" id="-1220121258%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-from-query-field-variable/index.html"><span>From</span><wbr><span>Query</span><wbr><span>Field</span><wbr><span><span>Variable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1220121258%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-from-query-field-variable/index.html">FromQueryFieldVariable</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>name<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>valueFromPath<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span> : <a href="-selection-set-variable/index.html">SelectionSetVariable</a>, <a href="-from-field-variable/index.html">FromFieldVariable</a></div><div class="brief "><p class="paragraph">A variable declaration whose value is derived from a "." delimited path into a query field value of the field that uses this Variable.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2108744367%2FClasslikes%2F1008616373" anchor-label="GraphQLBuildError" id="-2108744367%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-graph-q-l-build-error/index.html"><span>Graph</span><wbr><span>QLBuild</span><wbr><span><span>Error</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2108744367%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-graph-q-l-build-error/index.html">GraphQLBuildError</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">cause<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span> : <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/RuntimeException.html">RuntimeException</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="689898095%2FClasslikes%2F1008616373" anchor-label="LazyEngineObjectData" id="689898095%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-lazy-engine-object-data/index.html"><span>Lazy</span><wbr><span>Engine</span><wbr><span>Object</span><wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="689898095%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-lazy-engine-object-data/index.html">LazyEngineObjectData</a> : <a href="-engine-object-data/index.html">EngineObjectData</a></div><div class="brief "><p class="paragraph">An EngineObjectData that is not fully resolved until <a href="-lazy-engine-object-data/resolve-data.html">resolveData</a> is called.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1077502047%2FClasslikes%2F1008616373" anchor-label="NodeEngineObjectData" id="-1077502047%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-node-engine-object-data/index.html"><span>Node</span><wbr><span>Engine</span><wbr><span>Object</span><wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1077502047%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-node-engine-object-data/index.html">NodeEngineObjectData</a> : <a href="-lazy-engine-object-data/index.html">LazyEngineObjectData</a></div><div class="brief "><p class="paragraph">Backing data for a reference to a Node value</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1240070337%2FClasslikes%2F1008616373" anchor-label="NodeResolverDispatcher" id="-1240070337%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-node-resolver-dispatcher/index.html"><span>Node</span><wbr><span>Resolver</span><wbr><span><span>Dispatcher</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1240070337%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-node-resolver-dispatcher/index.html">NodeResolverDispatcher</a></div><div class="brief "><p class="paragraph">Class that delegates to a data loader to call <a href="-node-resolver-executor/index.html">NodeResolverExecutor</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1784793214%2FClasslikes%2F1008616373" anchor-label="NodeResolverDispatcherRegistry" id="-1784793214%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-node-resolver-dispatcher-registry/index.html"><span>Node</span><wbr><span>Resolver</span><wbr><span>Dispatcher</span><wbr><span><span>Registry</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1784793214%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-node-resolver-dispatcher-registry/index.html">NodeResolverDispatcherRegistry</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1816222765%2FClasslikes%2F1008616373" anchor-label="NodeResolverExecutor" id="-1816222765%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-node-resolver-executor/index.html"><span>Node</span><wbr><span>Resolver</span><wbr><span><span>Executor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1816222765%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-node-resolver-executor/index.html">NodeResolverExecutor</a></div><div class="brief "><p class="paragraph">Executes tenant-written node resolver or batch resolver function.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-220041686%2FClasslikes%2F1008616373" anchor-label="NoOpCheckerExecutorFactoryImpl" id="-220041686%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-no-op-checker-executor-factory-impl/index.html"><span>No</span><wbr><span>Op</span><wbr><span>Checker</span><wbr><span>Executor</span><wbr><span>Factory</span><wbr><span><span>Impl</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-220041686%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="javax.inject/Singleton///PointingToDeclaration/"><span class="token annotation builtin">Singleton</span></span></div></div><span class="token keyword">class </span><a href="-no-op-checker-executor-factory-impl/index.html">NoOpCheckerExecutorFactoryImpl</a>&nbsp;<span><span class="token annotation builtin">@</span><span data-unresolved-link="com.google.inject/Inject///PointingToDeclaration/"><span class="token annotation builtin">Inject</span></span>&nbsp;</span><span class="token keyword">constructor</span> : <a href="-checker-executor-factory/index.html">CheckerExecutorFactory</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-543669328%2FClasslikes%2F1008616373" anchor-label="ObjectEngineResult" id="-543669328%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-object-engine-result/index.html"><span>Object</span><wbr><span>Engine</span><wbr><span><span>Result</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-543669328%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-object-engine-result/index.html">ObjectEngineResult</a></div><div class="brief "><p class="paragraph">An interface that represents a result similar to the result of <a href="https://spec.graphql.org/draft/#sec-Executing-Selection-Sets">ExecuteSelectionSet algorithm</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1704497846%2FClasslikes%2F1008616373" anchor-label="ParsedSelections" id="1704497846%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-parsed-selections/index.html"><span>Parsed</span><wbr><span><span>Selections</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1704497846%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-parsed-selections/index.html">ParsedSelections</a></div><div class="brief "><p class="paragraph">A parsed representation of a viaduct.api.select.Selections String</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1962927158%2FClasslikes%2F1008616373" anchor-label="RawSelection" id="-1962927158%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-raw-selection/index.html"><span>Raw</span><wbr><span><span>Selection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1962927158%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-raw-selection/index.html">RawSelection</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>typeCondition<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>fieldName<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>selectionName<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">An untyped selection of a <a href="-raw-selection-set/index.html">RawSelectionSet</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1513969674%2FClasslikes%2F1008616373" anchor-label="RawSelectionSet" id="-1513969674%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-raw-selection-set/index.html"><span>Raw</span><wbr><span>Selection</span><wbr><span><span>Set</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1513969674%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-raw-selection-set/index.html">RawSelectionSet</a></div><div class="brief "><p class="paragraph">RawSelectionSet provides an untyped interface for SelectionSet manipulation. It is intended for direct use by the Viaduct engine or indirect use by tenants via a SelectionSetImpl.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1700370734%2FClasslikes%2F1008616373" anchor-label="RawSelectionsLoader" id="-1700370734%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-raw-selections-loader/index.html"><span>Raw</span><wbr><span>Selections</span><wbr><span><span>Loader</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1700370734%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-raw-selections-loader/index.html">RawSelectionsLoader</a></div><div class="brief "><p class="paragraph">Loads selections from the engine and return an engine object data.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="73219513%2FClasslikes%2F1008616373" anchor-label="RequiredSelectionSet" id="73219513%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-required-selection-set/index.html"><span>Required</span><wbr><span>Selection</span><wbr><span><span>Set</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="73219513%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-required-selection-set/index.html">RequiredSelectionSet</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>selections<span class="token operator">: </span><a href="-parsed-selections/index.html">ParsedSelections</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>variablesResolvers<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-variables-resolver/index.html">VariablesResolver</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>attribution<span class="token operator">: </span><a href="-execution-attribution/index.html">ExecutionAttribution</a><span class="token operator">?</span><span class="token operator"> = </span>ExecutionAttribution.DEFAULT</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Represents a set of selections that are required.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-991144964%2FClasslikes%2F1008616373" anchor-label="RequiredSelectionSetRegistry" id="-991144964%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-required-selection-set-registry/index.html"><span>Required</span><wbr><span>Selection</span><wbr><span>Set</span><wbr><span><span>Registry</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-991144964%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-required-selection-set-registry/index.html">RequiredSelectionSetRegistry</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2106280298%2FClasslikes%2F1008616373" anchor-label="RequiredSelectionSets" id="-2106280298%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-required-selection-sets/index.html"><span>Required</span><wbr><span>Selection</span><wbr><span><span>Sets</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2106280298%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-required-selection-sets/index.html">RequiredSelectionSets</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>objectSelections<span class="token operator">: </span><a href="-required-selection-set/index.html">RequiredSelectionSet</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>querySelections<span class="token operator">: </span><a href="-required-selection-set/index.html">RequiredSelectionSet</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Represents the required selection sets for a field, which includes selections for both objects and queries.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1911539691%2FClasslikes%2F1008616373" anchor-label="ResolvedEngineObjectData" id="1911539691%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-resolved-engine-object-data/index.html"><span>Resolved</span><wbr><span>Engine</span><wbr><span>Object</span><wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1911539691%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-resolved-engine-object-data/index.html">ResolvedEngineObjectData</a> : <a href="-engine-object-data/index.html">EngineObjectData</a>, <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt; </span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1075463940%2FClasslikes%2F1008616373" anchor-label="SelectionSetVariable" id="-1075463940%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-selection-set-variable/index.html"><span>Selection</span><wbr><span>Set</span><wbr><span><span>Variable</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1075463940%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">interface </span><a href="-selection-set-variable/index.html">SelectionSetVariable</a></div><div class="brief "><p class="paragraph">Base interface for a variable declaration that can be parsed from a viaduct.api.Variable annotation</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1010289461%2FClasslikes%2F1008616373" anchor-label="TenantAPIBootstrapper" id="1010289461%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-tenant-a-p-i-bootstrapper/index.html"><span>Tenant</span><wbr><span><span>APIBootstrapper</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1010289461%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-tenant-a-p-i-bootstrapper/index.html">TenantAPIBootstrapper</a></div><div class="brief "><p class="paragraph">TenantAPIBootstrapper is a service that provides a list of all TenantModuleBootstrappers that are needed to bootstrap all tenant modules for one flavor of the Tenant API.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="864057065%2FClasslikes%2F1008616373" anchor-label="TenantModuleBootstrapper" id="864057065%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-tenant-module-bootstrapper/index.html"><span>Tenant</span><wbr><span>Module</span><wbr><span><span>Bootstrapper</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="864057065%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-tenant-module-bootstrapper/index.html">TenantModuleBootstrapper</a></div><div class="brief "><p class="paragraph">Interface for the data that a tenant API provides to the engine to bootstrap the tenant's execution environment.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-428568485%2FClasslikes%2F1008616373" anchor-label="TenantModuleException" id="-428568485%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-tenant-module-exception/index.html"><span>Tenant</span><wbr><span>Module</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-428568485%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-tenant-module-exception/index.html">TenantModuleException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">cause<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span> : <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html">Exception</a></div><div class="brief "><p class="paragraph">Thrown by member of <a href="-tenant-module-bootstrapper/index.html">TenantModuleBootstrapper</a> to indicate an error in loading a module that should terminate the attempt to load this module but that isn't fatal in the sense that it should necessarily terminate the loading of other modules.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-612082987%2FClasslikes%2F1008616373" anchor-label="TypeCheckerDispatcherRegistry" id="-612082987%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-type-checker-dispatcher-registry/index.html"><span>Type</span><wbr><span>Checker</span><wbr><span>Dispatcher</span><wbr><span><span>Registry</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-612082987%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-type-checker-dispatcher-registry/index.html">TypeCheckerDispatcherRegistry</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1893108585%2FClasslikes%2F1008616373" anchor-label="UnboundVariablesException" id="-1893108585%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-unbound-variables-exception/index.html"><span>Unbound</span><wbr><span>Variables</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1893108585%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-unbound-variables-exception/index.html">UnboundVariablesException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">selections<span class="token operator">: </span><a href="-parsed-selections/index.html">ParsedSelections</a><span class="token punctuation">, </span></span><span class="parameter ">missing<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span> : <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html">Exception</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-880041720%2FClasslikes%2F1008616373" anchor-label="UnsetSelectionException" id="-880041720%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-unset-selection-exception/index.html"><span>Unset</span><wbr><span>Selection</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-880041720%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-unset-selection-exception/index.html">UnsetSelectionException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">selection<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">objectType<span class="token operator">: </span><span data-unresolved-link="graphql.schema/GraphQLObjectType///PointingToDeclaration/">GraphQLObjectType</span><span class="token punctuation">, </span></span><span class="parameter ">details<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span> : <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html">Exception</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1669932454%2FClasslikes%2F1008616373" anchor-label="Validated" id="1669932454%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-validated/index.html"><span><span>Validated</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1669932454%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-validated/index.html">Validated</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>delegate<span class="token operator">: </span><a href="-variables-resolver/index.html">VariablesResolver</a></span></span><span class="token punctuation">)</span> : <a href="-variables-resolver/index.html">VariablesResolver</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1393156425%2FClasslikes%2F1008616373" anchor-label="VariableCycleException" id="1393156425%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-variable-cycle-exception/index.html"><span>Variable</span><wbr><span>Cycle</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1393156425%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="-variable-cycle-exception/index.html">VariableCycleException</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>varName<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>selections<span class="token operator">: </span><a href="-parsed-selections/index.html">ParsedSelections</a></span></span><span class="token punctuation">)</span> : <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Exception.html">Exception</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2093255433%2FClasslikes%2F1008616373" anchor-label="VariablesResolver" id="-2093255433%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-variables-resolver/index.html"><span>Variables</span><wbr><span><span>Resolver</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2093255433%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-variables-resolver/index.html">VariablesResolver</a></div><div class="brief "><p class="paragraph">A VariablesResolver produces values for a fixed set of GraphQL variables</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-472911869%2FClasslikes%2F1008616373" anchor-label="ViaductSchema" id="-472911869%2FClasslikes%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-viaduct-schema/index.html"><span>Viaduct</span><wbr><span><span>Schema</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-472911869%2FClasslikes%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-viaduct-schema/index.html">ViaductSchema</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>schema<span class="token operator">: </span><span data-unresolved-link="graphql.schema/GraphQLSchema///PointingToDeclaration/">GraphQLSchema</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="EXTENSION_PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1790053135%2FProperties%2F1008616373" anchor-label="gj" id="1790053135%2FProperties%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="gj.html"><span><span>gj</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1790053135%2FProperties%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="-coordinate/index.html">Coordinate</a><span class="token punctuation">.</span><a href="gj.html">gj</a><span class="token operator">: </span><span data-unresolved-link="graphql.schema/FieldCoordinates///PointingToDeclaration/">FieldCoordinates</span></div><div class="brief "><p class="paragraph">Convert a <a href="-coordinate/index.html">Coordinate</a> into an equivalent graphql-java representation</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1987393002%2FProperties%2F1008616373" anchor-label="variableNames" id="1987393002%2FProperties%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="variable-names.html"><span>variable</span><wbr><span><span>Names</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1987393002%2FProperties%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-variables-resolver/index.html">VariablesResolver</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="variable-names.html">variableNames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return a merged set of all variable names provided by these <a href="-variables-resolver/index.html">VariablesResolver</a>s</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="EXTENSION_FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1784072098%2FFunctions%2F1008616373" anchor-label="checkDisjoint" id="1784072098%2FFunctions%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="check-disjoint.html"><span>check</span><wbr><span><span>Disjoint</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1784072098%2FFunctions%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-variables-resolver/index.html">VariablesResolver</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="check-disjoint.html"><span class="token function">checkDisjoint</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">check that all values provide disjoint sets of variables</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1874738058%2FFunctions%2F1008616373" anchor-label="combine" id="1874738058%2FFunctions%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="combine.html"><span><span>combine</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1874738058%2FFunctions%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-checker-result/index.html">CheckerResult</a><span class="token punctuation">.</span><a href="combine.html"><span class="token function">combine</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fieldResult<span class="token operator">: </span><a href="-checker-result/index.html">CheckerResult</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-checker-result/index.html">CheckerResult</a></div><div class="brief "><p class="paragraph">Used inside the engine to combine results - only call <a href="-checker-result/-error/index.html">CheckerResult.Error</a>'s API impl if needed, where the error impl is only responsible for combining errors.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1803530646%2FFunctions%2F1008616373" anchor-label="resolve" id="-1803530646%2FFunctions%2F1008616373" data-filterable-set=":engine:engine-api/main"></a>
+          <div class="table-row" data-filterable-current=":engine:engine-api/main" data-filterable-set=":engine:engine-api/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="resolve.html"><span><span>resolve</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1803530646%2FFunctions%2F1008616373"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":engine:engine-api/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-variables-resolver/index.html">VariablesResolver</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="resolve.html"><span class="token function">resolve</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ctx<span class="token operator">: </span><a href="-variables-resolver/-resolve-ctx/index.html">VariablesResolver.ResolveCtx</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return a combined map of all variable values resolved by these VariableResolvers</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

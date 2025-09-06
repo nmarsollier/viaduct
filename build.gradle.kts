@@ -72,7 +72,7 @@ reporting {
 // Coverage verification with reasonable thresholds
 tasks.register<JacocoCoverageVerification>("testCodeCoverageVerification") {
     dependsOn("testCodeCoverageReport")
-    
+
     violationRules {
         rule {
             limit {
@@ -83,7 +83,7 @@ tasks.register<JacocoCoverageVerification>("testCodeCoverageVerification") {
         }
         rule {
             limit {
-                counter = "BRANCH"  
+                counter = "BRANCH"
                 value = "COVEREDRATIO"
                 minimum = "0.05".toBigDecimal() // 5% minimum branch coverage
             }
@@ -95,9 +95,9 @@ tasks.register<JacocoCoverageVerification>("testCodeCoverageVerification") {
 tasks.register("testAndCoverage") {
     description = "Runs tests and generates coverage reports for CircleCI"
     group = "verification"
-    
+
     dependsOn("testCodeCoverageReport")
-    
+
     doLast {
         println("Coverage reports generated:")
         println("- Individual module XML reports: */build/reports/jacoco/test/jacocoTestReport.xml")
@@ -105,4 +105,3 @@ tasks.register("testAndCoverage") {
         println("- Aggregated HTML report: build/reports/jacoco/testCodeCoverageReport/html/index.html")
     }
 }
-

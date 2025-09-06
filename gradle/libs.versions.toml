@@ -37,7 +37,7 @@ ktlintVersion = "1.2.1"
 detekt = "1.23.6"
 dependency-analysis = "1.33.0"
 jacoco = "0.8.11"
-dokka = "1.8.20"
+dokka = "2.0.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
