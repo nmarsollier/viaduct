@@ -2,6 +2,8 @@ plugins {
     id("kotlin-project")
     id("kotlin-static-analysis")
     id("test-classdiff")
+    `maven-publish`
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 viaductClassDiff {
@@ -34,5 +36,27 @@ afterEvaluate {
     tasks.named("explodeCodeSourceTest") {
         dependsOn(tasks.named("generateSchemaDiffSchemaSchemaObjects"))
         dependsOn(tasks.named("generateSchemaDiffSchemaKotlinGrts"))
+    }
+}
+
+
+// Need to publish this project to the maven local cache so we can
+// build the plugins.  We want "fat" jars here to simplify the
+// publication flow (ie, only need to publish tenant-codegen)
+
+group = "com.airbnb.viaduct" // TODO - find a better home for this constant
+version = libs.versions.project.get()
+
+tasks.withType<Jar>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+    // ^^ improve the reproducibility of JARs
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("shadowFatJar") {
+            artifact(tasks.named("shadowJar"))
+        }
     }
 }
