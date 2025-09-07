@@ -10,8 +10,14 @@ val projectDependencies: Configuration by configurations.creating {
 }
 
 val nonTransitiveProjectDependencies: Configuration by configurations.creating {
-    isTransitive = false // we don't want the transitive dependencies of the projects to be included
+    isTransitive = false
     extendsFrom(projectDependencies)
+}
+
+val testFixturesProjectDependencies: Configuration by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isTransitive = false
 }
 
 val projectNames = setOf(
@@ -45,11 +51,27 @@ dependencies {
     }
 }
 
+gradle.projectsEvaluated {
+    dependencies {
+        projectsToPackage.forEach { sub ->
+            when {
+                sub.configurations.findByName("testFixtures") != null -> {
+                    testFixturesProjectDependencies(
+                        project(mapOf("path" to sub.path, "configuration" to "testFixtures"))
+                    )
+                }
+                sub.configurations.findByName("testFixturesRuntimeElements") != null -> {
+                    testFixturesProjectDependencies(
+                        project(mapOf("path" to sub.path, "configuration" to "testFixturesRuntimeElements"))
+                    )
+                }
+            }
+        }
+    }
+}
+
 @CacheableTask
 abstract class UnpackProjectDependenciesTask : DefaultTask() {
-
-    // TODO: task can be made incremental, would be more efficient: https://docs.gradle.org/current/userguide/custom_tasks.html#incremental_tasks
-
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val artifacts: ConfigurableFileCollection
@@ -80,6 +102,7 @@ abstract class UnpackProjectDependenciesTask : DefaultTask() {
 
 val unpackProjectDependencies by tasks.registering(UnpackProjectDependenciesTask::class) {
     artifacts.from(nonTransitiveProjectDependencies.incoming.artifacts.artifactFiles)
+    artifacts.from(testFixturesProjectDependencies.incoming.artifacts.artifactFiles)
     outputDir = layout.buildDirectory.dir("unpacked-project-dependencies")
 }
 
@@ -89,12 +112,32 @@ tasks.named<Jar>("jar") {
     from(unpackProjectDependencies.flatMap { it.outputDir })
 }
 
+val aggregateSourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    archiveBaseName.set("runtime")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    projectsToPackage.forEach { sub ->
+        val hasSourcesJar = sub.tasks.findByName("sourcesJar") != null
+        if (hasSourcesJar) {
+            @Suppress("UNCHECKED_CAST")
+            val sj = sub.tasks.named("sourcesJar") as TaskProvider<Jar>
+            dependsOn(sj)
+            from(sj.map { zipTree(it.archiveFile.get().asFile) })
+        } else {
+            from(sub.layout.projectDirectory.dir("src/main/java")) { include("**/*.java") }
+            from(sub.layout.projectDirectory.dir("src/main/kotlin")) { include("**/*.kt") }
+        }
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
             artifactId = "runtime"
             version = project.version.toString()
             artifact(tasks.jar.get())
+            artifact(aggregateSourcesJar.get())
 
             pom.withXml {
                 val depsNode = asNode().appendNode("dependencies")

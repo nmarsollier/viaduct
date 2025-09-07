@@ -7,6 +7,7 @@ reactor = "3.5.0"
 springBoot = "3.5.0"
 springContext = "6.2.7"
 viaduct = "0.1.0"
+mockk-jvm = "1.13.3"
 
 [plugins]
 dependencyManagement = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
@@ -29,3 +30,5 @@ kotest-runner-junit = { group = "io.kotest", name = "kotest-runner-junit5", vers
 kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotest" }
 viaduct-runtime = { group = "com.airbnb.viaduct", name = "runtime", version.ref = "viaduct" }
+io-mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk-jvm" }
+io-mockk-jvm = { module = "io.mockk:mockk-jvm", version.ref = "mockk-jvm" }

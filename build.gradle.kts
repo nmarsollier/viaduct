@@ -1,5 +1,4 @@
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.api.tasks.SourceSetContainer
 
 plugins {
     id("dependency-analysis")

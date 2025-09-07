@@ -28,6 +28,9 @@ dependencies {
 
     testRuntimeOnly(libs.junit.platform.launcher)
 
+    testImplementation(libs.io.mockk.jvm)
+    testImplementation(project(":tenants:starwars"))
+    testImplementation(project(":tenants:starships"))
     testImplementation(libs.kotest.runner.junit)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.assertions.json)
