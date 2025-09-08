@@ -55,7 +55,6 @@ class ViaductGenerator : CliktCommand() {
         require(archivesNullCount == 0 || archivesNullCount == 3) {
             "Provided directories to store the archives must be either null or non-null together"
         }
-
         val typeDefRegistry = readTypesFromFiles(schemaFiles)
         val schema = GJSchemaRaw.fromRegistry(typeDefRegistry)
         // TODO(jimmy): Remove this global mutable state, see https://docs.google.com/document/d/18FKs13huMY3JyslnO11_V_WtYPcSA7Xb_vNQAf79yP0/edit?tab=t.0#heading=h.a24h0oe8myl2
@@ -72,6 +71,7 @@ class ViaductGenerator : CliktCommand() {
         val args = Args(
             tenantPackage = tenantPackage,
             tenantPackagePrefix = packagePrefixForTenant,
+            tenantName = tenantPkg,
             grtPackage = grtPackages,
             modernModuleGeneratedDir = modernModuleGeneratedDir,
             metainfGeneratedDir = metainfGeneratedDir,

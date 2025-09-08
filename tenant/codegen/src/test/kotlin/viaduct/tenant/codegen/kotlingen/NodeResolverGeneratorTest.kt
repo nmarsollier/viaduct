@@ -50,6 +50,7 @@ class NodeResolverGeneratorTest {
         val args = Args(
             tenantPackage = "pkg.tenant",
             tenantPackagePrefix = "pkg",
+            tenantName = "tenant_name",
             grtPackage = "pkg.grts",
             modernModuleGeneratedDir = File(""),
             metainfGeneratedDir = File(""),

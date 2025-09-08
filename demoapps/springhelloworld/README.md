@@ -40,6 +40,8 @@ You should see this response
 
 ```
 {
-  "helloWorld": "Hello World!"
+  "data" {
+    "helloWorld": "Hello World!"
+  }
 }
 ```

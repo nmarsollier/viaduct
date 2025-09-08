@@ -18,6 +18,16 @@ input CharacterSearchInput @oneOf @scope(to: ["default"]) {
 
 extend type Query @scope(to: ["default"]) {
   """
+  Fetches an object given its ID
+  """
+  node(id: ID!): Node
+
+  """
+  Fetches objects given their IDs
+  """
+  nodes(ids: [ID!]!): [Node]!
+
+  """
   Search for a character using exactly one search criteria
   """
   searchCharacter(
@@ -59,29 +69,4 @@ extend type Query @scope(to: ["default"]) {
   allVehicles(limit: Int): [Vehicle]
     @resolver
     @backingData(class: "viaduct.demoapp.starwars.resolvers.AllVehiclesResolver")
-
-  """
-  A specific film
-  """
-  film(id: ID! @idOf(type: "Film")): Film @resolver
-
-  """
-  A specific character
-  """
-  character(id: ID! @idOf(type: "Character")): Character @resolver
-
-  """
-  A specific planet
-  """
-  planet(id: ID! @idOf(type: "Planet")): Planet @resolver
-
-  """
-  A specific species
-  """
-  species(id: ID! @idOf(type: "Species")): Species @resolver
-
-  """
-  A specific vehicle
-  """
-  vehicle(id: ID! @idOf(type: "Vehicle")): Vehicle @resolver
 }

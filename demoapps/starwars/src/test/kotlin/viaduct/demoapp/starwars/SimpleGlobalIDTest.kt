@@ -2,7 +2,6 @@ package viaduct.demoapp.starwars
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlin.reflect.KClass
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -12,11 +11,6 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import viaduct.api.grts.Character
-import viaduct.api.reflect.Type
-import viaduct.api.types.NodeCompositeOutput
-import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
-import viaduct.tenant.runtime.globalid.GlobalIDImpl
-import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 
 /**
  * Simple test to debug GlobalID implementation
@@ -30,22 +24,6 @@ class SimpleGlobalIDTest {
     private var port: Int = 0
 
     private val objectMapper = ObjectMapper()
-
-    // Setup GlobalID codec for creating expected GlobalID values in tests
-    private val mirror = ReflectionLoaderImpl { name ->
-        Class.forName("viaduct.api.grts.$name").kotlin
-    }
-    private val globalIDCodec = GlobalIDCodecImpl(mirror)
-
-    private fun createEncodedGlobalID(
-        typeClass: KClass<*>,
-        internalId: String
-    ): String {
-        @Suppress("UNCHECKED_CAST")
-        val type = mirror.reflectionFor(typeClass.simpleName!!) as Type<NodeCompositeOutput>
-        val globalId = GlobalIDImpl(type, internalId)
-        return globalIDCodec.serialize(globalId)
-    }
 
     private fun executeGraphQLQuery(query: String): JsonNode {
         val headers = HttpHeaders()
@@ -65,12 +43,14 @@ class SimpleGlobalIDTest {
 
     @Test
     fun `should return encoded GlobalID for character query`() {
-        val encodedCharacterId = createEncodedGlobalID(Character::class, "1")
+        val encodedCharacterId = Character.Reflection.globalId("1")
         val query = """
             query {
-              character(id: "$encodedCharacterId") {
-                id
-                name
+              node(id: "$encodedCharacterId") {
+                ... on Character {
+                  id
+                  name
+                }
               }
             }
         """.trimIndent()
@@ -81,12 +61,12 @@ class SimpleGlobalIDTest {
         val data = result.get("data")
         org.junit.jupiter.api.Assertions.assertNotNull(data, "Data should not be null")
 
-        val character = data.get("character")
+        val character = data.get("node")
         org.junit.jupiter.api.Assertions.assertNotNull(character, "Character should not be null")
 
         // Verify the GlobalID is encoded properly using GlobalIDImpl
         val globalId = character.get("id").asText()
-        val expectedGlobalId = createEncodedGlobalID(Character::class, "1")
+        val expectedGlobalId = Character.Reflection.globalId("1")
         org.junit.jupiter.api.Assertions.assertEquals(expectedGlobalId, globalId, "GlobalID should match expected encoded value")
 
         // Verify the name is correct

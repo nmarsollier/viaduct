@@ -17,6 +17,7 @@ class ArgsTest {
         val args = Args(
             "TENANT PACKAGE",
             "TENANT PACKAGE PREFIX",
+            "TENANT NAME",
             "GRT PACKAGE",
             modernModuleGeneratedDir,
             metainfGeneratedDir,
@@ -26,6 +27,7 @@ class ArgsTest {
 
         assertEquals("TENANT PACKAGE", args.tenantPackage)
         assertEquals("TENANT PACKAGE PREFIX", args.tenantPackagePrefix)
+        assertEquals("TENANT NAME", args.tenantName)
         assertEquals("GRT PACKAGE", args.grtPackage)
         assertEquals(modernModuleGeneratedDir, args.modernModuleGeneratedDir)
         assertEquals(metainfGeneratedDir, args.metainfGeneratedDir)

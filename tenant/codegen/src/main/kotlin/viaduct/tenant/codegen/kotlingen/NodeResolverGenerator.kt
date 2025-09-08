@@ -13,6 +13,7 @@ fun ViaductExtendedSchema.generateNodeResolvers(args: Args) {
     val gen = NodeResolverGenerator(
         this,
         args.tenantPackage,
+        args.tenantPackagePrefix,
         args.grtPackage,
         args.resolverGeneratedDir,
         args.isFeatureAppTest
@@ -23,13 +24,18 @@ fun ViaductExtendedSchema.generateNodeResolvers(args: Args) {
 private class NodeResolverGenerator(
     private val schema: ViaductExtendedSchema,
     private val tenantPackage: String,
+    private val tenantPackagePrefix: String,
     private val grtPackage: String,
     private val resolverGeneratedDir: File,
     private val isFeatureAppTest: Boolean
 ) {
-    private val targetTenantModule = tenantPackage
-        .replace("com.airbnb.viaduct.", "")
-        .replace(".", "/")
+    private val targetTenantModule = if (tenantPackage.startsWith("viaduct.testapps.")) {
+        // For testapps, preserve the full path
+        tenantPackage.replace(".", "/")
+    } else {
+        // For regular tenants, use the prefix-based approach (like FieldResolverGenerator)
+        tenantPackage.replace("$tenantPackagePrefix.", "").replace(".", "/")
+    }
 
     fun generate() {
         val tenantOwnedNodes = schema.types.values

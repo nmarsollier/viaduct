@@ -87,43 +87,6 @@ class AllCharactersResolver : QueryResolvers.AllCharacters() {
 }
 
 /**
- * @resolver directive: Custom field resolution for Query.character
- * @scope directive: This query is scoped to ["starwars"] tenant only
- */
-@Resolver
-class CharacterResolver : QueryResolvers.Character() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.Character? {
-        // Get the GlobalID argument - now automatically decoded by framework
-        val globalId = ctx.arguments.id
-
-        // Extract the internal ID from the GlobalID
-        val stringId = globalId.internalID
-
-        // Find the character in data using the internal ID
-        val character = StarWarsData.characters.find { it.id == stringId }
-
-        return if (character != null) {
-            // Create the Character GRT with proper GlobalID using globalIdFor
-            val result = Character.Builder(ctx)
-                .id(ctx.globalIDFor(Character.Reflection, character.id))
-                .name(character.name)
-                .birthYear(character.birthYear)
-                .eyeColor(character.eyeColor)
-                .gender(character.gender)
-                .hairColor(character.hairColor)
-                .height(character.height)
-                .mass(character.mass?.toDouble()) // Convert Float to Double
-                .created(character.created.toString())
-                .edited(character.edited.toString())
-                .build()
-            result
-        } else {
-            null
-        }
-    }
-}
-
-/**
  * @resolver directive: Custom field resolution for Query.allFilms
  * @backingData directive: Uses "starwars.query.AllFilms" backing data class for pagination
  * @scope directive: This query is scoped to ["starwars"] tenant only
@@ -146,40 +109,6 @@ class AllFilmsResolver : QueryResolvers.AllFilms() {
                 .created(film.created.toString())
                 .edited(film.edited.toString())
                 .build()
-        }
-    }
-}
-
-/**
- * @resolver directive: Custom field resolution for Query.film
- * @scope directive: This query is scoped to ["starwars"] tenant only
- */
-@Resolver
-class FilmResolver : QueryResolvers.Film() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.Film? {
-        // Get the GlobalID argument - now automatically decoded by framework
-        val globalId = ctx.arguments.id
-
-        // Extract the internal ID from the GlobalID
-        val filmId = globalId.internalID
-
-        // Find the film in data using the internal ID
-        val film = StarWarsData.films.find { it.id == filmId }
-
-        return if (film != null) {
-            val result = Film.Builder(ctx)
-                .id(ctx.globalIDFor(Film.Reflection, film.id))
-                .title(film.title)
-                .episodeID(film.episodeID)
-                .director(film.director)
-                .producers(film.producers)
-                .releaseDate(film.releaseDate)
-                .created(film.created.toString())
-                .edited(film.edited.toString())
-                .build()
-            result
-        } else {
-            null
         }
     }
 }
@@ -253,109 +182,6 @@ class AllVehiclesResolver : QueryResolvers.AllVehicles() {
                 .created(vehicle.created.toString())
                 .edited(vehicle.edited.toString())
                 .build()
-        }
-    }
-}
-
-@Resolver
-class PlanetResolver : QueryResolvers.Planet() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.Planet? {
-        // Get the GlobalID argument - now automatically decoded by framework
-        val globalId = ctx.arguments.id
-
-        // Extract the internal ID from the GlobalID
-        val stringId = globalId.internalID
-
-        // Find the planet in data using the internal ID
-        val planet = StarWarsData.planets.find { it.id == stringId }
-
-        return if (planet != null) {
-            // Create the Planet GRT with proper GlobalID using globalIdFor
-            Planet.Builder(ctx)
-                .id(ctx.globalIDFor(Planet.Reflection, planet.id))
-                .name(planet.name)
-                .diameter(planet.diameter)
-                .rotationPeriod(planet.rotationPeriod)
-                .orbitalPeriod(planet.orbitalPeriod)
-                .gravity(planet.gravity?.toDouble())
-                .population(planet.population?.toDouble())
-                .climates(planet.climates)
-                .terrains(planet.terrains)
-                .surfaceWater(planet.surfaceWater?.toDouble())
-                .created(planet.created.toString())
-                .edited(planet.edited.toString())
-                .build()
-        } else {
-            null
-        }
-    }
-}
-
-@Resolver
-class SpeciesResolver : QueryResolvers.Species() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.Species? {
-        // Get the GlobalID argument - now automatically decoded by framework
-        val globalId = ctx.arguments.id
-
-        // Extract the internal ID from the GlobalID
-        val stringId = globalId.internalID
-
-        // Find the species in data using the internal ID
-        val species = StarWarsData.species.find { it.id == stringId }
-
-        return if (species != null) {
-            // Create the Species GRT with proper GlobalID using globalIdFor
-            Species.Builder(ctx)
-                .id(ctx.globalIDFor(Species.Reflection, species.id))
-                .name(species.name)
-                .classification(species.classification)
-                .designation(species.designation)
-                .averageHeight(species.averageHeight?.toDouble())
-                .averageLifespan(species.averageLifespan)
-                .eyeColors(species.eyeColors)
-                .hairColors(species.hairColors)
-                .language(species.language)
-                .created(species.created.toString())
-                .edited(species.edited.toString())
-                .build()
-        } else {
-            null
-        }
-    }
-}
-
-@Resolver
-class VehicleResolver : QueryResolvers.Vehicle() {
-    override suspend fun resolve(ctx: Context): viaduct.api.grts.Vehicle? {
-        // Get the GlobalID argument - now automatically decoded by framework
-        val globalId = ctx.arguments.id
-
-        // Extract the internal ID from the GlobalID
-        val stringId = globalId.internalID
-
-        // Find the vehicle in data using the internal ID
-        val vehicle = StarWarsData.vehicles.find { it.id == stringId }
-
-        return if (vehicle != null) {
-            // Create the Vehicle GRT with proper GlobalID using globalIdFor
-            Vehicle.Builder(ctx)
-                .id(ctx.globalIDFor(Vehicle.Reflection, vehicle.id))
-                .name(vehicle.name)
-                .model(vehicle.model)
-                .vehicleClass(vehicle.vehicleClass)
-                .manufacturers(vehicle.manufacturers)
-                .costInCredits(vehicle.costInCredits?.toDouble())
-                .length(vehicle.length?.toDouble())
-                .crew(vehicle.crew)
-                .passengers(vehicle.passengers)
-                .maxAtmospheringSpeed(vehicle.maxAtmospheringSpeed)
-                .cargoCapacity(vehicle.cargoCapacity?.toDouble())
-                .consumables(vehicle.consumables)
-                .created(vehicle.created.toString())
-                .edited(vehicle.edited.toString())
-                .build()
-        } else {
-            null
         }
     }
 }

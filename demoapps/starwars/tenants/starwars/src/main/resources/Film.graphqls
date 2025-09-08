@@ -1,7 +1,7 @@
 """
 A single film.
 """
-type Film implements Node @resolver @scope(to: ["default"]) {
+type Film implements Node @scope(to: ["default"]) @resolver {
   """
   The GlobalID of this film - uniquely identifies this Film in the graph (internal use only)
   """

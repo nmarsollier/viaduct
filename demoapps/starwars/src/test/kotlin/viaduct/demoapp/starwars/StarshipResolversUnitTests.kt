@@ -4,13 +4,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import viaduct.api.grts.Query_AllStarships_Arguments
-import viaduct.api.grts.Query_Starship_Arguments
-import viaduct.demoapp.starwars.data.StarshipsData
 import viaduct.demoapp.starwars.resolvers.AllStarshipsResolver
-import viaduct.demoapp.starwars.resolvers.StarshipResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
@@ -62,46 +58,5 @@ class StarshipResolversUnitTests : DefaultAbstractResolverTestBase() {
 
             val grt = result.first()!!
             assertEquals("Millennium Falcon", grt.getName())
-        }
-
-    @Test
-    fun `StarshipResolver returns the starship for a valid id`() =
-        runBlockingTest {
-            val resolver = StarshipResolver()
-            val src = StarshipsData.starships.firstOrNull() ?: error("No starships in StarshipsData")
-
-            val args = Query_Starship_Arguments.Builder(context)
-                .id("1")
-                .build()
-
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = queryObj(),
-                queryValue = queryObj(),
-                arguments = args
-            )
-
-            assertNotNull(result)
-            val grt = result!!
-            assertEquals("Millennium Falcon", grt.getName())
-        }
-
-    @Test
-    fun `StarshipResolver returns null when id does not exist`() =
-        runBlockingTest {
-            val resolver = StarshipResolver()
-
-            val args = Query_Starship_Arguments.Builder(context)
-                .id("nonexistent-id")
-                .build()
-
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = queryObj(),
-                queryValue = queryObj(),
-                arguments = args
-            )
-
-            assertNull(result)
         }
 }

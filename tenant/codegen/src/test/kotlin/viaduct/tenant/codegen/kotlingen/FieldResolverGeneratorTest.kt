@@ -46,6 +46,7 @@ class FieldResolverGeneratorTest {
                 Args(
                     "viaduct.tenant",
                     "fooo",
+                    "tenant_name",
                     "bar",
                     File.createTempFile("temp", null).also { it.deleteOnExit() },
                     File.createTempFile("temp1", null).also { it.deleteOnExit() },

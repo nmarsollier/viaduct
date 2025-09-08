@@ -2,7 +2,6 @@ package viaduct.demoapp.starwars
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlin.reflect.KClass
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -16,11 +15,6 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import viaduct.api.grts.Species
-import viaduct.api.reflect.Type
-import viaduct.api.types.NodeCompositeOutput
-import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
-import viaduct.tenant.runtime.globalid.GlobalIDImpl
-import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 
 /**
  * HTTP-based test for Species scoping functionality
@@ -34,22 +28,6 @@ class SpeciesScopeHttpTest {
     private var port: Int = 0
 
     private val objectMapper = ObjectMapper()
-
-    // Setup GlobalID codec for creating expected GlobalID values in tests
-    private val mirror = ReflectionLoaderImpl { name ->
-        Class.forName("viaduct.api.grts.$name").kotlin
-    }
-    private val globalIDCodec = GlobalIDCodecImpl(mirror)
-
-    private fun createEncodedGlobalID(
-        typeClass: KClass<*>,
-        internalId: String
-    ): String {
-        @Suppress("UNCHECKED_CAST")
-        val type = mirror.reflectionFor(typeClass.simpleName!!) as Type<NodeCompositeOutput>
-        val globalId = GlobalIDImpl(type, internalId)
-        return globalIDCodec.serialize(globalId)
-    }
 
     private fun executeGraphQLQuery(
         query: String,
@@ -77,19 +55,21 @@ class SpeciesScopeHttpTest {
 
     @Test
     fun `should resolve basic species fields without extras scope`() {
-        val encodedSpeciesId = createEncodedGlobalID(Species::class, "1")
+        val encodedSpeciesId = Species.Reflection.globalId("1")
         val query = """
             query {
-                species(id: "$encodedSpeciesId") {
-                    id
-                    name
-                    classification
-                    designation
-                    averageHeight
-                    averageLifespan
-                    eyeColors
-                    hairColors
-                    language
+                node(id: "$encodedSpeciesId") {
+                    ... on Species {
+                        id
+                        name
+                        classification
+                        designation
+                        averageHeight
+                        averageLifespan
+                        eyeColors
+                        hairColors
+                        language
+                    }
                 }
             }
         """.trimIndent()
@@ -99,7 +79,7 @@ class SpeciesScopeHttpTest {
         // Verify no errors occurred
         assertEquals(true, response.get("errors")?.isNull ?: true, "Query should execute without errors")
 
-        val species = response.get("data").get("species")
+        val species = response.get("data").get("node")
         assertNotNull(species, "Species should be found")
 
         // Verify basic species data is available
@@ -111,16 +91,18 @@ class SpeciesScopeHttpTest {
 
     @Test
     fun `should query extras fields when available`() {
-        val encodedSpeciesId = createEncodedGlobalID(Species::class, "1")
+        val encodedSpeciesId = Species.Reflection.globalId("1")
         val query = """
             query {
-                species(id: "$encodedSpeciesId") {
-                    id
-                    name
-                    culturalNotes
-                    rarityLevel
-                    specialAbilities
-                    technologicalLevel
+                node(id: "$encodedSpeciesId") {
+                    ... on Species {
+                        id
+                        name
+                        culturalNotes
+                        rarityLevel
+                        specialAbilities
+                        technologicalLevel
+                    }
                 }
             }
         """.trimIndent()
@@ -130,7 +112,7 @@ class SpeciesScopeHttpTest {
         // This query should work since we're passing the extras scope
         assertFalse(response.has("errors") && !response.get("errors").isNull, "Query should not have errors")
 
-        val species = response.get("data").get("species")
+        val species = response.get("data").get("node")
         assertNotNull(species, "Species should be found")
         assertNotNull(species.get("name"), "Name should be available")
 
@@ -145,16 +127,18 @@ class SpeciesScopeHttpTest {
 
     @Test
     fun `should query extras fields even without extras scope`() {
-        val encodedSpeciesId = createEncodedGlobalID(Species::class, "1")
+        val encodedSpeciesId = Species.Reflection.globalId("1")
         val query = """
             query {
-                species(id: "$encodedSpeciesId") {
-                    id
-                    name
-                    culturalNotes
-                    rarityLevel
-                    specialAbilities
-                    technologicalLevel
+                node(id: "$encodedSpeciesId") {
+                    ... on Species {
+                        id
+                        name
+                        culturalNotes
+                        rarityLevel
+                        specialAbilities
+                        technologicalLevel
+                    }
                 }
             }
         """.trimIndent()
