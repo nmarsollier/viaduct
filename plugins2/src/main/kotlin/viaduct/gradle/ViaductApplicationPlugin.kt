@@ -51,23 +51,13 @@ class ViaductApplicationPlugin : Plugin<Project> {
             centralSchemaDir,
             generateCentralSchemaTask,
         )
-        
-        plugins.withId("java") {
-            tasks.named<ProcessResources>("processResources").configure { // TODO - better to do in Jar task??
-                dependsOn(generateCentralSchemaTask) // TODO - is there a better way?
-                from(centralSchemaDir) {
-                    into("viaduct/centralSchema")
-                    exclude("**/$BASE_SCHEMA_FILE") // TODO -- depends on skevy's work
-                    includeEmptyDirs = false
-                }
-            }
-        }
     }
 
     /** Synchronize all modules schema partition's into a single directory. */
     private fun Project.generateCentralSchemaTask(centralSchemaDir: Provider<Directory>): TaskProvider<*> {
         // Resolvable config that will collect all modules’ schema partitions
         val allPartitions = configurations.create(ViaductPluginCommon.Configs.ALL_SCHEMA_PARTITIONS_INCOMING).apply {
+            description = "Resolvable configuration where all viaduct-module plugins send their schema partitions."
             isCanBeConsumed = false
             isCanBeResolved = true
             attributes { attribute(ViaductPluginCommon.VIADUCT_KIND, ViaductPluginCommon.Kind.SCHEMA_PARTITION) }
@@ -80,6 +70,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
 
             into(centralSchemaDir)
             from(allPartitions.incoming.artifactView {}.files) {
+                into("partition") // extra prefix to support the empty module name
                 include("**/*.graphqls")
             }
 
@@ -93,6 +84,12 @@ class ViaductApplicationPlugin : Plugin<Project> {
         // Intended for viaduct-module projects and other projects to cleanly consumer the central schema
         // Since the generateGRTs task is internal to the generateCentralSchema project, it uses centralSchemaDir directly
         configurations.create(ViaductPluginCommon.Configs.CENTRAL_SCHEMA_OUTGOING).apply {
+            description = """
+              Consumable configuration consisting of a directory containing all schema fragments.  This directory
+              is organized as a top-level file named $BASE_SCHEMA_FILE, plus directories named "parition[/module-name]/graphql",
+              where module-name is the modulePackageSuffix of the module with dots replaced by slashes (this segment is
+              not present if the suffix is blank).
+              """.trimIndent()
             isCanBeConsumed = true
             isCanBeResolved = false
             attributes { attribute(ViaductPluginCommon.VIADUCT_KIND, ViaductPluginCommon.Kind.CENTRAL_SCHEMA) }
@@ -115,7 +112,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
 
         val generateGRTClassesTask = tasks.register<JavaExec>("generateViaductGRTClassFiles") {
             // Make sure central schema exists first
-            dependsOn(generateCentralSchemaTask)
+            dependsOn(generateCentralSchemaTask) // TODO - I think we can remove if we have a dedicated task
 
             inputs.dir(centralSchemaDir).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("viaductCentralSchemaDir")
             outputs.dir(grtClassesDir).withPropertyName("viaductGRTClassesDir")
@@ -142,14 +139,24 @@ class ViaductApplicationPlugin : Plugin<Project> {
             group = "viaduct"
             description = "Generate compiled GRT class files from the central schema."
 
-            from(grtClassesDir)
             archiveBaseName.set("viaduct-grt")
             includeEmptyDirs = false
-            dependsOn(generateGRTClassesTask)
+
+            dependsOn(generateGRTClassesTask) // TODO - I think we can remove if we have a dedicated task
+            from(grtClassesDir) // class files
+
+            dependsOn(generateCentralSchemaTask) // TODO - I think we can remove if we have a dedicated task
+            from(centralSchemaDir) { // central schema is in GRT file (for now) - supports testing use case
+                into("viaduct/centralSchema")
+                includeEmptyDirs = false
+                // TODO based on Skevy's PR: exclude("**/$BASE_SCHEMA_FILE")
+            }
         }
 
         // Publish the generated GRT classes as a consumable artifact
         configurations.create(ViaductPluginCommon.Configs.GRT_CLASSES_OUTGOING).apply {
+            description = "Consumable configuration for the jar file containing the GRT classes plus the central schema's graphqls file."
+
             isCanBeConsumed = true
             isCanBeResolved = false
             attributes {

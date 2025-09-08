@@ -1,9 +1,3 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
@@ -13,6 +7,10 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+    }
+
+    repositories {
+        gradlePluginPortal()
     }
 
     versionCatalogs {

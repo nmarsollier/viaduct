@@ -16,7 +16,7 @@ object ViaductPluginCommon {
 
     object Configs {
         /** Root/app: resolvable configuration that modules add their schema partitions to. */
-        const val ALL_SCHEMA_PARTITIONS_INCOMING = "viaductAllSchemaPartitions"
+        const val ALL_SCHEMA_PARTITIONS_INCOMING = "viaductAllSchemaPartitionsIn"
 
         /** Root/app: consumable configuration for the central schema file. */
         const val CENTRAL_SCHEMA_OUTGOING = "viaductCentralSchema"
@@ -32,7 +32,7 @@ object ViaductPluginCommon {
         const val CENTRAL_SCHEMA_INCOMING = "viaductCentralSchemaIn"
 
         /** Module: resolvable configuration for the GRT class files. */
-        const val GRT_CLASSES_INCOMING = "viaductGRTImplementation"
+        const val GRT_CLASSES_INCOMING = "viaductGRTClassesIn"
     }
 
     // TODO: Must be a better way to do this.  Right now we are limited because we

@@ -5,6 +5,8 @@ plugins {
     `maven-publish`
 }
 
+group = "com.airbnb.viaduct" // TODO - don't hardwire this
+
 project.version = libs.versions.project.get()
 
 gradlePlugin {
@@ -37,7 +39,6 @@ java {
     withSourcesJar()
 }
 
-group = "com.airbnb.viaduct" // TODO - don't hardwire this
 publishing {
     publications {
         create<MavenPublication>("viaductPluginLib") {

@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 open class ViaductModuleExtension(objects: org.gradle.api.model.ObjectFactory) {
     /** Kotlin package name suffix for this module (may be empty). */
     val modulePackageSuffix = objects.property(String::class.java)
-    // TODO - establish convention for picking suffix name from location in file hierarchy
 }
 
 class ViaductModulePlugin : Plugin<Project> {
@@ -32,8 +31,16 @@ class ViaductModulePlugin : Plugin<Project> {
         // Create module extension
         val moduleExt = extensions.create("viaductModule", ViaductModuleExtension::class.java, objects)
         
+        // If we've been applied inside the viaduct-application plugin, then we want a default of "",
+        // but if it's not in viaduct-application then there is no convention and needs to be set
+        // explicitly
+        pluginManager.withPlugin("viaduct-application") {
+            moduleExt.modulePackageSuffix.convention("")
+        }
+
         // Create Configurations
         val schemaPartitionCfg = configurations.create(ViaductPluginCommon.Configs.SCHEMA_PARTITION_OUTGOING).apply {
+            description = "Consumable configuration containing the module's schema partition (aka, 'local schema')."
             isCanBeConsumed = true
             isCanBeResolved = false
             attributes {
@@ -42,6 +49,7 @@ class ViaductModulePlugin : Plugin<Project> {
         }
 
         val centralSchemaIncomingCfg = configurations.create(ViaductPluginCommon.Configs.CENTRAL_SCHEMA_INCOMING).apply {
+            description = "Resolvable configuration for the central schema (used to generate resolver base classes)."
             isCanBeConsumed = false
             isCanBeResolved = true
             attributes {
@@ -50,6 +58,7 @@ class ViaductModulePlugin : Plugin<Project> {
         }
 
         val grtIncomingCfg = configurations.create(ViaductPluginCommon.Configs.GRT_CLASSES_INCOMING).apply {
+            description = "Resolvable configuration for the GRT jar file."
             isCanBeConsumed = false
             isCanBeResolved = true
             attributes {
@@ -203,18 +212,23 @@ class ViaductModulePlugin : Plugin<Project> {
                 val appExt = rootProject.extensions.getByType(ViaductApplicationExtension::class.java)
                 val tenantPackagePrefix = appExt.modulePackagePrefix.get()
 
-                val tenantPkg = moduleExt.modulePackageSuffix.get()
-                val packagePath = "$tenantPackagePrefix.$tenantPkg".replace('.', '/')
+                // Handle special case that modulePackageSuffix is ""
+                val suffix = moduleExt.modulePackageSuffix.get()
+                val blankSuffix = suffix.isBlank()
+                val pkgPrefix = if (blankSuffix) "" else tenantPackagePrefix
+                val pkg = if (blankSuffix) tenantPackagePrefix else suffix
+                val packagePath = (if (blankSuffix) pkg else "$pkgPrefix.$pkg").replace('.', '/')
+
                 val resolverBuildBasePath = resolverBasesDir.get().asFile.toPath()
                 val resolverBuildAugmentedDir = resolverBuildBasePath.resolve(packagePath).toFile().apply { mkdirs() }
                 val resolverBasesDirPath = resolverBuildAugmentedDir.absolutePath
 
                 args(
                     "--schema_files", centralSchemaFilePaths,
-                    "--tenant_package_prefix", tenantPackagePrefix,
-                    "--tenant_pkg", tenantPkg,
+                    "--tenant_package_prefix", pkgPrefix,
+                    "--tenant_pkg", pkg,
                     "--resolver_generated_directory", resolverBasesDirPath,
-                    "--tenant_from_source_name_regex", "viaduct/centralSchema/(.*)/graphql",
+                    "--tenant_from_source_name_regex", "viaduct/centralSchema/partition/(.*)/graphql",
                 )
             }
         }
