@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import viaduct.api.TenantCodeInjector
 import viaduct.api.bootstrap.test.AFieldResolver
 import viaduct.api.bootstrap.test.TestBatchNodeResolver
 import viaduct.api.bootstrap.test.TestNodeResolver
@@ -29,6 +28,7 @@ import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.ViaductSchema
+import viaduct.service.api.spi.TenantCodeInjector
 import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl

@@ -1,4 +1,4 @@
-package viaduct.api
+package viaduct.service.api.spi
 
 import java.lang.reflect.Constructor
 import java.util.concurrent.ConcurrentHashMap
@@ -26,8 +26,7 @@ interface TenantCodeInjector {
     }
 }
 
-// Internal for testing
-internal class NaiveTenantCodeInjector : TenantCodeInjector {
+class NaiveTenantCodeInjector : TenantCodeInjector {
     val constructorCache: ConcurrentHashMap<Class<*>, Constructor<*>> =
         ConcurrentHashMap()
 

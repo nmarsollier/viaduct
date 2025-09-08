@@ -3,10 +3,10 @@ package viaduct.tenant.runtime.bootstrap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import viaduct.api.TenantCodeInjector
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
+import viaduct.service.api.spi.TenantCodeInjector
 import viaduct.utils.slf4j.logger
 
 /**

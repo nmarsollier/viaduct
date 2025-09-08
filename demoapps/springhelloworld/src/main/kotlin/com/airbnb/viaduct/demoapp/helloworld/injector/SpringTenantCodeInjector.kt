@@ -3,7 +3,7 @@ package com.airbnb.viaduct.demoapp.helloworld.injector
 import javax.inject.Provider
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
-import viaduct.api.TenantCodeInjector
+import viaduct.service.api.spi.TenantCodeInjector
 
 @Service
 class SpringTenantCodeInjector(

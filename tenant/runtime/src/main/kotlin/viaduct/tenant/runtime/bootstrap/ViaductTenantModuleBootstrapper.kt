@@ -6,7 +6,6 @@ import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberFunctions
 import viaduct.api.Resolver
-import viaduct.api.TenantCodeInjector
 import viaduct.api.Variables
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.context.NodeExecutionContext
@@ -20,6 +19,7 @@ import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.TenantModuleException
 import viaduct.engine.api.ViaductSchema
+import viaduct.service.api.spi.TenantCodeInjector
 import viaduct.tenant.runtime.context.factory.ArgumentsFactory
 import viaduct.tenant.runtime.context.factory.FieldExecutionContextMetaFactory
 import viaduct.tenant.runtime.context.factory.MutationFieldExecutionContextMetaFactory

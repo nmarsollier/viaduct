@@ -1,4 +1,4 @@
-package viaduct.api
+package viaduct.service.api.spi
 
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching

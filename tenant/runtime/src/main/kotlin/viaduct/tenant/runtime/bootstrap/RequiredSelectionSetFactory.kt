@@ -5,7 +5,6 @@ import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import viaduct.api.Resolver
-import viaduct.api.TenantCodeInjector
 import viaduct.api.Variable
 import viaduct.api.Variables
 import viaduct.api.VariablesProvider
@@ -26,6 +25,7 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.checkDisjoint
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.graphql.utils.collectVariableReferences
+import viaduct.service.api.spi.TenantCodeInjector
 import viaduct.tenant.runtime.context.factory.ArgumentsArgs
 import viaduct.tenant.runtime.context.factory.Factory
 import viaduct.tenant.runtime.execution.VariablesProviderExecutor

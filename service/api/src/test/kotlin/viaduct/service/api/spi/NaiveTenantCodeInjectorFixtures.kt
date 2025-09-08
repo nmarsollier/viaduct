@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package viaduct.api
+package viaduct.service.api.spi
 
 class GoodFixture {
     val f = 1
