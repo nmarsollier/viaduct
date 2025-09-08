@@ -135,4 +135,7 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
 
             assertEquals("Star Wars: A New Hope features 3 main characters", result)
         }
+
+    // Note: Node-based tests using runNodeResolver are now in QueryResolverUnitTests.kt
+    // These tests demonstrate node fetches for Film and Character entities using proper NodeResolvers
 }

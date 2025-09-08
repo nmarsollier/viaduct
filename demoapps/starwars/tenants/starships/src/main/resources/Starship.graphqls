@@ -1,7 +1,7 @@
 """
 A single transport craft that has hyperdrive capability.
 """
-type Starship implements Node @scope(to: ["default"]) {
+type Starship implements Node @scope(to: ["default"]) @resolver {
   """
   The ID of an object
   """

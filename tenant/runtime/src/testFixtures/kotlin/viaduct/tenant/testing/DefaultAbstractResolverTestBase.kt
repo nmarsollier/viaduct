@@ -1,9 +1,13 @@
 package viaduct.tenant.testing
 
+import io.mockk.mockk
 import viaduct.api.context.ExecutionContext
+import viaduct.engine.api.FragmentLoader
 import viaduct.tenant.runtime.context.ResolverExecutionContextImpl
 
 abstract class DefaultAbstractResolverTestBase : ResolverTestBase {
+    override fun getFragmentLoader(): FragmentLoader = mockk()
+
     override val selectionsLoaderFactory by lazy {
         mkSelectionsLoaderFactory()
     }

@@ -19,7 +19,12 @@ import viaduct.demoapp.starwars.resolvers.AllFilmsResolver
 import viaduct.demoapp.starwars.resolvers.AllPlanetsResolver
 import viaduct.demoapp.starwars.resolvers.AllSpeciesResolver
 import viaduct.demoapp.starwars.resolvers.AllVehiclesResolver
+import viaduct.demoapp.starwars.resolvers.CharacterNodeResolver
+import viaduct.demoapp.starwars.resolvers.FilmNodeResolver
+import viaduct.demoapp.starwars.resolvers.PlanetNodeResolver
 import viaduct.demoapp.starwars.resolvers.SearchCharacterResolver
+import viaduct.demoapp.starwars.resolvers.SpeciesNodeResolver
+import viaduct.demoapp.starwars.resolvers.VehicleNodeResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
@@ -194,5 +199,85 @@ class QueryResolverUnitTests : DefaultAbstractResolverTestBase() {
             val first = result.first()!!
             assertEquals(ref.name, first.getName())
             assertEquals(ref.model, first.getModel())
+        }
+
+    @Test
+    fun `vehicle by id returns the correct Vehicle using node resolver`() =
+        runBlockingTest {
+            val ref = StarWarsData.vehicles.first()
+            val resolver = VehicleNodeResolver()
+
+            // Create global ID for the vehicle
+            val vehicleGlobalId = context.globalIDFor(viaduct.api.grts.Vehicle.Reflection, ref.id)
+
+            // Use runNodeResolver to fetch vehicle
+            val result = runNodeResolver(resolver, vehicleGlobalId)
+
+            assertNotNull(result)
+            assertEquals(ref.name, result.getName())
+        }
+
+    @Test
+    fun `character by id returns the correct Character using node resolver`() =
+        runBlockingTest {
+            val ref = StarWarsData.characters.first()
+            val resolver = CharacterNodeResolver()
+
+            // Create global ID for the character
+            val characterGlobalId = context.globalIDFor(Character.Reflection, ref.id)
+
+            // Use runNodeResolver to fetch character
+            val result = runNodeResolver(resolver, characterGlobalId)
+
+            assertNotNull(result)
+            assertEquals(ref.name, result.getName())
+        }
+
+    @Test
+    fun `film by id returns the correct Film using node resolver`() =
+        runBlockingTest {
+            val ref = StarWarsData.films.first()
+            val resolver = FilmNodeResolver()
+
+            // Create global ID for the film
+            val filmGlobalId = context.globalIDFor(viaduct.api.grts.Film.Reflection, ref.id)
+
+            // Use runNodeResolver to fetch film
+            val result = runNodeResolver(resolver, filmGlobalId)
+
+            assertNotNull(result)
+            assertEquals(ref.title, result.getTitle())
+        }
+
+    @Test
+    fun `planet by id returns the correct Planet using node resolver`() =
+        runBlockingTest {
+            val ref = StarWarsData.planets.first()
+            val resolver = PlanetNodeResolver()
+
+            // Create global ID for the planet
+            val planetGlobalId = context.globalIDFor(viaduct.api.grts.Planet.Reflection, ref.id)
+
+            // Use runNodeResolver to fetch planet
+            val result = runNodeResolver(resolver, planetGlobalId)
+
+            assertNotNull(result)
+            assertEquals(ref.name, result.getName())
+        }
+
+    @Test
+    fun `species by id returns the correct Species using node resolver`() =
+        runBlockingTest {
+            val ref = StarWarsData.species.first()
+            val resolver = SpeciesNodeResolver()
+
+            // Create global ID for the species
+            val speciesGlobalId = context.globalIDFor(viaduct.api.grts.Species.Reflection, ref.id)
+
+            // Use runNodeResolver to fetch species
+            val result = runNodeResolver(resolver, speciesGlobalId)
+
+            assertNotNull(result)
+            assertEquals(ref.name, result.getName())
         }
 }
