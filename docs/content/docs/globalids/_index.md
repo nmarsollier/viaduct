@@ -1,5 +1,5 @@
 ---
-title: GlobalIDs
+title: Global IDs
 description: Global identifiers for nodes
 weight: 21
 ---

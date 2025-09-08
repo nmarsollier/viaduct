@@ -9,6 +9,8 @@ dependencies {
 
     implementation(plugin(libs.plugins.detekt))
     implementation(plugin(libs.plugins.ktlintPlugin))
+
+    implementation(plugin(libs.plugins.dokka))
 }
 
 // Helper function that transforms a Gradle Plugin alias from a

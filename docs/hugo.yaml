@@ -191,9 +191,12 @@ menu:
     - name: Blog
       url: https://medium.com/airbnb-engineering
       weight: 10
-    - name: API
-      url: /api/
+    - name: Tenant API
+      url: /apis/tenant-api/
       weight: 20
+    - name: Service API
+      url: /apis/service/
+      weight: 25
 
 module:
   # Uncomment the next line to build and serve using local docsy clone declared in the named Hugo workspace:

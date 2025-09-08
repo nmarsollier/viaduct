@@ -4,7 +4,7 @@ plugins {
     `java-test-fixtures`
     id("kotlin-project")
     id("kotlin-static-analysis")
-    id("org.jetbrains.dokka")
+    id("dokka")
 }
 
 dependencies {
