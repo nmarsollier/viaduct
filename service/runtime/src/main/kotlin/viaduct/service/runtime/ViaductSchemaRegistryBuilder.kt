@@ -283,13 +283,26 @@ private sealed interface GraphQLSchemaFactory {
             coroutineInterop: CoroutineInterop,
             filesIncluded: Regex,
         ): ViaductSchema {
-            val scanResult = ClassGraph().scan()
-            val (resources, elapsedTime) =
-                measureTimedValue {
-                    scanResult.use {
-                        it.getResourcesMatchingPattern(filesIncluded.toPattern()).paths.toSet()
+            val resourceContents = mutableMapOf<String, String>()
+
+            val (resources, elapsedTime) = measureTimedValue {
+                ClassGraph().scan().use {
+                    it.getResourcesMatchingPattern(filesIncluded.toPattern()).map { res ->
+                        val origin = res.classpathElementURI?.toString() ?: res.classpathElementURL?.toString() ?: "unknown"
+                        val uniqueKey = "$origin!/${res.path}"
+
+                        val content = res.open().use { stream ->
+                            stream.reader(Charsets.UTF_8).readText().trim()
+                        }
+                        if (content.isEmpty()) {
+                            log.warn("Empty schema file found: $uniqueKey")
+                        }
+                        resourceContents[uniqueKey] = content
+                        uniqueKey
                     }
                 }
+            }
+
             log.debug(
                 "Got {} resources for pattern {} in {}",
                 resources.size,
@@ -304,21 +317,8 @@ private sealed interface GraphQLSchemaFactory {
                 )
             }
 
-            val resourceContents = mutableMapOf<String, String>()
-            resources.forEach { resourcePath ->
-                val resource = this::class.java.classLoader.getResource(resourcePath)
-                if (resource == null) {
-                    throw ViaductSchemaLoadException("Schema resource not found: $resourcePath")
-                }
-                val content = resource.readText().trim()
-                if (content.isEmpty()) {
-                    log.warn("Empty schema file found: $resourcePath")
-                }
-                resourceContents[resourcePath] = content
-            }
-
             val sdl = resourceContents.values.joinToString("\n")
-            if (sdl.trim().isEmpty()) {
+            if (sdl.isBlank()) {
                 throw ViaductSchemaLoadException(
                     "All GraphQL schema files are empty. Found files: ${resources.joinToString(", ")}. " +
                         "Please ensure your .graphqls files contain valid GraphQL schema definitions."
