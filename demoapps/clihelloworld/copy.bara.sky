@@ -1,0 +1,72 @@
+# Syncs commits from airbnb/viaduct clihelloworld to viaduct-graphql/cli-starter repo
+# Based on the main viaduct OSS copybara configuration
+
+load("//projects/viaduct/oss/author_mappings", "AUTHOR_MAPPINGS", "DEFAULT_AUTHOR", "transform_authors")
+load("//projects/viaduct/oss/message_scrubber", "strip_commit_body_keep_metadata")
+
+core.workflow(
+    name = "airbnb-viaduct-to-cli-starter",
+    mode = "ITERATIVE",
+    origin = git.origin(
+        url = "https://github.com/airbnb/viaduct.git",  # airbnb/viaduct GitHub repo
+        ref = "master",
+        partial_fetch = True,
+        describe_version = False,
+    ),
+    origin_files = glob(
+        include = ["demoapps/clihelloworld/**"],
+        exclude = [
+            "**/copy.bara.sky",
+            "**/*.bara.sky", 
+            "**/_infra/**",
+            "**/BUILD.bazel",
+        ],
+    ),
+    destination = git.destination(
+        url = "https://github.com/viaduct-graphql/cli-starter.git",
+        fetch = "main",
+    ),
+    authoring = authoring.pass_thru(default = DEFAULT_AUTHOR),
+    transformations = [
+        # Move from the nested path to root
+        core.move("demoapps/clihelloworld/", ""),
+        # Strip PR numbers from commit messages
+        metadata.scrubber(r"\s+\(#\d+\)$", replacement = ""),
+        # Transform authors and clean commit messages
+        core.transform([transform_authors, strip_commit_body_keep_metadata]),
+    ],
+)
+
+# Workflow for creating initial commit with all current content
+core.workflow(
+    name = "initial-commit",
+    mode = "SQUASH", 
+    origin = git.origin(
+        url = "https://github.com/airbnb/viaduct.git",  # airbnb/viaduct GitHub repo
+        ref = "master",
+        partial_fetch = True,
+        describe_version = False,
+    ),
+    origin_files = glob(
+        include = ["demoapps/clihelloworld/**"],
+        exclude = [
+            "**/copy.bara.sky",
+            "**/*.bara.sky",
+            "**/_infra/**", 
+            "**/BUILD.bazel",
+        ],
+    ),
+    destination = git.destination(
+        url = "https://github.com/viaduct-graphql/cli-starter.git",
+        fetch = "main",
+    ),
+    authoring = authoring.overwrite(DEFAULT_AUTHOR),
+    transformations = [
+        # Move from nested path to root
+        core.move("demoapps/clihelloworld/", ""),
+        # Set initial commit message
+        metadata.replace_message(
+            "Initial Viaduct CLI Hello World starter project\n\nThis is the initial commit of the Viaduct CLI starter project, containing a basic Hello World example to demonstrate Viaduct GraphQL capabilities.",
+        ),
+    ],
+)

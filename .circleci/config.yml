@@ -382,6 +382,64 @@ jobs:
       - fail-step:
           message: "Documentation deployment failed"
 
+  sync-cli-starter:
+    docker:
+      - image: cimg/openjdk:21.0
+    working_directory: ~/project
+    steps:
+      - checkout
+      
+      - run:
+          name: Install Copybara
+          command: |
+            echo "📦 Installing Copybara..."
+            sudo apt update -y
+            sudo apt install -y wget unzip
+            wget https://github.com/google/copybara/releases/download/v0.35.0/copybara_deploy.jar
+            sudo mv copybara_deploy.jar /usr/local/bin/copybara.jar
+            echo '#!/bin/bash' | sudo tee /usr/local/bin/copybara
+            echo 'java -jar /usr/local/bin/copybara.jar "$@"' | sudo tee -a /usr/local/bin/copybara
+            sudo chmod +x /usr/local/bin/copybara
+            echo "✅ Copybara installed successfully"
+
+      - run:
+          name: Sync CLI Hello World to starter repo
+          command: |
+            echo "🔄 Syncing CLI Hello World to viaduct-graphql/cli-starter..."
+            cd demoapps/clihelloworld
+            export VIADUCT_CLI_STARTER_GITHUB_ACCESS_TOKEN="${CLI_STARTER_GITHUB_TOKEN}"
+            export VIADUCT_CLI_STARTER_REPO_URL="https://github.com/viaduct-graphql/cli-starter.git"
+            ./_infra/scripts/clihelloworld_to_external_push.sh
+
+  sync-spring-starter:
+    docker:
+      - image: cimg/openjdk:21.0
+    working_directory: ~/project
+    steps:
+      - checkout
+      
+      - run:
+          name: Install Copybara
+          command: |
+            echo "📦 Installing Copybara..."
+            sudo apt update -y
+            sudo apt install -y wget unzip
+            wget https://github.com/google/copybara/releases/download/v0.35.0/copybara_deploy.jar
+            sudo mv copybara_deploy.jar /usr/local/bin/copybara.jar
+            echo '#!/bin/bash' | sudo tee /usr/local/bin/copybara
+            echo 'java -jar /usr/local/bin/copybara.jar "$@"' | sudo tee -a /usr/local/bin/copybara
+            sudo chmod +x /usr/local/bin/copybara
+            echo "✅ Copybara installed successfully"
+
+      - run:
+          name: Sync Spring Hello World to starter repo
+          command: |
+            echo "🔄 Syncing Spring Hello World to viaduct-graphql/spring-starter..."
+            cd demoapps/springhelloworld
+            export VIADUCT_SPRING_STARTER_GITHUB_ACCESS_TOKEN="${SPRING_STARTER_GITHUB_TOKEN}"
+            export VIADUCT_SPRING_STARTER_REPO_URL="https://github.com/viaduct-graphql/spring-starter.git"
+            ./_infra/scripts/springhelloworld_to_external_push.sh
+
 workflows:
   build-and-test:
     when:
@@ -402,6 +460,24 @@ workflows:
       - coverage-verification:
           requires:
             - test
+      - sync-cli-starter:
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+                - master
+      - sync-spring-starter:
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+                - master
       # TODO: Re-enable when Dokka documentation is working
       # - deploy-docs:
       #     requires:
