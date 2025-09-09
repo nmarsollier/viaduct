@@ -28,29 +28,29 @@ fun interface ResolverErrorReporter {
             /**
              * The name of the field where the error occurred.
              */
-            val fieldName: String?,
+            val fieldName: String? = null,
             /**
              * The type of the parent object where the error occurred.
              */
-            val parentType: String?,
+            val parentType: String? = null,
             /**
              * The name of the operation where the error occurred.
              */
-            val operationName: String?,
+            val operationName: String? = null,
             /**
              * Indicates whether the error is a framework error or caused by a tenant.
              */
-            val isFrameworkError: Boolean?,
+            val isFrameworkError: Boolean? = null,
             /**
              * The list of resolvers involved in the error, represented as a string of the class name.
              *
              * Example: "MyCustomTypeResolver"
              */
-            val resolvers: List<String>?,
+            val resolvers: List<String>? = null,
             /**
              * The type of the error, if available.
              */
-            val errorType: String?
+            val errorType: String? = null
         ) {
             fun toMap(): Map<String, String> {
                 val map = mutableMapOf<String, String>()

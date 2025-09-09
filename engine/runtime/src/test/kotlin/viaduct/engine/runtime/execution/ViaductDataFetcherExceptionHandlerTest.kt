@@ -84,6 +84,8 @@ class ViaductDataFetcherExceptionHandlerTest {
 
         assertEquals(1, result.errors.size)
         assertEquals("message", capturedThrowables.first().message)
+        assertEquals(result.errors[0].extensions["fieldName"], capturedMetadata[0].fieldName)
+        assertEquals(result.errors[0].extensions["operationName"], capturedMetadata[0].operationName)
     }
 
     @Test
@@ -106,6 +108,8 @@ class ViaductDataFetcherExceptionHandlerTest {
         assertEquals("fieldName", metadata.fieldName)
         assertEquals("String", metadata.parentType)
         assertEquals("operationName", metadata.operationName)
+        assertEquals(result.errors[0].extensions["fieldName"], capturedMetadata[0].fieldName)
+        assertEquals(result.errors[0].extensions["operationName"], capturedMetadata[0].operationName)
     }
 
     @Test
@@ -128,6 +132,8 @@ class ViaductDataFetcherExceptionHandlerTest {
         assertEquals("fieldName", metadata.fieldName)
         assertEquals("String", metadata.parentType)
         assertEquals("operationName", metadata.operationName)
+        assertEquals(result.errors[0].extensions["fieldName"], capturedMetadata[0].fieldName)
+        assertEquals(result.errors[0].extensions["operationName"], capturedMetadata[0].operationName)
     }
 
     @Test
@@ -140,6 +146,8 @@ class ViaductDataFetcherExceptionHandlerTest {
 
         assertEquals(1, result.errors.size)
         assertContains(result.errors.first().message, "TEST MESSAGE")
+        assertEquals(result.errors[0].extensions["fieldName"], capturedMetadata[0].fieldName)
+        assertEquals(result.errors[0].extensions["operationName"], capturedMetadata[0].operationName)
 
         assertEquals(cause, capturedThrowables.first())
     }
@@ -168,6 +176,8 @@ class ViaductDataFetcherExceptionHandlerTest {
         assertEquals(false, capturedMetadata.first().isFrameworkError)
 
         assertEquals("false", result.errors.first().extensions["isFrameworkError"])
+        assertEquals(capturedMetadata[0].fieldName, result.errors[0].extensions["fieldName"])
+        assertEquals(capturedMetadata[0].operationName, result.errors[0].extensions["operationName"])
     }
 
     @Test
@@ -191,6 +201,8 @@ class ViaductDataFetcherExceptionHandlerTest {
         assertEquals("viaduct.api.ViaductFrameworkException: foo", result.errors.first().message)
 
         assertEquals("true", result.errors.first().extensions["isFrameworkError"])
+        assertEquals(capturedMetadata[0].fieldName, result.errors[0].extensions["fieldName"])
+        assertEquals(capturedMetadata[0].operationName, result.errors[0].extensions["operationName"])
     }
 
     private fun mockParamsWithDirectives(exception: Throwable): DataFetcherExceptionHandlerParameters {
