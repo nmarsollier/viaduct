@@ -11,6 +11,8 @@ dependencies {
     api(libs.graphql.java)
     api(project(":engine:engine-api"))
 
+    testImplementation(libs.io.mockk.dsl)
+    testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.kotest.property.jvm)
     testImplementation(libs.kotlin.reflect)
     testImplementation(libs.kotlin.test)

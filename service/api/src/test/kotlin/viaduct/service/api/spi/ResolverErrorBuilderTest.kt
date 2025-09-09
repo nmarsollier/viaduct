@@ -1,4 +1,4 @@
-package viaduct.engine.api.execution
+package viaduct.service.api.spi
 
 import graphql.schema.DataFetchingEnvironment
 import io.mockk.mockk
@@ -9,7 +9,7 @@ class ResolverErrorBuilderTest {
     @Test
     fun testNoOp() {
         assertNull(
-            ResolverErrorBuilder.NoOpResolverErrorBuilder.exceptionToGraphQLError(
+            ResolverErrorBuilder.Companion.NoOpResolverErrorBuilder.exceptionToGraphQLError(
                 Throwable("Test Exception"),
                 mockk<DataFetchingEnvironment>(),
                 ResolverErrorReporter.Companion.ErrorMetadata.EMPTY

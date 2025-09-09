@@ -26,8 +26,6 @@ import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.TenantAPIBootstrapper.Companion.flatten
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
-import viaduct.engine.api.execution.ResolverErrorBuilder
-import viaduct.engine.api.execution.ResolverErrorReporter
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextFactory
@@ -38,6 +36,8 @@ import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.Viaduct
 import viaduct.service.api.spi.FlagManager
+import viaduct.service.api.spi.ResolverErrorBuilder
+import viaduct.service.api.spi.ResolverErrorReporter
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
 import viaduct.service.runtime.noderesolvers.ViaductNodeResolverAPIBootstrapper
 

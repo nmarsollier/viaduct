@@ -7,12 +7,12 @@ import graphql.execution.DataFetcherExceptionHandler
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.NoOpCheckerExecutorFactoryImpl
 import viaduct.engine.api.coroutines.CoroutineInterop
-import viaduct.engine.api.execution.ResolverErrorBuilder
-import viaduct.engine.api.execution.ResolverErrorReporter
 import viaduct.engine.api.fragment.ExecutableFragmentParser
 import viaduct.engine.api.fragment.ViaductExecutableFragmentParser
 import viaduct.engine.runtime.execution.ViaductDataFetcherExceptionHandler
 import viaduct.service.api.spi.FlagManager
+import viaduct.service.api.spi.ResolverErrorBuilder
+import viaduct.service.api.spi.ResolverErrorReporter
 
 /**
  * Injects the internal engine needed to run Viaduct.

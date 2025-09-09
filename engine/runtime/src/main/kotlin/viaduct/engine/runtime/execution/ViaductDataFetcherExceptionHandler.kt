@@ -17,9 +17,9 @@ import kotlinx.coroutines.TimeoutCancellationException
 import viaduct.api.ViaductFrameworkException
 import viaduct.api.ViaductTenantException
 import viaduct.api.ViaductTenantResolverException
-import viaduct.engine.api.execution.ResolverErrorBuilder
-import viaduct.engine.api.execution.ResolverErrorReporter
-import viaduct.engine.api.execution.ResolverErrorReporter.Companion.ErrorMetadata
+import viaduct.service.api.spi.ResolverErrorBuilder
+import viaduct.service.api.spi.ResolverErrorReporter
+import viaduct.service.api.spi.ResolverErrorReporter.Companion.ErrorMetadata
 import viaduct.utils.slf4j.logger
 
 class ViaductDataFetcherExceptionHandler(val errorReporter: ResolverErrorReporter, val errorBuilder: ResolverErrorBuilder) : DataFetcherExceptionHandler {

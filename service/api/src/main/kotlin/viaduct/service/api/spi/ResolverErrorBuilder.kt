@@ -1,4 +1,4 @@
-package viaduct.engine.api.execution
+package viaduct.service.api.spi
 
 import graphql.GraphQLError
 import graphql.schema.DataFetchingEnvironment
