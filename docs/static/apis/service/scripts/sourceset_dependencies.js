@@ -1,1 +1,1 @@
-sourceset_dependencies = '{":service:service-api/main":[],":service:service-wiring/main":[]}'
+sourceset_dependencies = '{":service:service-wiring/main":[],":service:service-api/main":[]}'

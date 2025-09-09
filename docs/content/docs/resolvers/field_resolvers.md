@@ -6,7 +6,7 @@ weight: 2
 
 ## Schema
 
-All schema fields with the `@resolver` directive have a corresponding field resolver. This directive can only be placed on object, not interface fields.
+All schema fields with the {{< kdoc viaduct.api.Resolver "@resolver" >}} directive have a corresponding field resolver. This directive can only be placed on object, not interface fields.
 
 In this example schema, we've added `@resolver` to the `displayName` field:
 
@@ -92,7 +92,7 @@ The `@Resolver` annotation can also be used to declare data dependencies on the 
 
 ## Context
 
-Both `resolve` and `batchResolve` take `Context` objects as input. This class is an instance of `FieldExecutionContext`:
+Both `resolve` and `batchResolve` take `Context` objects as input. This class is an instance of {{< kdoc viaduct.api.context.FieldExecutionContext >}}:
 
 ```kotlin
 interface FieldExecutionContext<T: Object, Q: Query, A: Arguments, O: CompositeOutput>: ResolverExecutionContext {
@@ -111,7 +111,7 @@ interface FieldExecutionContext<T: Object, Q: Query, A: Arguments, O: CompositeO
 
 * `selections()` returns the selections being requested for this field in the query, same as the `selections` function for the node resolver. The `SelectionSet` type is parameterized by the type of the selection set. For example, in the case of `User`'s node resolver, `selections` returned `SelectionSet<User>`. In the case of `displayName`, `selections` returns `SelectionSet<NotComposite>`, where the special type `NotComposite` indicates that `displayName` does not return a composite type (it returns a scalar instead).
 
-Since `NodeExecutionContext` implements `ResolverExecutionContext`, it also includes the utilities provided there, which allow you to:
+Since {{< kdoc viaduct.api.context.NodeExecutionContext >}} implements {{< kdoc viaduct.api.context.ResolverExecutionContext >}}, it also includes the utilities provided there, which allow you to:
 * Execute [subqueries](/docs/resolvers/subqueries)
 * Construct [node references](/docs/resolvers/node_references)
 * Construct [GlobalIDs](/docs/globalids)

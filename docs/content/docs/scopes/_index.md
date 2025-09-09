@@ -46,7 +46,7 @@ Either nothing is scoped or *everything* has a scope applied to it. There is no 
 
 A single instance of the Viaduct framework can expose multiple schemas. Within Airbnb, for instance, the Viaduct service itself, exposes a different, more complete schema to internal clients than it exposes to external Web and mobile clients. Scopes also provide encapsulation that allows us to hide implementation details present in your central schema.
 
-Every schema exported by an instance of the Viaduct framework is called a scope set. A scope set is identified by a schema ID. The particular scope set seen by a given request to the Viaduct framework is controlled by the `schemaId` field of `viaduct.service.api.ExecutionInput`. In the above example, `viaduct` and `viaduct:public` are both schema IDs. You can use as many schema IDs as you like with whatever naming scheme fits your use case.
+Every schema exported by an instance of the Viaduct framework is called a scope set. A scope set is identified by a schema ID. The particular scope set seen by a given request to the Viaduct framework is controlled by the `schemaId` field of {{< kdoc viaduct.service.api.ExecutionInput >}}. In the above example, `viaduct` and `viaduct:public` are both schema IDs. You can use as many schema IDs as you like with whatever naming scheme fits your use case.
 
 ### Guidelines for annotating types with @scope
 

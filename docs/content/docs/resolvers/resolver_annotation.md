@@ -4,7 +4,7 @@ description: Using the @Resolver annotation
 weight: 4
 ---
 
-Field resolvers must be annotated with `@Resolver` to be registered. This annotation class also allows resolvers to declare data dependencies in the form of *required selection sets* via `objectValueFragment` and `queryValueFragment`:
+Field resolvers must be annotated with {{< kdoc viaduct.api.Resolver "@Resolver" >}} to be registered. This annotation class also allows resolvers to declare data dependencies in the form of *required selection sets* via `objectValueFragment` and `queryValueFragment`:
 
 ```kotlin
 annotation class Resolver(
@@ -128,7 +128,7 @@ Variables may be bound using the `variables` parameter of `@Resolver`, which is 
 
 This resolver fragment uses a `shouldInclude` variable. At runtime, the value for this variable will be determined by the value of the `includeMe` argument to `MyType.foo`. To support nested GraphQL input types, the `fromArgument` string can contain a dot-separated path.
 
-There are three mutually-exclusive parameters to the `@Variable` class that can be used to set the value of a variable:
+There are three mutually-exclusive parameters to the {{< kdoc viaduct.api.Variable "@Variable" >}} class that can be used to set the value of a variable:
 
 1. the `fromArgument` parameter just illustrated
 2. the `fromObjectField` parameter, which takes a dot-separated path relative to the `objectValue` of an execution. If used, the path must be a selection defined in the resolver's objectValueFragment.
@@ -136,7 +136,7 @@ There are three mutually-exclusive parameters to the `@Variable` class that can 
 
 #### VariablesProvider
 
-The `variables` parameter does not allow arbitrarily-computed values to be used as variables. To support dynamic use cases, a `VariablesProvider` can be used.
+The `variables` parameter does not allow arbitrarily-computed values to be used as variables. To support dynamic use cases, a {{< kdoc viaduct.api.VariablesProvider >}} can be used.
 
 For example, consider a resolver for `MyType.foo` whose required selection set uses variables named `startDate` and `endDate`. To provide dynamically-computed values for these variables, the implementation for `MyTypeResolvers.Foo` may nest a class that implements the `VariablesProvider` interface:
 

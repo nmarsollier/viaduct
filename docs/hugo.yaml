@@ -192,10 +192,10 @@ menu:
       url: https://medium.com/airbnb-engineering
       weight: 10
     - name: Tenant API
-      url: /apis/tenant-api/
+      pageRef: /apis/tenant-api/
       weight: 20
     - name: Service API
-      url: /apis/service/
+      pageRef: /apis/service/
       weight: 25
 
 module:

@@ -68,7 +68,7 @@ The list that `batchResolve` returns must have the same number of elements as th
 
 #### FieldValue
 
-Notice that the output list elements are wrapped in `FieldValue` (e.g., `List<FieldValue<Listing>>` in the example above). This represents either a successfully resolved value or an error value.
+Notice that the output list elements are wrapped in {{< kdoc viaduct.api.FieldValue >}} (e.g., `List<FieldValue<Listing>>` in the example above). This represents either a successfully resolved value or an error value.
 
 **Usage:**
 * `FieldValue.ofValue(v)`: constructs a successfully resolved value, as shown in the example above

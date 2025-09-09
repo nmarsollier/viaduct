@@ -137,3 +137,7 @@ nav#TableOfContents::before {
   }
 }
 
+// Inline KDoc links
+.kdoc-link {
+  text-decoration-line: none;
+}

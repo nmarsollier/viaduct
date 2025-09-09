@@ -26,4 +26,4 @@ interface TenantCodeInjector {
 
 Examples of using this dependency injection mechanism are available in the demo applications.
 
-If you do not provide an implementation of `TenantCodeInjector`, Viaduct will use a naive default implementation that assumes a zero-argument constructor is available for all resolvers. Whenever the GraphQL execution engine needs to invoke a resolver, it will use this to construct an instance of the resolver. While sufficient for toy applications, we strongly suggest using a dependency injection framework for real applications.
+If you do not provide an implementation of {{< kdoc viaduct.service.api.spi.TenantCodeInjector>}}, Viaduct will use a naive default implementation that assumes a zero-argument constructor is available for all resolvers. Whenever the GraphQL execution engine needs to invoke a resolver, it will use this to construct an instance of the resolver. While sufficient for toy applications, we strongly suggest using a dependency injection framework for real applications.

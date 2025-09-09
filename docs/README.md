@@ -21,6 +21,24 @@ There are a few custom shortcodes in the `layouts/_shortcodes` directory:
     Parameters:
   * `file`: The URL of the GitHub file to embed. Optionally append a line range, e.g. `#L10-L20` to embed only those lines.
   * `maxHeight`: The maximum height of the embedded file. Defaults to 500px.
+* `kdoc`: Embeds a KDoc link in the documentation. CI will verify that the link is valid. Currently only supports linking to classes, not functions or packages.
+    ```markdown
+    {{< kdoc viaduct.engine.api.execution.ResolverErrorReporter >}}
+    ```
+    returns:
+    ```
+    <a class="kdoc-link" href="$BASE_URL/apis/service/service/service-api/viaduct.service.api/-execution-input/"><code>ExecutionInput</code></a>
+    ```
+    ```markdown
+    {{< kdoc viaduct.api.Resolver "@resolver" >}
+    ```
+    returns:
+    ```
+    <a class="kdoc-link" href="http://localhost:1313/apis/tenant-api/tenant-api/viaduct.api/-resolver/"><code>@resolver</code></a>
+    ```
+    Parameters:
+  * First: The fully qualified name of the KDoc to link to.
+  * Second: Display name (optional). Defaults to the class name. Must be wrapped in quotes if it contains special characters like `@`.
 
 ### Development
 

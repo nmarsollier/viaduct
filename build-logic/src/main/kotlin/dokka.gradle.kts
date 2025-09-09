@@ -9,7 +9,6 @@ plugins {
 
 dokka {
     // Shared configuration for documented modules goes here
-    moduleName.set(displayName(project))
     moduleVersion.set(project.version.toString())
 
     pluginsConfiguration.html {

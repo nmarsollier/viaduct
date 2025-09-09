@@ -4,7 +4,7 @@ description: Mutating data in Viaduct
 weight: 7
 ---
 
-Mutation fields should use the `@resolver` directive to provide a field resolver that executes the mutation. For the following example schema:
+Mutation fields should use the {{< kdoc viaduct.api.Resolver "@resolver" >}} directive to provide a field resolver that executes the mutation. For the following example schema:
 
 ```graphql
 extend type Mutation {

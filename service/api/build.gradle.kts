@@ -40,3 +40,13 @@ tasks.register<Jar>("sourcesJar") {
 // TODO: not necessary now, just for the demoapps;
 //  might be needed later, when some version get released and
 //  published to a real artefact repository
+
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(rootProject.layout.projectDirectory.dir("docs/static/apis/"))
+        includes.from(layout.projectDirectory.file("module.md"))
+    }
+    pluginsConfiguration.html {
+        customStyleSheets.from(rootProject.file("docs/kdoc-service-styles.css"))
+    }
+}

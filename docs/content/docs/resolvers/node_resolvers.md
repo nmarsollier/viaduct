@@ -73,7 +73,7 @@ Alternatively, if the user service provides a batch endpoint, you should impleme
 
 ## Context
 
-Both `resolve` and `batchResolve` take `Context` objects as input. This class is an instance of `NodeExecutionContext`:
+Both `resolve` and `batchResolve` take `Context` objects as input. This class is an instance of {{< kdoc viaduct.api.context.NodeExecutionContext >}}:
 
 ```kotlin
 interface NodeExecutionContext<T: NodeObject>: ResolverExecutionContext {

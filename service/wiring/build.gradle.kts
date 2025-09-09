@@ -3,17 +3,19 @@ plugins {
     id("dokka")
 }
 
-buildscript {
-    dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:2.0.0")
-    }
-}
-
 dependencies {
     api(project(":service:service-api"))
     api(libs.graphql.java)
 
     implementation(project(":service:service-runtime"))
-    dokka(project(":service:service-api"))
-    dokka(project(":service:service-wiring"))
+}
+
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(rootProject.layout.projectDirectory.dir("docs/static/apis/service"))
+        includes.from(layout.projectDirectory.file("module.md"))
+    }
+    pluginsConfiguration.html {
+        customStyleSheets.from(rootProject.file("docs/kdoc-service-styles.css"))
+    }
 }

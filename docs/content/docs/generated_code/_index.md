@@ -40,7 +40,7 @@ class User private constructor(...): NodeObject {
 }
 ```
 
-`NodeObject` is a tagging interface (i.e., an interface with no methods) for GRTs representing GraphQL object types.  `DynamicValueOutputBuilder<T>` is an interface for builders of such types (it defines a `build` function that returns a `T`).
+{{< kdoc viaduct.api.types.NodeObject >}} is a tagging interface (i.e., an interface with no methods) for GRTs representing GraphQL object types.  {{< kdoc DynamicValueOutputBuilder >}} is an interface for builders of such types (it is parameterized on `T` and defines a `build` function that returns a `T`).
 
 The values from a fragment on `User` (for example) are accessed through the GRT for `User`.  As a result, the Viaduct GRTs for object types distinguish fields that are "not set," because they haven’t been requested for in the fragment, from fields that are in the fragment and thus are "set."  If you attempt to access a field that has not been set, a `UnsetSelectionException` exception will be thrown, even if that field is nullable.  Also, when you build an object-type value, you do *not* have to set all fields, even if those fields are non-nullable.
 
