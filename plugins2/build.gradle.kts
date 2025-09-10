@@ -3,6 +3,8 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     `maven-publish`
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.4"
 }
 
 group = "com.airbnb.viaduct" // TODO - don't hardwire this
@@ -43,8 +45,27 @@ publishing {
     publications {
         create<MavenPublication>("viaductPluginLib") {
             from(components["java"])
-            artifactId = "plugins2"  // TODO - change to just "plugins" when ready
+            artifactId = "plugins2" // TODO - change to just "plugins" when ready
             version = project.version.toString()
+        }
+    }
+}
+
+detekt {
+    source.setFrom("src/main/kotlin", "src/test/kotlin")
+    config.setFrom("$projectDir/../detekt.yml")
+    ignoreFailures = true
+}
+
+ktlint {
+    version.set("1.2.1")
+    enableExperimentalRules.set(true)
+    outputToConsole.set(true)
+    ignoreFailures.set(true)
+
+    filter {
+        exclude { element ->
+            element.file.path.contains("/generated-sources/")
         }
     }
 }

@@ -20,7 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
-/* 
+/*
 
 Note about using mavenLocal:
 
@@ -47,5 +47,5 @@ local cache, and for the plugin project to depend on it from there.
 Eventually we can bump the Kotlin version of the larger build to 1.9,
 or we can fix the pre-compiled build script problem, so we can stop
 using the local cache.
- 
+
 */
