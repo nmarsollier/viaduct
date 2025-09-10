@@ -1,5 +1,6 @@
 package viaduct.gradle
 
+import centralSchemaDirectoryName
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -12,9 +13,10 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import resolverBasesDirectory
+import schemaPartitionDirectory
 
 open class ViaductModuleExtension(objects: org.gradle.api.model.ObjectFactory) {
     /** Kotlin package name suffix for this module (may be empty). */
@@ -37,7 +39,6 @@ class ViaductModulePlugin : Plugin<Project> {
             pluginManager.withPlugin("viaduct-application") {
                 moduleExt.modulePackageSuffix.convention("")
             }
-
             // Create Configurations
             val schemaPartitionCfg = configurations.create(ViaductPluginCommon.Configs.SCHEMA_PARTITION_OUTGOING).apply {
                 description = "Consumable configuration containing the module's schema partition (aka, 'local schema')."
@@ -48,14 +49,15 @@ class ViaductModulePlugin : Plugin<Project> {
                 }
             }
 
-            val centralSchemaIncomingCfg = configurations.create(ViaductPluginCommon.Configs.CENTRAL_SCHEMA_INCOMING).apply {
-                description = "Resolvable configuration for the central schema (used to generate resolver base classes)."
-                isCanBeConsumed = false
-                isCanBeResolved = true
-                attributes {
-                    attribute(ViaductPluginCommon.VIADUCT_KIND, ViaductPluginCommon.Kind.CENTRAL_SCHEMA)
+            val centralSchemaIncomingCfg =
+                configurations.create(ViaductPluginCommon.Configs.CENTRAL_SCHEMA_INCOMING).apply {
+                    description = "Resolvable configuration for the central schema (used to generate resolver base classes)."
+                    isCanBeConsumed = false
+                    isCanBeResolved = true
+                    attributes {
+                        attribute(ViaductPluginCommon.VIADUCT_KIND, ViaductPluginCommon.Kind.CENTRAL_SCHEMA)
+                    }
                 }
-            }
 
             val grtIncomingCfg = configurations.create(ViaductPluginCommon.Configs.GRT_CLASSES_INCOMING).apply {
                 description = "Resolvable configuration for the GRT jar file."
@@ -67,16 +69,16 @@ class ViaductModulePlugin : Plugin<Project> {
                     // These will make us more friendly to IDEs and other tools
                     attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
+                    attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements::class.java, LibraryElements.JAR)
+                    )
                 }
             }
 
-            // Create a Provider for intra-gradle-project wiring
-            val resolverBasesDir = layout.buildDirectory.dir("viaduct/resolverBases")
-
             // Create Tasks
             prepareSchemaPartitionTask(moduleExt, schemaPartitionCfg)
-            val generateResolverBasesTask = generateResolverBasesTask(moduleExt, centralSchemaIncomingCfg, resolverBasesDir)
+            val generateResolverBasesTask = generateResolverBasesTask(moduleExt, centralSchemaIncomingCfg, resolverBasesDirectory())
 
             // Register Configurations (between this gradle project the viaduct-application project.
             rootProject.pluginManager.withPlugin("viaduct-application") {
@@ -128,13 +130,7 @@ class ViaductModulePlugin : Plugin<Project> {
                 val kotlinExt = extensions.getByType(KotlinJvmProjectExtension::class.java)
 
                 kotlinExt.sourceSets.named("main") {
-                    kotlin.srcDir(resolverBasesDir)
-                }
-
-                // Make Kotlin compilation depend on resolver base generation
-                // TODO - is there a better way to do this?
-                tasks.named("compileKotlin") {
-                    dependsOn(generateResolverBasesTask)
+                    kotlin.srcDir(generateResolverBasesTask.map { it.outputs.files })
                 }
             }
         }
@@ -144,7 +140,6 @@ class ViaductModulePlugin : Plugin<Project> {
         schemaPartitionCfg: Configuration,
     ): TaskProvider<*> {
         val graphqlSrcDir: Directory = layout.projectDirectory.dir("src/main/viaduct/schema")
-        val partitionDstDir = layout.buildDirectory.dir("viaduct/schemaPartition")
 
         // Our codegen tools use the directory path of schema files to determine which module it
         // belongs to.  This imposes a restriction on our build tools include the
@@ -164,7 +159,7 @@ class ViaductModulePlugin : Plugin<Project> {
 
         // Copy whatever exists into a normalized partition directory, under the computed prefix
         val prepareSchemaPartitionTask = tasks.register<Sync>("prepareViaductSchemaPartition") {
-            into(partitionDstDir) // Overall destination
+            into(schemaPartitionDirectory()) // Overall destination
 
             val prefixPath = prefixPathProvider.get()
             from(graphqlSrcDir) {
@@ -174,7 +169,7 @@ class ViaductModulePlugin : Plugin<Project> {
             includeEmptyDirs = false
         }
 
-        schemaPartitionCfg.outgoing.artifact(partitionDstDir) {
+        schemaPartitionCfg.outgoing.artifact(schemaPartitionDirectory()) {
             builtBy(prepareSchemaPartitionTask)
         }
 
@@ -236,7 +231,7 @@ class ViaductModulePlugin : Plugin<Project> {
                     "--resolver_generated_directory",
                     resolverBasesDirPath,
                     "--tenant_from_source_name_regex",
-                    "viaduct/centralSchema/partition/(.*)/graphql",
+                    "$centralSchemaDirectoryName/partition/(.*)/graphql",
                 )
             }
         }

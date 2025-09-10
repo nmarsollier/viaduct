@@ -1,21 +1,19 @@
 package viaduct.gradle
 
-import kotlin.io.path.writeText
+import centralSchemaDirectory
+import grtClassesDirectory
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.Directory
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 
 open class ViaductApplicationExtension(objects: org.gradle.api.model.ObjectFactory) {
@@ -35,12 +33,11 @@ class ViaductApplicationPlugin : Plugin<Project> {
             }
 
             val appExt = extensions.create("viaductApplication", ViaductApplicationExtension::class.java, objects)
-            val centralSchemaDir: Provider<Directory> = layout.buildDirectory.dir("viaduct/centralSchema")
 
-            val generateCentralSchemaTask = generateCentralSchemaTask(centralSchemaDir)
+            val generateCentralSchemaTask = generateCentralSchemaTask(centralSchemaDirectory())
             generateGRTsTask(
                 appExt,
-                centralSchemaDir,
+                centralSchemaDirectory(),
                 generateCentralSchemaTask,
             )
         }
@@ -54,7 +51,6 @@ class ViaductApplicationPlugin : Plugin<Project> {
             isCanBeResolved = true
             attributes { attribute(ViaductPluginCommon.VIADUCT_KIND, ViaductPluginCommon.Kind.SCHEMA_PARTITION) }
         }
-        val artifacts = allPartitions.incoming.artifactView({}).files
 
         val generateCentralSchemaTask = tasks.register<Sync>("generateViaductCentralSchema") {
             group = "viaduct"
@@ -100,14 +96,12 @@ class ViaductApplicationPlugin : Plugin<Project> {
         // Build a FileCollection from the plugin's classloader URLs (includes plugin impl deps like :tenant:codegen)
         val pluginClasspath = files(ViaductPluginCommon.getClassPathElements(this@ViaductApplicationPlugin::class.java))
 
-        val grtClassesDir: Provider<Directory> = layout.buildDirectory.dir("viaduct/grtClasses")
-
         val generateGRTClassesTask = tasks.register<JavaExec>("generateViaductGRTClassFiles") {
             // Make sure central schema exists first
-            dependsOn(generateCentralSchemaTask) // TODO - I think we can remove if we have a dedicated task
+            dependsOn(generateCentralSchemaTask) // TODO: we need a dedicated task where the central schema files are inputs we can properly wire in
 
             inputs.dir(centralSchemaDir).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("viaductCentralSchemaDir")
-            outputs.dir(grtClassesDir).withPropertyName("viaductGRTClassesDir")
+            outputs.dir(grtClassesDirectory()).withPropertyName("viaductGRTClassesDir")
 
             // Use the plugin's classpath (contains :tenant:codegen and its deps)
             classpath = pluginClasspath
@@ -117,7 +111,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
                 val csFiles = project.fileTree(centralSchemaDir).files
                 val centralSchemaFilePaths = csFiles.map { it.absolutePath }.sorted().joinToString(",")
                 val pkg = appExt.grtPackageName.get()
-                val grtClassesDirPath = grtClassesDir.get().asFile.apply { mkdirs() }.absolutePath
+                val grtClassesDirPath = grtClassesDirectory().get().asFile.apply { mkdirs() }.absolutePath
 
                 args(
                     "--schema_files",
@@ -138,7 +132,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
             includeEmptyDirs = false
 
             dependsOn(generateGRTClassesTask) // TODO - I think we can remove if we have a dedicated task
-            from(grtClassesDir) // class files
+            from(grtClassesDirectory()) // class files
 
             dependsOn(generateCentralSchemaTask) // TODO - I think we can remove if we have a dedicated task
             from(centralSchemaDir) { // central schema is in GRT file (for now) - supports testing use case
