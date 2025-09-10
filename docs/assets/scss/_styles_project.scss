@@ -129,6 +129,22 @@ nav#TableOfContents::before {
   content: "On this page";
 }
 
+nav.td-sidebar-nav li.td-sidebar-nav-subsection {
+  margin-top: 1rem;
+}
+
+li.td-sidebar-nav__section.active-path > a span {
+  font-weight: bolder;
+}
+
+span.td-sidebar-nav-subsection {
+  font-weight: bolder;
+  font-size: larger;
+  display: inline-block;
+  padding: 0rem 0 0.5rem 0;
+  color: var(--bs-primary);
+}
+
 .container .pageinfo {
   font-weight: normal;
   color: $dark;

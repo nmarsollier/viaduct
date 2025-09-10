@@ -10,6 +10,8 @@ Ensure you have followed the [Docsy prerequisites](https://www.docsy.dev/docs/ge
 
 ### Customizations
 
+#### Shortcodes
+
 There are a few custom shortcodes in the `layouts/_shortcodes` directory:
 
 * `github`: Embeds a GitHub file in the documentation.
@@ -39,6 +41,12 @@ There are a few custom shortcodes in the `layouts/_shortcodes` directory:
     Parameters:
   * First: The fully qualified name of the KDoc to link to.
   * Second: Display name (optional). Defaults to the class name. Must be wrapped in quotes if it contains special characters like `@`.
+
+### Sidebar Nav/Table of Contents
+
+A forked version of `sidebar-tree.html` is used to support non-clickable section headers in the sidebar navigation. To create a non-clickable section header, create a `_index.md` file in the directory with the desired title and set `toc_subsection: true` in the frontmatter. Do not include any content in the file as it will not be rendered.
+
+See `content/docs/developers/_index.md` for an example.
 
 ### Development
 

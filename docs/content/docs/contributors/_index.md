@@ -1,6 +1,5 @@
 ---
-title: Contributing to Viaduct
+title: Contributors
 description: Documentation for contributing to Viaduct.
-draft: true
+toc_subsection: true
 ---
-
