@@ -22,7 +22,7 @@ commands:
         type: steps
     steps:
       - gradle/with_cache:
-          cache_key: "v4-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
+          cache_key: "v5-{{ checksum \"build.gradle.kts\" }}-{{ checksum \"gradle/libs.versions.toml\" }}"
           steps: << parameters.steps >>
 
   fail-step:
@@ -196,7 +196,7 @@ jobs:
                     echo "Test failures are not blocking the pipeline"
                   }
                   echo "✅ Test execution completed"
-            
+
             - run:
                 name: Generate JaCoCo aggregated coverage report
                 command: |
@@ -212,7 +212,7 @@ jobs:
       # Store test results for CircleCI UI
       - store_test_results:
           path: build/test-results
-      
+
       # Store JaCoCo coverage reports
       - store_artifacts:
           path: build/reports
