@@ -113,7 +113,7 @@ class AccessCheckRunner(
         fieldResolutionResultValue: Value<FieldResolutionResult>,
         fieldResolver: FieldResolver
     ): Value<out CheckerResult?> {
-        val field = checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
+        checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
         val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         // Exit early if there is definitely no type check
         if (fieldType !is GraphQLCompositeType ||

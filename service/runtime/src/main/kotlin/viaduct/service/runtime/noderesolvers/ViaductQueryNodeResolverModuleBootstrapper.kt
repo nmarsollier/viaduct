@@ -88,7 +88,7 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
         context: EngineExecutionContext
     ): EngineObjectData {
         require(globalId is String) { "Expected GlobalID \"$globalId\" to be a string. This should never occur." }
-        val (typeName, localId) = decodeGlobalIdString(globalId)
+        val (typeName, _) = decodeGlobalIdString(globalId)
 
         val graphQLObjectType = context.fullSchema.schema.getObjectType(typeName)
         requireNotNull(graphQLObjectType) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type in the schema" }

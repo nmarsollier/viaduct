@@ -51,7 +51,7 @@ class GlobalIDCodecImplTest : KotestPropertyBase() {
             // Non-object types (interfaces, inputs, etc.)
             gjType !is GraphQLObjectType ||
                 // Object types that don't implement Node
-                !(gjType as GraphQLObjectType).interfaces.any { it.name == "Node" }
+                !gjType.interfaces.any { it.name == "Node" }
         }
     }
 
@@ -72,13 +72,13 @@ class GlobalIDCodecImplTest : KotestPropertyBase() {
             Arb.element(nonNodeObjectTypes).checkAll { gjType ->
                 val type = try {
                     nodeObjectType(gjType.name)
-                } catch (err: MissingReflection) {
+                } catch (_: MissingReflection) {
                     return@checkAll
                 }
                 try {
                     GlobalIDImpl(type, Arb.string().bind())
                     markFailure()
-                } catch (err: IllegalArgumentException) {
+                } catch (_: IllegalArgumentException) {
                     markSuccess()
                 }
             }

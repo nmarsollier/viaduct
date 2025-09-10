@@ -12,6 +12,7 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 @Resolver
 class Query_UserResolver : QueryResolvers.User() {
     override suspend fun resolve(ctx: Context): User {
+        @Suppress("UNCHECKED_CAST")
         return User.Builder(ctx)
             .id(ctx.arguments.id as GlobalID<User>)
             .name("Alice")

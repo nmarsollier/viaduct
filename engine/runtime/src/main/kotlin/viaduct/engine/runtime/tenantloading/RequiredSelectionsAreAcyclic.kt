@@ -143,7 +143,7 @@ class RequiredSelectionsAreAcyclic(
             buildSet {
                 // start with all selections. This will include scalar fields and other selections
                 // that do not support sub-selections
-                val selected = selections().forEach {
+                selections().forEach {
                     implementations(it.typeCondition)?.let { implementations ->
                         implementations.map { objectTypeName -> add(objectTypeName to it.fieldName) }
                     } ?: add(it.typeCondition to it.fieldName)

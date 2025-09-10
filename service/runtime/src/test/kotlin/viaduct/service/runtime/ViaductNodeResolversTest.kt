@@ -2,6 +2,7 @@ package viaduct.service.runtime
 
 import com.google.common.net.UrlEscapers
 import java.util.Base64
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -16,6 +17,7 @@ import viaduct.engine.api.mocks.toViaductBuilder
 import viaduct.graphql.test.assertData
 import viaduct.service.runtime.noderesolvers.ViaductQueryNodeResolverModuleBootstrapper
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ViaductNodeResolversTest {
     companion object {
         const val SCHEMA = """
