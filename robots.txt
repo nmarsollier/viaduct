@@ -1,4 +1,0 @@
-User-agent: *
-Disallow:
-
-Sitemap: https://viaduct.airbnb.tech/sitemap.xml
