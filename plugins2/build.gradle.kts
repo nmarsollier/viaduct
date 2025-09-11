@@ -31,7 +31,7 @@ gradlePlugin {
 }
 
 dependencies {
-    implementation("com.airbnb.viaduct:tenant-codegen:${libs.versions.project.get()}:all") {
+    implementation("com.airbnb.viaduct:tenant-codegen:${libs.versions.project.get()}") {
         isChanging = true
     }
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
