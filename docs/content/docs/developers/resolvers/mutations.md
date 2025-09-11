@@ -26,6 +26,6 @@ class PublishListingResolver @Inject constructor(
 }
 ```
 
-As this example shows, resolvers for mutation fields are almost identical to query field resolvers. A major difference is that `Context` implements `MutationFieldExecutionContext`. This allows mutation field resolvers to execute submutations using `Context.mutation()` in addition to executing [subqueries](/docs/resolvers/subqueries/) using `Context.query()`.
+As this example shows, resolvers for mutation fields are almost identical to query field resolvers. A major difference is that `Context` implements `MutationFieldExecutionContext`. This allows mutation field resolvers to execute submutations using `Context.mutation()` in addition to executing [subqueries](/docs/developers/resolvers/subqueries/) using `Context.query()`.
 
 Mutation field resolvers should still be annotated with `@Resolver`. However, they may not provide a required selection set using `objectValueFragment`, since those selections would include other mutation fields. Mutation field resolvers can execute other mutation fields by calling `Context.mutation()` instead.

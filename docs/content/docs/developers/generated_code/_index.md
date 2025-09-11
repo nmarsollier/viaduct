@@ -6,7 +6,7 @@ weight: 30
 
 ## GraphQL Representational Type (GRT)
 
-The API generates two kinds of classes: *GraphQL Representational Types* (GRTs), and *resolver base classes,* described in the [Resolvers](/docs/resolvers/) section.
+The API generates two kinds of classes: *GraphQL Representational Types* (GRTs), and *resolver base classes,* described in the [Resolvers](/docs/developers/resolvers/) section.
 
 For each GraphQL type, Viaduct generates a number of Kotlin classes to represent its values.  These classes are found in the `viaduct.api.grts` package. We generate two classes for each GraphQL type: a class representing a *value* of a given type, and a builder-class allowing you to construct a value of a given type.  Consider this simple schema:
 

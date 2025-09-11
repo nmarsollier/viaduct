@@ -93,7 +93,7 @@ Note that if you have multiple fragments on the type of the main fragment (eithe
 ```
 
 ## Accessing required selection set values
-You can access the required selection set values via the [`Context` object](/docs/resolvers/field_resolvers/#context) given as input to the field resolver. `Context.objectValue` and `Context.queryValue` are [GRTs](/docs/generated_code/) of the object and Query types, e.g.
+You can access the required selection set values via the [`Context` object](/docs/developers/resolvers/field_resolvers/#context) given as input to the field resolver. `Context.objectValue` and `Context.queryValue` are [GRTs](/docs/developers/generated_code/) of the object and Query types, e.g.
 
 ```kotlin
 ctx.objectValue.getFirstName()

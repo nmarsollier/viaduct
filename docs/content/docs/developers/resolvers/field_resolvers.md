@@ -62,7 +62,7 @@ The nested `Context` class is described in more detail [below](#context).
 
 ## Implementation
 
-Implement a field resolver by subclassing the generated base class, and overriding exactly one of either `resolve` or `batchResolve`. Learn more about batch resolution [here](/docs/resolvers/batch_resolution/).
+Implement a field resolver by subclassing the generated base class, and overriding exactly one of either `resolve` or `batchResolve`. Learn more about batch resolution [here](/docs/developers/resolvers/batch_resolution/).
 
 Let’s look at the resolver for `User.displayName`:
 
@@ -86,7 +86,7 @@ class UserDisplayNameResolver : UserResolvers.DisplayName() {
 
 As this example illustrates, the `@Resolver` annotation can contain an optional fragment on the parent type of the field being resolved. We call this fragment the *required selection set* of the resolver. In this case, the required selection set asks for the `firstName` and `lastName` fields of `User`, which are combined to generate the user's display name. If a resolver attempts to access a field that’s not in its required selection set, an `UnsetSelectionException` is thrown at runtime.
 
-The `@Resolver` annotation can also be used to declare data dependencies on the root Query type. Learn more about the annotation [here](/docs/resolvers/resolver_annotation).
+The `@Resolver` annotation can also be used to declare data dependencies on the root Query type. Learn more about the annotation [here](/docs/developers/resolvers/resolver_annotation).
 
 **Important clarification:** there are no requirements on the names of these resolver classes: We use `UserDisplayNameResolver` here as an example of a typical name, but that choice is not dictated by the framework.
 
@@ -112,9 +112,9 @@ interface FieldExecutionContext<T: Object, Q: Query, A: Arguments, O: CompositeO
 * `selections()` returns the selections being requested for this field in the query, same as the `selections` function for the node resolver. The `SelectionSet` type is parameterized by the type of the selection set. For example, in the case of `User`'s node resolver, `selections` returned `SelectionSet<User>`. In the case of `displayName`, `selections` returns `SelectionSet<NotComposite>`, where the special type `NotComposite` indicates that `displayName` does not return a composite type (it returns a scalar instead).
 
 Since {{< kdoc viaduct.api.context.NodeExecutionContext >}} implements {{< kdoc viaduct.api.context.ResolverExecutionContext >}}, it also includes the utilities provided there, which allow you to:
-* Execute [subqueries](/docs/resolvers/subqueries)
-* Construct [node references](/docs/resolvers/node_references)
-* Construct [GlobalIDs](/docs/globalids)
+* Execute [subqueries](/docs/developers/resolvers/subqueries)
+* Construct [node references](/docs/developers/resolvers/node_references)
+* Construct [GlobalIDs](/docs/developers/globalids)
 
 ## Responsibility set
 

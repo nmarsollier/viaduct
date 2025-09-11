@@ -4,7 +4,7 @@ description: Batch node and field resolvers
 weight: 3
 ---
 
-Both [node resolvers](/docs/resolvers/node_resolvers/) and [field resolvers](/docs/resolvers/field_resolvers/) can be implemented using the `batchResolve` function. This provides an alternative to the widely used [data loader](https://github.com/graphql/dataloader) pattern.
+Both [node resolvers](/docs/developers/resolvers/node_resolvers/) and [field resolvers](/docs/developers/resolvers/field_resolvers/) can be implemented using the `batchResolve` function. This provides an alternative to the widely used [data loader](https://github.com/graphql/dataloader) pattern.
 
 ## The N+1 problem
 

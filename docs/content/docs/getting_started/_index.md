@@ -26,6 +26,6 @@ This command will build the simple application run a graphql query with Viaduct.
 
 There are two other demo applications:
 
-- [springhelloworld](demoapps/springhelloworld/README.md) - a simple integration of spring with Spring.
-- [starwars](demoapps/starwars/README.md) - a full-fledged spring application to demonstrate more complex usage of
+- [springhelloworld](https://github.com/airbnb/viaduct/blob/main/demoapps/springhelloworld/README.md) - a simple integration of spring with Spring.
+- [starwars](https://github.com/airbnb/viaduct/blob/main/demoapps/starwars/README.md) - a full-fledged spring application to demonstrate more complex usage of
   Viaduct.

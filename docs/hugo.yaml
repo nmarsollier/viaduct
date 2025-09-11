@@ -52,6 +52,9 @@ languages:
 
 markup:
   goldmark:
+    renderHooks:
+      link:
+        useEmbedded: auto
     parser:
       attribute:
         block: true

@@ -67,9 +67,9 @@ class UserNodeResolver @Inject constructor(
 Points illustrated by this example:
 
 * Dependency injection can be used to provide access to values beyond what’s in the execution context.
-* You should not provide values for fields outside the resolver's responsibility set. In the example above, we do not set `displayName` when building the `User` [GRT](/docs/generated_code/).
+* You should not provide values for fields outside the resolver's responsibility set. In the example above, we do not set `displayName` when building the `User` [GRT](/docs/developers/generated_code/).
 
-Alternatively, if the user service provides a batch endpoint, you should implement a batch node resolver. Node resolvers typically implement `batchResolve` to avoid the N+1 problem. Learn more about batch resolution [here](/docs/resolvers/batch_resolution/).
+Alternatively, if the user service provides a batch endpoint, you should implement a batch node resolver. Node resolvers typically implement `batchResolve` to avoid the N+1 problem. Learn more about batch resolution [here](/docs/developers/resolvers/batch_resolution/).
 
 ## Context
 
@@ -81,16 +81,16 @@ interface NodeExecutionContext<T: NodeObject>: ResolverExecutionContext {
   fun selections(): SelectionSet<T>
 }
 ```
-For the example `User` type, the `T` type would be the User [GRT](/docs/generated_code/).
+For the example `User` type, the `T` type would be the User [GRT](/docs/developers/generated_code/).
 
 `NodeExecutionContext` includes the ID of the node to be resolved, and the selection set for the node being requested by the query. Most node resolvers are not "selective," i.e., they ignore this selection set and thus don’t call this function. In this case, as discussed above, it’s important that the node resolver returns its entire responsibility set.
 
 **Advanced users:** If the `selections` function is *not* called by an invocation of a resolver, then the engine will assume that invocation will return the full responsibility set of the resolver and may take actions based on that assumption. If a resolver is going to be selective, then it **must** call this function to get its selection set rather than obtain it through some other means.
 
 Since `NodeExecutionContext` implements `ResolverExecutionContext`, it also includes the utilities provided there, which allow you to:
-* Execute [subqueries](/docs/resolvers/subqueries)
-* Construct [node references](/docs/resolvers/node_references)
-* Construct [GlobalIDs](/docs/globalids)
+* Execute [subqueries](/docs/developers/resolvers/subqueries)
+* Construct [node references](/docs/developers/resolvers/node_references)
+* Construct [GlobalIDs](/docs/developers/globalids)
 
 ## Responsibility set
 
