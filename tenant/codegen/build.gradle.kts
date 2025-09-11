@@ -39,7 +39,6 @@ afterEvaluate {
     }
 }
 
-
 // Need to publish this project to the maven local cache so we can
 // build the plugins.  We want "fat" jars here to simplify the
 // publication flow (ie, only need to publish tenant-codegen)
