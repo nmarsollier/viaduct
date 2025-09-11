@@ -8,6 +8,7 @@ dependencies {
     api(libs.graphql.java)
 
     implementation(project(":service:service-runtime"))
+    testImplementation(testFixtures(project(":engine:engine-api")))
 }
 
 dokka {

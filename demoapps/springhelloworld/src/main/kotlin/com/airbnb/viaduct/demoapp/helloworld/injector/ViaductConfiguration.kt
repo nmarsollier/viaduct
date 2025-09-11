@@ -5,7 +5,7 @@ import com.airbnb.viaduct.demoapp.helloworld.rest.SCOPE_ID
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import viaduct.service.runtime.StandardViaduct
+import viaduct.service.ViaductBuilder
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
@@ -16,7 +16,7 @@ class ViaductConfiguration {
 
     @Bean
     fun viaductService() =
-        StandardViaduct.Builder()
+        ViaductBuilder()
             .withTenantAPIBootstrapperBuilder(
                 ViaductTenantAPIBootstrapper.Builder()
                     .tenantCodeInjector(codeInjector)

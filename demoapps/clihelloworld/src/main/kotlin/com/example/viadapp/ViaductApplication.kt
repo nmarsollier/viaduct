@@ -9,8 +9,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import viaduct.engine.runtime.execution.withThreadLocalCoroutineContext
+import viaduct.service.ViaductBuilder
 import viaduct.service.api.ExecutionInput
-import viaduct.service.runtime.StandardViaduct
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
@@ -23,7 +23,7 @@ fun main(argv: Array<String>) {
     // Create a Viaduct engine
     // Note to reviewers: this is the long-form of building an engine.  We plan on
     // having a shorter form with defaults.
-    val viaduct = StandardViaduct.Builder()
+    val viaduct = ViaductBuilder()
         .withTenantAPIBootstrapperBuilder(
             ViaductTenantAPIBootstrapper.Builder()
                 .tenantPackagePrefix("com.example.viadapp")

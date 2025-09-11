@@ -25,6 +25,7 @@ val projectNames = setOf(
     ":engine:engine-runtime",
     ":service:service-api",
     ":service:service-runtime",
+    ":service:service-wiring",
     ":shared:arbitrary",
     ":shared:graphql",
     ":shared:logging",

@@ -15,8 +15,8 @@ import org.springframework.web.servlet.function.RouterFunction
 import org.springframework.web.servlet.function.RouterFunctions
 import org.springframework.web.servlet.function.ServerResponse
 import viaduct.api.Resolver
+import viaduct.service.ViaductBuilder
 import viaduct.service.api.Viaduct
-import viaduct.service.runtime.StandardViaduct
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
@@ -43,7 +43,7 @@ class ViaductConfiguration {
 
     @Bean
     fun viaductService(): Viaduct =
-        StandardViaduct.Builder()
+        ViaductBuilder()
             .withTenantAPIBootstrapperBuilder(
                 ViaductTenantAPIBootstrapper.Builder()
                     .tenantCodeInjector(codeInjector)

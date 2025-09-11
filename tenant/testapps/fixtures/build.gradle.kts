@@ -6,6 +6,7 @@ dependencies {
     api(libs.graphql.java)
     api(libs.junit)
     api(project(":service:service-runtime"))
+    api(project(":service:service-wiring"))
     api(project(":tenant:tenant-api"))
     api(project(":tenant:tenant-runtime"))
 

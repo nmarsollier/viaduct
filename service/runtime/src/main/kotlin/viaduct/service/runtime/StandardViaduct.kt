@@ -168,9 +168,9 @@ class StandardViaduct internal constructor(
          * (If your schema does not have the `Query.node/s` field(s), you do
          * _not_ have to explicitly turn off the default behavior.)
          */
-        fun withoutDefaultQueryNodeResolvers(): Builder =
+        fun withoutDefaultQueryNodeResolvers(enabled: Boolean = false): Builder =
             apply {
-                this.defaultQueryNodeResolversEnabled = false
+                this.defaultQueryNodeResolversEnabled = enabled
             }
 
         fun withCheckerExecutorFactory(checkerExecutorFactory: CheckerExecutorFactory): Builder =

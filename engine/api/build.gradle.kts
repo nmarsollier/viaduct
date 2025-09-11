@@ -20,6 +20,7 @@ dependencies {
     testFixturesApi(libs.graphql.java)
     testFixturesApi(project(":engine:engine-runtime"))
     testFixturesApi(project(":service:service-runtime"))
+    testFixturesApi(project(":service:service-wiring"))
     testFixturesApi(testFixtures(project(":engine:engine-runtime")))
 
     testFixturesImplementation(libs.kotlinx.coroutines.core)

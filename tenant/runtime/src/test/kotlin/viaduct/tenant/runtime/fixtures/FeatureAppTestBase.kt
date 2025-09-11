@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import viaduct.api.reflect.Type
 import viaduct.api.types.NodeObject
+import viaduct.service.ViaductBuilder
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.mocks.MockFlagManager
 import viaduct.service.runtime.StandardViaduct
@@ -95,11 +96,11 @@ abstract class FeatureAppTestBase {
             .tenantResolverClassFinderFactory(tenantResolverClassFinderFactory)
             .tenantPackagePrefix(derivedClassPackagePrefix)
 
-    private lateinit var viaductBuilder: StandardViaduct.Builder
+    private lateinit var viaductBuilder: ViaductBuilder
     private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
     private lateinit var viaductService: StandardViaduct
 
-    fun withViaductBuilder(builderUpdate: StandardViaduct.Builder.() -> Unit) {
+    fun withViaductBuilder(builderUpdate: ViaductBuilder.() -> Unit) {
         viaductBuilder.apply(builderUpdate)
     }
 
@@ -115,7 +116,7 @@ abstract class FeatureAppTestBase {
                 .registerFullSchema(DEFAULT_SCOPE_ID)
         }
         if (!::viaductBuilder.isInitialized) {
-            viaductBuilder = StandardViaduct.Builder()
+            viaductBuilder = ViaductBuilder()
                 .withFlagManager(flagManager)
                 .withTenantAPIBootstrapperBuilder(viaductTenantAPIBootstrapperBuilder)
                 .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
