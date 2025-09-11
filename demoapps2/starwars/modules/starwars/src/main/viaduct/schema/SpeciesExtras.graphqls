@@ -1,0 +1,6 @@
+extend type Species @scope(to: ["extras"]) {
+  culturalNotes: String @resolver @scope(to: ["extras"])
+  rarityLevel: String @resolver @scope(to: ["extras"])
+  specialAbilities: [String] @resolver @scope(to: ["extras"])
+  technologicalLevel: String @resolver @scope(to: ["extras"])
+}

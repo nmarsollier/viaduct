@@ -1,0 +1,113 @@
+# GraphQL directive definitions used in Viaduct FeatureApp tests
+
+"""
+@resolver directive: Indicates that a field or object requires custom resolution logic.
+Used on fields that cannot be resolved through simple property access and need
+runtime computation, database lookups, or other complex logic.
+
+Usage:
+- On FIELD_DEFINITION: Marks a field as requiring a custom resolver implementation
+- On OBJECT: Marks an entire object type as requiring custom resolution
+
+Fragment Syntax:
+The @resolver directive supports two types of fragment syntax for efficient field resolution:
+
+1. Shorthand Fragment Syntax: @Resolver("fieldName")
+   - Delegates resolution to another field on the same object
+   - Useful for creating aliases or computed fields based on existing data
+   - Example: @Resolver("name") for a displayName field
+
+2. Full Fragment Syntax: @Resolver("fragment _ on TypeName { field1 field2 }")
+   - Specifies exactly which fields to fetch from the object
+   - Enables computed fields that depend on multiple other fields
+   - Optimizes GraphQL execution by fetching only required fields
+   - Example: @Resolver("fragment _ on Character { name birthYear }")
+
+Example:
+type Character {
+  name: String @resolver
+  displayName: String @resolver  # Can use shorthand: @Resolver("name")
+  summary: String @resolver       # Can use full fragment: @Resolver("fragment _ on Character { name birthYear }")
+}
+"""
+directive @resolver on FIELD_DEFINITION | OBJECT
+
+"""
+@backingData directive: Specifies a backing data class for complex field resolution.
+Used for list fields that require custom data handling or transformation.
+The class parameter specifies the fully-qualified name of the backing data implementation.
+
+Usage:
+- class: String! - The backing data class name (e.g., "starwars.character.FilmConnection")
+
+Example:
+type Character {
+  films(limit: Int): [Film]
+    @resolver
+    @backingData(class: "starwars.character.FilmConnection")
+}
+"""
+directive @backingData(class: String!) on FIELD_DEFINITION
+
+"""
+@idOf directive: Specifies global ID type association and validation.
+Used to indicate that a field represents a global identifier for a specific type.
+This enables proper ID validation and type checking across the GraphQL schema.
+
+Usage:
+- type: String! - The GraphQL type this ID represents (e.g., "Character", "Film")
+
+Example:
+type Query {
+  character(id: ID! @idOf(type: "Character")): Character
+}
+
+type Character {
+  id: ID! @idOf(type: "Character")
+}
+"""
+directive @idOf(type: String!) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+"""
+@scope directive: Schema scoping for multi-tenant support.
+Restricts the availability of types, fields, or entire schema sections to specific
+tenants or contexts. This enables the same GraphQL schema to serve different
+applications or user groups with customized type visibility.
+
+Usage:
+- to: [String!]! - Array of tenant/scope names that can access this element
+- repeatable: Can be applied multiple times for different scoping contexts
+
+Example:
+type Query @scope(to: ["publicScope"]) {
+  allCharacters: [Character]
+}
+
+type Character @scope(to: ["starwars", "admin"]) {
+  name: String
+}
+"""
+directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION | FIELD_DEFINITION
+
+"""
+@oneOf directive: Input validation for exactly-one-field semantics.
+Ensures that input objects using this directive have exactly one non-null field.
+This is useful for union-like input types where only one option should be specified.
+
+Usage:
+Apply to input types that should have exactly one field set.
+
+Example:
+input SearchInput @oneOf {
+  byName: String
+  byId: ID
+  byEmail: String
+}
+
+# Valid usage: { byName: "Luke" }
+# Invalid usage: { byName: "Luke", byId: "1" }
+# Invalid usage: {}
+"""
+directive @oneOf on INPUT_OBJECT
+
+scalar BackingData

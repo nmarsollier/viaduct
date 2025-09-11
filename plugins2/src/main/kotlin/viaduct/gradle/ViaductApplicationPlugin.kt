@@ -35,11 +35,14 @@ class ViaductApplicationPlugin : Plugin<Project> {
             val appExt = extensions.create("viaductApplication", ViaductApplicationExtension::class.java, objects)
 
             val generateCentralSchemaTask = generateCentralSchemaTask(centralSchemaDirectory())
-            generateGRTsTask(
+            val generateGRTsTask = generateGRTsTask(
                 appExt,
                 centralSchemaDirectory(),
                 generateCentralSchemaTask,
             )
+
+            // Wire GRT classes into the application's own classpath (for tests and main code)
+            wireGRTClassesIntoClasspath(generateGRTsTask)
         }
 
     /** Synchronize all modules schema partition's into a single directory. */
@@ -160,6 +163,13 @@ class ViaductApplicationPlugin : Plugin<Project> {
         }
 
         return generateGRTsTask
+    }
+
+    /** Wire the generated GRT classes into the application's own classpath. */
+    private fun Project.wireGRTClassesIntoClasspath(generateGRTsTask: TaskProvider<*>) {
+        // GRT classes are generated as bytecode directly, so explicit classpath wiring is needed
+        // Use same approach as original plugins: add JAR as API dependency
+        dependencies.add("api", files(generateGRTsTask.flatMap { (it as Jar).archiveFile }).builtBy(generateGRTsTask))
     }
 
     companion object {

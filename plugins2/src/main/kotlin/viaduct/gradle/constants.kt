@@ -6,7 +6,7 @@ val centralSchemaDirectoryName = "$viaductBuildDirectory/centralSchema"
 
 fun Project.centralSchemaDirectory() = layout.buildDirectory.dir(centralSchemaDirectoryName)
 
-val grtClassesDirectoryName = "$viaductBuildDirectory/grtClasses"
+val grtClassesDirectoryName = "generated-sources/$viaductBuildDirectory/grtClasses"
 
 fun Project.grtClassesDirectory() = layout.buildDirectory.dir(grtClassesDirectoryName)
 

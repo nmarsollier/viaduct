@@ -1,0 +1,33 @@
+# Common GraphQL types shared across the Star Wars schema
+# This file contains base interfaces and root types common to all viaduct instances
+
+"""
+Node interface for objects that can be uniquely identified with a GlobalID.
+"""
+interface Node @scope(to: ["default"]) {
+  """
+  The GlobalID of the object (internal use only)
+  """
+  id: ID!
+}
+
+"""
+The root query object
+"""
+type Query @scope(to: ["default"]) {
+  _: String @deprecated
+}
+
+"""
+The root mutation object
+"""
+type Mutation @scope(to: ["default"]) {
+  _: String @deprecated
+}
+
+"""
+The root subscription object
+"""
+type Subscription @scope(to: ["default"]) {
+  _: String @deprecated
+}
