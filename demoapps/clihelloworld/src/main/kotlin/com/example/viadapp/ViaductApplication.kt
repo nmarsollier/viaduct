@@ -9,10 +9,11 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import viaduct.engine.runtime.execution.withThreadLocalCoroutineContext
-import viaduct.service.ViaductBuilder
+import viaduct.service.BasicViaductFactory
+import viaduct.service.SchemaRegistrationInfo
+import viaduct.service.SchemaScopeInfo
+import viaduct.service.TenantRegistrationInfo
 import viaduct.service.api.ExecutionInput
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
 const val SCHEMA_ID = "publicSchema"
 
@@ -20,19 +21,15 @@ fun main(argv: Array<String>) {
     val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as Logger
     rootLogger.level = Level.WARN
 
-    // Create a Viaduct engine
-    // Note to reviewers: this is the long-form of building an engine.  We plan on
-    // having a shorter form with defaults.
-    val viaduct = ViaductBuilder()
-        .withTenantAPIBootstrapperBuilder(
-            ViaductTenantAPIBootstrapper.Builder()
-                .tenantPackagePrefix("com.example.viadapp")
+    // Create a Viaduct engine using the BasicViaductFactory
+    val viaduct = BasicViaductFactory.create(
+        schemaRegistrationInfo = SchemaRegistrationInfo(
+            scopes = listOf(SchemaScopeInfo(SCHEMA_ID))
+        ),
+        tenantRegistrationInfo = TenantRegistrationInfo(
+            tenantPackagePrefix = "com.example.viadapp"
         )
-        .withSchemaRegistryBuilder(
-            ViaductSchemaRegistryBuilder()
-                .withFullSchemaFromResources("", ".*graphqls")
-                .registerFullSchema(SCHEMA_ID)
-        ).build()
+    )
 
     // Create an execution input
     val executionInput = ExecutionInput(

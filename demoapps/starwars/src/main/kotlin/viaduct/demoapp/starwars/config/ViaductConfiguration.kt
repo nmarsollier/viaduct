@@ -15,10 +15,11 @@ import org.springframework.web.servlet.function.RouterFunction
 import org.springframework.web.servlet.function.RouterFunctions
 import org.springframework.web.servlet.function.ServerResponse
 import viaduct.api.Resolver
-import viaduct.service.ViaductBuilder
+import viaduct.service.BasicViaductFactory
+import viaduct.service.SchemaRegistrationInfo
+import viaduct.service.SchemaScopeInfo
+import viaduct.service.TenantRegistrationInfo
 import viaduct.service.api.Viaduct
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
 const val SCHEMA_ID = "publicSchema"
 const val SCHEMA_ID_WITH_EXTRAS = "publicSchemaWithExtras"
@@ -43,18 +44,20 @@ class ViaductConfiguration {
 
     @Bean
     fun viaductService(): Viaduct =
-        ViaductBuilder()
-            .withTenantAPIBootstrapperBuilder(
-                ViaductTenantAPIBootstrapper.Builder()
-                    .tenantCodeInjector(codeInjector)
-                    .tenantPackagePrefix("viaduct.demoapp.starwars")
+        BasicViaductFactory.create(
+            schemaRegistrationInfo = SchemaRegistrationInfo(
+                scopes = listOf(
+                    SchemaScopeInfo(SCHEMA_ID, setOf("default")),
+                    SchemaScopeInfo(SCHEMA_ID_WITH_EXTRAS, setOf("default", EXTRAS_SCOPE_ID))
+                ),
+                packagePrefix = "viaduct.demoapp.starwars",
+                resourcesIncluded = ".*\\.graphqls"
+            ),
+            tenantRegistrationInfo = TenantRegistrationInfo(
+                tenantPackagePrefix = "viaduct.demoapp.starwars",
+                tenantCodeInjector = codeInjector
             )
-            .withSchemaRegistryBuilder(
-                ViaductSchemaRegistryBuilder()
-                    .withFullSchemaFromResources("viaduct.demoapp.starwars", ".*\\.graphqls")
-                    .registerScopedSchema(SCHEMA_ID, setOf("default"))
-                    .registerScopedSchema(SCHEMA_ID_WITH_EXTRAS, setOf("default", EXTRAS_SCOPE_ID))
-            ).build()
+        )
 
     @Bean
     @Order(0)
