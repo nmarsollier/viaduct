@@ -4,6 +4,7 @@ package viaduct.engine.runtime.tenantloading
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory.getLogger
 import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerExecutorFactory
@@ -20,7 +21,6 @@ import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
 import viaduct.engine.runtime.NodeResolverDispatcherImpl
 import viaduct.engine.runtime.validation.Validator
-import viaduct.utils.slf4j.logger
 
 class DispatcherRegistryFactory(
     private val tenantAPIBootstrapper: TenantAPIBootstrapper,
@@ -28,7 +28,7 @@ class DispatcherRegistryFactory(
     private val checkerExecutorFactory: CheckerExecutorFactory,
 ) {
     companion object {
-        private val log by logger()
+        private fun log() = getLogger(this::class.java.name.substringBefore("\$Companion"))
     }
 
     /** create and return a validated DispatcherRegistry */
@@ -56,7 +56,7 @@ class DispatcherRegistryFactory(
                 val tenantNodeResolverExecutors = tenant.nodeResolverExecutors(schema)
                 Pair(tenantFieldResolverExecutors, tenantNodeResolverExecutors)
             } catch (e: TenantModuleException) {
-                log.warn("Could not bootstrap $tenant", e)
+                log().warn("Could not bootstrap $tenant", e)
                 continue // still concatenate everything else, just skipping one tenant
             }
 
@@ -83,7 +83,7 @@ class DispatcherRegistryFactory(
                 tenantContributesExecutors = true
             }
             if (!tenantContributesExecutors) {
-                log.warn("Bootstrapping $tenant (a ${tenant.javaClass.name}) did not contribute any executors")
+                log().warn("Bootstrapping $tenant (a ${tenant.javaClass.name}) did not contribute any executors")
                 if (tenant.javaClass.simpleName == "ViaductTenantModuleBootstrapper") {
                     nonContributingModernBootstrappersPresent = true
                 }
@@ -91,7 +91,7 @@ class DispatcherRegistryFactory(
         }
         val dispatcherRegistry = DispatcherRegistry(fieldResolverDispatchers.toMap(), nodeResolverDispatchers.toMap(), fieldCheckerDispatchers.toMap(), typeCheckerDispatchers.toMap())
         if (dispatcherRegistry.isEmpty() && nonContributingModernBootstrappersPresent) {
-            log.warn("Empty executor registry for {}.", tenantModuleBootstrappers)
+            log().warn("Empty executor registry for {}.", tenantModuleBootstrappers)
         }
 
         validator.validate(

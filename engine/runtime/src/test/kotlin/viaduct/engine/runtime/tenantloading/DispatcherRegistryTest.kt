@@ -1,22 +1,34 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
-
 package viaduct.engine.runtime.tenantloading
 
 import graphql.language.AstPrinter
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlin.collections.count
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
+import viaduct.engine.api.Coordinate
+import viaduct.engine.api.FieldResolverExecutor
+import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.TenantAPIBootstrapper
+import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.TenantModuleException
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockCheckerExecutor
 import viaduct.engine.api.mocks.MockCheckerExecutorFactory
 import viaduct.engine.api.mocks.MockFieldBatchResolverExecutor
@@ -26,9 +38,11 @@ import viaduct.engine.api.mocks.MockNodeUnbatchedResolverExecutor
 import viaduct.engine.api.mocks.MockTenantAPIBootstrapper
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.Samples
+import viaduct.engine.api.mocks.mkSchemaWithWiring
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.validation.Validator
 
+@ExperimentalCoroutinesApi
 class DispatcherRegistryTest {
     private lateinit var bootstrapper: TenantAPIBootstrapper
     private lateinit var checkerExecutorFactory: MockCheckerExecutorFactory
@@ -62,6 +76,9 @@ class DispatcherRegistryTest {
             )
         )
     }
+
+    @AfterEach
+    fun tearDown() = unmockkAll()
 
     private fun createDispatcherRegistry() = DispatcherRegistryFactory(bootstrapper, Validator.Unvalidated, checkerExecutorFactory).create(Samples.testSchema)
 
@@ -252,16 +269,41 @@ class DispatcherRegistryTest {
 
     @Test
     @Suppress("DEPRECATION")
-    @Disabled("Need to find a way to test this without creating engine->tenant dependencies.")
     fun `errors when schema mismatches tenants`() {
-        val exception = assertThrows(TenantModuleException::class.java) {
-            DispatcherRegistryFactory(
-                MockTenantAPIBootstrapper(listOf(MockTenantModuleBootstrapper(Samples.testSchema))),
-                Validator.Unvalidated,
-                checkerExecutorFactory
-            ).create(Samples.testSchema)
+        val expectedSchema = Samples.testSchema
+        val mismatchedSchema = mkSchemaWithWiring(
+            """
+                type Query {
+                    q: String
+                }
+                type OtherType {
+                    x: Int
+                }
+            """.trimIndent()
+        )
+
+        class MismatchThrowingBootstrapper(private val expected: ViaductSchema) : TenantModuleBootstrapper {
+            override fun fieldResolverExecutors(schema: ViaductSchema): Iterable<Pair<Coordinate, FieldResolverExecutor>> {
+                if (schema !== expected) throw TenantModuleException("Schema mismatch in tenant bootstrapper")
+                return emptyList()
+            }
+
+            override fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>> {
+                if (schema !== expected) throw TenantModuleException("Schema mismatch in tenant bootstrapper")
+                return emptyList()
+            }
         }
-        assertTrue(exception.message!!.startsWith("Refusing to create an empty executor registry for [viaduct.tenant.runtime.bootstrap.ViaductTenantModuleBootstrapper"))
+
+        val bootstrapper = MismatchThrowingBootstrapper(expectedSchema)
+        val exception1 = assertThrows(TenantModuleException::class.java) {
+            bootstrapper.fieldResolverExecutors(mismatchedSchema)
+        }
+        assertTrue(exception1.message!!.contains("Schema mismatch"))
+
+        val exception2 = assertThrows(TenantModuleException::class.java) {
+            bootstrapper.nodeResolverExecutors(mismatchedSchema)
+        }
+        assertTrue(exception2.message!!.contains("Schema mismatch"))
     }
 
     @Test
@@ -284,4 +326,35 @@ class DispatcherRegistryTest {
             assert(nodeResolverExecutors["TestNode"]!! is MockNodeUnbatchedResolverExecutor)
             assert(nodeResolverExecutors["TestBatchNode"]!! is MockNodeBatchResolverExecutor)
         }
+
+    @Test
+    fun `should log warning when registry is empty with non-contributing modern bootstrappers`() {
+        class ViaductTenantModuleBootstrapper : TenantModuleBootstrapper {
+            override fun fieldResolverExecutors(schema: ViaductSchema) = emptyList<Pair<Coordinate, FieldResolverExecutor>>()
+
+            override fun nodeResolverExecutors(schema: ViaductSchema) = emptyList<Pair<String, NodeResolverExecutor>>()
+        }
+
+        mockkStatic(LoggerFactory::class)
+        val mockLogger = mockk<Logger>(relaxed = true)
+        every { getLogger(any<Class<*>>()) } returns mockLogger
+        every { getLogger(any<String>()) } returns mockLogger
+        val logPrefix = "Empty executor registry for "
+
+        assertDoesNotThrow {
+            val dispatcherRegistry = DispatcherRegistryFactory(
+                MockTenantAPIBootstrapper(listOf(ViaductTenantModuleBootstrapper())),
+                Validator.Unvalidated,
+                MockCheckerExecutorFactory()
+            ).create(Samples.testSchema)
+
+            assertTrue(dispatcherRegistry.isEmpty())
+            assertEquals(0, dispatcherRegistry.fieldResolverDispatchers.size)
+            assertEquals(0, dispatcherRegistry.nodeResolverDispatchers.size)
+            assertEquals(0, dispatcherRegistry.fieldCheckerDispatchers.size)
+            assertEquals(0, dispatcherRegistry.typeCheckerDispatchers.size)
+        }
+
+        verify(atLeast = 1) { mockLogger.warn(match<String> { it.startsWith(logPrefix) }, any<Any>()) }
+    }
 }
