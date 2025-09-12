@@ -34,32 +34,18 @@ group = "com.airbnb.viaduct" // TODO - find a better home for this constant
 version = libs.versions.project.get()
 
 
-
 tasks.jar {
-    enabled = false
+    archiveClassifier.set("slim")
 }
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    configurations = setOf(project.configurations.shadow.get())
 }
 
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
     // ^^ improve the reproducibility of JARs
-}
-
-configurations.archives {
-    outgoing.artifacts.clear()
-}
-configurations.apiElements {
-    outgoing.artifacts.clear()
-    outgoing.artifact(tasks.shadowJar)
-}
-configurations.runtimeElements {
-    outgoing.artifacts.clear()
-    outgoing.artifact(tasks.shadowJar)
 }
 
 
