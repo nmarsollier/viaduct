@@ -12,7 +12,7 @@ dokka {
     moduleVersion.set(project.version.toString())
 
     pluginsConfiguration.html {
-        homepageLink = "https://viaduct.airbnb.tech"
+        homepageLink = "https://airbnb.io/viaduct"
         customStyleSheets.from(rootProject.file("docs/kdoc-styles.css"))
         customAssets.from(rootProject.file("docs/assets/icons/logo-only-white.svg"))
         footerMessage = "&copy; 2025 Airbnb, Inc."

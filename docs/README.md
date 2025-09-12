@@ -1,6 +1,6 @@
-# viaduct.airbnb.tech
+# airbnb.io/viaduct
 
-This readme documents how to develop and deploy viaduct.airbnb.tech.
+This readme documents how to develop and deploy airbnb.io/viaduct.
 
 ## Stack
 
