@@ -3,10 +3,6 @@ plugins {
     id("viaduct-module")
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 viaductModule {
     modulePackageSuffix.set("helloworld")
 }
