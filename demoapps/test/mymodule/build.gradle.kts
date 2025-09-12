@@ -1,10 +1,14 @@
 plugins {
-    kotlin("jvm") version "1.9.24" // TODO - why doesn't it work with "1.8.22"
+    kotlin("jvm") version "1.9.10" // TODO - why doesn't it work with "1.8.22"
     id("viaduct-module")
 }
 
 viaductModule {
     modulePackageSuffix.set("helloworld")
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {

@@ -1,11 +1,15 @@
 plugins {
-    kotlin("jvm") version "1.9.24" // TODO - why doesn't it work with "1.8.22"
+    kotlin("jvm") version "1.9.10" // TODO - why doesn't it work with "1.8.22"
     id("viaduct-application")
     application
 }
 
 viaductApplication {
     modulePackagePrefix.set("com.example.viadapp")
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
