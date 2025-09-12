@@ -7,11 +7,9 @@ executors:
   kotlin-gradle-executor:
     docker:
       - image: cimg/openjdk:21.0
-    resource_class: medium
     working_directory: ~/project
     environment:
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-XX:MaxRAMPercentage=75.0 -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading -XX:+UseContainerSupport"
-      # Improve build performance
+      # Improve build performance in CI
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
@@ -250,10 +248,10 @@ jobs:
       - gradle-with-cache:
           steps:
             - run:
-                name: Run ktlint
+                name: Static Analysis
                 command: |
-                  echo "🧹 Running ktlint code style checks..."
-                  ./gradlew check || {
+                  echo "🧹 Running static analysis checks..."
+                  ./gradlew check --no-daemon --max-workers=1 || {
                     echo "❌ Static analysis found code style violations"
                     exit 1
                   }
