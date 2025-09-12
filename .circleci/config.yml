@@ -8,6 +8,7 @@ executors:
     docker:
       - image: cimg/openjdk:21.0
     working_directory: ~/project
+    resource_class: large
     environment:
       # Improve build performance in CI
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
