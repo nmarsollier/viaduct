@@ -1,0 +1,398 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="alternate" type="application/rss&#43;xml" href="https://airbnb.io/viaduct/docs/getting_started/index.xml">
+<meta name="robots" content="index, follow">
+
+
+<link rel="shortcut icon" href="/viaduct/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/viaduct/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/viaduct/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/viaduct/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/viaduct/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/viaduct/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/viaduct/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/viaduct/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/viaduct/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/viaduct/favicons/android-192x192.png" sizes="192x192">
+
+<title>Getting Started | Viaduct</title>
+<meta name="description" content="Setting up and modifying a simple Viaduct application">
+<meta property="og:url" content="https://airbnb.io/viaduct/docs/getting_started/">
+  <meta property="og:site_name" content="Viaduct">
+  <meta property="og:title" content="Getting Started">
+  <meta property="og:description" content="Setting up and modifying a simple Viaduct application">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+
+  <meta itemprop="name" content="Getting Started">
+  <meta itemprop="description" content="Setting up and modifying a simple Viaduct application">
+  <meta itemprop="wordCount" content="144">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Getting Started">
+  <meta name="twitter:description" content="Setting up and modifying a simple Viaduct application">
+<link rel="preload" href="/viaduct/scss/main.min.05b2b7ed415bf68be3a595af9d40e6014ab2dcfdc38741cedda4add4b4dcdde7.css" as="style" integrity="sha256-BbK37UFb9ovjpZWvnUDmAUqy3P3Dh0HO3aSt1LTc3ec=" crossorigin="anonymous">
+<link href="/viaduct/scss/main.min.05b2b7ed415bf68be3a595af9d40e6014ab2dcfdc38741cedda4add4b4dcdde7.css" rel="stylesheet" integrity="sha256-BbK37UFb9ovjpZWvnUDmAUqy3P3Dh0HO3aSt1LTc3ec=" crossorigin="anonymous">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-79P40SMGG8"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-79P40SMGG8');
+        }
+      </script>
+  </head>
+  <body class="td-section">
+    <header>
+      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/viaduct/"><span class="navbar-brand__logo navbar-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 400.94"><defs><style>.cls-1{fill:#fff}</style></defs><g id="Line"><path class="cls-1" d="M94.31 97.99c-.94.0-1.88-.36-2.6-1.08L17.43 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0L96.92 91.7c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M94.31 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.27c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L96.92 96.92c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M317.16 172.27c-.94.0-1.88-.36-2.6-1.08L165.99 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M168.59 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L314.55 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L171.2 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M317.16 320.84c-.94.0-1.88-.36-2.6-1.08L166 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M168.59 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l148.56-148.56c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L171.2 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M391.44 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l74.28 74.28c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M391.44 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21l-74.28 74.28c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M614.28 172.27c-.94.0-1.88-.36-2.6-1.08L463.12 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M465.72 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L611.68 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L468.33 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M614.28 320.84c-.94.0-1.88-.36-2.6-1.08L463.12 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M465.72 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l148.56-148.56c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L468.33 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M688.56 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l74.28 74.28c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M688.56 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0 1.44 1.44 1.44 3.77.0 5.21l-74.28 74.28c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M911.41 172.27c-.94.0-1.88-.36-2.6-1.08L760.24 22.63c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M762.84 172.27c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L908.8 17.43c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L765.45 171.2c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M911.41 320.84c-.94.0-1.88-.36-2.6-1.08L760.25 171.2c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0l148.56 148.56c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M762.84 320.84c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21L908.8 165.99c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L765.45 319.76c-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M985.69 97.99c-.94.0-1.88-.36-2.6-1.08l-74.28-74.28c-1.44-1.44-1.44-3.77.0-5.21s3.77-1.44 5.21.0L988.3 91.7c1.44 1.44 1.44 3.77.0 5.21-.72.72-1.66 1.08-2.6 1.08z"/><path class="cls-1" d="M985.69 97.99c-.94.0-1.88-.36-2.6-1.08-1.44-1.44-1.44-3.77.0-5.21l74.28-74.28c1.44-1.44 3.77-1.44 5.21.0s1.44 3.77.0 5.21L988.3 96.91c-.72.72-1.66 1.08-2.6 1.08z"/></g><g id="Container"><path class="cls-1" d="M911.41 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M911.41 320.84H762.85c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M762.84 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6s-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68s-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96s77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M614.28 320.84H465.72c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M465.72 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6s-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68s-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96s77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M317.16 320.84H168.6c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h148.56c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M168.59 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-38.93-31.67-70.6-70.6-70.6H20.03c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h74.28c42.99.0 77.96 34.97 77.96 77.96v148.56c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M20.03 97.99c-2.03.0-3.68-1.65-3.68-3.68V20.03c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v74.28c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M1059.97 23.71H20.03c-2.03.0-3.68-1.65-3.68-3.68s1.65-3.68 3.68-3.68h1039.94c2.03.0 3.68 1.65 3.68 3.68s-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M1059.97 97.99c-2.03.0-3.68-1.65-3.68-3.68V20.03c0-2.03 1.65-3.68 3.68-3.68s3.68 1.65 3.68 3.68v74.28c0 2.03-1.65 3.68-3.68 3.68z"/><path class="cls-1" d="M911.41 320.84c-2.03.0-3.68-1.65-3.68-3.68V168.6c0-42.99 34.97-77.96 77.96-77.96h74.28c2.03.0 3.68 1.65 3.68 3.68S1062 98 1059.97 98h-74.28c-38.93.0-70.6 31.67-70.6 70.6v148.56c0 2.03-1.65 3.68-3.68 3.68z"/></g><g id="Dot"><circle class="cls-1" cx="20.03" cy="20.03" r="20.03"/><circle class="cls-1" cx="94.31" cy="94.31" r="20.03"/><circle class="cls-1" cx="168.59" cy="20.03" r="20.03"/><circle class="cls-1" cx="168.59" cy="168.59" r="20.03"/><circle class="cls-1" cx="168.59" cy="317.16" r="20.03"/><circle class="cls-1" cx="242.87" cy="94.31" r="20.03"/><circle class="cls-1" cx="242.87" cy="242.87" r="20.03"/><circle class="cls-1" cx="317.16" cy="20.03" r="20.03"/><circle class="cls-1" cx="317.16" cy="168.59" r="20.03"/><circle class="cls-1" cx="317.16" cy="317.16" r="20.03"/><circle class="cls-1" cx="391.44" cy="94.31" r="20.03"/><circle class="cls-1" cx="465.72" cy="20.03" r="20.03"/><circle class="cls-1" cx="465.72" cy="168.59" r="20.03"/><circle class="cls-1" cx="465.72" cy="316.79" r="20.03"/><circle class="cls-1" cx="540" cy="94.31" r="20.03"/><circle class="cls-1" cx="540" cy="242.87" r="20.03"/><circle class="cls-1" cx="614.28" cy="20.4" r="20.03"/><circle class="cls-1" cx="614.28" cy="168.59" r="20.03"/><circle class="cls-1" cx="614.28" cy="316.79" r="20.03"/><circle class="cls-1" cx="688.56" cy="94.31" r="20.03"/><circle class="cls-1" cx="762.84" cy="20.03" r="20.03"/><circle class="cls-1" cx="762.84" cy="168.59" r="20.03"/><circle class="cls-1" cx="762.84" cy="316.79" r="20.03"/><circle class="cls-1" cx="837.13" cy="94.31" r="20.03"/><circle class="cls-1" cx="837.13" cy="242.87" r="20.03"/><circle class="cls-1" cx="911.41" cy="20.03" r="20.03"/><circle class="cls-1" cx="911.41" cy="168.59" r="20.03"/><circle class="cls-1" cx="911.41" cy="317.16" r="20.03"/><circle class="cls-1" cx="985.69" cy="94.31" r="20.03"/><circle class="cls-1" cx="1059.97" cy="20.03" r="20.03"/></g></svg></span><span class="navbar-brand__name">Viaduct</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/viaduct/about/"><span>About</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://medium.com/airbnb-engineering" target="_blank" rel="noopener"><span>Blog</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/viaduct/docs/"><span>Docs</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/viaduct/roadmap/"><span>Roadmap</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/viaduct/community/"><span>Community</span></a>
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/viaduct/offline-search-index.bc64a460bff44f7c50577e9d176c8e2f.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <div id="content-mobile">
+    <form class="td-sidebar__search d-flex align-items-center">
+      <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/viaduct/offline-search-index.bc64a460bff44f7c50577e9d176c8e2f.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+      <button class="btn btn-link td-sidebar__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+      </button>
+    </form>
+  </div>
+  <div id="content-desktop"></div>
+  <nav class="td-sidebar-nav collapse td-sidebar-nav--search-disabled" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path " id="m-viaductdocs-li">
+  <a href="/viaduct/docs/" title="Documentation" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-viaductdocs"><span class="">Docs</span></a>
+  <ul class="ul-1">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path " id="m-viaductdocsgetting_started-li">
+  <a href="/viaduct/docs/getting_started/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__section" id="m-viaductdocsgetting_started"><span class="td-sidebar-nav-active-item">Getting Started</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child  td-sidebar-nav-subsection " id="m-viaductdocsdevelopers-li">
+  <span
+    class=" td-sidebar-nav-subsection">Developers</span>
+    
+  <ul class="ul-2 foldable">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child " id="m-viaductdocsdevelopersresolvers-li">
+  <a href="/viaduct/docs/developers/resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsdevelopersresolvers"><span class="">Resolvers</span></a>
+  <ul class="ul-3 foldable">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolversnode_resolvers-li">
+  <a href="/viaduct/docs/developers/resolvers/node_resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolversnode_resolvers"><span class="">Node Resolvers</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolversfield_resolvers-li">
+  <a href="/viaduct/docs/developers/resolvers/field_resolvers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolversfield_resolvers"><span class="">Field Resolvers</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolversbatch_resolution-li">
+  <a href="/viaduct/docs/developers/resolvers/batch_resolution/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolversbatch_resolution"><span class="">Batch Resolution</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolversresolver_annotation-li">
+  <a href="/viaduct/docs/developers/resolvers/resolver_annotation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolversresolver_annotation"><span class="">Resolver Annotation</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolversnode_references-li">
+  <a href="/viaduct/docs/developers/resolvers/node_references/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolversnode_references"><span class="">Node References</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolverssubqueries-li">
+  <a href="/viaduct/docs/developers/resolvers/subqueries/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolverssubqueries"><span class="">Subqueries</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersresolversmutations-li">
+  <a href="/viaduct/docs/developers/resolvers/mutations/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersresolversmutations"><span class="">Mutations</span></a>
+</li>
+  </ul>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child " id="m-viaductdocsdeveloperstesting-li">
+  <a href="/viaduct/docs/developers/testing/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsdeveloperstesting"><span class="">Testing</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child " id="m-viaductdocsdevelopersglobalids-li">
+  <a href="/viaduct/docs/developers/globalids/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsdevelopersglobalids"><span class="">Global IDs</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child " id="m-viaductdocsdevelopersscopes-li">
+  <a href="/viaduct/docs/developers/scopes/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsdevelopersscopes"><span class="">Scopes</span></a>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child " id="m-viaductdocsdevelopersgenerated_code-li">
+  <a href="/viaduct/docs/developers/generated_code/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsdevelopersgenerated_code"><span class="">Generated Code</span></a>
+  <ul class="ul-3 foldable">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsdevelopersgenerated_codecode_structure-li">
+  <a href="/viaduct/docs/developers/generated_code/code_structure/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsdevelopersgenerated_codecode_structure"><span class="">Code Structure</span></a>
+</li>
+  </ul>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child " id="m-viaductdocsdevelopersschema_change_management-li">
+  <a href="/viaduct/docs/developers/schema_change_management/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsdevelopersschema_change_management"><span class="">Schema Change Management</span></a>
+</li>
+  </ul>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child  td-sidebar-nav-subsection " id="m-viaductdocsservice_engineers-li">
+  <span
+    class=" td-sidebar-nav-subsection">Service Engineers</span>
+    
+  <ul class="ul-2 foldable">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child " id="m-viaductdocsservice_engineersobservability-li">
+  <a href="/viaduct/docs/service_engineers/observability/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocsservice_engineersobservability"><span class="">Observability</span></a>
+  <ul class="ul-3 foldable">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child collapse " id="m-viaductdocsservice_engineersobservabilityerror_handling-li">
+  <a href="/viaduct/docs/service_engineers/observability/error_handling/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-viaductdocsservice_engineersobservabilityerror_handling"><span class="">Error Handling</span></a>
+</li>
+  </ul>
+</li>
+  </ul>
+</li><li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section with-child  td-sidebar-nav-subsection " id="m-viaductdocscontributors-li">
+  <span
+    class=" td-sidebar-nav-subsection">Contributors</span>
+    
+  <ul class="ul-2 foldable">
+    <li
+    class="td-sidebar-nav__section-title td-sidebar-nav__section without-child " id="m-viaductdocscontributorsarchitecture-li">
+  <a href="/viaduct/docs/contributors/architecture/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-viaductdocscontributorsarchitecture"><span class="">Architecture</span></a>
+</li>
+  </ul>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+<a href="https://github.com/airbnb/viaduct/tree/main/docs/content/docs/getting_started/_index.md" class="td-page-meta--view td-page-meta__view" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
+  <a href="https://github.com/airbnb/viaduct/edit/main/docs/content/docs/getting_started/_index.md" class="td-page-meta--edit td-page-meta__edit" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
+  <a href="https://github.com/airbnb/viaduct/new/main/docs/content/docs/getting_started?filename=change-me.md&amp;value=---%0Atitle%3A&#43;%22Long&#43;Page&#43;Title%22%0AlinkTitle%3A&#43;%22Short&#43;Nav&#43;Title%22%0Aweight%3A&#43;100%0Adescription%3A&#43;%3E-%0A&#43;&#43;&#43;&#43;&#43;Page&#43;description&#43;for&#43;heading&#43;and&#43;indexes.%0A---%0A%0A%23%23&#43;Heading%0A%0AEdit&#43;this&#43;template&#43;to&#43;create&#43;your&#43;new&#43;page.%0A%0A%2A&#43;Give&#43;it&#43;a&#43;good&#43;name%2C&#43;ending&#43;in&#43;%60.md%60&#43;-&#43;e.g.&#43;%60getting-started.md%60%0A%2A&#43;Edit&#43;the&#43;%22front&#43;matter%22&#43;section&#43;at&#43;the&#43;top&#43;of&#43;the&#43;page&#43;%28weight&#43;controls&#43;how&#43;its&#43;ordered&#43;amongst&#43;other&#43;pages&#43;in&#43;the&#43;same&#43;directory%3B&#43;lowest&#43;number&#43;first%29.%0A%2A&#43;Add&#43;a&#43;good&#43;commit&#43;message&#43;at&#43;the&#43;bottom&#43;of&#43;the&#43;page&#43;%28%3C80&#43;characters%3B&#43;use&#43;the&#43;extended&#43;description&#43;field&#43;for&#43;more&#43;detail%29.%0A%2A&#43;Create&#43;a&#43;new&#43;branch&#43;so&#43;you&#43;can&#43;preview&#43;your&#43;new&#43;file&#43;and&#43;request&#43;a&#43;review&#43;via&#43;Pull&#43;Request.%0A" class="td-page-meta--child td-page-meta__child" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
+  <a href="https://github.com/airbnb/viaduct/issues/new?title=Getting%20Started" class="td-page-meta--issue td-page-meta__issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
+  
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#getting-started-with-viaduct">Getting Started with Viaduct</a>
+      <ul>
+        <li><a href="#system-requirements">System Requirements</a></li>
+        <li><a href="#running-the-simple-application">Running the Simple Application</a></li>
+        <li><a href="#going-further">Going further</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+	
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+  
+
+            <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/viaduct/docs/">Docs</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    Getting Started</li>
+  </ol>
+</nav>
+<div class="td-content">
+	<h1>Getting Started</h1>
+  <div class="lead">Setting up and modifying a simple Viaduct application</div>
+	<header class="article-meta">
+		
+  </header>
+	<h2 id="getting-started-with-viaduct">Getting Started with Viaduct<a class="td-heading-self-link" href="#getting-started-with-viaduct" aria-label="Heading self-link"></a></h2><p>Using a set of scripts bundled with the Viaduct release, this document will walk you through the process of running a very simple Viaduct application.  Viaduct comes with built-in, Gradle-based tooling for building, testing, and running your sample application.  This guide uses that tooling and assumes a basic familiarity with Gradle.</p>
+<h3 id="system-requirements">System Requirements<a class="td-heading-self-link" href="#system-requirements" aria-label="Heading self-link"></a></h3><p>Java 21 must be on the path or available via JAVA_HOME.</p>
+<h3 id="running-the-simple-application">Running the Simple Application<a class="td-heading-self-link" href="#running-the-simple-application" aria-label="Heading self-link"></a></h3><p>Viaduct comes with a number of demonstration applications you can find in the <code>demoapps</code> directory.  Let’s start with the <code>demoapps/clihelloworld</code> application.  Change into that directory and type:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>./gradlew -q run --args<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;&#39;{ author }&#39;&#34;</span>
+</span></span></code></pre></div><p>This command will build the simple application run a graphql query with Viaduct.</p>
+<h3 id="going-further">Going further<a class="td-heading-self-link" href="#going-further" aria-label="Heading self-link"></a></h3><p>There are two other demo applications:</p>
+<ul>
+<li><a href="https://github.com/airbnb/viaduct/blob/main/demoapps/springhelloworld/README.md">springhelloworld</a> - a simple integration of spring with Spring.</li>
+<li><a href="https://github.com/airbnb/viaduct/blob/main/demoapps/starwars/README.md">starwars</a> - a full-fledged spring application to demonstrate more complex usage of
+Viaduct.</li>
+</ul>
+
+	<div class="section-index">
+    
+    
+    </div>
+<style>
+  .feedback--answer {
+    display: inline-block;
+  }
+  .feedback--answer-no {
+    margin-left: 1em;
+  }
+  .feedback--response {
+    display: none;
+    margin-top: 1em;
+  }
+  .feedback--response__visible {
+    display: block;
+  }
+</style>
+<div class="d-print-none">
+<h2 class="feedback--title">Feedback</h2>
+<p class="feedback--question">Was this page helpful?</p>
+<button class="btn btn-primary mb-4 feedback--answer feedback--answer-yes">Yes</button>
+<button class="btn btn-primary mb-4 feedback--answer feedback--answer-no">No</button>
+<p class="feedback--response feedback--response-yes">
+  Glad to hear it! Please <a href="https://github.com/airbnb/viaduct/issues/new">tell us how we can improve</a>.
+</p>
+<p class="feedback--response feedback--response-no">
+  Sorry to hear that. Please <a href="https://github.com/airbnb/viaduct/issues/new">tell us how we can improve</a>.
+</p>
+</div>
+<script>
+  const yesButton = document.querySelector('.feedback--answer-yes');
+  const noButton = document.querySelector('.feedback--answer-no');
+  const yesResponse = document.querySelector('.feedback--response-yes');
+  const noResponse = document.querySelector('.feedback--response-no');
+  const disableButtons = () => {
+    yesButton.disabled = true;
+    noButton.disabled = true;
+  };
+  const sendFeedback = (value) => {
+    if (typeof gtag !== 'function') return;
+    gtag('event', 'page_helpful', {
+      'event_category': 'Helpful',
+      'event_label': window.location.pathname,
+      'value': value
+    });
+  };
+  yesButton.addEventListener('click', () => {
+    yesResponse.classList.add('feedback--response__visible');
+    disableButtons();
+    sendFeedback( 100 );
+  });
+  noButton.addEventListener('click', () => {
+    noResponse.classList.add('feedback--response__visible');
+    disableButtons();
+    sendFeedback(0);
+  });
+</script>
+<br />
+</div>
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Discussions" aria-label="Discussions">
+    <a target="_blank" rel="noopener" href="https://github.com/airbnb/viaduct/discussions" aria-label="Discussions">
+      <i class="fa fa-comments"></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/airbnb/viaduct" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="Code of Conduct" aria-label="Code of Conduct">
+    <a target="_blank" rel="noopener" href="https://airbnb.io/codeofconduct" aria-label="Code of Conduct">
+      <i class="fas fa-scale-balanced"></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2025&ndash;2025
+    <span class="td-footer__authors">Airbnb, Inc. | <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a> |</span></span><span class="td-footer__all_rights_reserved">All Rights Reserved</span><span class="ms-2"><a href="https://www.airbnb.com/help/article/3175" target="_blank" rel="noopener">Privacy Policy</a></span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/viaduct/js/main.min.403ff095218c662472dab60ed98ecbb19431682de5ac7c6159891241cd366af5.js" integrity="sha256-QD/wlSGMZiRy2rYO2Y7LsZQxaC3lrHxhWYkSQc02avU=" crossorigin="anonymous"></script>
+<script defer src="/viaduct/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
+<script src='/viaduct/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

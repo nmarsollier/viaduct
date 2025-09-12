@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Observability on Viaduct</title>
+    <link>https://airbnb.io/viaduct/docs/service_engineers/observability/</link>
+    <description>Recent content in Observability on Viaduct</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="https://airbnb.io/viaduct/docs/service_engineers/observability/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Error Handling</title>
+      <link>https://airbnb.io/viaduct/docs/service_engineers/observability/error_handling/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://airbnb.io/viaduct/docs/service_engineers/observability/error_handling/</guid>
+      <description>&lt;div class=&#34;alert alert-info&#34; role=&#34;alert&#34;&gt;&#xA;&lt;h4 class=&#34;alert-heading&#34;&gt;Preview Feature&lt;/h4&gt;&#xA;&#xA;    This feature is currently in development. All documented functionality is ready to use but the API may change in future releases.&#xA;&#xA;&lt;/div&gt;&#xA;&#xA;&lt;h2 id=&#34;data-fetcher-error-handling&#34;&gt;Data Fetcher Error Handling&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#data-fetcher-error-handling&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Viaduct provides two extension points for customizing error handling in&#xA;resolvers. Both are optional for service architects.&lt;/p&gt;&#xA;&lt;h3 id=&#34;resolvererrorbuilder&#34;&gt;ResolverErrorBuilder&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#resolvererrorbuilder&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;When a resolver throws an exception, Viaduct will catch it and return it&#xA;as a GraphQL error. As a service architect, you can customize&#xA;resolver exception handling by implementing your own &lt;a class=&#34;kdoc-link&#34; href=&#34;https://airbnb.io/viaduct/apis/service/service/service-api/viaduct.service.api.spi/-resolver-error-builder/&#34;&gt;&lt;code&gt;ResolverErrorBuilder&lt;/code&gt;&lt;/a&gt;&#xA;.&#xA;This interface has a single method, &lt;code&gt;exceptionToGraphQLError&lt;/code&gt;, which takes the thrown exception and constructs a &lt;code&gt;GraphQLError&lt;/code&gt; object.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
