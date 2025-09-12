@@ -1,1 +1,0 @@
-// Auto-configured by viaduct-app plugin
