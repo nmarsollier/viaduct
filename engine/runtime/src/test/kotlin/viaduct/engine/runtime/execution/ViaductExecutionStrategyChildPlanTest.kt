@@ -90,9 +90,9 @@ class ViaductExecutionStrategyChildPlanTest {
                     )
                 )
 
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "TestEntity" to "details" to "__typename"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("TestEntity" to "details", "__typename")
+                    .build()
 
                 val executionResult = executeViaductModernGraphQL(
                     sdl = sdl,
@@ -145,9 +145,9 @@ class ViaductExecutionStrategyChildPlanTest {
                 )
 
                 // Create a Query-level required selection set
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "Query" to "specialField" to "__typename"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("Query" to "specialField", "__typename")
+                    .build()
 
                 val executionResult = executeViaductModernGraphQL(
                     sdl = sdl,
@@ -218,9 +218,9 @@ class ViaductExecutionStrategyChildPlanTest {
                     )
                 )
 
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "TestNode" to "restrictedField" to "id"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("TestNode" to "restrictedField", "id")
+                    .build()
 
                 val executionResult = executeViaductModernGraphQL(
                     sdl = sdl,
@@ -305,12 +305,10 @@ class ViaductExecutionStrategyChildPlanTest {
                     )
                 )
 
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "Item" to "restricted" to "id"
-                ) + MockRequiredSelectionSetRegistry.mkForSelectedType(
-                    "Query",
-                    "Item" to "restricted" to "globalConfig { value }"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("Item" to "restricted", "id")
+                    .fieldResolverEntryForType("Query", "Item" to "restricted", "globalConfig { value }")
+                    .build()
 
                 val executionResult = executeViaductModernGraphQL(
                     sdl = sdl,
@@ -410,11 +408,11 @@ class ViaductExecutionStrategyChildPlanTest {
                     )
                 )
 
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "Level1" to "level2" to "id",
-                    "Level2" to "level3" to "id",
-                    "Level3" to "data" to "id"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("Level1" to "level2", "id")
+                    .fieldResolverEntry("Level2" to "level3", "id")
+                    .fieldResolverEntry("Level3" to "data", "id")
+                    .build()
 
                 val executionResult = executeViaductModernGraphQL(
                     sdl = sdl,
@@ -494,9 +492,9 @@ class ViaductExecutionStrategyChildPlanTest {
                     )
                 )
 
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "ListItem" to "restricted" to "id"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("ListItem" to "restricted", "id")
+                    .build()
 
                 val executionResult = executeViaductModernGraphQL(
                     sdl = sdl,
@@ -595,10 +593,10 @@ class ViaductExecutionStrategyChildPlanTest {
                     )
                 )
 
-                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.mk(
-                    "User" to "restricted" to "id",
-                    "Admin" to "restricted" to "id"
-                )
+                val requiredSelectionSetRegistry = MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("User" to "restricted", "id")
+                    .fieldResolverEntry("Admin" to "restricted", "id")
+                    .build()
 
                 val typeResolvers = mapOf(
                     "Entity" to TypeResolver { env ->

@@ -716,16 +716,25 @@ class FromFieldVariablesHaveValidPathsTest {
                 objVars + queryVars
             )
 
-            var reg = MockRequiredSelectionSetRegistry.empty
+            return MockRequiredSelectionSetRegistry.builder()
+                .also { b ->
+                    if (objectSelections != null) {
+                        b.fieldResolverEntry(
+                            coordinate,
+                            objectSelections,
+                            varResolvers
+                        )
+                    }
 
-            if (objectSelections != null) {
-                reg += MockRequiredSelectionSetRegistry.mkForSelectedType(coordinate.first, coordinate to objectSelections to varResolvers)
-            }
-
-            if (querySelections != null) {
-                reg += MockRequiredSelectionSetRegistry.mkForSelectedType(schema.schema.queryType.name, coordinate to querySelections to varResolvers)
-            }
-            return reg
+                    if (querySelections != null) {
+                        b.fieldResolverEntryForType(
+                            schema.schema.queryType.name,
+                            coordinate,
+                            querySelections,
+                            varResolvers
+                        )
+                    }
+                }.build()
         }
 
         fun assertAllValid(reg: MockRequiredSelectionSetRegistry) {
@@ -751,7 +760,7 @@ class FromFieldVariablesHaveValidPathsTest {
             }
 
         private val MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.coord: Coordinate
-            get() = (this as MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldEntry).coord
+            get() = (this as MockRequiredSelectionSetRegistry.FieldEntry).coord
 
         fun validate(
             coord: Coordinate,

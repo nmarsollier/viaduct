@@ -11,15 +11,22 @@ import viaduct.engine.api.select.SelectionsParser
 
 class MockRequiredSelectionSetRegistryTest {
     @Test
-    fun `mk without variables`() {
-        val reg = MockRequiredSelectionSetRegistry.mk(
-            "Foo" to "f1" to "x",
-            "Foo" to "f2" to "x y",
-            "Bar" to "b1" to "x",
-            "Bar" to null to "x",
-        )
+    fun `empty`() {
+        val reg = MockRequiredSelectionSetRegistry.empty
+        val noEntries = emptyList<RequiredSelectionSet>()
+        assertEquals(noEntries, reg.getRequiredSelectionSetsForField("Foo", "x"))
+        assertEquals(noEntries, reg.getFieldResolverRequiredSelectionSets("Foo", "y"))
+        assertEquals(noEntries, reg.getRequiredSelectionSetsForType("Foo"))
+    }
 
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Foo", "other"))
+    @Test
+    fun `fieldResolverEntry`() {
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntry("Foo" to "f1", "x")
+            .fieldResolverEntry("Foo" to "f2", "x y")
+            .fieldResolverEntry("Bar" to "b1", "x")
+            .build()
+
         assertEquals(
             listOf(
                 RequiredSelectionSet(
@@ -48,47 +55,23 @@ class MockRequiredSelectionSetRegistryTest {
             ),
             reg.getRequiredSelectionSetsForField("Bar", "b1")
         )
-        assertEquals(
-            listOf(
-                RequiredSelectionSet(
-                    SelectionsParser.parse("Bar", "x"),
-                    emptyList()
-                )
-            ),
-            reg.getRequiredSelectionSetsForType("Bar")
-        )
     }
 
     @Test
-    fun `mk with variables`() {
-        val reg = MockRequiredSelectionSetRegistry.mk(
-            "Foo" to "f1" to "x" to emptyList(),
-            "Foo" to "f2" to "x(arg:\$a), b" to (
-                VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Foo", "b"),
-                    ParsedSelections.empty("Query"),
-                    listOf(FromObjectFieldVariable("a", "b"))
+    fun `fieldResolverEntry -- with variables`() {
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntry(
+                "Foo" to "f2",
+                "x(arg:\$a), b",
+                (
+                    VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Foo", "b"),
+                        ParsedSelections.empty("Query"),
+                        listOf(FromObjectFieldVariable("a", "b"))
+                    )
                 )
-            ),
-            "Foo" to null to "x(arg:\$a), b" to (
-                VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Foo", "b"),
-                    ParsedSelections.empty("Query"),
-                    listOf(FromObjectFieldVariable("a", "b"))
-                )
-            ),
-        )
-
-        assertEquals(listOf<RequiredSelectionSet>(), reg.getRequiredSelectionSetsForField("Foo", "other"))
-        assertEquals(
-            listOf(
-                RequiredSelectionSet(
-                    SelectionsParser.parse("Foo", "x"),
-                    emptyList()
-                )
-            ),
-            reg.getRequiredSelectionSetsForField("Foo", "f1")
-        )
+            )
+            .build()
 
         val rssWithVariable = RequiredSelectionSet(
             SelectionsParser.parse("Foo", "x(arg:\$a), b"),
@@ -106,44 +89,85 @@ class MockRequiredSelectionSetRegistryTest {
             ),
             reg.getRequiredSelectionSetsForField("Foo", "f2")
         )
+    }
+
+    @Test
+    fun `typeCheckerEntry`() {
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .typeCheckerEntry("Bar", "x")
+            .build()
+
         assertEquals(
             listOf(
-                rssWithVariable
+                RequiredSelectionSet(
+                    SelectionsParser.parse("Bar", "x"),
+                    emptyList()
+                )
+            ),
+            reg.getRequiredSelectionSetsForType("Bar")
+        )
+    }
+
+    @Test
+    fun `typeCheckerEntry -- with variables`() {
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .typeCheckerEntry(
+                "Foo",
+                "x(arg:\$a), b",
+                VariablesResolver.fromSelectionSetVariables(
+                    SelectionsParser.parse("Foo", "b"),
+                    ParsedSelections.empty("Query"),
+                    listOf(FromObjectFieldVariable("a", "b"))
+                )
+            )
+            .build()
+
+        assertEquals(
+            listOf(
+                RequiredSelectionSet(
+                    SelectionsParser.parse("Foo", "x(arg:\$a), b"),
+                    VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Foo", "b"),
+                        ParsedSelections.empty("Query"),
+                        listOf(FromObjectFieldVariable("a", "b"))
+                    ),
+                )
             ),
             reg.getRequiredSelectionSetsForType("Foo")
         )
     }
 
     @Test
-    fun `mkForSelectedType`() {
-        val reg = MockRequiredSelectionSetRegistry.mkForSelectedType(
-            "Query",
-            "Foo" to "f1" to "x",
-            "Foo" to null to "y"
-        )
+    fun `fieldResolverEntryForType`() {
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntryForType(
+                "Query",
+                "Foo" to "f1",
+                "x",
+            )
+            .build()
+
         val rsss = reg.getRequiredSelectionSetsForField("Foo", "f1")
         assertEquals(1, rsss.size)
         val rss = rsss.first()
         assertEquals("Query", rss.selections.typeName)
-
-        val typeRsss = reg.getRequiredSelectionSetsForType("Foo")
-        assertEquals(1, typeRsss.size)
-        val typeRss = typeRsss.first()
-        assertEquals("Query", typeRss.selections.typeName)
     }
 
     @Test
     fun `plus`() {
-        val result = MockRequiredSelectionSetRegistry.mk(
-            "Foo" to "a" to "x",
-            "Foo" to "b" to "y",
-            "Foo" to "b" to "y",
-            "Foo" to null to "x"
-        ) + MockRequiredSelectionSetRegistry.Companion.mk(
-            "Foo" to "b" to "y2",
-            "Foo" to "c" to "z",
-            "Foo" to null to "z"
-        )
+        val a = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntry("Foo" to "a", "x")
+            .fieldCheckerEntry("Foo" to "b", "y")
+            .fieldResolverEntryForType("Query", "Foo" to "b", "y")
+            .typeCheckerEntry("Foo", "x")
+            .build()
+        val b = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntry("Foo" to "b", "y2")
+            .fieldCheckerEntry("Foo" to "c", "z")
+            .typeCheckerEntry("Foo", "z")
+            .build()
+
+        val result = a + b
         assertEquals(
             listOf(
                 RequiredSelectionSet(

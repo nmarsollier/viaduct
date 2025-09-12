@@ -10,22 +10,26 @@ import viaduct.engine.api.FromQueryFieldVariable
 import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
-import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldCheckerEntry as FieldCheckerEntry
-import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldResolverEntry as FieldResolverEntry
+import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry.FieldResolverEntry
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.select.SelectionsParser
 
 class RequiredSelectionsAreAcyclicTest {
     @Test
     fun `valid -- no required selections`() {
-        assertValid("type Subject { x: Int }")
+        assertValid(
+            "type Subject { x: Int }",
+            MockRequiredSelectionSetRegistry.empty
+        )
     }
 
     @Test
     fun `valid -- dependency on sibling`() {
         assertValid(
             "type Subject { x: Int y: Int }",
-            FieldResolverEntry("Subject" to "x", "y")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .build()
         )
     }
 
@@ -36,7 +40,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { x: Int }
                 type Subject { x: Int obj: Obj }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "obj { x }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "obj { x }")
+                .build()
         )
     }
 
@@ -47,8 +53,10 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { x: Int y: Int }
                 type Subject { x: Int y: Int obj: Obj }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "obj { x }"),
-            FieldResolverEntry("Subject" to "y", "obj { y }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "obj { x }")
+                .fieldResolverEntry("Subject" to "y", "obj { y }")
+                .build()
         )
     }
 
@@ -59,8 +67,10 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { x: Int y: Int }
                 type Subject { x: Int y: Int z: Int obj: Obj }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "y z"),
-            FieldResolverEntry("Subject" to "y", "obj { y }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y z")
+                .fieldResolverEntry("Subject" to "y", "obj { y }")
+                .build()
         )
     }
 
@@ -71,8 +81,10 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { a: Int }
                 type Subject { x: Int y: Obj z: Int h: Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "y { a } z"),
-            FieldResolverEntry("Subject" to "y", "h")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y { a } z")
+                .fieldResolverEntry("Subject" to "y", "h")
+                .build()
         )
     }
 
@@ -80,8 +92,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- same required selection sets for same coordinate`() {
         assertValid(
             "type Subject { x: Int y: Int }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "x", "y")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "x", "y")
+                .build()
         )
     }
 
@@ -89,9 +103,11 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- same required selection sets for same coordinate 1`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "z"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "z")
+                .build()
         )
     }
 
@@ -99,8 +115,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- different required selection sets for same coordinate`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "x", "y z")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "x", "y z")
+                .build()
         )
     }
 
@@ -108,8 +126,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- different required selection sets for same coordinate 1`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "x", "z")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "x", "z")
+                .build()
         )
     }
 
@@ -117,10 +137,12 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- same required selection sets for multiple same coordinate`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "z"),
-            FieldResolverEntry("Subject" to "y", "z"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "z")
+                .fieldResolverEntry("Subject" to "y", "z")
+                .build()
         )
     }
 
@@ -128,7 +150,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- concrete system coordinate`() {
         assertValid(
             "type Subject { x: Int }",
-            FieldResolverEntry("Subject" to "x", "__typename")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "__typename")
+                .build()
         )
     }
 
@@ -136,7 +160,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- selections on recursive object`() {
         assertValid(
             "type Subject { subj: Subject x: Int }",
-            FieldResolverEntry("Subject" to "x", "subj { subj { subj { __typename } } }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "subj { subj { subj { __typename } } }")
+                .build()
         )
     }
 
@@ -147,7 +173,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Other { subj: Subject }
                 type Subject { other: Other, x: Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "other { subj { other { subj { __typename } } } }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "other { subj { other { subj { __typename } } } }")
+                .build()
         )
     }
 
@@ -158,7 +186,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { subj: Subject }
                 type Subject { obj: Obj, x: Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "obj { subj { obj { subj { __typename } } } }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "obj { subj { obj { subj { __typename } } } }")
+                .build()
         )
     }
 
@@ -169,8 +199,10 @@ class RequiredSelectionsAreAcyclicTest {
                 type Obj { subj:Subject }
                 type Subject { obj:Obj, x:Int, y:Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "obj { subj { y } }"),
-            FieldResolverEntry("Subject" to "y", "obj { subj { __typename } }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "obj { subj { y } }")
+                .fieldResolverEntry("Subject" to "y", "obj { subj { __typename } }")
+                .build()
         )
     }
 
@@ -181,7 +213,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject { x: Int u: Union }
                 union Union = Subject
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "u { __typename }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "u { __typename }")
+                .build()
         )
     }
 
@@ -189,7 +223,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- field checker rss references self`() {
         assertValid(
             "type Subject { x: Int }",
-            FieldCheckerEntry("Subject" to "x", "x"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "x")
+                .build()
         )
     }
 
@@ -197,8 +233,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- field checker references self with resolver`() {
         assertValid(
             "type Subject { x: Int y: Int }",
-            FieldCheckerEntry("Subject" to "x", "x"),
-            FieldResolverEntry("Subject" to "x", "y"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "x")
+                .fieldResolverEntry("Subject" to "x", "y")
+                .build()
         )
     }
 
@@ -206,7 +244,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- field checker with multiple required selections`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldCheckerEntry("Subject" to "x", "y z")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "y z")
+                .build()
         )
     }
 
@@ -214,8 +254,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- multiple field checkers for same field`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldCheckerEntry("Subject" to "x", "y"),
-            FieldCheckerEntry("Subject" to "x", "z")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "y")
+                .fieldCheckerEntry("Subject" to "x", "z")
+                .build()
         )
     }
 
@@ -223,8 +265,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- field checker with resolver on different fields`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldCheckerEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "z", "y")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "z", "y")
+                .build()
         )
     }
 
@@ -232,8 +276,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `valid -- mixed field checker and resolver dependencies`() {
         assertValid(
             "type Subject { x: Int y: Int z: Int }",
-            FieldCheckerEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "z")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "z")
+                .build()
         )
     }
 
@@ -241,7 +287,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via self`() {
         assertInvalid(
             "type Subject { x: Int }",
-            FieldResolverEntry("Subject" to "x", "x")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "x")
+                .build()
         )
     }
 
@@ -249,8 +297,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via sibling fields`() {
         assertInvalid(
             "type Subject { x: Int, y: Int }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "x"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "x")
+                .build()
         )
     }
 
@@ -258,8 +308,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            FieldResolverEntry("Subject" to "x", "subject { y }"),
-            FieldResolverEntry("Subject" to "y", "subject { x }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "subject { y }")
+                .fieldResolverEntry("Subject" to "y", "subject { x }")
+                .build()
         )
     }
 
@@ -267,8 +319,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object 1`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "subject { x }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "subject { x }")
+                .build()
         )
     }
 
@@ -276,7 +330,9 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object 2`() {
         assertInvalid(
             "type Subject { x: Subject }",
-            FieldResolverEntry("Subject" to "x", "x { __typename }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "x { __typename }")
+                .build()
         )
     }
 
@@ -284,8 +340,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- recursion via nested object for each coordinate`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            FieldResolverEntry("Subject" to "x", "subject { x }"),
-            FieldResolverEntry("Subject" to "y", "subject { y }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "subject { x }")
+                .fieldResolverEntry("Subject" to "y", "subject { y }")
+                .build()
         )
     }
 
@@ -293,8 +351,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- same coordinate with cycle itself`() {
         assertInvalid(
             "type Subject { x: Int }",
-            FieldResolverEntry("Subject" to "x", "x"),
-            FieldResolverEntry("Subject" to "x", "x"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "x")
+                .fieldResolverEntry("Subject" to "x", "x")
+                .build()
         )
     }
 
@@ -302,9 +362,11 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- same coordinate recursion with cycle from nested object`() {
         assertInvalid(
             "type Subject { x: Int, y: Int, subject: Subject }",
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "x", "subject { y }"),
-            FieldResolverEntry("Subject" to "y", "subject { x }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "x", "subject { y }")
+                .fieldResolverEntry("Subject" to "y", "subject { x }")
+                .build()
         )
     }
 
@@ -315,7 +377,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject implements Interface { x: Int, iface: Interface }
                 interface Interface { x: Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "iface { x }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "iface { x }")
+                .build()
         )
     }
 
@@ -326,7 +390,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject implements Interface { x: Int, iface: Interface }
                 interface Interface { x: Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "iface { ... on Subject { x } }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "iface { ... on Subject { x } }")
+                .build()
         )
     }
 
@@ -337,7 +403,9 @@ class RequiredSelectionsAreAcyclicTest {
                 type Subject { x: Int, union: Union }
                 union Union = Subject
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "union { ... on Subject { x } }"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "union { ... on Subject { x } }")
+                .build()
         )
     }
 
@@ -345,8 +413,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- cycle through query selections`() {
         assertInvalid(
             sdl = "extend type Query { i:Int, f:Foo } type Foo { c:Int }",
-            registry = MockRequiredSelectionSetRegistry.mk("Query" to "i" to "f { c }") +
-                MockRequiredSelectionSetRegistry.mkForSelectedType("Query", "Foo" to "c" to "i")
+            registry = MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Query" to "i", "f { c }")
+                .fieldResolverEntryForType("Query", "Foo" to "c", "i")
+                .build()
         )
     }
 
@@ -356,8 +426,10 @@ class RequiredSelectionsAreAcyclicTest {
             """
                 type Subject { x: Int, y: Int }
             """.trimIndent(),
-            FieldResolverEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "y"),
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "y")
+                .build()
         )
     }
 
@@ -368,15 +440,19 @@ class RequiredSelectionsAreAcyclicTest {
         assertDoesNotThrow {
             validateAll(
                 "extend type Query { data:Int } type Subject { field(x:Int):Int, otherField(x:Int):Int }",
-                MockRequiredSelectionSetRegistry.mk(
-                    "Subject" to "field" to "otherField(x:\$varx)" to VariablesResolver.fromSelectionSetVariables(
-                        ParsedSelections.empty("Subject"),
-                        SelectionsParser.parse("Query", "data"),
-                        listOf(
-                            FromQueryFieldVariable("varx", "data")
+                MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry(
+                        "Subject" to "field",
+                        "otherField(x:\$varx)",
+                        VariablesResolver.fromSelectionSetVariables(
+                            ParsedSelections.empty("Subject"),
+                            SelectionsParser.parse("Query", "data"),
+                            listOf(
+                                FromQueryFieldVariable("varx", "data")
+                            )
                         )
                     )
-                )
+                    .build()
             )
         }
     }
@@ -388,15 +464,19 @@ class RequiredSelectionsAreAcyclicTest {
         assertDoesNotThrow {
             validateAll(
                 "type Subject { field(x:Int):Int, otherField(x:Int):Int, data:Int }",
-                MockRequiredSelectionSetRegistry.mk(
-                    "Subject" to "field" to "otherField(x:\$varx)" to VariablesResolver.fromSelectionSetVariables(
-                        SelectionsParser.parse("Subject", "data"),
-                        ParsedSelections.empty("Query"),
-                        listOf(
-                            FromObjectFieldVariable("varx", "data")
+                MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry(
+                        "Subject" to "field",
+                        "otherField(x:\$varx)",
+                        VariablesResolver.fromSelectionSetVariables(
+                            SelectionsParser.parse("Subject", "data"),
+                            ParsedSelections.empty("Query"),
+                            listOf(
+                                FromObjectFieldVariable("varx", "data")
+                            )
                         )
                     )
-                )
+                    .build()
             )
         }
     }
@@ -407,22 +487,30 @@ class RequiredSelectionsAreAcyclicTest {
         // The resolver for Subject.b depends on the value of Subject.c, which is fetched using a variable derived from Subject.a
         assertInvalid(
             "type Subject { a(x:Int):Int, b(x:Int):Int, c(x:Int):Int }",
-            MockRequiredSelectionSetRegistry.mk(
-                "Subject" to "a" to "c(x:\$varx)" to VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Subject", "b(x:1)"),
-                    ParsedSelections.empty("Query"),
-                    listOf(
-                        FromObjectFieldVariable("varx", "b")
-                    )
-                ),
-                "Subject" to "b" to "c(x:\$varx)" to VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Subject", "a(x:2)"),
-                    ParsedSelections.empty("Query"),
-                    listOf(
-                        FromObjectFieldVariable("varx", "a")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry(
+                    "Subject" to "a",
+                    "c(x:\$varx)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Subject", "b(x:1)"),
+                        ParsedSelections.empty("Query"),
+                        listOf(
+                            FromObjectFieldVariable("varx", "b")
+                        )
                     )
                 )
-            )
+                .fieldResolverEntry(
+                    "Subject" to "b",
+                    "c(x:\$varx)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Subject", "a(x:2)"),
+                        ParsedSelections.empty("Query"),
+                        listOf(
+                            FromObjectFieldVariable("varx", "a")
+                        )
+                    )
+                )
+                .build()
         )
     }
 
@@ -433,22 +521,31 @@ class RequiredSelectionsAreAcyclicTest {
         // This creates a cycle in the query field dependencies
         assertInvalid(
             "extend type Query { a(x:Int):Int, b(x:Int):Int } type Subject { field(x:Int):Int }",
-            MockRequiredSelectionSetRegistry.mk(
-                "Subject" to "field" to "field(x:\$varx)" to VariablesResolver.fromSelectionSetVariables(
-                    ParsedSelections.empty("Subject"),
-                    SelectionsParser.parse("Query", "b(x:1)"),
-                    listOf(
-                        FromQueryFieldVariable("varx", "b")
-                    )
-                ),
-                "Query" to "b" to "a(x:\$vary)" to VariablesResolver.fromSelectionSetVariables(
-                    ParsedSelections.empty("Query"),
-                    SelectionsParser.parse("Query", "a(x:2)"),
-                    listOf(
-                        FromQueryFieldVariable("vary", "a")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry(
+                    "Subject" to "field",
+                    "field(x:\$varx)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        ParsedSelections.empty("Subject"),
+                        SelectionsParser.parse("Query", "b(x:1)"),
+                        listOf(
+                            FromQueryFieldVariable("varx", "b")
+                        )
                     )
                 )
-            )
+                .fieldResolverEntryForType(
+                    "Query",
+                    "Query" to "b",
+                    "a(x:\$vary)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        ParsedSelections.empty("Query"),
+                        SelectionsParser.parse("Query", "a(x:2)"),
+                        listOf(
+                            FromQueryFieldVariable("vary", "a")
+                        )
+                    )
+                )
+                .build()
         )
     }
 
@@ -460,29 +557,40 @@ class RequiredSelectionsAreAcyclicTest {
         // This creates a cycle: Subject.a -> Query.queryField -> Subject.b -> Subject.a
         assertInvalid(
             "extend type Query { queryField(x:Int):Int } type Subject { a(x:Int):Int, b(x:Int):Int }",
-            MockRequiredSelectionSetRegistry.mk(
-                "Subject" to "a" to "a(x:\$varx)" to VariablesResolver.fromSelectionSetVariables(
-                    ParsedSelections.empty("Subject"),
-                    SelectionsParser.parse("Query", "queryField(x:1)"),
-                    listOf(
-                        FromQueryFieldVariable("varx", "queryField")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry(
+                    "Subject" to "a",
+                    "a(x:\$varx)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        ParsedSelections.empty("Subject"),
+                        SelectionsParser.parse("Query", "queryField(x:1)"),
+                        listOf(
+                            FromQueryFieldVariable("varx", "queryField")
+                        )
                     )
-                ),
-                "Query" to "queryField" to "queryField(x:\$vary)" to VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Subject", "b(x:2)"),
-                    ParsedSelections.empty("Query"),
-                    listOf(
-                        FromObjectFieldVariable("vary", "b")
+                ).fieldResolverEntryForType(
+                    "Query",
+                    "Query" to "queryField",
+                    "queryField(x:\$vary)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Subject", "b(x:2)"),
+                        ParsedSelections.empty("Query"),
+                        listOf(
+                            FromObjectFieldVariable("vary", "b")
+                        )
                     )
-                ),
-                "Subject" to "b" to "a(x:\$varz)" to VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Subject", "a(x:3)"),
-                    ParsedSelections.empty("Query"),
-                    listOf(
-                        FromObjectFieldVariable("varz", "a")
+                ).fieldResolverEntry(
+                    "Subject" to "b",
+                    "a(x:\$varz)",
+                    VariablesResolver.fromSelectionSetVariables(
+                        SelectionsParser.parse("Subject", "a(x:3)"),
+                        ParsedSelections.empty("Query"),
+                        listOf(
+                            FromObjectFieldVariable("varz", "a")
+                        )
                     )
                 )
-            )
+                .build()
         )
     }
 
@@ -490,8 +598,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- field checker and resolver create cycle`() {
         assertInvalid(
             "type Subject { x: Int y: Int }",
-            FieldCheckerEntry("Subject" to "x", "y"),
-            FieldResolverEntry("Subject" to "y", "x")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "y")
+                .fieldResolverEntry("Subject" to "y", "x")
+                .build()
         )
     }
 
@@ -499,8 +609,10 @@ class RequiredSelectionsAreAcyclicTest {
     fun `invalid -- field checker mixed with resolver cycle through nested object`() {
         assertInvalid(
             "type Subject { x: Int y: Int subject: Subject }",
-            FieldCheckerEntry("Subject" to "x", "subject { y }"),
-            FieldResolverEntry("Subject" to "y", "subject { x }")
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "x", "subject { y }")
+                .fieldResolverEntry("Subject" to "y", "subject { x }")
+                .build()
         )
     }
 
@@ -511,13 +623,13 @@ class RequiredSelectionsAreAcyclicTest {
         // This creates a cycle: Subject.a -> Subject.b -> Subject.a (via variable)
         assertInvalid(
             "type Subject { a(x:Int):Int, b:Int, c(x:Int):Int }",
-            MockRequiredSelectionSetRegistry.mk(
-                FieldCheckerEntry("Subject" to "a", "b"),
-                FieldResolverEntry(
-                    coord = "Subject" to "b",
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry("Subject" to "a", "b")
+                .fieldResolverEntryForType(
                     selectionsType = "Subject",
+                    coord = "Subject" to "b",
                     selectionsString = "c(x:\$varx)",
-                    variableProviders = VariablesResolver.fromSelectionSetVariables(
+                    variablesResolvers = VariablesResolver.fromSelectionSetVariables(
                         SelectionsParser.parse("Subject", "a(x:1)"),
                         null,
                         listOf(
@@ -525,7 +637,7 @@ class RequiredSelectionsAreAcyclicTest {
                         )
                     )
                 )
-            )
+                .build()
         )
     }
 
@@ -534,8 +646,10 @@ class RequiredSelectionsAreAcyclicTest {
         val err = assertThrows<RequiredSelectionsCycleException> {
             validateAll(
                 "type Subject { x: Int, y: Int }",
-                FieldResolverEntry("Subject" to "x", "y"),
-                FieldResolverEntry("Subject" to "y", "x"),
+                MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("Subject" to "x", "y")
+                    .fieldResolverEntry("Subject" to "y", "x")
+                    .build()
             )
         }
         err.assertErrorPath(
@@ -553,8 +667,10 @@ class RequiredSelectionsAreAcyclicTest {
                     type Foo { x: Int bar: Bar }
                     type Bar { x: Int foo: Foo }
                 """.trimIndent(),
-                FieldResolverEntry("Foo" to "x", "bar { x }"),
-                FieldResolverEntry("Bar" to "x", "foo { x }")
+                MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("Foo" to "x", "bar { x }")
+                    .fieldResolverEntry("Bar" to "x", "foo { x }")
+                    .build()
             )
         }
         err.assertErrorPath(
@@ -570,7 +686,9 @@ class RequiredSelectionsAreAcyclicTest {
         val err = assertThrows<IllegalArgumentException> {
             validateAll(
                 "type Foo { x: Int }",
-                FieldResolverEntry("Foo" to "x", badSelectionSet)
+                MockRequiredSelectionSetRegistry.builder()
+                    .fieldResolverEntry("Foo" to "x", badSelectionSet)
+                    .build()
             )
         }
         if (!err.message!!.contains(badSelectionSet)) {
@@ -579,36 +697,21 @@ class RequiredSelectionsAreAcyclicTest {
     }
 
     /**
-     * Given a schema, plus a collection of required selection-sets,
-     * asserts that our cycle detector does _not_ detect a cycle.
+     * Given a schema, plus a collection of required selection-sets entries,
+     * asserts that the cycle detector does _not_ detect a cycle.
      * See [validateAll] for description of RSS representation.
      */
     private fun assertValid(
         sdl: String,
-        vararg requiredSelectionSetEntries: MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry
+        registry: MockRequiredSelectionSetRegistry
     ) {
-        val registry = MockRequiredSelectionSetRegistry(requiredSelectionSetEntries.toList())
         assertDoesNotThrow {
             validateAll(sdl, registry)
         }
     }
 
     /**
-     * Similar to [assertValid], except that it asserts that our cycle
-     * detector _does_ detect an error.
-     */
-    private fun assertInvalid(
-        sdl: String,
-        vararg requiredSelectionSetEntries: MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry
-    ) {
-        val registry = MockRequiredSelectionSetRegistry(requiredSelectionSetEntries.toList())
-        assertThrows<RequiredSelectionsCycleException> {
-            validateAll(sdl, registry)
-        }
-    }
-
-    /**
-     * Similar to [assertValid], except that it asserts that our cycle
+     * Similar to [assertValid], except that it asserts that the cycle
      * detector _does_ detect an error.
      */
     private fun assertInvalid(
@@ -623,11 +726,6 @@ class RequiredSelectionsAreAcyclicTest {
     private fun RequiredSelectionsCycleException.assertErrorPath(vararg expectedPath: String) {
         assertEquals(expectedPath.toList(), this.path.toList())
     }
-
-    private fun validateAll(
-        sdl: String,
-        vararg requiredSelectionSetEntries: MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry
-    ) = validateAll(sdl, MockRequiredSelectionSetRegistry(requiredSelectionSetEntries.toList()))
 
     /**
      * Given a schema and a collection of required selection sets,
@@ -653,8 +751,9 @@ class RequiredSelectionsAreAcyclicTest {
         val validator = RequiredSelectionsAreAcyclic(schema)
 
         val coordToValidate = registry.entries
-            .filterIsInstance<MockRequiredSelectionSetRegistry.RequiredSelectionSetEntry.FieldResolverEntry>()
-            .map { it.coord }.filterNotNull().toSet()
+            .filterIsInstance<FieldResolverEntry>()
+            .map { it.coord }
+            .toSet()
         coordToValidate.map { coord ->
             val ctx = RequiredSelectionsValidationCtx(
                 coord,

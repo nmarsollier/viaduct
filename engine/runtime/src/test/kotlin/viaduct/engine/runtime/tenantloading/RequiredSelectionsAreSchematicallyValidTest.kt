@@ -227,7 +227,9 @@ class RequiredSelectionsAreSchematicallyValidTest {
             selections: String,
             variablesResolvers: List<VariablesResolver> = emptyList()
         ) {
-            val reg = MockRequiredSelectionSetRegistry.mk(coord to selections to variablesResolvers)
+            val reg = MockRequiredSelectionSetRegistry.builder()
+                .fieldCheckerEntry(coord, selections, variablesResolvers)
+                .build()
             val ctx = RequiredSelectionsValidationCtx(coord, reg)
             validator.validate(ctx)
         }

@@ -230,9 +230,9 @@ class QueryPlanTest {
     fun `QueryPlanBuilder -- builds child plans for field required selection sets`() {
         Fixture(
             "type Query { x:Int, y:Int }",
-            MockRequiredSelectionSetRegistry.mk(
-                "Query" to "x" to "y"
-            )
+            MockRequiredSelectionSetRegistry.builder()
+                .fieldResolverEntry("Query" to "x", "y")
+                .build()
         ) {
             val plan = mkPlan("{x}")
             expectThat(plan) {
@@ -269,7 +269,9 @@ class QueryPlanTest {
                 FromObjectFieldVariable("vara", "z")
             )
         )
-        val reg = MockRequiredSelectionSetRegistry.mk("Query" to "x" to "y(a:\$vara)" to varResolvers)
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntry("Query" to "x", "y(a:\$vara)", varResolvers)
+            .build()
         Fixture("type Query { x:Int, y(a:Int):Int, z:Int }", reg) {
             val plan = mkPlan("{x}")
             expectThat(plan) {
@@ -327,17 +329,12 @@ class QueryPlanTest {
     fun `QueryPlanBuilder -- builds child plans for field type required selection sets`() {
         Fixture(
             """
-                type Query {
-                    x:ObjectX
-                }
-                type ObjectX {
-                    y:Int
-                    z:Int
-                }
+                type Query { x:ObjectX }
+                type ObjectX { y:Int z:Int }
             """.trimIndent(),
-            MockRequiredSelectionSetRegistry.mk(
-                "ObjectX" to null to "z"
-            )
+            MockRequiredSelectionSetRegistry.builder()
+                .typeCheckerEntry("ObjectX", "z")
+                .build()
         ) {
             val objectX = schema.getObjectType("ObjectX")!!
             val plan = mkPlan("{x{y}}")
@@ -424,10 +421,10 @@ class QueryPlanTest {
                     z:Int
                 }
             """.trimIndent(),
-            MockRequiredSelectionSetRegistry.mk(
-                "ObjectX" to null to "id",
-                "ObjectY" to null to "z",
-            )
+            MockRequiredSelectionSetRegistry.builder()
+                .typeCheckerEntry("ObjectX", "id")
+                .typeCheckerEntry("ObjectY", "z")
+                .build()
         ) {
             val objectX = schema.getObjectType("ObjectX")!!
             val objectY = schema.getObjectType("ObjectY")!!
