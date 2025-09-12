@@ -10,7 +10,7 @@ executors:
     resource_class: medium
     working_directory: ~/project
     environment:
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading"
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-XX:MaxRAMPercentage=75.0 -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading -XX:+UseContainerSupport"
       # Improve build performance
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       # Disable build scans in CI to avoid network timeouts
