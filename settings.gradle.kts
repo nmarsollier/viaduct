@@ -44,6 +44,8 @@ includeNamed("tenant:codegen")
 includeNamed("tenant:runtime")
 includeNamed("shared:codegen")
 
+
+include("tools")
 include("shared:utils")
 include("shared:logging")
 include("shared:deferred")

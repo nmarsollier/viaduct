@@ -164,6 +164,19 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
             this.javaExecutable.set(javaExecutable)
             this.generatedSrcDir.set(project.layout.buildDirectory.dir("generated-sources/schema/$name/generated_classes"))
 
+            doFirst {
+                val schemaFilesList = schemaFiles.files
+                val validator = ViaductBasicSchemaValidator(this.logger)
+                val errors = validator.validateSchema(schemaFilesList)
+                if (errors.isNotEmpty()) {
+                    logger.error("Schema validation failed for {}:", name)
+                    errors.forEach { logger.error(it.message ?: it.toString()) }
+                    throw GradleException("Schema validation failed for $name. See errors above.")
+                } else {
+                    logger.lifecycle("Schema validation passed for $name.")
+                }
+            }
+
             if (isInternalMode) {
                 dependsOn(mainProject!!.tasks.named("classes"))
 

@@ -9,6 +9,10 @@ plugins {
 
 project.version = libs.versions.project.get()
 
+dependencies {
+    implementation(libs.graphql.java)
+}
+
 // These are the plugins we're publishing externally for demoapp usage
 gradlePlugin {
     plugins {
