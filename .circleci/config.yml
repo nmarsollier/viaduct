@@ -7,10 +7,10 @@ executors:
   kotlin-gradle-executor:
     docker:
       - image: cimg/openjdk:21.0
+    resource_class: medium
     working_directory: ~/project
     environment:
-      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+EnableDynamicAgentLoading"
-      # Improve build performance
+      # Improve build performance in CI
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       # Disable build scans in CI to avoid network timeouts
       GRADLE_SCAN: "false"
@@ -237,8 +237,6 @@ jobs:
     executor: kotlin-gradle-executor
     steps:
       - checkout
-
-
       - attach_workspace:
           at: ~/project
       - fail-step:
@@ -254,23 +252,13 @@ jobs:
                 name: Run ktlint
                 command: |
                   echo "🧹 Running ktlint code style checks..."
-                  ./gradlew ktlintCheck --no-scan || {
-                    echo "❌ ktlint found code style violations"
+                  ./gradlew check || {
+                    echo "❌ Static analysis found code style violations"
                     exit 1
                   }
-                  echo "✅ ktlint checks passed"
-
-            - run:
-                name: Run Detekt
-                command: |
-                  echo "🔍 Running Detekt static analysis..."
-                  ./gradlew detekt --no-scan || {
-                    echo "❌ Detekt found code quality issues"
-                    exit 1
-                  }
-                  echo "✅ Detekt analysis passed"
+                  echo "✅ static analysis checks passed"
       - fail-step:
-          message: "Detekt static analysis failed"
+          message: "Static analysis failed"
 
       - store_artifacts:
           path: build/reports/detekt
