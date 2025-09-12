@@ -5,7 +5,6 @@ pluginManagement {
     includeBuild("build-logic-settings")
     includeBuild("build-logic-root")
     includeBuild("build-logic")
-    includeBuild("plugins2")
     includeBuild("build-test-plugins")
 
     plugins {

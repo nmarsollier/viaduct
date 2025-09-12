@@ -31,8 +31,13 @@ gradlePlugin {
 }
 
 dependencies {
-    implementation("com.airbnb.viaduct:tenant-codegen:${libs.versions.project.get()}:all") {
-        isChanging = true
+    implementation("com.airbnb.viaduct:tenant-codegen:${libs.versions.project.get()}") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.SHADOWED))
+        }
     }
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
 }

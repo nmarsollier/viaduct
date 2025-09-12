@@ -23,9 +23,13 @@ tasks.register("cleanBuildAndPublish") {
 
     doLast {
         val execOperations = project.serviceOf<ExecOperations>()
-        execOperations.exec { commandLine("./gradlew", "clean") }
+        // execOperations.exec { commandLine("./gradlew", "clean") } // clean shouldn't ever be used; if something doesn't work without it, then it needs a proper fix, which is *NOT* the clean task
         execOperations.exec { commandLine("./gradlew", ":tenant:tenant-codegen:publishToMavenLocal") }
         execOperations.exec { commandLine("./gradlew", ":runtime:publishToMavenLocal", "--no-configuration-cache", "--no-scan") }
+        execOperations.exec { 
+            workingDir = file("plugins2")
+            commandLine("./gradlew", "publishToMavenLocal", "--no-configuration-cache") 
+        }
     }
 }
 
