@@ -28,7 +28,6 @@ dependencies {
     testImplementation(libs.javassist)
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
-    testImplementation(project(":engine:engine-api"))
 }
 
 afterEvaluate {

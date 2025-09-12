@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":engine:engine-api"))
     api(project(":engine:engine-runtime"))
     api(project(":service:service-api"))
     api(libs.graphql.java)
