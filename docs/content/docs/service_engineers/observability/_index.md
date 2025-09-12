@@ -13,7 +13,7 @@ Viaduct provides built-in metrics on fields, field resolvers, node resolvers and
 * Determine latency (across various percentiles) in aggregate for measured entities
 * Figure out the sequence of executions of measured entities happening in a given request that is contributing to latency (critical path)
 * Understand why each measured entity is getting called / executed
-* Attribute each measured entity running in a request to a specific tenant
+* Attribute each measured entity running in a request to a specific tenant module
 
 ### Error Rate
 

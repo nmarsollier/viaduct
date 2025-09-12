@@ -3,11 +3,8 @@ title: Viaduct
 ---
 
 {{< blocks/cover title="Viaduct: A GraphQL Server" image_anchor="top" height="full" >}}
-<a class="btn btn-lg btn-primary me-3 mb-4" href="docs/">
-Learn More <i class="fas fa-arrow-alt-circle-right ms-2"></i>
-</a>
-<a class="btn btn-lg btn-secondary me-3 mb-4" href="https://github.com/airbnb/viaduct">
-Download <i class="fab fa-github ms-2 "></i>
+<a class="btn btn-lg btn-primary me-3 mb-4" href="docs/getting_started">
+Get Started<i class="fas fa-arrow-alt-circle-right ms-2"></i>
 </a>
 <p class="lead mt-5">A multitenant alternative to microservices</p>
 {{< blocks/link-down color="info" >}}
@@ -61,30 +58,8 @@ To achieve this, we focus on our core mission to empower product developers by d
 {{% /blocks/lead %}}
 
 
-{{% blocks/section color="white" type="row justify-content-center" class="trusted-by" %}}
+{{% blocks/section color="white" type="row text-center" %}}
 
-Trusted By
-{.h1 .text-center .mb-4}
+Created with ❤️ by <img src="airbnb_small.png" style="height: 2rem;" alt="Airbnb logo" />
 
-{{% imgproc airbnb Resize "216x125" %}}
-{{% /imgproc %}}
-
-{{% /blocks/section %}}
-
-
-{{% blocks/section type="row" color="primary" %}}
-{{% blocks/feature icon="fab fa-github" title="Contributions welcome!"
-url="https://github.com/airbnb/viaduct/blob/main/CONTRIBUTING.md" %}}
-We use a [Pull Request](https://github.com/airbnb/viaduct/pulls) contributions workflow on **GitHub**. New users are always welcome!
-{{% /blocks/feature %}}
-
-
-{{% blocks/feature icon="fab fa-mastodon" title="Follow us on Mastodon!" url="https://mastodon.social/@AirbnbViaduct" %}}
-For announcement of latest features etc.
-{{% /blocks/feature %}}
-
-
-{{% blocks/feature icon="fab fa-mastodon" title="Discussions" url="https://github.com/airbnb/viaduct/discussions/" %}}
-Join the community to ask questions, share ideas, and discuss Viaduct-related topics.
-{{% /blocks/feature %}}
 {{% /blocks/section %}}

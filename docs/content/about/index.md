@@ -2,9 +2,10 @@
 title: About Viaduct
 linkTitle: About
 menu: {main: {weight: 10}}
+exclude_search: true
 ---
 
-{{% blocks/cover title="About Viaduct" image_anchor="bottom" height="auto" %}}
+{{% blocks/cover title="About Viaduct" image_anchor="bottom" height="auto" color="primary" %}}
 {{% /blocks/cover %}}
 
 {{% blocks/section color="white" %}}
@@ -19,7 +20,7 @@ inefficiencies caused by an ever-growing dependency graph of microservices at Ai
 <div class="row justify-content-center mb-4">
 <div class="col-md-7">
 At the beginning of 2024, Airbnb began a rebuild of the original Viaduct
-system to improve developer experience, modularity, and architectural integrity. Over time, the previous system had become complex, with multiple ways to implement functionality and weak abstraction boundaries, making it hard to evolve without disrupting users. The rebuild introduces a simplified and unified developer API and a strong modular structure through "tenant modules." It also creates clearer boundaries between the GraphQL execution engine, the tenant API, and hosted application code, enhancing maintainability and enabling easier evolution of each layer independently. This modernization has allowed Airbnb to scale Viaduct use significantly while reducing operational overhead and improving performance and reliability. The new design and architecture support gradual migration and increased developer productivity, benefiting Airbnb by centralizing business logic, reducing overhead, and improving the developer experience across hundreds of teams.
+system to improve developer experience, modularity, and architectural integrity. Over time, the previous system had become complex, with multiple ways to implement functionality and weak abstraction boundaries, making it hard to evolve without disrupting users. The rebuild introduces a simplified and unified developer API and a strong modular structure through "tenant modules." It also creates clearer boundaries between the GraphQL execution engine, the tenant developer API, and hosted application code, enhancing maintainability and enabling easier evolution of each layer independently. This modernization has allowed Airbnb to scale Viaduct use significantly while reducing operational overhead and improving performance and reliability. The new design and architecture support gradual migration and increased developer productivity, benefiting Airbnb by centralizing business logic, reducing overhead, and improving the developer experience across hundreds of teams.
 </div>
 </div>
 

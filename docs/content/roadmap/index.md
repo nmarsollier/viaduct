@@ -2,9 +2,10 @@
 title: Viaduct Roadmap
 linkTitle: Roadmap
 menu: {main: {weight: 30}}
+exclude_search: true
 ---
 
-{{% blocks/cover title="Viaduct Roadmap" image_anchor="bottom" height="auto" %}}
+{{% blocks/cover title="Viaduct Roadmap" image_anchor="bottom" height="auto" color="primary" %}}
 
 Feature Support in the Engine and API.
 {.mt-5}

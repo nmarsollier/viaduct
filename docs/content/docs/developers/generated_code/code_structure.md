@@ -10,7 +10,7 @@ weight: 2
 
 There are three main packages in particular making up the Tenant API:
 
-* `viaduct.api`: These are classes like `FieldExecutionContext` which are the foundation of our tenant-facing API.
+* `viaduct.api`: These are classes like `FieldExecutionContext` which are the foundation of our tenant developer API.
 
 * `viaduct.api.grts`: This is where we put generated code for classes used to represent GraphQL types, see description of GRTs below.
 

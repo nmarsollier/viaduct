@@ -7,7 +7,7 @@ draft: true
 
 ### Private Fields
 
-Private fields are fields that are only visible to the defining tenant (the tenant that defines the fields), not visible to other tenants. It is used when a tenant wants to hold certain data only for internal calculation purposes (for resolving the private or public fields in the defining tenant), not for external access (for resolving the fields defined in other tenants, or accessed by any Viaduct client services).
+Private fields are fields that are only visible to the defining tenant module (the tenant that defines the fields), not visible to other tenant modules. It is used when a tenant developer wants to hold certain data only for internal calculation purposes (for resolving the private or public fields in the defining tenant module), not for external access (for resolving the fields defined in other tenant modules, or accessed by any Viaduct client services).
 
 #### Backing Data Fields
 
@@ -19,4 +19,4 @@ An example of the backing data field can be found [here](https://sourcegraph.a.m
 
 #### Private Visibility
 
-As of today, we don’t support the “private to tenant” visibility yet. We only support “private to Viaduct service”. So you still need to add `@scope(to: [“viaduct-private”])` to the private fields (as in [here](https://sourcegraph.a.musta.ch/airbnb/treehouse@456ddae601a0a54ba51755755bf5d5a8d5158dfd/-/blob/projects/viaduct/modules/data/example/schema/src/main/resources/graphql/data/example/ExampleBackingData.graphqls?L1)), to prevent them from being visible to Viaduct client services. We plan to support “private to tenant” visibility later when there is an actual use case.
+As of today, we don’t support the “private to tenant module” visibility yet. We only support “private to Viaduct service”. So you still need to add `@scope(to: [“viaduct-private”])` to the private fields, to prevent them from being visible to Viaduct client services.
