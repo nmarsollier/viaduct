@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlinSpring)
     alias(libs.plugins.springBoot)
     alias(libs.plugins.dependencyManagement)
-    id("viaduct-application")
+    id("com.airbnb.viaduct.application-gradle-plugin")
     jacoco
 }
 

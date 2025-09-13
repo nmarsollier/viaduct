@@ -14,14 +14,14 @@ project.version = libs.versions.project.get()
 gradlePlugin {
     plugins {
         create("viaductApplication") {
-            id = "viaduct-application"
+            id = "com.airbnb.viaduct.application-gradle-plugin"
             implementationClass = "viaduct.gradle.ViaductApplicationPlugin"
             displayName = "Viaduct Application Plugin"
             description = "Empty scaffold for the Viaduct application plugin."
             tags.set(listOf("viaduct", "graphql", "kotlin", "gradle"))
         }
         create("viaductModule") {
-            id = "viaduct-module"
+            id = "com.airbnb.viaduct.module-gradle-plugin"
             implementationClass = "viaduct.gradle.ViaductModulePlugin"
             displayName = "Viaduct Module Plugin"
             description = "Empty scaffold for the Viaduct module plugin."

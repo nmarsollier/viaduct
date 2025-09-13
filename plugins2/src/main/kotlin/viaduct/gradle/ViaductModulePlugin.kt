@@ -36,7 +36,7 @@ class ViaductModulePlugin : Plugin<Project> {
             // If we've been applied inside the viaduct-application plugin, then we want a default of "",
             // but if it's not in viaduct-application then there is no convention and needs to be set
             // explicitly
-            pluginManager.withPlugin("viaduct-application") {
+            pluginManager.withPlugin("com.airbnb.viaduct.application-gradle-plugin") {
                 moduleExt.modulePackageSuffix.convention("")
             }
             // Create Configurations
@@ -81,7 +81,7 @@ class ViaductModulePlugin : Plugin<Project> {
             val generateResolverBasesTask = generateResolverBasesTask(moduleExt, centralSchemaIncomingCfg, resolverBasesDirectory())
 
             // Register Configurations (between this gradle project the viaduct-application project.
-            rootProject.pluginManager.withPlugin("viaduct-application") {
+            rootProject.pluginManager.withPlugin("com.airbnb.viaduct.application-gradle-plugin") {
                 // Register this module’s outgoing schema partition with viaduct-application's ALL_SCHEMA incoming config
                 rootProject.dependencies.add(
                     ViaductPluginCommon.Configs.ALL_SCHEMA_PARTITIONS_INCOMING,

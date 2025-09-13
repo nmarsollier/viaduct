@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.24" // TODO - why doesn't it work with "1.8.22"
-    id("viaduct-module")
+    id("com.airbnb.viaduct.module-gradle-plugin")
 }
 
 viaductModule {

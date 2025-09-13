@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.24"
-    id("viaduct-application")
+    id("com.airbnb.viaduct.application-gradle-plugin")
     application
 }
 

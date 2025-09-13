@@ -2,8 +2,8 @@ rootProject.name = "starwars"
 
 pluginManagement {
     plugins {
-        id("viaduct-application") version "0.1.0"
-        id("viaduct-module") version "0.1.0"
+        id("com.airbnb.viaduct.application-gradle-plugin") version "0.1.0"
+        id("com.airbnb.viaduct.module-gradle-plugin") version "0.1.0"
     }
     repositories {
         mavenLocal()

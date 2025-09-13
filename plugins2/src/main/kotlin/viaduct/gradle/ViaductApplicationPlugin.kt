@@ -29,7 +29,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
         with(project) {
             require(this == rootProject) {
                 // TODO -- relax this restriction someday, want to work well in a monorepo
-                "Apply 'viaduct-application' only to the root project."
+                "Apply 'com.airbnb.viaduct.application-gradle-plugin' only to the root project."
             }
 
             val appExt = extensions.create("viaductApplication", ViaductApplicationExtension::class.java, objects)

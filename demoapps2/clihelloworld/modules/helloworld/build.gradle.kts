@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("viaduct-module")
+    id("com.airbnb.viaduct.module-gradle-plugin")
     kotlin("jvm")
 }
 
