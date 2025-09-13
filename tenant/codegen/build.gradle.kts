@@ -15,19 +15,24 @@ viaductClassDiff {
 }
 
 dependencies {
-    api(libs.clikt.jvm)
-    api(libs.kotlinx.metadata.jvm)
-    api(project(":shared:invariants"))
-    api(project(":shared:shared-codegen"))
-    api(project(":shared:utils"))
-    api(project(":shared:viaductschema"))
-
+    implementation(libs.clikt.jvm)
     implementation(libs.graphql.java)
+    implementation(libs.kotlinx.metadata.jvm)
+    implementation(project(":shared:invariants"))
+    implementation(project(":shared:shared-codegen"))
+    implementation(project(":shared:utils"))
+    implementation(project(":shared:viaductschema"))
     implementation(project(":tenant:tenant-api"))
 
-    testImplementation(libs.javassist)
+    // Not needed directly, but this dependency drags it into the
+    // fat-jar for the gradle plugin
+    // TODO: make plugin a regular subproject and then this
+    // becomes a direct dependency of the plugin
+    implementation(project(":shared:graphql"))
+
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
+    testImplementation(libs.javassist)
 }
 
 group = "com.airbnb.viaduct" // TODO - find a better home for this constant

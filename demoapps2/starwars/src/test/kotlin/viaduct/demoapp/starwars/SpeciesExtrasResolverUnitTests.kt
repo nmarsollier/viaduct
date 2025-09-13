@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package viaduct.demoapp.starwars
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,7 +47,7 @@ class SpeciesExtrasResolverUnitTests : DefaultAbstractResolverTestBase() {
                 objectValue = speciesGrtForId(ref.id)
             )
 
-            assertEquals(ref.extrasData?.culturalNotes, result)
+            assertEquals(ref.extrasData.culturalNotes, result)
         }
 
     @Test

@@ -15,6 +15,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.register
+import viaduct.graphql.utils.DefaultSchemaProvider
 
 open class ViaductApplicationExtension(objects: org.gradle.api.model.ObjectFactory) {
     /** Kotlin package name for generated GRT classes. */
@@ -66,8 +67,12 @@ class ViaductApplicationPlugin : Plugin<Project> {
             }
 
             doLast {
-                val baseFile = centralSchemaDir.get().asFile.resolve(BASE_SCHEMA_FILE)
-                baseFile.writeText(BASE_SCHEMA_CONTENT)
+                val baseFile = centralSchemaDir.get().asFile.resolve(BUILTIN_SCHEMA_FILE)
+                baseFile.writeText(DefaultSchemaProvider.getSDL())
+                // TODO - since this file doesn't change, we should generate it in
+                // a separate task that only writes it when this file disappears from
+                // the build directory (vs current code writes it anytime a
+                // schema-file changes).
             }
         }
 
@@ -77,7 +82,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
         configurations.create(ViaductPluginCommon.Configs.CENTRAL_SCHEMA_OUTGOING).apply {
             description = """
               Consumable configuration consisting of a directory containing all schema fragments.  This directory
-              is organized as a top-level file named $BASE_SCHEMA_FILE, plus directories named "parition[/module-name]/graphql",
+              is organized as a top-level file named $BUILTIN_SCHEMA_FILE, plus directories named "parition[/module-name]/graphql",
               where module-name is the modulePackageSuffix of the module with dots replaced by slashes (this segment is
               not present if the suffix is blank).
             """.trimIndent()
@@ -140,8 +145,12 @@ class ViaductApplicationPlugin : Plugin<Project> {
             dependsOn(generateCentralSchemaTask) // TODO - I think we can remove if we have a dedicated task
             from(centralSchemaDir) { // central schema is in GRT file (for now) - supports testing use case
                 into("viaduct/centralSchema")
+
+                exclude(BUILTIN_SCHEMA_FILE)
+                // Exclude base schema:
+                // ViaductSchemaRegistryBuilder will add default elements in "smartly" (e.g., omitting Mutation if not needed)
+
                 includeEmptyDirs = false
-                // TODO based on Skevy's PR: exclude("**/$BASE_SCHEMA_FILE")
             }
         }
 
@@ -175,13 +184,6 @@ class ViaductApplicationPlugin : Plugin<Project> {
     companion object {
         private val CODEGEN_MAIN_CLASS = "viaduct.tenant.codegen.cli.SchemaObjectsBytecode\$Main"
 
-        private val BASE_SCHEMA_FILE = "BASE_SCHEMA.graphqls"
-
-        private val BASE_SCHEMA_CONTENT = """
-           # --- Viaduct Base Schema (built in) ---
-           # These schema elements are always built into Viaduct application schemas
-           # --- End Viaduct Base Schema ---
-
-        """.trimIndent()
+        private val BUILTIN_SCHEMA_FILE = "BUILTIN_SCHEMA.graphqls"
     }
 }

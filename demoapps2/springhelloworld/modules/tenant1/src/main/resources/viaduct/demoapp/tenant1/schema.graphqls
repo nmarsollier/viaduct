@@ -1,4 +1,0 @@
-extend type Query @scope(to: ["publicScope"]) {
-  helloWorld: String @resolver
-  throwException: String @resolver
-}

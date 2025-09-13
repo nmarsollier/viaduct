@@ -17,6 +17,3 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
-include(":schema")
-include(":modules:helloworld")

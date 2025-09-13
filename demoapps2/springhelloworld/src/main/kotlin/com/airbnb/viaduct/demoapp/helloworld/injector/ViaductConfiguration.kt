@@ -21,7 +21,6 @@ class ViaductConfiguration {
             schemaRegistrationInfo = SchemaRegistrationInfo(
                 scopes = listOf(SchemaScopeInfo(SCHEMA_ID, setOf(SCOPE_ID))),
                 packagePrefix = "viaduct.demoapp",
-                resourcesIncluded = ".*demoapp.*graphqls"
             ),
             tenantRegistrationInfo = TenantRegistrationInfo(
                 tenantPackagePrefix = "viaduct.demoapp.tenant1",

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package viaduct.demoapp.starwars
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
