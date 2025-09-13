@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import viaduct.api.FieldValue
 import viaduct.api.Resolver
 import viaduct.engine.api.ViaductSchema
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.tenant.runtime.execution.FieldBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
@@ -21,15 +22,9 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class TenantAPIBootstrapperFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | type Query {
+        | extend type Query {
         |   field: String @resolver
         |   batchField: String @resolver
-        | }
-        |
-        | interface Node {
-        |   id: ID!
         | }
         |
         | type TestNode implements Node @resolver {
@@ -97,7 +92,9 @@ class TenantAPIBootstrapperFeatureAppTest : FeatureAppTestBase() {
         }
 
     private fun mkSchema(sdl: String): ViaductSchema {
-        val tdr = SchemaParser().parse(sdl)
+        val tdr = SchemaParser().parse(sdl).apply {
+            DefaultSchemaProvider.addDefaults(this)
+        }
         return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING))
     }
 }

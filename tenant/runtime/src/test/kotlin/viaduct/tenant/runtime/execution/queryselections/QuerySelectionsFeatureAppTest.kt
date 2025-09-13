@@ -23,15 +23,13 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class QuerySelectionsFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         #START_SCHEMA
-        directive @resolver on FIELD_DEFINITION
-
-        type Query {
+        extend type Query {
             viewer: User @resolver
             viewerOrNull: User @resolver
             user(id: ID!): User @resolver
         }
 
-        type Mutation {
+        extend type Mutation {
             updateUserWithViewerInfo(userId: ID!): UpdateResult! @resolver
         }
 

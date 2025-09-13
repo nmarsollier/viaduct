@@ -1,5 +1,5 @@
 schema {
-  query: RootQuery
+  query: Query
 }
 
 interface Node {
@@ -18,11 +18,10 @@ type PlaceListing implements Node {
 type PlaceListingPresentationContainer {
   data: PlaceListing
   foo: String
-  query: RootQuery
+  query: Query
 }
 
-type RootQuery {
-  _: String
+type Query {
   foo: Foo
   node: Node
 }

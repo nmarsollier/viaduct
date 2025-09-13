@@ -10,12 +10,15 @@ import graphql.schema.idl.SchemaParser
 import io.github.classgraph.ClassGraph
 import java.util.SortedSet
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.forEach
+import kotlin.collections.plus
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.graphql.Scalars
 import viaduct.graphql.scopes.ScopedSchemaBuilder
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.utils.slf4j.logger
 
 class ViaductSchemaLoadException(message: String, cause: Throwable? = null) : Exception(message, cause)
@@ -392,7 +395,17 @@ private fun schemaFromSdl(
         )
     }
 
-    val definedScalars = customScalars ?: emptyList()
+    // Add default Viaduct schema components
+    try {
+        DefaultSchemaProvider.addDefaults(tdr)
+    } catch (e: Exception) {
+        throw ViaductSchemaLoadException(
+            "Failed to add default schema components.",
+            e
+        )
+    }
+
+    val definedScalars = DefaultSchemaProvider.defaultScalars() + (customScalars ?: emptySet())
     val actualWiringFactory = ViaductWiringFactory(coroutineInterop)
     val wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(actualWiringFactory).apply {
         definedScalars.forEach { scalar(it) }

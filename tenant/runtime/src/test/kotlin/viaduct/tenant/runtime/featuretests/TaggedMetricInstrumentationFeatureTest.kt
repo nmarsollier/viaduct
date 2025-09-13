@@ -14,7 +14,7 @@ class TaggedMetricInstrumentationFeatureTest {
     fun `ensure execution is recorded`() {
         val registry = SimpleMeterRegistry()
         FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { 1 }
             .meterRegistry(registry)
             .build()
@@ -29,7 +29,7 @@ class TaggedMetricInstrumentationFeatureTest {
     fun `ensure operation execution operation name tag is recorded if specified`() {
         val registry = SimpleMeterRegistry()
         FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { 1 }
             .meterRegistry(registry)
             .build()
@@ -48,7 +48,7 @@ class TaggedMetricInstrumentationFeatureTest {
     fun `ensure validation error will be tagged as failure`() {
         val registry = SimpleMeterRegistry()
         FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { 1 }
             .meterRegistry(registry)
             .build()
@@ -65,7 +65,7 @@ class TaggedMetricInstrumentationFeatureTest {
         var counter = 0
 
         val viaduct = FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { counter++ }
             .meterRegistry(registry)
             .build()
@@ -88,7 +88,7 @@ class TaggedMetricInstrumentationFeatureTest {
         var counter = 0
 
         val viaduct = FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { counter++ }
             .meterRegistry(registry)
             .build()
@@ -115,7 +115,7 @@ class TaggedMetricInstrumentationFeatureTest {
         val registry = SimpleMeterRegistry()
 
         FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { 1 }
             .meterRegistry(registry)
             .build()
@@ -133,7 +133,7 @@ class TaggedMetricInstrumentationFeatureTest {
         val registry = SimpleMeterRegistry()
 
         FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { throw RuntimeException("test exception") }
             .meterRegistry(registry)
             .build()
@@ -151,7 +151,7 @@ class TaggedMetricInstrumentationFeatureTest {
         val registry = SimpleMeterRegistry()
 
         val viaduct = FeatureTestBuilder()
-            .sdl("type Query { a: Int, b: Int, c: Int }")
+            .sdl("extend type Query { a: Int, b: Int, c: Int }")
             .resolver("Query" to "a") { 1 }
             .resolver("Query" to "b") { 2 }
             .resolver("Query" to "c") { 3 }
@@ -184,7 +184,7 @@ class TaggedMetricInstrumentationFeatureTest {
         val registry = SimpleMeterRegistry()
 
         FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { 1 }
             .meterRegistry(registry)
             .build()

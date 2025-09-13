@@ -10,6 +10,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
+import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 
 /**
@@ -25,6 +26,9 @@ abstract class ViaductClassDiffPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val extension = project.extensions.create<ViaductClassDiffExtension>("viaductClassDiff", project)
+
+        // Ensure default schema plugin is applied so default schema is available
+        DefaultSchemaPlugin.ensureApplied(project)
 
         val javaExtension = project.extensions.getByType<JavaPluginExtension>()
         val testSourceSet = javaExtension.sourceSets.getByName("test")
@@ -100,6 +104,9 @@ abstract class ViaductClassDiffPlugin : Plugin<Project> {
             this.javaExecutable.set(getJavaExecutable(project))
             generatedSrcDir.set(project.layout.buildDirectory.dir(GENERATED_SOURCES_PATH))
 
+            // Depend on processResources to ensure default schema is available
+            dependsOn("processResources")
+
             // Ensure output directory exists
             doFirst {
                 generatedSrcDir.get().asFile.mkdirs()
@@ -129,6 +136,9 @@ abstract class ViaductClassDiffPlugin : Plugin<Project> {
             codegenClassPath.from(classpath)
             javaExecutable.set(getJavaExecutable(project))
             generatedSrcDir.set(project.layout.buildDirectory.dir("$GENERATED_SOURCES_PATH/$packagePath"))
+
+            // Depend on processResources to ensure default schema is available
+            dependsOn("processResources")
 
             // Ensure output directory exists
             doFirst {

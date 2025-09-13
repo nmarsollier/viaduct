@@ -4,12 +4,7 @@ package viaduct.api.testschema
 class ApiTestSchemaFeatureAppTest {
     val sdl = """
 #START_SCHEMA
-    | scalar DateTime
-    | scalar BackingData
-    | directive @backingData(class: String!) on FIELD_DEFINITION
-    | directive @idOf(type: String!) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
-    | 
-    | type Query {
+    | extend type Query {
     |   foo: String
     | }
     | type O1 implements Node {
@@ -57,28 +52,24 @@ class ApiTestSchemaFeatureAppTest {
     | input Input3 {
     |   inputField: Input2 = { stringField: "defaultStringField" }
     | }
-    | 
+    |
     | input InputWithGlobalIDs {
     |   id: ID!
     |   id2: ID! @idOf(type: "O1")
     |   ids: [[ID]!] @idOf(type: "O2")
     | }
-    | 
-    | interface Node {
-    |   id: ID!
-    | }
-    | 
+    |
     | type TestUser implements Node {
     |   id: ID!
     |   id2: ID!
     |   id3: [ID] @idOf(type: "TestUser")
     |   id4: [ID]
     | }
-    | 
+    |
     | type TestType {
     |   id: ID!
     | }
-    | 
+    |
 #END_SCHEMA
     """
 }

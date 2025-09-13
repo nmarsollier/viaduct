@@ -2,10 +2,8 @@
 
 package viaduct.tenant.runtime.tutorials.simplebackingdata
 
-import graphql.schema.GraphQLScalarType
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
-import viaduct.graphql.Scalars
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 import viaduct.tenant.runtime.tutorials.simplebackingdata.resolverbases.QueryResolvers
@@ -25,15 +23,7 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | scalar BackingData
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        | directive @backingData(class: String!) on FIELD_DEFINITION
-        |
-        | interface Node {
-        |     id: ID!
-        | }
-        |
-        | type Query {
+        | extend type Query {
         |   user(id: String!): User! @resolver
         | }
         |
@@ -49,10 +39,6 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
         | }
         | #END_SCHEMA
         """.trimMargin()
-
-    override var customScalars: List<GraphQLScalarType> = listOf(
-        Scalars.BackingData
-    )
 
     // Resolves User nodes by ID, fetching basic user data from a simulated database.
     // This acts as the primary data source for User objects in the graph.

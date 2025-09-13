@@ -19,7 +19,7 @@ class FieldResolverTest {
     @Test
     fun `query field resolver throws an exception`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver("Query" to "x") { throw RuntimeException("error!") }
             .build()
             .assertJson(
@@ -44,7 +44,7 @@ class FieldResolverTest {
     @Test
     fun `subscription field resolver throws an exception`() =
         FeatureTestBuilder()
-            .sdl("type Query { empty: Int } type Subscription { x: Int }")
+            .sdl("extend type Query { empty: Int } extend type Subscription { x: Int }")
             .resolver("Subscription" to "x") { throw RuntimeException("error!") }
             .build()
             .assertJson(
@@ -70,7 +70,7 @@ class FieldResolverTest {
     fun `can query a document multiple times with different variables`() =
         // regression, see https://app.asana.com/0/1208357307661305/1209886139365688
         FeatureTestBuilder()
-            .sdl("type Query { x:Int, y:Int }")
+            .sdl("extend type Query { x:Int, y:Int }")
             .resolver("Query" to "x") { 2 }
             .resolver("Query" to "y") { 3 }
             .build()

@@ -5,12 +5,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
+import viaduct.gradle.common.DefaultSchemaUtil
 
 /**
  * Task to generate Kotlin GRT (GraphQL Runtime Types) for ClassDiff tests.
@@ -26,6 +28,9 @@ import org.gradle.process.ExecOperations
 abstract class ViaductClassDiffGRTKotlinTask : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    @get:Inject
+    abstract val projectLayout: ProjectLayout
 
     @get:Input
     abstract val javaExecutable: Property<String>
@@ -54,7 +59,10 @@ abstract class ViaductClassDiffGRTKotlinTask : DefaultTask() {
     @TaskAction
     protected fun executeGRTGeneration() {
         val outputDir = generatedSrcDir.get().asFile
-        val schemaFilesArg = schemaFiles.files.joinToString(",") { it.absolutePath }
+
+        // Include the default schema along with the configured schema files
+        val allSchemaFiles = DefaultSchemaUtil.getSchemaFilesIncludingDefault(schemaFiles, projectLayout, logger)
+        val schemaFilesArg = allSchemaFiles.joinToString(",") { it.absolutePath }
 
         // Clean and prepare directories
         if (outputDir.exists()) {

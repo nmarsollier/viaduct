@@ -26,9 +26,7 @@ import viaduct.tenant.runtime.tutorials.simplebatchresolvers.resolverbases.UserR
 class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | type Query {
+        | extend type Query {
         |   users: [User!]! @resolver
         |   user(id: String!): User @resolver
         | }

@@ -1,14 +1,4 @@
-"""
-Determines the schema "scope" of a type or type extension
-"""
-directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-schema {
-  query: RootQuery
-}
-
-type RootQuery @scope(to: ["*"]) {
-  _: String
+extend type Query @scope(to: ["*"]) {
   node: Node
   foo: Foo
 }
@@ -32,7 +22,7 @@ type PlaceListing implements Node @scope(to: ["test-scope:data", "test-scope:pri
 
 type PlaceListingPresentationContainer @scope(to: ["test-scope:public", "test-scope:data"]) {
   foo: String
-  query: RootQuery
+  query: Query
 }
 
 extend type PlaceListingPresentationContainer @scope(to: ["test-scope:data"]) {

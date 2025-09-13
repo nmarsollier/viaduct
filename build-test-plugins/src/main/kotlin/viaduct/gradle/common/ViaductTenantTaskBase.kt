@@ -5,6 +5,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -49,6 +50,9 @@ abstract class ViaductTenantTaskBase : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
 
+    @get:Inject
+    abstract val projectLayout: ProjectLayout
+
     /**
      * Common tenant generation logic that can be called by subclasses
      */
@@ -70,12 +74,15 @@ abstract class ViaductTenantTaskBase : DefaultTask() {
             return
         }
 
+        // Include the default schema along with the configured schema files
+        val allSchemaFiles = DefaultSchemaUtil.getSchemaFilesIncludingDefault(schemaFiles, projectLayout, logger)
+
         // Build arguments for code generation
         val baseArgs = mutableListOf(
             "--tenant_pkg",
             tenantName.get(),
             "--schema_files",
-            schemaFiles.files.joinToString(",") { it.absolutePath },
+            allSchemaFiles.joinToString(",") { it.absolutePath },
             "--modern_module_generated_directory",
             modernModuleSrcDirFile.absolutePath,
             "--resolver_generated_directory",

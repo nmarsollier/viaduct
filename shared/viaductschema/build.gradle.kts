@@ -14,6 +14,7 @@ dependencies {
     api(libs.graphql.java)
     api(libs.junit)
     api(project(":shared:invariants"))
+    api(project(":shared:graphql"))
     api(project(":shared:utils"))
 
     implementation(libs.guava)

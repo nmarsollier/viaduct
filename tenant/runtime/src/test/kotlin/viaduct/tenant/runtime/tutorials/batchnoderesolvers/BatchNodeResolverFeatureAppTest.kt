@@ -28,12 +28,6 @@ import viaduct.tenant.runtime.tutorials.batchnoderesolvers.resolverbases.QueryRe
 class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
-        |
         | type Product implements Node @resolver {
         |   id: ID!
         |   name: String!
@@ -41,7 +35,7 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
         |   category: String!
         | }
         |
-        | type Query {
+        | extend type Query {
         |   products(ids: [String!]!): [Product!]! @resolver
         |   product(id: String!): Product! @resolver
         | }

@@ -20,9 +20,7 @@ class SimpleFieldResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | type Query {
+        | extend type Query {
         |   foo: String! @resolver
         | }
         |

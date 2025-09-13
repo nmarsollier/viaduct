@@ -1,11 +1,11 @@
 schema {
-  query: RootQuery
+  query: Query
 }
 
 type AType {
   foo: String
 }
 
-type RootQuery {
+type Query {
   aType: AType
 }

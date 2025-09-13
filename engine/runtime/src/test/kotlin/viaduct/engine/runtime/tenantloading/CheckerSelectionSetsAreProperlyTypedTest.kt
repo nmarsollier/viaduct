@@ -134,7 +134,7 @@ class CheckerSelectionSetsAreProperlyTypedTest {
     ) {
         val schema = MockSchema.mk(
             """
-            type Query {
+            extend type Query {
                 empty: Int
                 currentUser: User
                 globalFlag: String

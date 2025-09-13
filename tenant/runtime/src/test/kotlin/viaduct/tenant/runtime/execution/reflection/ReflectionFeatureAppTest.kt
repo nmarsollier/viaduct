@@ -13,7 +13,6 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class ReflectionFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
         | union Product = Toy | Fruit
         |
         | type Category {
@@ -21,7 +20,7 @@ class ReflectionFeatureAppTest : FeatureAppTestBase() {
         |   products: [Product] @resolver
         | }
         |
-        | type Query {
+        | extend type Query {
         |   category(id: Int!): Category @resolver
         | }
         |

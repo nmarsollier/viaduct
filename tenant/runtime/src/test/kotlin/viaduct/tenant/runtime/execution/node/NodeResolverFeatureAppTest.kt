@@ -12,17 +12,12 @@ class NodeResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
         | type TestGlobalId implements Node @resolver {
         |     id: ID!
         |     value: String!
         | }
         |
-        | type Query {
+        | extend type Query {
         |   getGlobalID(id: String!): TestGlobalId! @resolver
         |   nodeReference(id: String!): TestGlobalId! @resolver
         | }

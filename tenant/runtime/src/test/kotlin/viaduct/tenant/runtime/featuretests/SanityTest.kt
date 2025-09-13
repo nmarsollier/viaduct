@@ -34,7 +34,7 @@ class SanityTest {
     @Test
     fun `resolver uses an implicit UntypedFieldContext`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver("Query" to "x") { 42 }
             .build()
             .assertJson("{data: {x: 42}}", "{x}")
@@ -42,7 +42,7 @@ class SanityTest {
     @Test
     fun `resolver uses an explicit UntypedFieldContext`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver("Query" to "x") { _: UntypedFieldContext -> 42 }
             .build()
             .assertJson("{data: {x: 42}}", "{x}")
@@ -50,7 +50,7 @@ class SanityTest {
     @Test
     fun `resolver uses an explicit FieldExecutionContext`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver("Query" to "x") { _: FieldExecutionContext<*, *, *, *> -> 42 }
             .build()
             .assertJson("{data: {x: 42}}", "{x}")
@@ -64,7 +64,7 @@ class SanityTest {
         }
 
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver<Context, Object, Query, Arguments, CompositeOutput>(
                 "Query" to "x",
                 { ctx: Context -> ctx.value }
@@ -78,8 +78,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    type Query { empty: Int }
-                    type Mutation { x: Int }
+                    extend type Query { empty: Int }
+                    extend type Mutation { x: Int }
                 """.trimIndent()
             )
             .mutation("Mutation" to "x") { ctx ->
@@ -94,8 +94,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    type Query { empty: Int }
-                    type Mutation { x: Int }
+                    extend type Query { empty: Int }
+                    extend type Mutation { x: Int }
                 """.trimIndent()
             )
             .resolver(
@@ -118,8 +118,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    type Query { empty: Int }
-                    type Mutation { x: Int }
+                    extend type Query { empty: Int }
+                    extend type Mutation { x: Int }
                 """.trimIndent()
             )
             .resolver(
@@ -136,7 +136,7 @@ class SanityTest {
     @Test
     fun `resolver accesses parent object via explicit grt`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver(
                 "Query" to "x",
                 { ctx: FieldExecutionContext<Query, Query, Arguments, CompositeOutput.NotComposite> ->
@@ -150,7 +150,7 @@ class SanityTest {
     @Test
     fun `resolver accesses parent object via explicit ObjectStub`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver(
                 "Query" to "x",
                 { ctx: FieldExecutionContext<ObjectStub, QueryStub, Arguments, CompositeOutput.NotComposite> ->
@@ -164,7 +164,7 @@ class SanityTest {
     @Test
     fun `resolver accesses parent object via implicit ObjectStub`() =
         FeatureTestBuilder()
-            .sdl("type Query { x: Int }")
+            .sdl("extend type Query { x: Int }")
             .resolver("Query" to "x") { ctx ->
                 assertTrue(ctx.objectValue is ObjectStub)
                 42
@@ -175,7 +175,7 @@ class SanityTest {
     @Test
     fun `resolver accesses arguments via explicit grt`() =
         FeatureTestBuilder()
-            .sdl("type Query { hasArgs1(x: Int!): Int! }")
+            .sdl("extend type Query { hasArgs1(x: Int!): Int! }")
             .resolver(
                 "Query" to "hasArgs1",
                 { ctx: FieldExecutionContext<Query, Query, Query_HasArgs1_Arguments, CompositeOutput> ->
@@ -188,7 +188,7 @@ class SanityTest {
     @Test
     fun `resolver accesses arguments via explicit ArgumentsStub`() =
         FeatureTestBuilder()
-            .sdl("type Query { hasArgs1(x: Int!): Int! }")
+            .sdl("extend type Query { hasArgs1(x: Int!): Int! }")
             .resolver(
                 "Query" to "hasArgs1",
                 { ctx: FieldExecutionContext<Query, Query, ArgumentsStub, CompositeOutput> ->
@@ -201,7 +201,7 @@ class SanityTest {
     @Test
     fun `resolver accesses arguments via implicit ArgumentsStub`() =
         FeatureTestBuilder()
-            .sdl("type Query { hasArgs1(x: Int!): Int! }")
+            .sdl("extend type Query { hasArgs1(x: Int!): Int! }")
             .resolver("Query" to "hasArgs1") { it.arguments.get<Int>("x") }
             .build()
             .assertJson("{data: {hasArgs1: 42}}", "{hasArgs1(x: 42)}")
@@ -211,7 +211,7 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    type Query { foo: Foo }
+                    extend type Query { foo: Foo }
                     type Foo { value: String }
                 """.trimIndent()
             )
@@ -231,9 +231,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    interface Node { id: ID! }
                     type Baz { id: ID! }
-                    type Query { baz: Baz }
+                    extend type Query { baz: Baz }
                 """.trimIndent()
             )
             .grtPackage(Query.Reflection)
@@ -249,9 +248,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    interface Node { id: ID! }
                     type Baz { id: ID! }
-                    type Query { baz: Baz }
+                    extend type Query { baz: Baz }
                 """.trimIndent()
             )
             .grtPackage(Query.Reflection)
@@ -269,9 +267,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    interface Node { id: ID! }
                     type Baz { id: ID! }
-                    type Query { baz: Baz }
+                    extend type Query { baz: Baz }
                 """.trimIndent()
             )
             .grtPackage(Query.Reflection)
@@ -288,9 +285,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    interface Node { id: ID! }
                     type Baz { id: ID! }
-                    type Query { baz: Baz }
+                    extend type Query { baz: Baz }
                 """.trimIndent()
             )
             .grtPackage(Query.Reflection)
@@ -307,9 +303,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    interface Node { id: ID! }
                     type Baz { id: ID! }
-                    type Query { baz: Baz }
+                    extend type Query { baz: Baz }
                 """.trimIndent()
             )
             .grtPackage(Query.Reflection)
@@ -328,9 +323,8 @@ class SanityTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    interface Node { id: ID! }
                     type Baz { id: ID! }
-                    type Query { baz: Baz }
+                    extend type Query { baz: Baz }
                 """.trimIndent()
             )
             .grtPackage(Query.Reflection)

@@ -20,7 +20,7 @@ import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 class RequiredSelectionsTest {
     @Test
     fun `resolve field with required sibling field`() =
-        MockTenantModuleBootstrapper("type Query { foo: String, bar: String }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: String, bar: String }") {
             fieldWithValue("Query" to "bar", "BAR")
             field("Query" to "foo") {
                 resolver {
@@ -35,7 +35,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with transitive required selections`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int, baz: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int, baz: Int }") {
             fieldWithValue("Query" to "baz", 2)
             field("Query" to "bar") {
                 resolver {
@@ -56,7 +56,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use aliases`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int }") {
             fieldWithValue("Query" to "bar", 3)
             field("Query" to "foo") {
                 resolver {
@@ -71,7 +71,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use deep aliases`() =
-        MockTenantModuleBootstrapper("type Query { string1: String, bar: Bar } type Bar { value: String }") {
+        MockTenantModuleBootstrapper("extend type Query { string1: String, bar: Bar } type Bar { value: String }") {
             field("Query" to "bar") {
                 resolver {
                     fn { _, _, _, _, _ -> mapOf("value" to "B") }
@@ -94,7 +94,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use arguments`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar(x:Int):Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar(x:Int):Int }") {
             field("Query" to "foo") {
                 resolver {
                     objectSelections("bar(x:3)")
@@ -113,7 +113,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use aliases and arguments`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar(x:Int):Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar(x:Int):Int }") {
             field("Query" to "foo") {
                 resolver {
                     objectSelections("aliasedBar:bar(x:3)")
@@ -132,7 +132,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections select an argumented field multiple times`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar(x:Int):Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar(x:Int):Int }") {
             field("Query" to "foo") {
                 resolver {
                     objectSelections("b1:bar(x:3), b2:bar(x:5)")
@@ -153,7 +153,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use fragments`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int }") {
             fieldWithValue("Query" to "bar", 3)
             field("Query" to "foo") {
                 resolver {
@@ -168,7 +168,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use untyped inline fragments`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int }") {
             fieldWithValue("Query" to "bar", 3)
             field("Query" to "foo") {
                 resolver {
@@ -183,7 +183,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `required selections use typed inline fragments`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int }") {
             fieldWithValue("Query" to "bar", 3)
             field("Query" to "foo") {
                 resolver {
@@ -199,7 +199,7 @@ class RequiredSelectionsTest {
     @Test
     fun `resolve fields with shared requirement`() {
         val bazCount = AtomicInteger()
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int, baz: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int, baz: Int }") {
             field("Query" to "baz") {
                 resolver {
                     fn { _, _, _, _, _ -> bazCount.incrementAndGet().let { 5 } }
@@ -226,7 +226,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with multiple requirements`() =
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int, baz: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int, baz: Int }") {
             fieldWithValue("Query" to "baz", 5)
             fieldWithValue("Query" to "bar", 3)
             field("Query" to "foo") {
@@ -245,7 +245,7 @@ class RequiredSelectionsTest {
     @Test
     fun `resolve fields multiple mergeable requirements`() {
         val barCount = AtomicInteger()
-        MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int }") {
             field("Query" to "bar") {
                 resolver {
                     fn { _, _, _, _, _ -> 3.also { barCount.incrementAndGet() } }
@@ -290,8 +290,9 @@ class RequiredSelectionsTest {
     @Test
     fun `resolve private field in RSS`() {
         // Need to set up both full schema and scoped schema
-        val fullSchemaSDL = "type Query { foo: Int, bar: Int}"
-        val scopedSchemaSDL = "type Query { foo: Int }"
+        val fullSchemaSDL = "extend type Query { foo: Int, bar: Int}"
+        val scopedSchemaSDL = "extend type Query { foo: Int }"
+        // val fullSchemaSDL = "extend type Query @scope(to: [\"scoped\"]) { foo: Int } extend type Query @scope(to: [\"bar\"]) { bar: Int}"
 
         MockTenantModuleBootstrapper(fullSchemaSDL) {
             fieldWithValue("Query" to "bar", 3)
@@ -317,7 +318,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - simple field access`() =
-        MockTenantModuleBootstrapper("type Query { currentUser: String, userGreeting: String }") {
+        MockTenantModuleBootstrapper("extend type Query { currentUser: String, userGreeting: String }") {
             fieldWithValue("Query" to "currentUser", "Alice")
             field("Query" to "userGreeting") {
                 resolver {
@@ -335,7 +336,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - with aliases`() =
-        MockTenantModuleBootstrapper("type Query { currentUser: String, userCount: Int, summary: String }") {
+        MockTenantModuleBootstrapper("extend type Query { currentUser: String, userCount: Int, summary: String }") {
             fieldWithValue("Query" to "currentUser", "Bob")
             fieldWithValue("Query" to "userCount", 42)
             field("Query" to "summary") {
@@ -355,7 +356,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - with arguments`() =
-        MockTenantModuleBootstrapper("type Query { user(id: String!): String, userMessage: String }") {
+        MockTenantModuleBootstrapper("extend type Query { user(id: String!): String, userMessage: String }") {
             field("Query" to "user") {
                 resolver {
                     fn { args, _, _, _, _ ->
@@ -380,7 +381,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - using fragments`() =
-        MockTenantModuleBootstrapper("type Query { userName: String, userEmail: String, profile: String }") {
+        MockTenantModuleBootstrapper("extend type Query { userName: String, userEmail: String, profile: String }") {
             fieldWithValue("Query" to "userName", "Charlie")
             fieldWithValue("Query" to "userEmail", "charlie@example.com")
             field("Query" to "profile") {
@@ -400,7 +401,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment and objectValueFragment together`() =
-        MockTenantModuleBootstrapper("type Query { globalConfig: String, baz: Baz } type Baz { x: Int, y: String }") {
+        MockTenantModuleBootstrapper("extend type Query { globalConfig: String, baz: Baz } type Baz { x: Int, y: String }") {
             fieldWithValue("Query" to "globalConfig", "Premium")
             fieldWithValue("Query" to "baz", MockEngineObjectData(schema.schema.getObjectType("Baz"), mapOf("x" to 100)))
             field("Baz" to "y") {
@@ -421,7 +422,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - transitive dependencies`() =
-        MockTenantModuleBootstrapper("type Query { baseValue: Int, multipliedValue: Int, finalValue: Int }") {
+        MockTenantModuleBootstrapper("extend type Query { baseValue: Int, multipliedValue: Int, finalValue: Int }") {
             fieldWithValue("Query" to "baseValue", 5)
             field("Query" to "multipliedValue") {
                 resolver {
@@ -448,7 +449,7 @@ class RequiredSelectionsTest {
     fun `resolve field with queryValueFragment - multiple query selections`() {
         val userCount = AtomicInteger()
         val configCount = AtomicInteger()
-        MockTenantModuleBootstrapper("type Query { currentUser: String, globalConfig: String, combined: String }") {
+        MockTenantModuleBootstrapper("extend type Query { currentUser: String, globalConfig: String, combined: String }") {
             field("Query" to "currentUser") {
                 resolver {
                     fn { _, _, _, _, _ ->
@@ -487,7 +488,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - inline fragment without type condition`() =
-        MockTenantModuleBootstrapper("type Query { isEnabled: Boolean, config: String, result: String }") {
+        MockTenantModuleBootstrapper("extend type Query { isEnabled: Boolean, config: String, result: String }") {
             fieldWithValue("Query" to "isEnabled", true)
             fieldWithValue("Query" to "config", "production")
             field("Query" to "result") {
@@ -507,7 +508,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - handles null gracefully`() =
-        MockTenantModuleBootstrapper("type Query { optionalValue: String, result: String }") {
+        MockTenantModuleBootstrapper("extend type Query { optionalValue: String, result: String }") {
             fieldWithValue("Query" to "optionalValue", null)
             field("Query" to "result") {
                 resolver {
@@ -525,7 +526,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve mutation with queryValueFragment`() =
-        MockTenantModuleBootstrapper("type Query { string1: String } type Mutation { string1: String }") {
+        MockTenantModuleBootstrapper("extend type Query { string1: String } extend type Mutation { string1: String }") {
             fieldWithValue("Query" to "string1", "InitialValue")
             field("Mutation" to "string1") {
                 resolver {
@@ -543,7 +544,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - nested object access`() =
-        MockTenantModuleBootstrapper("type Query { bar: Bar, baz: Baz } type Bar { value: String } type Baz { x: Int, y: String }") {
+        MockTenantModuleBootstrapper("extend type Query { bar: Bar, baz: Baz } type Bar { value: String } type Baz { x: Int, y: String }") {
             fieldWithValue("Query" to "bar", MockEngineObjectData(schema.schema.getObjectType("Bar"), mapOf()))
             fieldWithValue("Bar" to "value", "BarValue")
             fieldWithValue("Query" to "baz", MockEngineObjectData(schema.schema.getObjectType("Baz"), mapOf()))
@@ -564,7 +565,7 @@ class RequiredSelectionsTest {
 
     @Test
     fun `resolve field with queryValueFragment - typed inline fragment`() =
-        MockTenantModuleBootstrapper("type Query { enabled: Boolean, message: String, status: String }") {
+        MockTenantModuleBootstrapper("extend type Query { enabled: Boolean, message: String, status: String }") {
             fieldWithValue("Query" to "enabled", false)
             fieldWithValue("Query" to "message", "System offline")
             field("Query" to "status") {
@@ -585,7 +586,7 @@ class RequiredSelectionsTest {
     @Test
     fun `queryValueFragment with unclosed brace should fail at build time`() {
         assertThrows<IllegalArgumentException> {
-            MockTenantModuleBootstrapper("type Query { field: String, result: String }") {
+            MockTenantModuleBootstrapper("extend type Query { field: String, result: String }") {
                 fieldWithValue("Query" to "field", "value")
                 field("Query" to "result") {
                     resolver {
@@ -600,7 +601,7 @@ class RequiredSelectionsTest {
     @Test
     fun `queryValueFragment with invalid field syntax should fail at build time`() {
         assertThrows<IllegalArgumentException> {
-            MockTenantModuleBootstrapper("type Query { field: String, result: String }") {
+            MockTenantModuleBootstrapper("extend type Query { field: String, result: String }") {
                 fieldWithValue("Query" to "field", "value")
                 field("Query" to "result") {
                     resolver {
@@ -616,7 +617,7 @@ class RequiredSelectionsTest {
     fun `queryValueFragment referencing non-existent field should fail at build time`() {
         assertThrows<RequiredSelectionsAreInvalid> {
             try {
-                MockTenantModuleBootstrapper("type Query { existingField: String, result: String }") {
+                MockTenantModuleBootstrapper("extend type Query { existingField: String, result: String }") {
                     fieldWithValue("Query" to "existingField", "value")
                     field("Query" to "result") {
                         resolver {
@@ -635,7 +636,7 @@ class RequiredSelectionsTest {
     @Test
     fun `queryValueFragment with invalid fragment syntax should fail at build time`() {
         assertThrows<IllegalArgumentException> {
-            MockTenantModuleBootstrapper("type Query { field: String, result: String }") {
+            MockTenantModuleBootstrapper("extend type Query { field: String, result: String }") {
                 fieldWithValue("Query" to "field", "value")
                 field("Query" to "result") {
                     resolver {
@@ -650,7 +651,7 @@ class RequiredSelectionsTest {
     @Test
     fun `queryValueFragment with invalid variable syntax should fail at build time`() {
         assertThrows<IllegalArgumentException> {
-            MockTenantModuleBootstrapper("type Query { field(arg: Int!): String, result: String }") {
+            MockTenantModuleBootstrapper("extend type Query { field(arg: Int!): String, result: String }") {
                 fieldWithValue("Query" to "field", "value")
                 field("Query" to "result") {
                     resolver {
@@ -665,7 +666,7 @@ class RequiredSelectionsTest {
     @Test
     fun `queryValueFragment with empty selection set should fail at build time`() {
         assertThrows<IllegalArgumentException> {
-            MockTenantModuleBootstrapper("type Query { result: String }") {
+            MockTenantModuleBootstrapper("extend type Query { result: String }") {
                 field("Query" to "result") {
                     resolver {
                         querySelections("{}") // Empty selection set
@@ -680,7 +681,7 @@ class RequiredSelectionsTest {
     fun `queryValueFragment with wrong type condition should fail at build time`() {
         assertThrows<RequiredSelectionsAreInvalid> {
             try {
-                MockTenantModuleBootstrapper("type Query { field: String, result: String } type Mutation { dummy: String }") {
+                MockTenantModuleBootstrapper("extend type Query { field: String, result: String } extend type Mutation { dummy: String }") {
                     fieldWithValue("Query" to "field", "value")
                     field("Query" to "result") {
                         resolver {

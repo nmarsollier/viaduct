@@ -21,19 +21,12 @@ class SimpleNodeResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        |
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
-        |
         | type Foo implements Node @resolver {
         |   id: ID!
         |   bar: String!
         | }
         |
-        | type Query {
+        | extend type Query {
         |   foo(id: String!): Foo! @resolver
         | }
         | #END_SCHEMA

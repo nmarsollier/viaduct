@@ -15,13 +15,11 @@ import viaduct.testapps.testfixtures.TestBase
 class RegisterSchemaFromSdlTest : TestBase(
     customSchemaRegistration = {
         val sdl = """
-            directive @resolver on FIELD_DEFINITION | OBJECT
-
             type TestScope1Object {
               strValue: String!
             }
 
-            type Query {
+            extend type Query {
               scope1Value: TestScope1Object @resolver
             }
 

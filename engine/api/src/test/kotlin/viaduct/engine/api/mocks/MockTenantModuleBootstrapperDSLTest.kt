@@ -22,16 +22,12 @@ class MockTenantModuleBootstrapperDSLTest {
         private val emptyObjectMap = emptyMap<String, EngineObjectData>()
 
         private const val SCHEMA_SDL = """
-            type Query {
+            extend type Query {
               t: Test
             }
 
-            interface Node {
-              id: ID
-            }
-
             type Test implements Node {
-              id: ID
+              id: ID!
               i: Int
               j: Int
               k: Int
@@ -471,7 +467,7 @@ class MockTenantModuleBootstrapperDSLTest {
 
     @Test
     fun `schema is copied to ContextMocks`() {
-        val sdl = "type Query {x:Int}"
+        val sdl = "extend type Query {x:Int}"
         val schema = mkSchema(sdl)
 
         MockTenantModuleBootstrapper(schema) {}

@@ -744,7 +744,7 @@ class RequiredSelectionsAreAcyclicTest {
     ) {
         val schema = MockSchema.mk(
             """
-            type Query { empty: Int }
+            extend type Query { empty: Int }
             $sdl
             """.trimIndent()
         )

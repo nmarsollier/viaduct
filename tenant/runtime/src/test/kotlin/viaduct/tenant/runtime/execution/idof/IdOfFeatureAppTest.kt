@@ -23,14 +23,8 @@ class Query_UserResolver : QueryResolvers.User() {
 class IdOfFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         |#START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
-        | directive @idOf(type: String!) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
-        | type Query {
+        | extend type Query {
         |   user(id: ID! @idOf(type: "User")): User @resolver
-        | }
-        |
-        | interface Node {
-        |   id: ID!
         | }
         |
         | type User implements Node {

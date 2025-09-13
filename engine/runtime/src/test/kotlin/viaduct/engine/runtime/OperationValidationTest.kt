@@ -10,9 +10,7 @@ import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 class OperationValidationTest {
     val testSchema = """
-        directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-        type Query @scope(to: ["public","private"]) {
+        extend type Query @scope(to: ["public","private"]) {
             f1: Int
         }
 

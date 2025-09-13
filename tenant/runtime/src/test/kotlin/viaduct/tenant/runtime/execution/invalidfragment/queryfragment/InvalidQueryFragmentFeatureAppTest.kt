@@ -14,12 +14,11 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class InvalidQueryFragmentFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
         | type Foo {
         |   bar: String @resolver
         |   baz: String @resolver
         | }
-        | type Query {
+        | extend type Query {
         |   greeting: Foo @resolver
         | }
         | #END_SCHEMA

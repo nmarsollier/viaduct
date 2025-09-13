@@ -2,10 +2,8 @@
 
 package viaduct.tenant.runtime.execution.backingdata
 
-import graphql.schema.GraphQLScalarType
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
-import viaduct.graphql.Scalars
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.execution.backingdata.resolverbases.FooResolvers
 import viaduct.tenant.runtime.execution.backingdata.resolverbases.QueryResolvers
@@ -15,12 +13,9 @@ class BackingDataFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
     | #START_SCHEMA
-    | scalar BackingData
-    | directive @resolver on FIELD_DEFINITION
-    | directive @visibility(level: String!) on FIELD_DEFINITION
-    | directive @backingData(class: String!) on FIELD_DEFINITION
+    | #directive @visibility(level: String!) on FIELD_DEFINITION
     |
-    | type Query {
+    | extend type Query {
     |  foo: Foo @resolver
     | }
     |
@@ -28,16 +23,12 @@ class BackingDataFeatureAppTest : FeatureAppTestBase() {
     |   iValue: Int @resolver
     |   sValue: String @resolver
     |   backingDataValue: BackingData
-    |     @visibility(level:"private")
+    |     #@visibility(level:"private")
     |     @resolver
     |     @backingData(class: "featureapps.example.BackingDataValue")
     | }
     | #END_SCHEMA
         """.trimMargin()
-
-    override var customScalars: List<GraphQLScalarType> = listOf(
-        Scalars.BackingData
-    )
 
     // Tenant provided resolvers
 

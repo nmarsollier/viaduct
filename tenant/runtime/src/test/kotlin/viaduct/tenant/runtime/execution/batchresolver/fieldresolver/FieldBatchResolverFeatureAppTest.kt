@@ -11,9 +11,7 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class FieldBatchResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | type Query {
+        | extend type Query {
         |   items(count: Int = 2): [Item] @resolver
         | }
         |

@@ -10,7 +10,7 @@ class MockEngineObjectDataTest {
 
     @Test
     fun `wrap -- empty`() {
-        MockSchema.mk("type Query { empty: Int }")
+        MockSchema.mk("extend type Query { empty: Int }")
             .apply {
                 val eod = MockEngineObjectData.wrap(obj("Query"), emptyMap())
                 assertEquals(MockEngineObjectData(obj("Query"), emptyMap()), eod)
@@ -21,7 +21,7 @@ class MockEngineObjectDataTest {
     fun `wrap -- nested`() {
         MockSchema.mk(
             """
-                type Query { empty: Int }
+                extend type Query { empty: Int }
                 type Foo { x: Int, foo: Foo }
             """.trimIndent()
         ).apply {
@@ -46,7 +46,7 @@ class MockEngineObjectDataTest {
     fun `wrap -- list`() {
         MockSchema.mk(
             """
-                type Query { empty: Int }
+                extend type Query { empty: Int }
                 type Foo { xs: [Int], foos: [Foo] }
             """.trimIndent()
         ).apply {

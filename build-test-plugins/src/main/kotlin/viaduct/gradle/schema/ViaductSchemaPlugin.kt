@@ -13,6 +13,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
+import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 
 /**
@@ -23,6 +24,9 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
      * @param project the implicit project that is going to be used
      */
     override fun apply(project: Project) {
+        // Ensure default schema plugin is applied so default schema is available
+        DefaultSchemaPlugin.ensureApplied(project)
+
         /**
          * This creates a viaductSchema DSL configuration to be used after the plugin is created
          * ex.
@@ -163,6 +167,9 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
             this.mainProjectClasspath.from(classpath)
             this.javaExecutable.set(javaExecutable)
             this.generatedSrcDir.set(project.layout.buildDirectory.dir("generated-sources/schema/$name/generated_classes"))
+
+            // Depend on processResources to ensure default schema is available
+            dependsOn("processResources")
 
             if (isInternalMode) {
                 dependsOn(mainProject!!.tasks.named("classes"))

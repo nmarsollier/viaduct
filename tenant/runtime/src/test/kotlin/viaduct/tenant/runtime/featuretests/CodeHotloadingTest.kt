@@ -9,7 +9,7 @@ class CodeHotloadingTest {
     @Test
     fun `basic`() {
         val builder = FeatureTestBuilder()
-            .sdl("type Query { a: Int }")
+            .sdl("extend type Query { a: Int }")
             .resolver("Query" to "a") { 1 }
         val viaductTest = builder.build()
         viaductTest.assertJson("{data: {a: 1}}", "{ a }")

@@ -123,7 +123,7 @@ class GJSchemaRaw private constructor(
             valueConverter: ValueConverter = ValueConverter.default,
             queryTypeName: String? = null,
             mutationTypeName: String? = null,
-            subscriptionTypeName: String? = null
+            subscriptionTypeName: String? = null,
         ): GJSchemaRaw {
             val typeDefRegistry = timer.time("readTypesFromFiles") { readTypesFromFiles(inputFiles) }
             return fromRegistry(
@@ -132,7 +132,7 @@ class GJSchemaRaw private constructor(
                 valueConverter,
                 queryTypeName,
                 mutationTypeName,
-                subscriptionTypeName
+                subscriptionTypeName,
             )
         }
 
@@ -144,7 +144,7 @@ class GJSchemaRaw private constructor(
             valueConverter: ValueConverter = ValueConverter.default,
             queryTypeName: String? = null,
             mutationTypeName: String? = null,
-            subscriptionTypeName: String? = null
+            subscriptionTypeName: String? = null,
         ): GJSchemaRaw =
             timer.time("fromSchema") {
                 // graphql-java assumes these get created during language->schema translation

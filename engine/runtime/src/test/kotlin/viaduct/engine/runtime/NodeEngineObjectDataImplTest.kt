@@ -24,8 +24,7 @@ import viaduct.service.api.spi.mocks.MockFlagManager
 class NodeEngineObjectDataImplTest {
     private val schema = MockSchema.mk(
         """
-        type Query { empty: Int }
-        interface Node { id: ID! }
+        extend type Query { empty: Int }
         type TestType implements Node { id: ID! }
         """.trimIndent()
     )

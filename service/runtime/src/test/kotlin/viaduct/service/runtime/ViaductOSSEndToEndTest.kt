@@ -12,9 +12,6 @@ import graphql.InvalidSyntaxError
 import graphql.execution.DataFetcherExceptionHandler
 import graphql.execution.ExecutionStrategy
 import graphql.language.SourceLocation
-import graphql.schema.idl.RuntimeWiring
-import graphql.schema.idl.SchemaGenerator
-import graphql.schema.idl.SchemaParser
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -26,7 +23,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.CheckerExecutorFactory
-import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ChainedInstrumentation
 import viaduct.engine.api.instrumentation.ViaductInstrumentationAdapter
@@ -56,20 +52,14 @@ class ViaductOSSEndToEndTest {
         override fun isEnabled(flag: Flag) = true
     }
 
-    val wiring = RuntimeWiring.MOCKED_WIRING // TODO: Replace with injected OSS/modern-only wiring
-
-    val schema = mkSchema(
+    val sdl =
         """
-            directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-            schema { query: Foo }
-            type Foo @scope(to: ["viaduct-public"]) { field: Int }
+            extend type Query @scope(to: ["viaduct-public"]) { field: Int }
         """.trimIndent()
-    )
 
     @BeforeEach
     fun setUp() {
-        viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(schema).registerScopedSchema("public", setOf("viaduct-public"))
+        viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("viaduct-public"))
         subject = StandardViaduct.Builder()
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
@@ -236,6 +226,4 @@ class ViaductOSSEndToEndTest {
 
         bindingsInvariant.check(bindingsMap)
     }
-
-    private fun mkSchema(sdl: String): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), wiring))
 }

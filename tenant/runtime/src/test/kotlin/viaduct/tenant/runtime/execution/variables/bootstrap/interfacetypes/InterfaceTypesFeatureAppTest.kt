@@ -23,15 +23,11 @@ class InterfaceTypesFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
-        | interface Node {
-        |   id: ID!
-        | }
         | type Book implements Node {
         |   id: ID!
         |   title: String
         | }
-        | type Query {
+        | extend type Query {
         |   fromArgumentField(arg: Int!): Int @resolver
         |   intermediary(arg: Int!): Int @resolver
         |   fromVariablesProvider: Int @resolver

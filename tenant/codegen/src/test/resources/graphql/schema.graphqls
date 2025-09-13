@@ -2,23 +2,6 @@
 # The schema is similar to the graphql-java example only extended with viaduct costumization
 # https://github.com/graphql-java/graphql-java/blob/master/src/test/resources/starWarsSchema.graphqls
 
-directive @resolver on FIELD_DEFINITION | OBJECT
-directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-type Query @scope(to: ["*"]) {
-  _: String @deprecated
-}
-type Mutation @scope(to: ["*"]) {
-  _: String @deprecated
-}
-type Subscription @scope(to: ["*"]) {
-  _: String @deprecated
-}
-
-interface Node @scope(to: ["starwars"]) {
-  id: ID!
-}
-
 interface Product implements Node @scope(to: ["starwars"]) {
   id: ID!
   name: String!

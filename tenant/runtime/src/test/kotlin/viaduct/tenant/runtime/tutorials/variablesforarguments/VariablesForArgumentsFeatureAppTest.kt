@@ -25,9 +25,7 @@ class VariablesForArgumentsFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
-        |
-        | type Query {
+        | extend type Query {
         |   getPosts(userId: String!, status: String!): String @resolver
         |   userPosts(userId: String!): String @resolver
         |   latestPosts: String @resolver

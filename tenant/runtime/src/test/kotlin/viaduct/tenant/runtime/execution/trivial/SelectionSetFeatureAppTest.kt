@@ -12,7 +12,6 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class SelectionSetFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
         | type Foo {
         |   shorthandBar: String @resolver
         |   fragmentBar: String @resolver
@@ -22,7 +21,7 @@ class SelectionSetFeatureAppTest : FeatureAppTestBase() {
         | type NestedFoo {
         |   value: String @resolver
         | }
-        | type Query {
+        | extend type Query {
         |   greeting: Foo @resolver
         |   selectionSetDemo: String @resolver
         |   selectionSetShorthandDemo: String @resolver

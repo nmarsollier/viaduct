@@ -23,12 +23,6 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
         """
         | #START_SCHEMA
         |
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
-        |
         | type User implements Node @resolver {
         |   id: ID!
         |   firstname: String!
@@ -36,7 +30,7 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
         |   fullName: String! @resolver
         | }
         |
-        | type Query {
+        | extend type Query {
         |   user(id: String!): User! @resolver
         | }
         | #END_SCHEMA

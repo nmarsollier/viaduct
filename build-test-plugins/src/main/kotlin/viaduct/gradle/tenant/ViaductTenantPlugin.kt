@@ -13,6 +13,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
+import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 import viaduct.gradle.viaduct
 
@@ -24,6 +25,9 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
      * @param project the implicit project that is going to be used
      */
     override fun apply(project: Project) {
+        // Ensure default schema plugin is applied so default schema is available
+        DefaultSchemaPlugin.ensureApplied(project)
+
         /**
          * This creates a viaductTenant DSL configuration to be used after the plugin is created
          * ex.
@@ -192,6 +196,9 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
                     }
             }
             this.javaExecutable.set(javaExecutable)
+
+            // Depend on processResources to ensure default schema is available
+            dependsOn("processResources")
 
             // Temporary directories
             this.modernModuleSrcDir.set(modernModuleSrcDir)

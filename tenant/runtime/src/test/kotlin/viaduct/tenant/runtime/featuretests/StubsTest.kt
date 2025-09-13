@@ -30,27 +30,27 @@ class ObjectStubTest {
     fun `get`() =
         runBlockingTest {
             // missing
-            mk("type Query { x: Int }").apply {
+            mk("extend type Query { x: Int }").apply {
                 assertNull(get<Int?>("x"))
             }
 
             // explicit null
-            mk("type Query { x: Int }", "x" to null).apply {
+            mk("extend type Query { x: Int }", "x" to null).apply {
                 assertNull(get<Int?>("x"))
             }
 
             // scalar
-            mk("type Query { x: Int }", "x" to 1).apply {
+            mk("extend type Query { x: Int }", "x" to 1).apply {
                 assertEquals(1, get<Int>("x"))
             }
 
             // aliased scalar
-            mk("type Query { x: Int }", "myx" to 1).apply {
+            mk("extend type Query { x: Int }", "myx" to 1).apply {
                 assertEquals(1, get<Int>("x", "myx"))
             }
 
             // list
-            mk("type Query { x: [Int] }", "x" to listOf(1)).apply {
+            mk("extend type Query { x: [Int] }", "x" to listOf(1)).apply {
                 assertThrows<IllegalArgumentException> { get<List<Int>>("x") }
                 assertEquals(listOf(1), get<List<Int>>("x", Int::class))
             }

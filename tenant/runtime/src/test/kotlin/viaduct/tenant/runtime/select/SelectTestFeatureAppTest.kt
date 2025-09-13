@@ -3,6 +3,7 @@ package viaduct.tenant.runtime.select
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.UnExecutableSchemaGenerator
 import viaduct.engine.api.ViaductSchema
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
 class SelectTestFeatureAppTest : FeatureAppTestBase() {
@@ -10,7 +11,9 @@ class SelectTestFeatureAppTest : FeatureAppTestBase() {
         val schema: ViaductSchema by lazy {
             ViaductSchema(
                 UnExecutableSchemaGenerator.makeUnExecutableSchema(
-                    SchemaParser().parse(SelectTestFeatureAppTest().sdl)
+                    SchemaParser().parse(SelectTestFeatureAppTest().sdl).apply {
+                        DefaultSchemaProvider.addDefaults(this)
+                    }
                 )
             )
         }
@@ -19,17 +22,16 @@ class SelectTestFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         #START_SCHEMA
-        type Query {
-          node: Node
+        extend type Query {
           intField: Int
         }
-        type Mutation {
+
+        extend type Mutation {
           mutfield(x: Int!): String!
         }
 
-        interface Node {
-          id: ID!
-          nodeSelf: Node!
+        extend interface Node {
+            nodeSelf: Node!
         }
 
         type Foo implements Node {

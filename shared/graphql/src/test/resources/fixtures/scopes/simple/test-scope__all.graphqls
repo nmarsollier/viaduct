@@ -1,5 +1,5 @@
 schema {
-  query: RootQuery
+  query: Query
 }
 
 type AType {
@@ -9,6 +9,6 @@ type AType {
   someOtherField: String
 }
 
-type RootQuery {
+type Query {
   aType: AType
 }

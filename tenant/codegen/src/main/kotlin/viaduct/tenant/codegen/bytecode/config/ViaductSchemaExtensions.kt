@@ -202,4 +202,6 @@ val ViaductExtendedSchema.TypeDef.hasReflectedType: Boolean
     get() = this !is ViaductExtendedSchema.Scalar
 
 val ViaductExtendedSchema.SourceLocation.tenantModule: String?
-    get() = this.sourceName.let { cfg.moduleExtractor.find(it)?.groups?.get(1)?.value }?.substringBefore("/src/")
+    get() = this.sourceName.let {
+        cfg.moduleExtractor.find(it)?.groups?.get(1)?.value
+    }?.substringBefore("/src/")

@@ -16,7 +16,7 @@ class VariablesResolverTest {
     @Test
     fun `variables provider -- variable name overlaps with bound field arg`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(x:Int): Int!, bar(x:Int!): Int! }")
+            .sdl("extend type Query { foo(x:Int): Int!, bar(x:Int!): Int! }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
@@ -35,7 +35,7 @@ class VariablesResolverTest {
     @Test
     fun `variables provider -- uses an arg variable with the same name as an unbound argument`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(x:Int):Int, bar(x:Int):Int, baz(x:Int):Int }")
+            .sdl("extend type Query { foo(x:Int):Int, bar(x:Int):Int, baz(x:Int):Int }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("baz") * 11 },
@@ -55,7 +55,7 @@ class VariablesResolverTest {
     @Test
     fun `from arg -- simple`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(y: Int!): Int!, bar(x:Int!): Int! }")
+            .sdl("extend type Query { foo(y: Int!): Int!, bar(x:Int!): Int! }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
@@ -71,7 +71,7 @@ class VariablesResolverTest {
     @Test
     fun `from arg -- binds argument to variable with a different name`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(y: Int!): Int!, bar(x:Int!): Int! }")
+            .sdl("extend type Query { foo(y: Int!): Int!, bar(x:Int!): Int! }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
@@ -90,7 +90,7 @@ class VariablesResolverTest {
             .sdl(
                 """
                     input Inp { x:Int! }
-                    type Query { foo(inp:Inp!): Int!, bar(x:Int!):Int! }
+                    extend type Query { foo(inp:Inp!): Int!, bar(x:Int!):Int! }
                 """.trimIndent()
             )
             .resolver(
@@ -109,7 +109,7 @@ class VariablesResolverTest {
             .sdl(
                 """
                     input Inp { x:Int }
-                    type Query { foo(x:Int!): Int!, bar(inp:Inp!):Int! }
+                    extend type Query { foo(x:Int!): Int!, bar(inp:Inp!):Int! }
                 """.trimIndent()
             )
             .resolver(
@@ -129,7 +129,7 @@ class VariablesResolverTest {
     @Test
     fun `from arg -- arg has default value`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(x:Int!=2):Int!, bar(x:Int):Int }")
+            .sdl("extend type Query { foo(x:Int!=2):Int!, bar(x:Int):Int }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
@@ -152,7 +152,7 @@ class VariablesResolverTest {
             .sdl(
                 """
                     input Inp { x:Int!=2 }
-                    type Query { foo(inp:Inp!):Int!, bar(x:Int!):Int! }
+                    extend type Query { foo(inp:Inp!):Int!, bar(x:Int!):Int! }
                 """.trimIndent()
             )
             .resolver(
@@ -177,7 +177,7 @@ class VariablesResolverTest {
             .sdl(
                 """
                     input Inp { x:Int!=2 }
-                    type Query { foo(inp:Inp):Int, bar(x:Int):Int }
+                    extend type Query { foo(inp:Inp):Int, bar(x:Int):Int }
                 """.trimIndent()
             )
             .resolver(
@@ -200,7 +200,7 @@ class VariablesResolverTest {
     @Test
     fun `from arg -- variable name overlaps with bound selection arg`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(x:Int):Int!, bar(x:Int!):Int!, baz:Int! }")
+            .sdl("extend type Query { foo(x:Int):Int!, bar(x:Int!):Int!, baz:Int! }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
@@ -223,7 +223,7 @@ class VariablesResolverTest {
         // this test case tries to use a nullable value, Query.foo(x:), in a position
         // where a non-nullable one is required, Query.bar(x:)
         FeatureTestBuilder()
-            .sdl("type Query { foo(x:Int):Int!, bar(x:Int!):Int! }")
+            .sdl("extend type Query { foo(x:Int):Int!, bar(x:Int!):Int! }")
             .resolver(
                 "Query" to "foo",
                 { _: UntypedFieldContext -> 5 },
@@ -241,7 +241,7 @@ class VariablesResolverTest {
     @Test
     fun `from arg -- arg from operation variable`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo(y:Int!):Int!, bar(x:Int!): Int! }")
+            .sdl("extend type Query { foo(y:Int!):Int!, bar(x:Int!): Int! }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },
@@ -264,7 +264,7 @@ class VariablesResolverTest {
         // with different values of $x. We want to test that we are not memoizing bar on the
         // reference to variable $x, but rather the value of variable $x
         FeatureTestBuilder()
-            .sdl("type Query { foo(x:Int):Int, bar(x:Int):Int, baz(x:Int):Int }")
+            .sdl("extend type Query { foo(x:Int):Int, bar(x:Int):Int, baz(x:Int):Int }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("baz") * 11 },
@@ -284,7 +284,7 @@ class VariablesResolverTest {
     @Test
     fun `invalid variable reference`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo: Int!, bar(x:Int!): Int! }")
+            .sdl("extend type Query { foo: Int!, bar(x:Int!): Int! }")
             .resolver(
                 "Query" to "foo",
                 { ctx: UntypedFieldContext -> ctx.objectValue.get<Int>("bar") * 5 },

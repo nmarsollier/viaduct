@@ -303,7 +303,7 @@ class MocksAdditionalTest {
 
     @Test
     fun `MockSchema mk helper function`() {
-        val schema = MockSchema.mk("type Query { testField: String }")
+        val schema = MockSchema.mk("extend type Query { testField: String }")
         assertNotNull(schema.schema.queryType)
         assertNotNull(schema.schema.queryType.getFieldDefinition("testField"))
     }

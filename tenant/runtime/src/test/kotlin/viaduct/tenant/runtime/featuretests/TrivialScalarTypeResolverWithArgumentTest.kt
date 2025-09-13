@@ -9,7 +9,7 @@ import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestBuilder
 class TrivialScalarTypeResolverWithArgumentTest {
     private fun configure(): FeatureTest =
         FeatureTestBuilder()
-            .sdl("type Query { foo(input: String): String }")
+            .sdl("extend type Query { foo(input: String): String }")
             .resolver("Query" to "foo") { "resolved: ${it.arguments.get<String>("input")}" }
             .build()
 

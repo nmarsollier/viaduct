@@ -27,7 +27,7 @@ import java.util.Locale
 object Scalars {
     /**
      * Extends DateTime from `graphql-extended-scalars` package to support Java `Instant`, which is used commonly
-     * at Airbnb for date/time values.
+     * for date/time values.
      */
     val DateTimeScalar: GraphQLScalarType =
         GraphQLScalarType.newScalar()
@@ -96,11 +96,9 @@ object Scalars {
     /**
      * This represents the "Long" type which is a representation of `java.lang.Long`.
      *
-     *
      * This custom scalar is a fork of
      * https://github.com/graphql-java/graphql-java/blob/3ea1c1a643977bf173e2a835c86d6a14f9b51794/src/main/java/\
      *   graphql/Scalars.java#L324
-     *
      *
      * graphql-java chooses to represent longs as numbers in JSON. This works fine for many
      * languages, but not JavaScript. JavaScript will lose precision at ~2^52. We need to serialize long values to
@@ -109,7 +107,7 @@ object Scalars {
     val GraphQLLong: GraphQLScalarType =
         GraphQLScalarType.newScalar()
             .name("Long")
-            .description("Airbnb specific Long type that serializes/deserializes to/from a string.")
+            .description("Long type that serializes/deserializes to/from a string.")
             .coercing(
                 object : Coercing<Any?, Any?> {
                     private fun convertImpl(input: Any): Long? {
@@ -236,9 +234,9 @@ object Scalars {
             .build()
 
     /**
-     * The list of scalars supported by Viaduct.
+     * The list of scalars supported by Viaduct (not including built-in scalars).
      */
-    val viaductStandardScalars = listOf(
+    val viaductStandardScalars = setOf(
         ExtendedScalars.Date,
         ExtendedScalars.GraphQLByte,
         ExtendedScalars.GraphQLShort,

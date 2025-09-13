@@ -41,12 +41,6 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
-        |
         | type User implements Node @resolver {
         |   id: ID!
         |   name: String!
@@ -57,7 +51,7 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
         |   computedReviewsWithArgs(userType: String!): [String!]! @resolver
         | }
         |
-        | type Query {
+        | extend type Query {
         |   user(id: String!): User! @resolver
         | }
         | #END_SCHEMA

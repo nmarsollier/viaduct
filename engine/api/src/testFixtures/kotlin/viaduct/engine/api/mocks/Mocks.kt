@@ -46,6 +46,8 @@ import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.engine.runtime.select.RawSelectionSetImpl
+import viaduct.graphql.utils.DefaultSchemaProvider
+import viaduct.service.runtime.ViaductSchemaLoadException
 import viaduct.service.runtime.ViaductWiringFactory
 
 typealias CheckerFn = suspend (arguments: Map<String, Any?>, objectDataMap: Map<String, EngineObjectData>) -> Unit
@@ -103,7 +105,9 @@ class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolv
  * @param sdl The SDL string to parse and create the schema.
  */
 fun mkSchema(sdl: String): ViaductSchema {
-    val tdr = SchemaParser().parse(sdl)
+    val tdr = SchemaParser().parse(sdl).apply {
+        DefaultSchemaProvider.addDefaults(this)
+    }
     return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, RuntimeWiring.MOCKED_WIRING))
 }
 
@@ -115,15 +119,25 @@ fun mkSchema(sdl: String): ViaductSchema {
  */
 fun mkSchemaWithWiring(sdl: String): ViaductSchema {
     val tdr = SchemaParser().parse(sdl)
+    try {
+        DefaultSchemaProvider.addDefaults(tdr)
+    } catch (e: Exception) {
+        throw ViaductSchemaLoadException(
+            "Failed to add default schema components.",
+            e
+        )
+    }
     val actualWiringFactory = ViaductWiringFactory(DefaultCoroutineInterop)
-    val wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(actualWiringFactory).build()
+    val wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(actualWiringFactory).apply {
+        DefaultSchemaProvider.defaultScalars().forEach { scalar(it) }
+    }.build()
 
     // Let SchemaProblem and other GraphQL validation errors pass through
     return ViaductSchema(SchemaGenerator().makeExecutableSchema(tdr, wiring))
 }
 
 object MockSchema {
-    val minimal: ViaductSchema = mkSchema("type Query { empty: Int }")
+    val minimal: ViaductSchema = mkSchema("extend type Query { empty: Int }")
 
     fun mk(sdl: String) = mkSchema(sdl)
 }
@@ -414,10 +428,9 @@ class MockCheckerExecutorFactory(
 object Samples {
     val testSchema = mkSchemaWithWiring(
         """
-        type Query {
+        extend type Query {
             foo: String
         }
-        interface Node { id: ID! }
         type TestType {
             aField: String
             bIntField: Int

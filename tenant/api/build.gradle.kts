@@ -26,6 +26,7 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":engine:engine-api")))
 
     testImplementation(testFixtures(project(":engine:engine-api")))
+    testImplementation(project(":tenant:tenant-runtime"))
     testImplementation(project(":shared:arbitrary"))
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)

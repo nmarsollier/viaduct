@@ -21,22 +21,13 @@ import viaduct.service.runtime.noderesolvers.ViaductQueryNodeResolverModuleBoots
 class ViaductNodeResolversTest {
     companion object {
         const val SCHEMA = """
-              interface Node {
-                  id: ID!
-              }
-
-              type Query {
-                  node(id: ID!): Node
-                  nodes(ids: [ID!]!): [Node]!
+              extend type Query {
+                  user(id: ID!): User
               }
 
               type User implements Node {
                   id: ID!
                   name: String!
-              }
-
-              extend type Query {
-                  user(id: ID!): User
               }
 
               interface InterfaceType {
@@ -296,7 +287,7 @@ class ViaductNodeResolversTest {
     @Test
     fun `undefined query node and nodes fields with query node resolvers enabled does not break standard viaduct bootstrapping`() {
         val schemaWithoutNodes = """
-              type Query {
+              extend type Query {
                 user: User
               }
 

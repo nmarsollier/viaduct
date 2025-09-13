@@ -19,14 +19,6 @@ import viaduct.engine.api.select.SelectionsParser
 class RawSelectionSetImplTest {
     private val defaultSdl =
         """
-            schema { query: Query }
-
-            type Query {
-              node(id: ID!): Node
-            }
-
-            interface Node { id: ID! }
-
             type Struct { int: Int }
 
             enum Bar { A }
@@ -267,7 +259,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `containsSelection -- empty`() {
-        mk("Query", "__typename @skip(if:true)", sdl = "type Query { x: Int }").let {
+        mk("Query", "__typename @skip(if:true)", sdl = "extend type Query { x: Int }").let {
             // valid field but not selected
             assertFalse(it.containsSelection("Query", "x"))
 
@@ -278,7 +270,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `containsSelection -- fields and aliases`() {
-        val sdl = "type Query { x: Int }"
+        val sdl = "extend type Query { x: Int }"
 
         // unaliased
         mk("Query", "x", sdl).let {
@@ -295,7 +287,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `containsSelection -- type conditions`() {
         val sdl = """
-            type Query { empty: Int }
+            extend type Query { empty: Int }
             interface Iface { x: Int }
             type Foo implements Iface { x: Int, y: Int }
         """.trimIndent()
@@ -752,7 +744,7 @@ class RawSelectionSetImplTest {
             "Foo",
             "bar { x }",
             sdl = """
-                type Query { placeholder: Int }
+                extend type Query { placeholder: Int }
                 type Bar { x: Int }
                 type Foo { bar: Bar }
                 type Foo2 { bar: Bar }
@@ -827,9 +819,8 @@ class RawSelectionSetImplTest {
                 }
             """,
             sdl = """
-                type Query { node : Node }
-                interface Node { bar: Bar }
-                type Foo implements Node { bar: Bar }
+                extend interface Node { bar: Bar }
+                type Foo implements Node { id: ID!, bar: Bar }
                 type Bar { x: Int, y: Int }
             """
         )
@@ -851,9 +842,8 @@ class RawSelectionSetImplTest {
                 }
                 """,
             sdl = """
-                type Query { node: Node }
-                interface Node { bar: Bar }
-                type Foo implements Node { bar: Bar }
+                extend interface Node { bar: Bar }
+                type Foo implements Node { id: ID!, bar: Bar }
                 type Bar { x: Int, y: Int }
             """
         )
@@ -880,12 +870,11 @@ class RawSelectionSetImplTest {
             "Node",
             "... on HasBar { bar { int } }",
             sdl = """
-                type Query { placeholder: Int }
+                extend type Query { placeholder: Int }
 
-                interface Node { id: ID }
                 type Bar { int: Int }
                 interface HasBar { bar: Bar }
-                type Foo implements Node & HasBar { id: ID, bar: Bar }
+                type Foo implements Node & HasBar { id: ID!, bar: Bar }
             """
         )
 
@@ -956,7 +945,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `selectionSetForSelection -- empty`() {
-        mk("Query", "__typename @if(skip:true)", "type Query { x: Query }").let {
+        mk("Query", "__typename @if(skip:true)", "extend type Query { x: Query }").let {
             assertThrows<IllegalArgumentException> {
                 it.selectionSetForSelection("Query", "x")
             }
@@ -965,7 +954,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `selectionSetForSelection -- invalid`() {
-        mk("Query", "x", "type Query { x: Int }").let {
+        mk("Query", "x", "extend type Query { x: Int }").let {
             assertThrows<IllegalArgumentException> {
                 it.selectionSetForSelection("Query", "x")
             }
@@ -974,7 +963,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `selectionSetForSelection -- subselect field`() {
-        val sdl = "type Query { x: Int, y: Int, q: Query }"
+        val sdl = "extend type Query { x: Int, y: Int, q: Query }"
         mk("Query", "q { x }, u:q { y }", sdl)
             .selectionSetForSelection("Query", "q")
             .let {
@@ -985,7 +974,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `selectionSetForSelection -- subselect alias`() {
-        val sdl = "type Query { x: Int, y: Int, q: Query }"
+        val sdl = "extend type Query { x: Int, y: Int, q: Query }"
         mk("Query", "a:q { x }, b:q { y }", sdl)
             .also {
                 it.selectionSetForSelection("Query", "a").let {
@@ -1008,7 +997,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `selectionSetForSelection -- type conditions`() {
         val sdl = """
-            type Query { empty: Int }
+            extend type Query { empty: Int }
             interface Iface { x: Iface }
             type Foo implements Iface { x: Iface, y: Iface }
         """.trimIndent()
@@ -1112,11 +1101,10 @@ class RawSelectionSetImplTest {
             "Node",
             "... on AbstractFoo { x }",
             sdl = """
-                type Query { placeholder: Int }
+                extend type Query { placeholder: Int }
 
-                interface Node { id: ID }
                 interface AbstractFoo { x: Int }
-                type Foo implements Node & AbstractFoo { id: ID, x: Int }
+                type Foo implements Node & AbstractFoo { id: ID!, x: Int }
             """
         )
 
@@ -1249,7 +1237,7 @@ class RawSelectionSetImplTest {
             "__typename, x, e",
             """
                 enum E { x }
-                type Query { x:Int, e:E }
+                extend type Query { x:Int, e:E }
             """.trimIndent()
         )
         assertEquals(emptyList<Coordinate>(), ss.traversableSelections())
@@ -1270,7 +1258,7 @@ class RawSelectionSetImplTest {
                 type Foo { x:Int }
                 type Bar { x:Int }
                 union U = Foo | Bar
-                type Query { u:U }
+                extend type Query { u:U }
             """.trimIndent()
         )
         assertEquals(emptyList<Coordinate>(), ss.traversableSelections())
@@ -1307,7 +1295,7 @@ class RawSelectionSetImplTest {
             """.trimIndent(),
             sdl = """
                 type Obj { x:Int }
-                type Query {
+                extend type Query {
                     o1:Obj!
                     o2:[Obj]
                     o3:[Obj!]
@@ -1363,31 +1351,31 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `argumentsOfSelection -- empty`() {
-        val ss = mk("Query", "x @skip(if:true)", "type Query { x: Int }")
+        val ss = mk("Query", "x @skip(if:true)", "extend type Query { x: Int }")
         assertEquals(null, ss.argumentsOfSelection("Query", "x"))
     }
 
     @Test
     fun `argumentsOfSelection -- no args`() {
-        val ss = mk("Query", "x", "type Query { x: Int }")
+        val ss = mk("Query", "x", "extend type Query { x: Int }")
         assertEquals(emptyMap<String, Any?>(), ss.argumentsOfSelection("Query", "x"))
     }
 
     @Test
     fun `argumentsOfSelection -- args without defaults`() {
-        val ss = mk("Query", "x(y:2)", "type Query { x(y:Int):Int }")
+        val ss = mk("Query", "x(y:2)", "extend type Query { x(y:Int):Int }")
         assertEquals(mapOf("y" to 2), ss.argumentsOfSelection("Query", "x"))
     }
 
     @Test
     fun `argumentsOfSelection -- args with variable`() {
-        val ss = mk("Query", "x(y:\$yvar)", "type Query { x(y:Int):Int }", mapOf("yvar" to 2))
+        val ss = mk("Query", "x(y:\$yvar)", "extend type Query { x(y:Int):Int }", mapOf("yvar" to 2))
         assertEquals(mapOf("y" to 2), ss.argumentsOfSelection("Query", "x"))
     }
 
     @Test
     fun `argumentsOfSelection -- args with default value`() {
-        val sdl = "type Query { x(y:Int = 2): Int }"
+        val sdl = "extend type Query { x(y:Int = 2): Int }"
 
         // no selected value
         mk("Query", "x", sdl).let {
@@ -1410,7 +1398,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `argumentsOfSelection -- arg of input object`() {
         val sdl = """
-            type Query { x(y: Input): Int }
+            extend type Query { x(y: Input): Int }
             input Input { z: Int, input: Input }
         """.trimIndent()
 
@@ -1433,7 +1421,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `argumentsOfSelection -- arg of input object with defaults`() {
         val sdl = """
-            type Query { x(y: Input = {z: 0, input: null}): Int }
+             extend type Query { x(y: Input = {z: 0, input: null}): Int }
             input Input { z: Int=1, input: Input }
         """.trimIndent()
 
@@ -1449,14 +1437,14 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `argumentsOfSelection -- arg of list`() {
-        mk("Query", "x(y: [[1], [2, 3]])", sdl = "type Query { x(y: [[Int]]): Int }").let {
+        mk("Query", "x(y: [[1], [2, 3]])", sdl = "extend type Query { x(y: [[Int]]): Int }").let {
             assertEquals(mapOf("y" to listOf(listOf(1), listOf(2, 3))), it.argumentsOfSelection("Query", "x"))
         }
     }
 
     @Test
     fun `argumentsOfSelection -- arg of list with defaults`() {
-        val sdl = "type Query { x(y: [[Int]] = [[1], [2,3]]): Int }"
+        val sdl = "extend type Query { x(y: [[Int]] = [[1], [2,3]]): Int }"
         // no args
         mk("Query", "x", sdl = sdl).let {
             assertEquals(mapOf("y" to listOf(listOf(1), listOf(2, 3))), it.argumentsOfSelection("Query", "x"))
@@ -1480,7 +1468,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `argumentsOfSelection -- type conditions`() {
         val sdl = """
-            type Query { empty: Int }
+             extend type Query { empty: Int }
             interface Iface { x(z: Int): Int }
             type Foo implements Iface {
                 x(z: Int): Int
@@ -1500,7 +1488,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `argumentsOfSelection -- arg of list of object with defaults`() {
         val sdl = """
-            type Query { x(y:[Input] = [{z: 1, input: null}]): Int }
+             extend type Query { x(y:[Input] = [{z: 1, input: null}]): Int }
             input Input { z: Int, input: Input }
         """.trimIndent()
 
@@ -1512,7 +1500,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `resolveSelection -- unaliased`() {
-        mk("Query", "x", sdl = "type Query { x: Int }").let {
+        mk("Query", "x", sdl = "extend type Query { x: Int }").let {
             assertEquals(
                 RawSelection("Query", "x", "x"),
                 it.resolveSelection("Query", "x")
@@ -1522,7 +1510,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `resolveSelection -- aliased`() {
-        mk("Query", "y:x", sdl = "type Query { x: Int }").let {
+        mk("Query", "y:x", sdl = "extend type Query { x: Int }").let {
             assertEquals(
                 RawSelection("Query", "x", "y"),
                 it.resolveSelection("Query", "y")
@@ -1533,7 +1521,7 @@ class RawSelectionSetImplTest {
     @Test
     fun `resolveSelection -- type conditions`() {
         val sdl = """
-            type Query { empty: Int }
+             extend type Query { empty: Int }
             interface Iface { x: Int }
             type Foo implements Iface { x:Int, y: Int }
         """.trimIndent()
@@ -1562,14 +1550,14 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `toSelectionSet -- empty`() {
-        mk("Query", "x @skip(if:true)", sdl = "type Query { x:Int }").let {
+        mk("Query", "x @skip(if:true)", sdl = "extend type Query { x:Int }").let {
             assertEquals("", AstPrinter.printAst(it.toSelectionSet()))
         }
     }
 
     @Test
     fun `toSelectionSet -- cull empty selections`() {
-        mk("Query", "x q { x @skip(if:true) }", sdl = "type Query { x:Int q:Query }").let {
+        mk("Query", "x q { x @skip(if:true) }", sdl = "extend type Query { x:Int q:Query }").let {
             assertEquals(
                 """
                     {
@@ -1585,7 +1573,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `toSelectionSet -- unbound variables`() {
-        mk("Query", "x @skip(if:\$skipIf)", sdl = "type Query {x:Int}").let {
+        mk("Query", "x @skip(if:\$skipIf)", sdl = "extend type Query {x:Int}").let {
             assertEquals(
                 """
                     {
@@ -1601,7 +1589,7 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `toSelectionSet -- fragment spreads`() {
-        val sdl = "type Query { x:Int, q:Query }"
+        val sdl = "extend type Query { x:Int, q:Query }"
         val ss = """
             fragment Main on Query {
                 x
@@ -1638,28 +1626,28 @@ class RawSelectionSetImplTest {
 
     @Test
     fun `printAsFieldSet -- empty`() {
-        mk("Query", "x @skip(if:true)", "type Query {x:Int}").let { ss ->
+        mk("Query", "x @skip(if:true)", "extend type Query {x:Int}").let { ss ->
             assertEquals("", ss.printAsFieldSet())
         }
     }
 
     @Test
     fun `printAsFieldSet -- bound variables`() {
-        mk("Query", "x @skip(if:\$var)", "type Query {x:Int}", mapOf("var" to false)).let { ss ->
+        mk("Query", "x @skip(if:\$var)", "extend type Query {x:Int}", mapOf("var" to false)).let { ss ->
             assertEquals("...on Query{x @skip(if:\$var)}", ss.printAsFieldSet())
         }
     }
 
     @Test
     fun `printAsFieldSet -- unbound variables`() {
-        mk("Query", "x @skip(if:\$var)", "type Query {x:Int}").let { ss ->
+        mk("Query", "x @skip(if:\$var)", "extend type Query {x:Int}").let { ss ->
             assertEquals("...on Query{x @skip(if:\$var)}", ss.printAsFieldSet())
         }
     }
 
     @Test
     fun `printAsFieldSet -- fragment spreads`() {
-        val sdl = "type Query { x:Int, q:Query }"
+        val sdl = "extend type Query { x:Int, q:Query }"
         val ss = """
             fragment Main on Query {
                 x
@@ -1695,7 +1683,7 @@ class RawSelectionSetImplTest {
                 }
             """,
             sdl = """
-                type Query { placeholder: Int }
+                 extend type Query { placeholder: Int }
 
                 interface Int1 { id1: ID }
                 interface Int2 implements Int1 { id1: ID, id2: ID }
@@ -1728,7 +1716,7 @@ class RawSelectionSetImplTest {
                 }
             """,
             sdl = """
-                type Query { placeholder: Int }
+                 extend type Query { placeholder: Int }
 
                 type Foo { a: Int, bar: Bar }
                 type Bar { b: Int, baz: Baz }
@@ -1782,7 +1770,7 @@ class RawSelectionSetImplTest {
                 }
             """,
             sdl = """
-                type Query { placeholder: Int }
+                 extend type Query { placeholder: Int }
 
                 type Struct { x: Int, y: Int }
                 interface Fork { struct: Struct }

@@ -10,7 +10,7 @@ class TrivialFragmentResolverTest {
     @Test
     fun `fragment resolver processes a sibling field`() =
         FeatureTestBuilder()
-            .sdl("type Query { foo: String bar: String }")
+            .sdl("extend type Query { foo: String bar: String }")
             .resolver("Query" to "foo") { "fooResult" }
             .resolver(
                 "Query" to "bar",

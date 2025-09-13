@@ -273,7 +273,7 @@ class DispatcherRegistryTest {
         val expectedSchema = Samples.testSchema
         val mismatchedSchema = mkSchemaWithWiring(
             """
-                type Query {
+                extend type Query {
                     q: String
                 }
                 type OtherType {

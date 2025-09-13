@@ -4,14 +4,11 @@ package viaduct.service.runtime
 
 import graphql.ExecutionResult
 import graphql.schema.idl.RuntimeWiring
-import graphql.schema.idl.SchemaGenerator
-import graphql.schema.idl.SchemaParser
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flag
 import viaduct.service.api.spi.FlagManager
@@ -37,10 +34,7 @@ class ViaductOSSScopesEndToEndTest {
     fun `Verify Builder using withFullSchemaFromSdl and registerSchema`() =
         runBlocking {
             val sdl = """
-                directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-                schema { query: Foo }
-                type Foo @scope(to: ["viaduct-public"]) { field: Int }
+                extend type Query @scope(to: ["viaduct-public"]) { field: Int }
             """
 
             viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("viaduct-public"))
@@ -105,10 +99,7 @@ class ViaductOSSScopesEndToEndTest {
     fun `Verify Builder using registerSchemaFromSdl and registerScopedSchema`() =
         runBlocking {
             val sdl = """
-            directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-            schema { query: Foo }
-            type Foo @scope(to: ["viaduct-public"]) { field: Int }
+            extend type Query @scope(to: ["viaduct-public"]) { field: Int }
         """
 
             viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
@@ -144,8 +135,6 @@ class ViaductOSSScopesEndToEndTest {
     fun `Verify Builder using withFullSchemaFromSdl and registerScopedSchema`() =
         runBlocking {
             val sdl = """
-            directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION | SCALAR
-
             type Foo @scope(to: ["SCOPE1"]) {
                 field: Int
             }
@@ -165,7 +154,7 @@ class ViaductOSSScopesEndToEndTest {
                 inputField: String
             }
 
-            type Query @scope(to: ["SCOPE1"]) {
+            extend type Query @scope(to: ["SCOPE1"]) {
                  testQuery: Foo
                  interfaceTest: Bar
                  unionTest: MultiType
@@ -256,14 +245,9 @@ class ViaductOSSScopesEndToEndTest {
     fun `Verify Builder using withScopedFuture`() =
         runBlocking {
             val sdl = """
-        directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-        schema { query: Foo }
-        type Foo @scope(to: ["viaduct-public"]) { field: Int }
-    """
-            val schema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING))
-
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(schema)
+                extend type Query @scope(to: ["viaduct-public"]) { field: Int }
+            """
+            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl)
                 .registerScopedSchema("public", setOf("viaduct-public"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
@@ -272,9 +256,9 @@ class ViaductOSSScopesEndToEndTest {
                 .build()
 
             val query = """
-        query TestQuery {
-            field
-        }
+                query TestQuery {
+                    field
+                }
             """.trimIndent()
             val executionInput = ExecutionInput(query, "public", object {})
 

@@ -18,22 +18,16 @@ import viaduct.engine.api.mocks.toViaductBuilder
 class AccessCheckExecutionTest {
     companion object {
         val SDL = """
-            interface Node {
-                id: ID!
-            }
-
-            type Query {
+            extend type Query {
                 string1: String
                 string2: String
                 boo: Boo
                 baz: Baz
                 bazList: [Baz]
-                node: Node
                 nonNullBaz: Baz!
-                nodes: [Node]
             }
 
-            type Mutation {
+            extend type Mutation {
                 string1: String
             }
 
@@ -524,7 +518,7 @@ class AccessCheckExecutionTest {
             }
         }.toViaductBuilder().withoutDefaultQueryNodeResolvers().build() // Disabling built in resolvers for test
             .runFeatureTest {
-                val result = viaduct.runQuery("{ node { id } }")
+                val result = viaduct.runQuery("{ node(id: \"a\") { id } }")
                 assertEquals(mapOf("node" to null), result.getData())
                 assertEquals(1, result.errors.size)
                 val error = result.errors[0]
@@ -551,7 +545,7 @@ class AccessCheckExecutionTest {
             }
         }.toViaductBuilder().withoutDefaultQueryNodeResolvers().build() // Disabling built in resolvers for test
             .runFeatureTest {
-                val result = viaduct.runQuery("{ node { id ... on Baz { x y } } }")
+                val result = viaduct.runQuery("{ node(id: \"a\") { id ... on Baz { x y } } }")
                 val expectedData = mapOf("node" to mapOf("id" to "1", "x" to 1, "y" to "1"))
                 assertEquals(expectedData, result.getData())
                 assertEquals(0, result.errors.size)
@@ -759,7 +753,7 @@ class AccessCheckExecutionTest {
             }
         }.toViaductBuilder().withoutDefaultQueryNodeResolvers().build() // Disabling built in resolvers for test
             .runFeatureTest {
-                val result = viaduct.runQuery("{ nodes { id } }")
+                val result = viaduct.runQuery("{ nodes(ids: [\"1\", \"2\", \"3\"]) { id } }")
                 val expectedData = mapOf(
                     "nodes" to listOf(
                         mapOf("id" to "1"),

@@ -19,7 +19,7 @@ class EngineFeatureTestExample {
     @Test
     fun `simple resolver test`() {
         val schemaSDL = """
-            type Query {
+            extend type Query {
                 hello: String
                 number: Int
                 withArgs(name: String!): String
@@ -46,7 +46,7 @@ class EngineFeatureTestExample {
     fun `simple query selections test`() {
         MockTenantModuleBootstrapper(
             """
-            type Query {
+            extend type Query {
                 one: Int
                 twoContainer: TwoContainer
             }
@@ -76,7 +76,7 @@ class EngineFeatureTestExample {
         var checkerExecuted = false
 
         val schemaSDL = """
-            type Query {
+            extend type Query {
                 secureField: String
             }
         """.trimIndent()
@@ -103,7 +103,7 @@ class EngineFeatureTestExample {
         var checkerExecuted = false
 
         val schemaSDL = """
-            type Query {
+            extend type Query {
                 secureField: String
             }
         """.trimIndent()
@@ -127,14 +127,6 @@ class EngineFeatureTestExample {
     @Test
     fun `node resolver test`() {
         val schemaSDL = """
-            type Query {
-                node(id: ID!): Node
-            }
-
-            interface Node {
-                id: ID!
-            }
-
             type TestNode implements Node {
                 id: ID!
                 name: String
@@ -151,7 +143,9 @@ class EngineFeatureTestExample {
         MockTenantModuleBootstrapper(schemaSDL) {
             field("Query" to "node") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("TestNode")) }
+                    fn { _, _, _, _, ctx ->
+                        ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("TestNode"))
+                    }
                 }
             }
             type("TestNode") {
@@ -174,7 +168,7 @@ class EngineFeatureTestExample {
     fun `test from kdoc`() {
         MockTenantModuleBootstrapper(
             """
-           type Query {
+           extend type Query {
                hello: String
                world: String
                greeting: String
@@ -224,7 +218,7 @@ class EngineFeatureTestExample {
         assertThrows<GraphQLBuildError> {
             MockTenantModuleBootstrapper(
                 """
-                type Query {
+                extend type Query {
                     foo: Int
                 }
                 """.trimIndent()
@@ -246,7 +240,7 @@ class EngineFeatureTestExample {
         assertThrows<GraphQLBuildError> {
             MockTenantModuleBootstrapper(
                 """
-                type Query {
+                extend type Query {
                     foo: Int
                 }
                 """.trimIndent()

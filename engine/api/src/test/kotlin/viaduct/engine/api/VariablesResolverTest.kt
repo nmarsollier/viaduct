@@ -17,7 +17,7 @@ import viaduct.engine.api.select.SelectionsParser
 @ExperimentalCoroutinesApi
 class VariablesResolverTest {
     private val engineCtx = mockk<EngineExecutionContext>()
-    private val schema = MockSchema.mk("type Query { a:Int, b:Int }")
+    private val schema = MockSchema.mk("extend type Query { a:Int, b:Int }")
     private val objectData = MockEngineObjectData.wrap(
         schema.schema.queryType,
         mapOf("a" to 1, "b" to 2)

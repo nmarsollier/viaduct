@@ -17,24 +17,20 @@ import viaduct.graphql.test.assertEquals
 class FieldPolicyCheckTest {
     companion object {
         val SDL = """
-            interface Node {
-                id: ID!
-            }
-            
-            type Query {
+            extend type Query {
                 canAccessTypeByReference(id: String!): CanAccessPerson!
                 canNotAccessTypeByReference(id: String!): CanNotAccessPerson!
                 canNotAccessType: CanNotAccessPerson!
                 canAccessField: String
                 canNotAccessField: String
             }
-            
+
             type CanAccessPerson implements Node {
                 id: ID!
                 name: String!
                 ssn: String!
             }
-            
+
             type CanNotAccessPerson implements Node {
                 id: ID!
                 name: String!

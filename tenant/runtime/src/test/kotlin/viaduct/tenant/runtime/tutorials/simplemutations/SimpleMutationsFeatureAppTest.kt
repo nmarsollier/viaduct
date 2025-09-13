@@ -24,12 +24,6 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
         """
         | #START_SCHEMA
         |
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
-        |
         | type User implements Node @resolver {
         |   id: ID!
         |   name: String
@@ -41,11 +35,11 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
         |   email: String!
         | }
         |
-        | type Query {
+        | extend type Query {
         |   user(id: String!): User @resolver
         | }
         |
-        | type Mutation {
+        | extend type Mutation {
         |   createUser(input: UserInput!): User @resolver
         |   updateUser(id: String!, input: UserInput!): User @resolver
         | }

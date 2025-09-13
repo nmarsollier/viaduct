@@ -11,6 +11,7 @@ import graphql.schema.idl.UnExecutableSchemaGenerator
 import java.io.InputStreamReader
 import java.net.URL
 import org.junit.jupiter.api.Assertions.assertEquals
+import viaduct.graphql.utils.DefaultSchemaProvider
 
 abstract class SchemaScopeTestBase {
     protected fun assertSchemaEqualToFixture(
@@ -45,7 +46,7 @@ abstract class SchemaScopeTestBase {
                     }
                 }
                 .includeDirectiveDefinitions(includeDirectiveDefinitions)
-                .includeScalarTypes(true)
+                .includeScalarTypes(false)
                 .includeSchemaDefinition(true)
                 .includeIntrospectionTypes(false)
                 .useAstDefinitions(includeAstDefinitions)
@@ -64,7 +65,9 @@ abstract class SchemaScopeTestBase {
         UnExecutableSchemaGenerator.makeUnExecutableSchema(
             SchemaParser().parse(
                 readerForResources(resources)
-            )
+            ).apply {
+                DefaultSchemaProvider.addDefaults(this, allowExisting = true)
+            }
         )
 
     private fun readerForResources(files: List<URL>): MultiSourceReader {

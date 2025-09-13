@@ -16,7 +16,7 @@ class CycleDetectorFeatureTest {
         // This should throw an exception during construction due to the cycle:
         // foo requires bar, bar requires foo
         val exception = assertThrows<GraphQLBuildError> {
-            MockTenantModuleBootstrapper("type Query { foo: Int, bar: Int }") {
+            MockTenantModuleBootstrapper("extend type Query { foo: Int, bar: Int }") {
                 field("Query" to "foo") {
                     resolver {
                         objectSelections("bar") // foo requires bar

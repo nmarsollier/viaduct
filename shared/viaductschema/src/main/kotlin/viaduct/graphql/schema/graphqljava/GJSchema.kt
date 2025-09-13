@@ -106,7 +106,7 @@ class GJSchema internal constructor(
         fun fromFiles(
             inputFiles: List<File>,
             timer: Timer = Timer(),
-            valueConverter: ValueConverter = ValueConverter.default
+            valueConverter: ValueConverter = ValueConverter.default,
         ): GJSchema {
             val typeDefRegistry = timer.time("readTypesFromFiles") { readTypesFromFiles(inputFiles) }
             return fromRegistry(typeDefRegistry, timer, valueConverter)
@@ -117,7 +117,7 @@ class GJSchema internal constructor(
         fun fromRegistry(
             registry: TypeDefinitionRegistry,
             timer: Timer = Timer(),
-            valueConverter: ValueConverter = ValueConverter.default
+            valueConverter: ValueConverter = ValueConverter.default,
         ): GJSchema {
             val unexecutableSchema =
                 timer.time("makeUnexecutableSchema") {

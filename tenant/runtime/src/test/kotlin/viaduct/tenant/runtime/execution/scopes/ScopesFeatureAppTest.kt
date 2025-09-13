@@ -15,18 +15,6 @@ class ScopesFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
      | #START_SCHEMA
-     | directive @resolver on FIELD_DEFINITION | OBJECT
-     | directive @backingData(class: String!) on FIELD_DEFINITION
-     |   type Query @scope(to: ["*"]) {
-     |     _: String @deprecated
-     |   }
-     |   type Mutation @scope(to: ["*"]) {
-     |     _: String @deprecated
-     |   }
-     |   type Subscription @scope(to: ["*"]) {
-     |     _: String @deprecated
-     |   }
-     |   directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
      |   type TestScope1Object @scope(to: ["SCOPE1"]) {
      |       strValue: String!
      |   }

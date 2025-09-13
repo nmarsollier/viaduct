@@ -18,12 +18,11 @@ class TempOneOfViolationFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
         | input OneofInput @oneOf {
         |   stringValue: String
         |   intValue: Int
         | }
-        | type Query {
+        | extend type Query {
         |   fromArgumentField(arg: OneofInput!): String @resolver
         |   intermediary(arg: OneofInput!): String @resolver
         |   fromVariablesProvider: String @resolver

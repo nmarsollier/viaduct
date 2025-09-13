@@ -23,7 +23,6 @@ class UnionTypesFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
         | union SearchResult = Book | Author
         | type Book {
         |   title: String
@@ -31,7 +30,7 @@ class UnionTypesFeatureAppTest : FeatureAppTestBase() {
         | type Author {
         |   name: String
         | }
-        | type Query {
+        | extend type Query {
         |   fromArgumentField(arg: Int!): Int @resolver
         |   intermediary(arg: Int!): Int @resolver
         |   fromVariablesProvider: Int @resolver

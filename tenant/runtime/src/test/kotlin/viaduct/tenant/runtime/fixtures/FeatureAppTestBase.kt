@@ -65,7 +65,7 @@ abstract class FeatureAppTestBase {
     open lateinit var sdl: String
         protected set
 
-    protected open var customScalars: List<GraphQLScalarType> = emptyList()
+    protected open var customScalars: Set<GraphQLScalarType> = emptySet()
     private val injector: Injector by lazy { Guice.createInjector() }
     private val guiceTenantCodeInjector by lazy { GuiceTenantCodeInjector(injector) }
     private val flagManager = MockFlagManager()
@@ -112,7 +112,7 @@ abstract class FeatureAppTestBase {
     fun initViaductBuilder() {
         if (!::viaductSchemaRegistryBuilder.isInitialized) {
             viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
-                .withFullSchemaFromSdl(sdl, customScalars)
+                .withFullSchemaFromSdl(sdl, customScalars.toList())
                 .registerFullSchema(DEFAULT_SCOPE_ID)
         }
         if (!::viaductBuilder.isInitialized) {

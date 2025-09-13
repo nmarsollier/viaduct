@@ -9,7 +9,7 @@ class TrivialScalarTypeResolverTest {
     @Test
     fun `trivial resolver returns a static value`() {
         FeatureTestBuilder()
-            .sdl("type Query { field: Int }")
+            .sdl("extend type Query { field: Int }")
             .resolver("Query" to "field") { 42 }
             .build()
             .assertJson("{data: {field:42}}", "{field}")

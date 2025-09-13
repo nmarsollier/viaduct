@@ -21,8 +21,7 @@ class EmptyVariablesFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
-        | type Query {
+        | extend type Query {
         |   fromArgumentField(arg: Int!): Int @resolver
         |   intermediary(arg: Int!): Int @resolver
         |   fromVariablesProvider: Int @resolver

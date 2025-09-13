@@ -34,6 +34,7 @@ import viaduct.engine.runtime.ViaductFragmentLoader
 import viaduct.engine.runtime.execution.TenantNameResolver
 import viaduct.engine.runtime.getLocalContextForType
 import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder.AsyncScopedSchema
@@ -312,10 +313,6 @@ class StandardViaductTest {
     fun `test registerScopedSchema from schema registry builder builder`() {
         val fullSchema = makeSchema(
             """
-                type Query @scope(to: ["*"]) {
-                  _: String @deprecated
-                }
-
                 extend type Query @scope(to: ["scope1"]) {
                   field1: String
                 }
@@ -336,7 +333,7 @@ class StandardViaductTest {
         val queryType = stdViaduct.getSchema(SCHEMA_ID)?.schema?.typeMap?.get("Query") as GraphQLObjectType?
         val queryFields = queryType?.fieldDefinitions?.map { it.name }
 
-        assertEquals(listOf("_", "field1"), queryFields)
+        assertEquals(listOf("field1", "node", "nodes"), queryFields)
     }
 
     @Test
@@ -380,12 +377,9 @@ class StandardViaductTest {
 private fun makeSchema(schema: String): ViaductSchema {
     return ViaductSchema(
         UnExecutableSchemaGenerator.makeUnExecutableSchema(
-            SchemaParser().parse(
-                """
-                directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-                $schema
-                """.trimIndent()
-            )
+            SchemaParser().parse(schema).apply {
+                DefaultSchemaProvider.addDefaults(this)
+            }
         )
     )
 }

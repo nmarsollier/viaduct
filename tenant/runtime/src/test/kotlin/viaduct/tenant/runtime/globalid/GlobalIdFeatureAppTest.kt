@@ -3,6 +3,7 @@ package viaduct.tenant.runtime.globalid
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.UnExecutableSchemaGenerator
 import viaduct.engine.api.ViaductSchema
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
 class GlobalIdFeatureAppTest : FeatureAppTestBase() {
@@ -10,7 +11,9 @@ class GlobalIdFeatureAppTest : FeatureAppTestBase() {
         val schema: ViaductSchema by lazy {
             ViaductSchema(
                 UnExecutableSchemaGenerator.makeUnExecutableSchema(
-                    SchemaParser().parse(GlobalIdFeatureAppTest().sdl)
+                    SchemaParser().parse(GlobalIdFeatureAppTest().sdl).apply {
+                        DefaultSchemaProvider.addDefaults(this)
+                    }
                 )
             )
         }
@@ -25,21 +28,17 @@ class GlobalIdFeatureAppTest : FeatureAppTestBase() {
           email: String!
         }
 
-        interface Node {
-          id: ID!
-        }
-
         input CreateUserInput {
           id: ID!
           name: String!
           email: String!
         }
 
-        type Query {
+        extend type Query {
           user(id: ID!): User
         }
 
-        type Mutation {
+        extend type Mutation {
           createUser(input: CreateUserInput!): User
         }
 

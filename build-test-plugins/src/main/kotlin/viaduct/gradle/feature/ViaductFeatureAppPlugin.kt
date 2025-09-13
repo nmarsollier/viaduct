@@ -13,6 +13,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.the
+import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 
 /**
@@ -22,6 +23,9 @@ import viaduct.gradle.utils.capitalize
 abstract class ViaductFeatureAppPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create<ViaductFeatureAppExtension>("viaductFeatureApp", project)
+
+        // Ensure default schema plugin is applied so default schema is available
+        DefaultSchemaPlugin.ensureApplied(project)
 
         project.afterEvaluate {
             val featureAppFiles = discoverFeatureAppFiles(project, extension)
@@ -240,6 +244,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             description = "Generates schema objects for FeatureApp $featureAppName"
 
             dependsOn(extractionTask)
+            dependsOn("processResources")
 
             this.schemaName.set("default")
             this.packageName.set(packageName)
@@ -301,6 +306,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
 
             // Depend on schema generation if both are enabled
             schemaTask?.let { dependsOn(it) }
+            dependsOn("processResources")
         }
     }
 

@@ -12,15 +12,8 @@ class BatchResolverErrorHandlingFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        | directive @idOf(type: String!) on ARGUMENT_DEFINITION
-        |
-        | type Query {
+        | extend type Query {
         |   foo(id: ID! @idOf(type: "Foo")): Foo @resolver
-        | }
-        |
-        | interface Node {
-        |   id: ID!
         | }
         |
         | type Foo implements Node @resolver {

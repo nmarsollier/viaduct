@@ -2,7 +2,6 @@
 
 package inludedirective.featurapps
 
-import graphql.schema.GraphQLScalarType
 import inludedirective.featurapps.resolverbases.FooResolvers
 import inludedirective.featurapps.resolverbases.QueryResolvers
 import inludedirective.featurapps.resolverbases.ThrowerResolvers
@@ -14,10 +13,7 @@ import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 class IncludeDirectiveFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
     | #START_SCHEMA
-    | directive @resolver on FIELD_DEFINITION
-    | directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
-    |
-    | type Query {
+    | extend type Query {
     |  foo: Foo @resolver
     |  thrower: Thrower @resolver
     |  booleanValue: Boolean @resolver
@@ -26,14 +22,13 @@ class IncludeDirectiveFeatureAppTest : FeatureAppTestBase() {
     | type Thrower {
     |  willThrow: Int @resolver
     | }
+    |
     | type Foo {
     |   intValue: Int @resolver
     |   sValue: String @resolver
     | }
     | #END_SCHEMA
     """.trimMargin()
-
-    override var customScalars: List<GraphQLScalarType> = listOf()
 
     // Tenant provided resolvers
 

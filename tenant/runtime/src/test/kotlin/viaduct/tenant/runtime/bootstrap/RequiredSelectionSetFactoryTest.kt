@@ -41,7 +41,7 @@ class RequiredSelectionSetFactoryTest {
     private val injector = GuiceTenantCodeInjector(Guice.createInjector())
     private val defaultSchema = MockSchema.mk(
         """
-        type Query {
+        extend type Query {
             foo(x:Int!):Int!,
             bar(x:Int!, y:Int!, z:Int!):Int!,
             baz:Int!,
@@ -56,11 +56,6 @@ class RequiredSelectionSetFactoryTest {
         type User {
             id: ID!
             name: String!
-        }
-
-        # Interface type (not valid as variable type)
-        interface Node {
-            id: ID!
         }
 
         # Union type (not valid as variable type)

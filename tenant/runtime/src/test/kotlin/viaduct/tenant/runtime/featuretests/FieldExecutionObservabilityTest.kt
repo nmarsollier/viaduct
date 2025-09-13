@@ -332,7 +332,7 @@ class FieldExecutionObservabilityTest {
         val instrumentation = FieldRequiredByEntityInstrumentation()
 
         FeatureTestBuilder()
-            .sdl("type Query { x:Int, y(b:Int):Int, z:Int }")
+            .sdl("extend type Query { x:Int, y(b:Int):Int, z:Int }")
             .resolver(
                 "Query" to "x",
                 { ctx: UntypedFieldContext -> ctx.queryValue.get<Int>("y") * 5 },

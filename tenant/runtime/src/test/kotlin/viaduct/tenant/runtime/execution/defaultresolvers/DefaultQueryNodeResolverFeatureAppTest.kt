@@ -8,19 +8,9 @@ class DefaultQueryNodeResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        |
-        | interface Node {
-        |     id: ID!
-        | }
         | type TestUser implements Node @resolver {
         |     id: ID!
         |     name: String!
-        | }
-        |
-        | type Query {
-        |  node(id: ID!): Node
-        |  nodes(ids: [ID!]!): [Node]!
         | }
         |
         | #END_SCHEMA

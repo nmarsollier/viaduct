@@ -15,12 +15,9 @@ import viaduct.engine.api.mocks.runFeatureTest
 class BatchNodeResolverTest {
     companion object {
         private val schemaSDL = """
-            type Query {
+            extend type Query {
                 baz: Baz
                 bazList: [Baz!]!
-            }
-            interface Node {
-                id: ID!
             }
             type Baz implements Node {
                 id: ID!

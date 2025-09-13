@@ -18,7 +18,7 @@ class IdenticalQueryMultipleSchemasTest {
     fun `identical query returns correct result on interface`() =
         configure(
             """
-                type Query { foo: Interface }
+                extend type Query { foo: Interface }
                 interface Interface { value: String }
                 type Foo implements Interface { value: String }
             """.trimIndent()
@@ -28,7 +28,7 @@ class IdenticalQueryMultipleSchemasTest {
     fun `identical query returns correct result on union`() =
         configure(
             """
-                type Query { foo: Union }
+                extend type Query { foo: Union }
                 type Foo { value: String }
                 union Union = Foo
             """.trimIndent()

@@ -8,10 +8,6 @@ extend type Query @scope(to: ["SCOPE1"]) {
   canNotAccessField: String @resolver @policyCheck(canAccess: false)
 }
 
-interface Node @scope(to: ["SCOPE1"]) {
-  id: ID!
-}
-
 type CanAccessPerson implements Node @resolver @scope(to: ["SCOPE1"]) @policyCheck(canAccess: true) {
   id: ID!
   name: String!

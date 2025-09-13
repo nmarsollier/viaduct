@@ -7,6 +7,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.ViaductSchema
 import viaduct.graphql.test.assertEquals
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
 
@@ -20,13 +21,11 @@ class RegisterFullSchemaTest : TestBase(
     customSchemaRegistration = {
         val schema = mkSchema(
             """
-                directive @resolver on FIELD_DEFINITION | OBJECT
-
                 type TestScope1Object {
                   strValue: String!
                 }
 
-                type Query {
+                extend type Query {
                   scope1Value: TestScope1Object @resolver
                 }
 
@@ -89,4 +88,12 @@ class RegisterFullSchemaTest : TestBase(
     }
 }
 
-private fun mkSchema(sdl: String): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING))
+private fun mkSchema(sdl: String): ViaductSchema =
+    ViaductSchema(
+        SchemaGenerator().makeExecutableSchema(
+            SchemaParser().parse(sdl).apply {
+                DefaultSchemaProvider.addDefaults(this)
+            },
+            RuntimeWiring.MOCKED_WIRING
+        )
+    )

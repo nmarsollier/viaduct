@@ -5,14 +5,7 @@ class FeatureTestSchemaFeatureAppTest {
 #START_SCHEMA
 # This schema defines fixture types that are used in end-to-end tests
 
-directive @resolver on FIELD_DEFINITION
-directive @idOf(type: String!) on FIELD_DEFINITION | ARGUMENT_DEFINITION
-
-interface Node {
-  id: ID!
-}
-
-type Query {
+extend type Query {
   string1: String @resolver
   string2: String @resolver
   hasArgs1(x: Int!): Int! @resolver
@@ -25,12 +18,11 @@ type Query {
   iface: Interface @resolver
   union_: Union @resolver
   boo: Boo @resolver
-  node: Node @resolver
   enumField: EnumType @resolver
   idField: ID @idOf(type: "Baz")
 }
 
-type Mutation {
+extend type Mutation {
   string1: String @resolver
   string2: String @resolver
 }

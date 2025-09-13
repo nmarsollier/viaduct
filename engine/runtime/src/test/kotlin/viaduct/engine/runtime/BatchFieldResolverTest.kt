@@ -15,7 +15,7 @@ import viaduct.graphql.test.assertData
 class BatchFieldResolverTest {
     companion object {
         private val schemaSDL = """
-            type Query {
+            extend type Query {
                 items(size: Int = 2): [Item!]!
                 anotherItem: Item
             }

@@ -19,6 +19,7 @@ import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.mkRawSelectionSetFactory
+import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 
 /**
@@ -40,7 +41,9 @@ class MockArgs(
         val contextFactoryTestSchema: ViaductSchema by lazy {
             ViaductSchema(
                 UnExecutableSchemaGenerator.makeUnExecutableSchema(
-                    SchemaParser().parse(ContextFactoryFeatureAppTest().sdl)
+                    SchemaParser().parse(ContextFactoryFeatureAppTest().sdl).apply {
+                        DefaultSchemaProvider.addDefaults(this)
+                    }
                 )
             )
         }

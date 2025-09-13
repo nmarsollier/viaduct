@@ -3,8 +3,6 @@
 package viaduct.service.runtime
 
 import graphql.schema.idl.RuntimeWiring
-import graphql.schema.idl.SchemaGenerator
-import graphql.schema.idl.SchemaParser
 import io.mockk.mockk
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,7 +10,6 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flag
 import viaduct.service.api.spi.FlagManager
@@ -31,36 +28,20 @@ class IntrospectionEndToEndTest {
 
     val wiring = RuntimeWiring.MOCKED_WIRING // TODO: Replace with injected OSS/modern-only wiring
 
-    val schema = mkSchema(
+    val sdl =
         """
-             directive @resolver on FIELD_DEFINITION | OBJECT
-             directive @backingData(class: String!) on FIELD_DEFINITION
+        extend type Query @scope(to: ["publicScope"]) {
+          helloWorld: String @resolver
+        }
 
-             type Query @scope(to: ["*"]) {
-              _: String @deprecated
-             }
-             type Mutation @scope(to: ["*"]) {
-               _: String @deprecated
-             }
-             type Subscription @scope(to: ["*"]) {
-               _: String @deprecated
-             }
-
-             directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-
-             extend type Query @scope(to: ["publicScope"]) {
-              helloWorld: String @resolver
-             }
-
-             extend type Query @scope(to: ["unregisteredScope"]) {
-               scopeUnregisteredQuery: String @resolver
-             }
+        extend type Query @scope(to: ["unregisteredScope"]) {
+          scopeUnregisteredQuery: String @resolver
+        }
         """
-    )
 
     @BeforeEach
     fun setUp() {
-        viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(schema).registerScopedSchema("public", setOf("publicScope"))
+        viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("publicScope"))
         subject = StandardViaduct.Builder()
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
@@ -162,7 +143,8 @@ class IntrospectionEndToEndTest {
             val queries = (result.toSpecification()["data"] as Map<*, *>).let { data ->
                 (data["__schema"] as Map<*, *>).let { schema ->
                     (schema["types"] as List<*>).let { types ->
-                        (types[2] as Map<*, *>).let { queries ->
+                        val queryType = types.find { (it as? Map<String, Any?>)?.get("name") == "Query" }
+                        (queryType as Map<*, *>).let { queries ->
                             (queries["fields"] as List<*>).let { fields ->
                                 fields.map { field -> (field as Map<*, *>)["name"] }
                             }
@@ -170,7 +152,7 @@ class IntrospectionEndToEndTest {
                     }
                 }
             }
-            assertEquals(listOf("_", "helloWorld"), queries)
+            assertEquals(listOf("helloWorld", "node", "nodes"), queries)
         }
 
     @Test
@@ -562,6 +544,4 @@ class IntrospectionEndToEndTest {
             val result = subject.executeAsync(executionInput).await()
             assertEquals(listOf("Introspective queries cannot select non-introspective fields."), result.errors.map { it.message })
         }
-
-    private fun mkSchema(sdl: String): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), wiring))
 }

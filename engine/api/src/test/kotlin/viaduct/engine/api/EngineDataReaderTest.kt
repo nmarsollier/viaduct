@@ -13,7 +13,7 @@ import viaduct.engine.api.mocks.MockSchema
 class EngineDataReaderTest {
     private val schema = MockSchema.mk(
         """
-            type Query {
+            extend type Query {
               int:Int
               str:String
               ints:[Int]

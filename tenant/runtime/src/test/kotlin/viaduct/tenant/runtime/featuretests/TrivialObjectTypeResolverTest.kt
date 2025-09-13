@@ -24,7 +24,7 @@ class TrivialObjectTypeResolverTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    type Query { iface: Interface }
+                    extend type Query { iface: Interface }
                     interface Interface { value: String }
                     type Foo implements Interface { value: String }
                 """.trimIndent()
@@ -41,7 +41,7 @@ class TrivialObjectTypeResolverTest {
         FeatureTestBuilder()
             .sdl(
                 """
-                    type Query { union_: Union }
+                    extend type Query { union_: Union }
                     union Union = Foo | Bar
                     type Foo { value: String }
                     type Bar { value: String }

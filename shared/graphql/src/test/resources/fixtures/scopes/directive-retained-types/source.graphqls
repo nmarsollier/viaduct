@@ -1,8 +1,3 @@
-"""
-Determines the schema "scope" of a type or type extension
-"""
-directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION | SCALAR
-
 enum SimpleEnum @scope(to: ["test-scope"]) {
   Foo
 }
@@ -15,16 +10,12 @@ input SimpleInput @scope(to: ["test-scope"]) {
 
 directive @directiveWithInput(x: SimpleInput) on FIELD_DEFINITION
 
-scalar SimpleScalar @scope(to: ["test-scope"])
+scalar SimpleScalar
 
 directive @directiveWithScalar(x: SimpleScalar) on FIELD_DEFINITION
 
-type Query @scope(to: ["*"]) {
+extend type Query @scope(to: ["*"]) {
   a: Int @directiveWithEnum(x: Foo)
   b: Int @directiveWithInput(x: { foo: "foo" })
   c: Int @directiveWithScalar(x: 0)
-}
-
-schema {
-  query: Query
 }

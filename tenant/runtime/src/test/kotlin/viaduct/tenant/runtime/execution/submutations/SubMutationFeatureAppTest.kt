@@ -12,13 +12,7 @@ class SubMutationFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         |#START_SCHEMA
-        |directive @resolver on FIELD_DEFINITION
-        |
-        |type Query {
-        |  _: Boolean
-        |}
-        |
-        |type Mutation {
+        |extend type Mutation {
         |  exampleMutationSelections(triangleSize: Int!): Int @resolver
         |  multipleValueBooleanMutation(userId: ID!, name: String!): Boolean @resolver
         |  echoObjMutation(foo: FooInput!): Foo @resolver
@@ -36,7 +30,6 @@ class SubMutationFeatureAppTest : FeatureAppTestBase() {
         |extend type Mutation {
         | extendedEchoStringMutation(s: String!): String @resolver
         |}
-        |
         |
         |#END_SCHEMA
         """.trimMargin()

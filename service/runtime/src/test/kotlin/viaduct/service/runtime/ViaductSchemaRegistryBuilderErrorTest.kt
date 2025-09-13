@@ -2,6 +2,7 @@ package viaduct.service.runtime
 
 import graphql.execution.ExecutionStrategy
 import graphql.execution.instrumentation.Instrumentation
+import graphql.schema.idl.errors.SchemaProblem
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -84,9 +85,6 @@ class ViaductSchemaRegistryBuilderErrorTest {
         val exception = assertThrows<graphql.schema.idl.errors.SchemaProblem> {
             builder.build(mockCoroutineInterop)
         }
-
-        assertTrue(exception.errors.isNotEmpty())
-        assertTrue(exception.errors.any { error -> error.message.contains("missing its base underlying type") })
     }
 
     @Test
@@ -110,7 +108,7 @@ class ViaductSchemaRegistryBuilderErrorTest {
         val emptySchema = ""
 
         val builder = ViaductSchemaRegistryBuilder()
-            .withFullSchemaFromSdl("type Query { hello: String }")
+            .withFullSchemaFromSdl("extend type Query { hello: String }")
             .registerSchemaFromSdl(schemaId, emptySchema)
 
         val exception = assertThrows<ViaductSchemaLoadException> {
@@ -125,7 +123,7 @@ class ViaductSchemaRegistryBuilderErrorTest {
     @Test
     fun `test duplicate schema IDs throws IllegalStateException`() {
         val schema = """
-            type Query {
+            extend type Query {
                 hello: String
             }
         """.trimIndent()

@@ -21,8 +21,7 @@ class InvalidSyntaxFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION
-        | type Query {
+        | extend type Query {
         |   fromArgumentField(arg: Int!): Int @resolver
         |   intermediary(arg: Int!): Int @resolver
         |   fromVariablesProvider: Int @resolver
@@ -69,6 +68,6 @@ class InvalidSyntaxFeatureAppTest : FeatureAppTestBase() {
 
         requireNotNull(ex) { "Expected exception during tenant build" }
 
-        assertTrue(ex is GraphQLBuildError, "Expected GraphQLBuildError but got ${ex::class.simpleName}")
+        assertTrue(ex is GraphQLBuildError, "Expected GraphQLBuildError but got ${ex::class.simpleName} with message ${ex.message}")
     }
 }

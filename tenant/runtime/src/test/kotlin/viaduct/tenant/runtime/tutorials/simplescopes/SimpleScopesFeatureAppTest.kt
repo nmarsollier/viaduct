@@ -23,13 +23,6 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         | #START_SCHEMA
-        | directive @resolver on FIELD_DEFINITION | OBJECT
-        | directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
-        |
-        | type Query @scope(to: ["*"]) {
-        |   _: String @deprecated
-        | }
-        |
         | extend type Query @scope(to: ["USER"]) {
         |   myOrders(userId: String!): [String!]! @resolver
         | }

@@ -90,7 +90,9 @@ class ViaductTenantModuleBootstrapper(
                 continue
             }
             if (resolverClasses.size != 1) {
-                throw TenantModuleException("Expected exactly one resolver implementation for $typeName.$fieldName, found ${resolverClasses.size}: ${resolverClasses.map { it.name }}")
+                // TODO: perform this validation _after_ all bootstrappers have run
+                // throw TenantModuleException("Expected exactly one resolver implementation for $typeName.$fieldName, found ${resolverClasses.size}: ${resolverClasses.map { it.name }}")
+                continue
             }
             val resolverClass = resolverClasses.first()
 

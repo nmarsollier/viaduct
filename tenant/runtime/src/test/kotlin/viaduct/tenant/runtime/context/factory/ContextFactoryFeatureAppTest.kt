@@ -6,12 +6,8 @@ class ContextFactoryFeatureAppTest : FeatureAppTestBase() {
     override var sdl =
         """
         #START_SCHEMA
-        type Query {
+        extend type Query {
             empty: Int
-        }
-
-        interface Node {
-          id: ID!
         }
 
         type Foo {
@@ -31,7 +27,7 @@ class ContextFactoryFeatureAppTest : FeatureAppTestBase() {
           x: Int
         }
 
-        type Mutation {
+        extend type Mutation {
           mutate(x: Int!): Int!
         }
 
