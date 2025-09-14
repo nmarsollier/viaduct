@@ -50,7 +50,7 @@ publishing {
     publications {
         create<MavenPublication>("viaductPluginLib") {
             from(components["java"])
-            artifactId = "plugins2" // TODO - change to just "plugins" when ready
+            artifactId = "gradle-plugins"
             version = project.version.toString()
         }
     }

@@ -27,7 +27,7 @@ tasks.register("cleanBuildAndPublish") {
         execOperations.exec { commandLine("./gradlew", ":tenant:tenant-codegen:publishToMavenLocal") }
         execOperations.exec { commandLine("./gradlew", ":runtime:publishToMavenLocal", "--no-configuration-cache", "--no-scan") }
         execOperations.exec { 
-            workingDir = file("plugins2")
+            workingDir = file("gradle-plugins")
             commandLine("./gradlew", "publishToMavenLocal", "--no-configuration-cache") 
         }
     }
