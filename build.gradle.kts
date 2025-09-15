@@ -11,6 +11,7 @@ val groupId: String by project
 group = groupId
 
 val jarVersion = projectVersion.get()
+version = jarVersion
 
 subprojects {
     group = groupId
@@ -24,11 +25,11 @@ tasks.register("cleanBuildAndPublish") {
     doLast {
         val execOperations = project.serviceOf<ExecOperations>()
         // execOperations.exec { commandLine("./gradlew", "clean") } // clean shouldn't ever be used; if something doesn't work without it, then it needs a proper fix, which is *NOT* the clean task
-        execOperations.exec { commandLine("./gradlew", ":tenant:tenant-codegen:publishToMavenLocal") }
+        execOperations.exec { commandLine("./gradlew", ":tenant:tenant-codegen:publishToMavenLocal", "--no-configuration-cache") }
         execOperations.exec { commandLine("./gradlew", ":runtime:publishToMavenLocal", "--no-configuration-cache", "--no-scan") }
-        execOperations.exec { 
+        execOperations.exec {
             workingDir = file("gradle-plugins")
-            commandLine("./gradlew", "publishToMavenLocal", "--no-configuration-cache") 
+            commandLine("./gradlew", "publishToMavenLocal", "--no-configuration-cache")
         }
     }
 }

@@ -3,6 +3,7 @@ plugins {
     `maven-publish`
     `java-test-fixtures`
     id("kotlin-static-analysis")
+    signing
 }
 
 dependencies {
@@ -27,14 +28,49 @@ tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allSource)
 }
 
+val emptyJavadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    // By not specifying 'from()', the JAR will be empty.
+    // This task will create an empty JAR named like 'your-project-name-version-javadoc.jar'
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
             artifact(tasks["sourcesJar"])
+            artifact(emptyJavadocJar.get())
+
+            pom {
+                name.set("Viaduct Tools")
+                description.set("A GraphQL-based microservice alternative.")
+                url.set("https://airbnb.io/viaduct/")
+                licenses {
+                    license {
+                        name.set("Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("airbnb")
+                        name.set("Airbnb, Inc.")
+                        email.set("viaduct-maintainers@airbnb.com")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/airbnb/viaduct.git")
+                    developerConnection.set("scm:git:ssh://github.com/airbnb/viaduct.git")
+                    url.set("https://github.com/airbnb/viaduct")
+                }
+            }
         }
     }
     repositories {
         mavenLocal()
     }
+}
+
+signing {
+    sign(publishing.publications["mavenJava"])
 }

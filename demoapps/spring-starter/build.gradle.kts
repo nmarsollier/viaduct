@@ -3,8 +3,21 @@ plugins {
     alias(libs.plugins.kotlinSpring)
     alias(libs.plugins.springBoot)
     alias(libs.plugins.dependencyManagement)
-    id("com.airbnb.viaduct.application-gradle-plugin")
+    id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
     jacoco
+}
+
+repositories {
+    maven {
+        name = "Central Portal Snapshots"
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+
+        // Only search this repository for the specific dependency
+        content {
+            includeModule("com.airbnb.viaduct", "runtime")
+        }
+    }
+    mavenCentral()
 }
 
 viaductApplication {

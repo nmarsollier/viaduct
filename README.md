@@ -1,3 +1,6 @@
+![CircleCI](https://img.shields.io/circleci/build/github/airbnb/viaduct)
+![Maven Central Version](https://img.shields.io/maven-central/v/com.airbnb.viaduct/runtime)
+
 <p align="center">
   <a href="https://airbnb.io/viaduct">
     <img src=".github/viaduct_logo.jpg" alt="Viaduct logo" width="200">
@@ -30,7 +33,7 @@ Using a set of scripts bundled with the Viaduct release, this document will walk
 
 ### System Requirements
 
-Java 21 must be on the path or available via JAVA_HOME.
+Java 21 must be on the path or available via `JAVA_HOME`.
 
 ### Running the Simple Application
 
@@ -41,6 +44,53 @@ Viaduct comes with a number of demonstration applications you can find in the `d
 ```
 
 This command will build the simple application run a graphql query with Viaduct.
+
+### Using Viaduct in your own application
+
+Currently, Viaduct is only published to Maven Central as snapshot versions. To use Viaduct in your own application, add the following to your `build.gradle.kts` file:
+
+```kotlin
+plugins {
+  id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
+}
+
+
+repositories {
+  maven {
+    name = "Central Portal Snapshots"
+    url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+
+    // Only search this repository for the specific dependency
+    content {
+      includeModule("com.airbnb.viaduct", "runtime")
+    }
+  }
+  mavenCentral()
+}
+
+dependencies {
+  implementation("com.airbnb.viaduct:runtime:0.2.0-SNAPSHOT")
+}
+```
+
+And add the following to your `settings.gradle.kts` file:
+
+```kotlin
+pluginManagement {
+    plugins {
+        id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
+        id("com.airbnb.viaduct.module-gradle-plugin") version "0.2.0-SNAPSHOT"
+    }
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        maven {
+            name = "Central Portal Snapshots"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        }
+    }
+}
+```
 
 ### Going further
 
@@ -58,6 +108,20 @@ Learn about development for Viaduct:
 * [Security policy](SECURITY.md)
 
 Further information in the [contribution guide](CONTRIBUTING.md) includes different roles, like contributors, reviewers, and maintainers, related processes, and other aspects.
+
+### Publishing to Sonatype
+
+From the `plugins` directory:
+
+```shell
+./gradlew publishPlugins --no-configuration-cache
+```
+
+From the root directory:
+
+```shell
+./gradlew :runtime:publishAllPublicationsToSonatypeRepository :runtime:publishSonatypeDeployment --no-configuration-cache
+```
 
 ## Security
 

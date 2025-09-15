@@ -1,6 +1,10 @@
+import java.net.HttpURLConnection
+import java.net.URI
+
 plugins {
     id("java")
     id("maven-publish")
+    signing
     jacoco
 }
 
@@ -61,6 +65,7 @@ gradle.projectsEvaluated {
                         project(mapOf("path" to sub.path, "configuration" to "testFixtures"))
                     )
                 }
+
                 sub.configurations.findByName("testFixturesRuntimeElements") != null -> {
                     testFixturesProjectDependencies(
                         project(mapOf("path" to sub.path, "configuration" to "testFixturesRuntimeElements"))
@@ -132,6 +137,24 @@ val aggregateSourcesJar by tasks.registering(Jar::class) {
     }
 }
 
+val emptyJavadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    // By not specifying 'from()', the JAR will be empty.
+    // This task will create an empty JAR named like 'your-project-name-version-javadoc.jar'
+}
+
+configurations.apiElements {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.SHADOWED))
+    }
+}
+
+val sonatypeUsername: String? by project
+val sonatypePassword: String? by project
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -139,6 +162,16 @@ publishing {
             version = project.version.toString()
             artifact(tasks.jar.get())
             artifact(aggregateSourcesJar.get())
+            artifact(emptyJavadocJar.get())
+
+            versionMapping {
+                usage("java-api") {
+                    fromResolutionOf("runtimeClasspath")
+                }
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
 
             pom.withXml {
                 val depsNode = asNode().appendNode("dependencies")
@@ -154,10 +187,81 @@ publishing {
                         }
                 }
             }
+
+            pom {
+                name.set("Viaduct")
+                description.set("A GraphQL-based microservice alternative.")
+                url.set("https://airbnb.io/viaduct/")
+                licenses {
+                    license {
+                        name.set("Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("airbnb")
+                        name.set("Airbnb, Inc.")
+                        email.set("viaduct-maintainers@airbnb.com")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/airbnb/viaduct.git")
+                    developerConnection.set("scm:git:ssh://github.com/airbnb/viaduct.git")
+                    url.set("https://github.com/airbnb/viaduct")
+                }
+            }
         }
     }
 
     repositories {
         mavenLocal()
+        maven {
+            credentials {
+                username = System.getenv("SONATYPE_USERNAME") ?: sonatypeUsername
+                password = System.getenv("SONATYPE_PASSWORD") ?: sonatypePassword
+            }
+            name = "sonatype"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications["maven"])
+}
+
+tasks.withType<Sign>().configureEach {
+    onlyIf {
+        !gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal") }
+    }
+}
+
+tasks.register("publishSonatypeDeployment") {
+    doLast {
+        val uploadUrl = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/com.airbnb?publishing_type=automatic"
+
+        val url = URI(uploadUrl).toURL()
+        val connection = url.openConnection() as HttpURLConnection
+
+        try {
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.doOutput = true
+
+            val responseCode = connection.responseCode
+            val responseMessage = connection.inputStream.bufferedReader().use { it.readText() }
+
+            project.logger.debug("Response Code: $responseCode")
+            project.logger.debug("Response: $responseMessage")
+
+            if (responseCode != 200) {
+                throw GradleException("Failed to publish sonatype deployment: $responseMessage")
+            }
+        } catch (e: Exception) {
+            throw GradleException("Failed to upload: ${e.message}", e)
+        } finally {
+            connection.disconnect()
+        }
     }
 }

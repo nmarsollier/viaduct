@@ -22,6 +22,53 @@ Viaduct comes with a number of demonstration applications you can find in the `d
 
 This command will build the simple application run a graphql query with Viaduct.
 
+## Using Viaduct in your own application
+
+Currently Viaduct is only published to Maven Central as snapshot versions. To use Viaduct in your own application, add the following to your `build.gradle.kts` file:
+
+```kotlin
+plugins {
+  id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
+}
+
+
+repositories {
+  maven {
+    name = "Central Portal Snapshots"
+    url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+
+    // Only search this repository for the specific dependency
+    content {
+      includeModule("com.airbnb.viaduct", "runtime")
+    }
+  }
+  mavenCentral()
+}
+
+dependencies {
+  implementation("com.airbnb.viaduct:runtime:0.2.0-SNAPSHOT")
+}
+```
+
+And add the following to your `settings.gradle.kts` file:
+
+```kotlin
+pluginManagement {
+    plugins {
+        id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
+        id("com.airbnb.viaduct.module-gradle-plugin") version "0.2.0-SNAPSHOT"
+    }
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        maven {
+            name = "Central Portal Snapshots"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        }
+    }
+}
+```
+
 ### Going further
 
 There are two other demo applications:

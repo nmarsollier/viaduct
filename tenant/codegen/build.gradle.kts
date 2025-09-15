@@ -35,7 +35,7 @@ dependencies {
     testImplementation(libs.javassist)
 }
 
-group = "com.airbnb.viaduct" // TODO - find a better home for this constant
+group = "com.airbnb.viaduct"
 version = libs.versions.project.get()
 
 

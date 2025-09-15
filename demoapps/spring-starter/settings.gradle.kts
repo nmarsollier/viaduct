@@ -2,18 +2,22 @@ rootProject.name = "hello-world"
 
 pluginManagement {
     plugins {
-        id("com.airbnb.viaduct.application-gradle-plugin") version "0.1.0"
-        id("com.airbnb.viaduct.module-gradle-plugin") version "0.1.0"
+        id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
+        id("com.airbnb.viaduct.module-gradle-plugin") version "0.2.0-SNAPSHOT"
     }
     repositories {
-        mavenLocal()
+        // mavenLocal()
         gradlePluginPortal()
+        maven {
+            name = "Central Portal Snapshots"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        }
     }
 }
 
 dependencyResolutionManagement {
     repositories {
-        mavenLocal()
+        // mavenLocal()
         mavenCentral()
     }
 }
