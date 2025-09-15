@@ -17,6 +17,7 @@ Please use the discussion board for support questions.
 * Major changes should first be discussed with an Issue. Be transparent and get community feedback.
 * Pull requests should be as small as possible. Make one change at a time.
 * At the same time, “gardening” is welcome. No need to make a separate pull request if you (eg) fix an unrelated typo or clear up a variable name along the way.
+* By contributing to this repository, you agree that your contributions will be licensed under the Apache License, Version 2.0 ([LICENSE](LICENSE))
 
 # Your First Contribution
 
