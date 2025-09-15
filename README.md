@@ -37,7 +37,7 @@ Java 21 must be on the path or available via `JAVA_HOME`.
 
 ### Running the Simple Application
 
-Viaduct comes with a number of demonstration applications you can find in the `demoapps` directory.  Let’s start with the `demoapps/clihelloworld` application.  Change into that directory and type:
+Viaduct comes with a number of demonstration applications you can find in the `demoapps` directory.  Let’s start with the `demoapps/cli-starter` application.  Change into that directory and type:
 
 ```
 ./gradlew -q run --args="'{ author }'"
@@ -94,10 +94,11 @@ pluginManagement {
 
 ### Going further
 
-There are two other demo applications:
+There are three demo applications:
 
-- [springhelloworld](demoapps/springhelloworld/README.md) - a simple integration of spring with Spring.
-- [starwars](demoapps/starwars/README.md) - a full-fledged spring application to demonstrate more complex usage of
+- [cli-starter](https://github.com/airbnb/viaduct/blob/main/demoapps/cli-starter/) - the simplest possible starting point for a Viaduct application.
+- [spring-starter](https://github.com/airbnb/viaduct/blob/main/demoapps/spring-starter/README.md) - a simple integration of Viaduct with Spring.
+- [starwars](https://github.com/airbnb/viaduct/blob/main/demoapps/starwars/README.md) - a comprehensive demo of Viaduct's features
   Viaduct.
 
 ## Development
