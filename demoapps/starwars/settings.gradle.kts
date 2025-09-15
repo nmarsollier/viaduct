@@ -18,6 +18,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(":schema")
 include(":modules:starwars")
 include(":modules:starships")

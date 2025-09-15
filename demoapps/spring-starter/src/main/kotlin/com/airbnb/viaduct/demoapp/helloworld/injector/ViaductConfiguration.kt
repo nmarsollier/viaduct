@@ -5,6 +5,11 @@ import com.airbnb.viaduct.demoapp.helloworld.rest.SCOPE_ID
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
+import org.springframework.core.io.ClassPathResource
+import org.springframework.web.servlet.function.RouterFunction
+import org.springframework.web.servlet.function.RouterFunctions
+import org.springframework.web.servlet.function.ServerResponse
 import viaduct.service.BasicViaductFactory
 import viaduct.service.SchemaRegistrationInfo
 import viaduct.service.SchemaScopeInfo
@@ -23,8 +28,19 @@ class ViaductConfiguration {
                 packagePrefix = "viaduct.demoapp",
             ),
             tenantRegistrationInfo = TenantRegistrationInfo(
-                tenantPackagePrefix = "viaduct.demoapp.tenant1",
+                tenantPackagePrefix = "viaduct.demoapp.resolvers",
                 tenantCodeInjector = codeInjector
             )
         )
+
+    @Bean
+    @Order(0)
+    fun graphiQlRouterFunction(): RouterFunction<ServerResponse> {
+        val resource = ClassPathResource("graphiql/index.html")
+        return RouterFunctions.route()
+            .GET("/graphiql") { _ ->
+                ServerResponse.ok().body(resource)
+            }
+            .build()
+    }
 }

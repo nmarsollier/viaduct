@@ -35,7 +35,7 @@ dependencies {
     implementation(libs.spring.boot.starter.graphql)
     implementation(libs.spring.boot.starter.web)
 
-    implementation(project(":modules:tenant1"))
+    implementation(project(":resolvers"))
 
     testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "junit")

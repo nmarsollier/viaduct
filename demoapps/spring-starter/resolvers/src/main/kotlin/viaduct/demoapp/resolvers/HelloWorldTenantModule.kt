@@ -1,4 +1,4 @@
-package viaduct.demoapp.tenant1
+package viaduct.demoapp.resolvers
 
 import viaduct.api.TenantModule
 

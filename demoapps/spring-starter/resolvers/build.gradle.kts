@@ -5,7 +5,7 @@ plugins {
 }
 
 viaductModule {
-    modulePackageSuffix.set("tenant1")
+    modulePackageSuffix.set("resolvers")
 }
 
 dependencies {

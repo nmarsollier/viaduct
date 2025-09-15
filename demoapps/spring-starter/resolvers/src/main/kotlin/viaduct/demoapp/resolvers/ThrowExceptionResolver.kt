@@ -1,8 +1,8 @@
-package viaduct.demoapp.tenant1
+package viaduct.demoapp.resolvers
 
 import org.springframework.stereotype.Component
 import viaduct.api.Resolver
-import viaduct.demoapp.tenant1.resolverbases.QueryResolvers
+import viaduct.demoapp.resolvers.resolverbases.QueryResolvers
 
 @Component
 @Resolver

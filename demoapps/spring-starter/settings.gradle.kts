@@ -22,5 +22,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":schema")
-include(":modules:tenant1")
+include(":resolvers")
