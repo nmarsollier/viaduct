@@ -2,9 +2,8 @@
 
 ## Requirements
 
-- Java JDK 21
-- JAVA_HOME environment variable
-- java in classpath
+- Java JDK 21 is installed
+- JAVA_HOME environment variable or `java` in classpath
 
 ## Quick Start
 

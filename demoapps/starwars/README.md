@@ -2,6 +2,11 @@
 
 A comprehensive GraphQL API demo showcasing Viaduct's custom directives, batch resolvers, and performance optimizations using Star Wars data.
 
+## Requirements
+
+- Java JDK 21 is installed
+- JAVA_HOME environment variable is set correctly or `java` is in classpath
+
 ## Quick Start
 
 For more information, check out the [Viaduct Getting Started](https://airbnb.io/viaduct/docs/getting_started/) docs
