@@ -37,6 +37,10 @@ class IntrospectionEndToEndTest {
         extend type Query @scope(to: ["unregisteredScope"]) {
           scopeUnregisteredQuery: String @resolver
         }
+
+        type Foo implements Node @scope(to: ["*"]) { # Ensure Query.node/s get created
+          id: ID!
+        }
         """
 
     @BeforeEach
