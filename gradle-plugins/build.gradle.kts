@@ -59,6 +59,15 @@ java {
     withSourcesJar()
 }
 
+val emptyJavadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    // By not specifying 'from()', the JAR will be empty.
+    // This task will create an empty JAR named like 'your-project-name-version-javadoc.jar'
+}
+
+val sonatypeUsername: String? by project
+val sonatypePassword: String? by project
+
 publishing {
     publications {
         create<MavenPublication>("viaductPluginLib") {
@@ -66,7 +75,8 @@ publishing {
             artifactId = "gradle-plugins"
             version = project.version.toString()
 
-            // artifact(emptyJavadocJar)
+            // Only needed when publishing to maven central
+            artifact(emptyJavadocJar)
 
             pom {
                 name.set("Viaduct Plugins")
@@ -101,6 +111,73 @@ publishing {
             }
         }
     }
+
+    repositories {
+        mavenLocal()
+        maven {
+            credentials {
+                username = System.getenv("SONATYPE_USERNAME") ?: sonatypeUsername
+                password = System.getenv("SONATYPE_PASSWORD") ?: sonatypePassword
+            }
+            name = "sonatype"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+        }
+    }
+}
+
+// this is a hacky workaround
+afterEvaluate {
+    publishing {
+        publications.all {
+            (this as MavenPublication).pom {
+                name.set("Viaduct Plugins")
+                description.set("A GraphQL-based microservice alternative.")
+                url.set("https://airbnb.io/viaduct/")
+
+                organization {
+                    name.set("Airbnb, Inc.")
+                    url.set("https://github.com/airbnb")
+                }
+
+                licenses {
+                    license {
+                        name.set("Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("airbnb")
+                        name.set("Airbnb, Inc.")
+                        email.set("viaduct-maintainers@airbnb.com")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/airbnb/viaduct.git")
+                    developerConnection.set("scm:git:ssh://github.com/airbnb/viaduct.git")
+                    url.set("https://github.com/airbnb/viaduct")
+                }
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.named("publishPluginMavenPublicationToSonatypeRepository") {
+        dependsOn("emptyJavadocJar")
+        dependsOn("signViaductPluginLibPublication")
+    }
+    tasks.named("signPluginMavenPublication") {
+        dependsOn("emptyJavadocJar")
+    }
+    tasks.named("signViaductPluginLibPublication") {
+        dependsOn("javadocJar")
+    }
+    tasks.named("generateMetadataFileForPluginMavenPublication") {
+        dependsOn("emptyJavadocJar")
+    }
 }
 
 signing {
@@ -117,10 +194,19 @@ afterEvaluate {
     /* This has to be done afterEvaluate because the various publish
      * tasks are created dynamically by the maven-publish plugin
      */
-    tasks.named("publishPluginMavenPublicationToMavenLocal") {
+    tasks.named("publishViaductPluginLibPublicationToSonatypeRepository") {
         dependsOn("signViaductPluginLibPublication")
     }
+    tasks.named("publishViaductPluginLibPublicationToSonatypeRepository") {
+        dependsOn("signPluginMavenPublication")
+    }
     tasks.named("publishViaductPluginLibPublicationToMavenLocal") {
+        dependsOn("signPluginMavenPublication")
+    }
+    tasks.named("publishPluginMavenPublicationToMavenLocalRepository") {
+        dependsOn("signViaductPluginLibPublication")
+    }
+    tasks.named("publishViaductPluginLibPublicationToMavenLocalRepository") {
         dependsOn("signPluginMavenPublication")
     }
 }

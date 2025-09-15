@@ -8,12 +8,18 @@ pluginManagement {
     repositories {
         mavenLocal()
         gradlePluginPortal()
+        maven {
+            name = "Central Portal Snapshots"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            content {
+                includeGroup("com.airbnb.viaduct")
+            }
+        }
     }
 }
 
 dependencyResolutionManagement {
     repositories {
         mavenLocal()
-        mavenCentral()
     }
 }

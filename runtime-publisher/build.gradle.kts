@@ -1,5 +1,6 @@
 import java.net.HttpURLConnection
 import java.net.URI
+import java.util.Base64
 
 plugins {
     id("java")
@@ -241,12 +242,20 @@ tasks.register("publishSonatypeDeployment") {
     doLast {
         val uploadUrl = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/com.airbnb?publishing_type=automatic"
 
+        val username = System.getenv("SONATYPE_USERNAME") ?: sonatypeUsername
+        val password = System.getenv("SONATYPE_PASSWORD") ?: sonatypePassword
+
         val url = URI(uploadUrl).toURL()
         val connection = url.openConnection() as HttpURLConnection
 
         try {
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
+
+            val token = Base64.getEncoder().encodeToString("$username:$password".toByteArray(Charsets.UTF_8))
+
+            connection.setRequestProperty("Authorization", "Basic $token")
+
             connection.doOutput = true
 
             val responseCode = connection.responseCode

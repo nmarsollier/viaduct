@@ -1,6 +1,6 @@
 [versions]
 # Project
-project = "0.2.2"
+project = "0.2.3"
 
 # Libraries
 antlr-st4 = "4.2"
