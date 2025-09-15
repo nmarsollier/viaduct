@@ -1,4 +1,4 @@
-# Viaduct Spring Demo
+# Viaduct Spring Starter App
 
 ## Requirements
 
@@ -6,27 +6,41 @@
 - JAVA_HOME environment variable
 - java in classpath
 
-## Execution
+## Quick Start
+
+Check out the [Getting Started](https://airbnb.io/viaduct/docs/getting_started/) docs
+
+### Start the Viaduct Spring Starter App
 
 ```bash
 ./gradlew bootRun
 ```
+The server will start on `http://localhost:8080`
 
-From IntelliJ :
-
-Add this line to VM Params in Run Configuration
-
-```
+> Note: For IntelliJ users, add this line to VM Params in Run Configuration: <br/>
 --add-opens java.base/java.lang=ALL-UNNAMED
+
+
+### Test the GraphQL endpoint
+
+#### curl
+
+With the server running, you can use the following `curl` command to send graphql queries:
+
+```bash
+curl 'http://localhost:8080/graphql' -H 'content-type: application/json' --data-raw '{"query":"{ helloWorld }"}'
 ```
 
-## Test the Hello World
+You should see the following output:
+```json
+{"data":{"helloWorld":"Hello World!"}}
+```
 
-Start the server and access to the following URL to bring graphiql interface up
+#### GraphiQL
+
+With the server running, navigate to the following URL in your browser to bring up the [GraphiQL](https://github.com/graphql/graphiql) interface:
 
 [http://localhost:8080/graphiql?path=/graphql](http://localhost:8080/graphiql?path=/graphql)
-
-> Note that the default url will load a different graphql schema, this needs to be the same as above
 
 Then, run the following query
 

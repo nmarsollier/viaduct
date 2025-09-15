@@ -4,7 +4,9 @@ A comprehensive GraphQL API demo showcasing Viaduct's custom directives, batch r
 
 ## Quick Start
 
-### 1. Start the Demo
+For more information, check out the [Viaduct Getting Started](https://airbnb.io/viaduct/docs/getting_started/) docs
+
+### 1. Start the demo app
 
 ```bash
 ./gradlew bootRun
@@ -14,10 +16,7 @@ The server will start on `http://localhost:8080`
 
 ### 2. Access GraphiQL
 
-Open your browser and go to:
-```
-http://localhost:8080/graphiql
-```
+Open your browser and go to [http://localhost:8080/graphiql]()
 
 ### 3. Try Example Queries
 
