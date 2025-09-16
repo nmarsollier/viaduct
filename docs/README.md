@@ -50,10 +50,14 @@ See `content/docs/developers/_index.md` for an example.
 
 ### Development
 
-To run the site locally, run:
+To run the site locally, you need:
+
+Hugo extended version 0.146+ (see [Hugo installation instructions](https://gohugo.io/getting-started/installing/))
+
+Then, run:
 
 ```bash
-hugo serve
+GOFLAGS=-mod=mod hugo serve
 ```
 
 Then open `http://localhost:1313` in your browser. If another process is bound to port 1313, hugo picks a random port and it will print the URL in the terminal.
