@@ -1,12 +1,10 @@
 import org.gradle.kotlin.dsl.get
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.10"
+    id("kotlin-project-without-tests")
+    id("kotlin-static-analysis")
     `kotlin-dsl`
-    `java-gradle-plugin`
     `maven-publish`
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
-    id("io.gitlab.arturbosch.detekt") version "1.23.4"
     id("com.gradle.plugin-publish") version "2.0.0"
     id("com.gradleup.shadow") version "9.1.0"
     signing
@@ -40,15 +38,9 @@ gradlePlugin {
 }
 
 dependencies {
-    implementation("com.airbnb.viaduct:tenant-codegen:${libs.versions.project.get()}") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.SHADOWED))
-        }
-    }
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
+    implementation(project(":tenant:tenant-codegen"))
+    implementation(project(":shared:graphql"))
+    implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.0.21") // TODO: catalog
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {

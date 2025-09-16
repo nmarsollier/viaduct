@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "2.0.21"
     id("com.airbnb.viaduct.application-gradle-plugin")
     id("com.airbnb.viaduct.module-gradle-plugin")
     application
