@@ -38,6 +38,8 @@ detekt = "1.23.6"
 dependency-analysis = "1.33.0"
 jacoco = "0.8.11"
 dokka = "2.0.0"
+plugin-publish = "2.0.0"
+shadow = "9.1.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -46,6 +48,8 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 jacoco = { id = "jacoco", version.ref = "jacoco" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+plugin-publish = { id="com.gradle.plugin-publish", version.ref = "plugin-publish" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
 [libraries]
 # Kotlin
