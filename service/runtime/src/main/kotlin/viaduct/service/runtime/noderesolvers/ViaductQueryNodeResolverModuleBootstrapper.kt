@@ -16,22 +16,17 @@ import viaduct.engine.api.ViaductSchema
  */
 class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
     override fun fieldResolverExecutors(schema: ViaductSchema): Iterable<Pair<Coordinate, FieldResolverExecutor>> =
-        buildList {
-            if (schema.schema.queryType.getFieldDefinition("node") != null) {
-                add(Coordinate("Query", "node") to queryNodeResolver)
-            }
-            if (schema.schema.queryType.getFieldDefinition("nodes") != null) {
-                add(Coordinate("Query", "nodes") to queryNodesResolver)
-            }
-        }
+        listOf(
+            Coordinate("Query", "node") to createQueryNodeResolver(),
+            Coordinate("Query", "nodes") to createQueryNodesResolver()
+        )
 
     override fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>> {
         return emptyList()
     }
 
-    companion object {
-        // Internal for testing
-        internal val queryNodeResolver = object : FieldResolverExecutor {
+    private fun createQueryNodeResolver(): FieldResolverExecutor {
+        return object : FieldResolverExecutor {
             override val objectSelectionSet: RequiredSelectionSet? = null
             override val querySelectionSet: RequiredSelectionSet? = null
             override val resolverId: String = "Query.node"
@@ -54,9 +49,10 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
                 )
             }
         }
+    }
 
-        // Internal for testing
-        internal val queryNodesResolver = object : FieldResolverExecutor {
+    private fun createQueryNodesResolver(): FieldResolverExecutor {
+        return object : FieldResolverExecutor {
             override val objectSelectionSet: RequiredSelectionSet? = null
             override val querySelectionSet: RequiredSelectionSet? = null
             override val resolverId: String = "Query.nodes"
@@ -80,44 +76,44 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
                 )
             }
         }
+    }
 
-        /**
-         * Resolves and validates a globalId via schema introspection.
-         * This is similar to GlobalIdCodeImpl's GRT based approach and could be consolidated as part of:
-         * https://app.asana.com/1/150975571430/project/1209554365854885/task/1211213956653747
-         */
-        private fun resolveNodeByGlobalId(
-            globalId: Any?,
-            context: EngineExecutionContext
-        ): EngineObjectData {
-            require(globalId is String) { "Expected GlobalID \"$globalId\" to be a string. This should never occur." }
-            val (typeName, _) = decodeGlobalIdString(globalId)
+    /**
+     * Resolves and validates a globalId via schema introspection.
+     * This is similar to GlobalIdCodeImpl's GRT based approach and could be consolidated as part of:
+     * https://app.asana.com/1/150975571430/project/1209554365854885/task/1211213956653747
+     */
+    private fun resolveNodeByGlobalId(
+        globalId: Any?,
+        context: EngineExecutionContext
+    ): EngineObjectData {
+        require(globalId is String) { "Expected GlobalID \"$globalId\" to be a string. This should never occur." }
+        val (typeName, _) = decodeGlobalIdString(globalId)
 
-            val graphQLObjectType = context.fullSchema.schema.getObjectType(typeName)
-            requireNotNull(graphQLObjectType) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type in the schema" }
+        val graphQLObjectType = context.fullSchema.schema.getObjectType(typeName)
+        requireNotNull(graphQLObjectType) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type in the schema" }
 
-            val implementsNode = graphQLObjectType.interfaces.any { it.name == "Node" }
-            require(implementsNode) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type that extends the Node interface" }
+        val implementsNode = graphQLObjectType.interfaces.any { it.name == "Node" }
+        require(implementsNode) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type that extends the Node interface" }
 
-            return context.createNodeEngineObjectData(globalId, graphQLObjectType)
+        return context.createNodeEngineObjectData(globalId, graphQLObjectType)
+    }
+
+    /**
+     * Logic for decoding the GlobalID string format.
+     * This is copied from GlobalIDCodecImpl and should be refactored as part of:
+     * https://app.asana.com/1/150975571430/project/1209554365854885/task/1211213956653747
+     */
+    private fun decodeGlobalIdString(globalIdString: String): Pair<String, String> {
+        val delimiter = ":"
+        val decodedStr = Base64.getDecoder().decode(globalIdString).decodeToString()
+        val parts = decodedStr.split(delimiter)
+        require(parts.size == 2) {
+            "Expected GlobalID \"$globalIdString\" to be a Base64-encoded string with the decoded format '<type name>$delimiter<internal ID>', " +
+                "got decoded value $decodedStr"
         }
-
-        /**
-         * Logic for decoding the GlobalID string format.
-         * This is copied from GlobalIDCodecImpl and should be refactored as part of:
-         * https://app.asana.com/1/150975571430/project/1209554365854885/task/1211213956653747
-         */
-        private fun decodeGlobalIdString(globalIdString: String): Pair<String, String> {
-            val delimiter = ":"
-            val decodedStr = Base64.getDecoder().decode(globalIdString).decodeToString()
-            val parts = decodedStr.split(delimiter)
-            require(parts.size == 2) {
-                "Expected GlobalID \"$globalIdString\" to be a Base64-encoded string with the decoded format '<type name>$delimiter<internal ID>', " +
-                    "got decoded value $decodedStr"
-            }
-            val (typeName, id) = parts
-            val localId = URLDecoder.decode(id, "UTF-8")
-            return typeName to localId
-        }
+        val (typeName, id) = parts
+        val localId = URLDecoder.decode(id, "UTF-8")
+        return typeName to localId
     }
 }
