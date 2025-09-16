@@ -15,13 +15,14 @@ viaductClassDiff {
 }
 
 dependencies {
-    implementation(libs.clikt.jvm)
+    api(libs.clikt.jvm)
+    api(libs.kotlinx.metadata.jvm)
+    api(project(":shared:invariants"))
+    api(project(":shared:shared-codegen"))
+    api(project(":shared:utils"))
+    api(project(":shared:viaductschema"))
+
     implementation(libs.graphql.java)
-    implementation(libs.kotlinx.metadata.jvm)
-    implementation(project(":shared:invariants"))
-    implementation(project(":shared:shared-codegen"))
-    implementation(project(":shared:utils"))
-    implementation(project(":shared:viaductschema"))
     implementation(project(":tenant:tenant-api"))
 
     // Not needed directly, but this dependency drags it into the
@@ -55,7 +56,6 @@ tasks.withType<AbstractArchiveTask>().configureEach {
 
 
 
-// Publishing the fat jar (or some alternative with proper transitive dependencies) to an actual Maven repository (not local cache)
 publishing {
     publications {
         create<MavenPublication>("shadow") {
@@ -64,15 +64,5 @@ publishing {
     }
     repositories {
         // TODO: will be needed for publication to real Maven repositories
-    }
-}
-
-
-
-afterEvaluate {
-    // TODO: a hack for the sake of this dependency-analysis task...
-    tasks.named("explodeCodeSourceTest") {
-        dependsOn(tasks.named("generateSchemaDiffSchemaSchemaObjects"))
-        dependsOn(tasks.named("generateSchemaDiffSchemaKotlinGrts"))
     }
 }
