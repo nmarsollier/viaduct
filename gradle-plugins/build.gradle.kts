@@ -3,6 +3,7 @@ import org.gradle.kotlin.dsl.get
 plugins {
     id("kotlin-project-without-tests")
     id("kotlin-static-analysis")
+    id("build-logic-utils")
     `kotlin-dsl`
     `maven-publish`
     id("com.gradle.plugin-publish") version "2.0.0"
@@ -40,7 +41,8 @@ gradlePlugin {
 dependencies {
     implementation(project(":tenant:tenant-codegen"))
     implementation(project(":shared:graphql"))
-    implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.0.21") // TODO: catalog
+
+    compileOnly(buildLogicUtils.plugin(libs.plugins.kotlin.jvm))
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
