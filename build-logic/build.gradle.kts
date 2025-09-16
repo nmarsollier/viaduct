@@ -12,4 +12,6 @@ dependencies {
     implementation(buildLogicUtils.plugin(libs.plugins.ktlintPlugin))
 
     implementation(buildLogicUtils.plugin(libs.plugins.dokka))
+
+    implementation(buildLogicUtils.plugin(libs.plugins.dependency.analysis))
 }
