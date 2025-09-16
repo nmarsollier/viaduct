@@ -18,9 +18,6 @@ tasks.register<JavaExec>("validateSchema") {
     classpath = sourceSets["main"].runtimeClasspath
 
     mainClass.set("viaduct.cli.validation.schema.ViaductSchemaValidatorCLIKt")
-
-    // You can also pass arguments to your main function
-    // args("first-argument", "second-argument")
 }
 
 tasks.register<Jar>("sourcesJar") {
@@ -30,8 +27,6 @@ tasks.register<Jar>("sourcesJar") {
 
 val emptyJavadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
-    // By not specifying 'from()', the JAR will be empty.
-    // This task will create an empty JAR named like 'your-project-name-version-javadoc.jar'
 }
 
 publishing {

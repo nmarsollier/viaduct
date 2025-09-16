@@ -9,7 +9,7 @@ import viaduct.engine.api.UnsetSelectionException
  * class is to prevent tenants from attempting to access fields on a newly created
  * Node reference. This should not be passed to the engine.
  */
-internal class NodeReferenceEngineObjectData(val nodeEngineObjectData: NodeEngineObjectData) : EngineObjectData {
+class NodeReferenceEngineObjectData(val nodeEngineObjectData: NodeEngineObjectData) : EngineObjectData {
     override val graphQLObjectType = nodeEngineObjectData.graphQLObjectType
 
     /**

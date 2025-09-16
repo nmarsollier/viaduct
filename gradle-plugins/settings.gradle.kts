@@ -1,3 +1,14 @@
+import settings.includeNamed
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+    includeBuild("../build-logic-settings")
+    includeBuild("../build-logic-root")
+    includeBuild("../build-logic")
+}
+
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
@@ -6,20 +17,14 @@ dependencyResolutionManagement {
             url = uri("https://central.sonatype.com/repository/maven-snapshots")
         }
     }
-
-    repositories {
-        gradlePluginPortal()
-    }
-
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
 }
 
-includeBuild("..") {
-    dependencySubstitution {
-        substitute(module("com.airbnb.viaduct:tenant-codegen")).using(project(":tenant:tenant-codegen"))
-    }
+plugins {
+    id("common")
 }
+
+rootProject.name = "viaduct-gradle-plugins"
+
+includeNamed(":common")
+includeNamed(":application-plugin")
+includeNamed(":module-plugin")

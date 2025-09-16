@@ -1,6 +1,5 @@
+import buildlogic.repoRoot
 import java.net.URI
-import kotlin.text.set
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 plugins {
@@ -11,10 +10,12 @@ dokka {
     // Shared configuration for documented modules goes here
     moduleVersion.set(project.version.toString())
 
+    val repoRootProject = repoRoot()
+
     pluginsConfiguration.html {
         homepageLink = "https://airbnb.io/viaduct"
-        customStyleSheets.from(rootProject.file("docs/kdoc-styles.css"))
-        customAssets.from(rootProject.file("docs/assets/icons/logo-only-white.svg"))
+        customStyleSheets.from(repoRootProject.file("docs/kdoc-styles.css"))
+        customAssets.from(repoRootProject.file("docs/assets/icons/logo-only-white.svg"))
         footerMessage = "&copy; 2025 Airbnb, Inc."
     }
 
@@ -22,7 +23,7 @@ dokka {
         failOnWarning.set(true)
         suppressObviousFunctions.set(true)
         suppressInheritedMembers.set(true)
-        outputDirectory.set(rootProject.layout.projectDirectory.dir("docs/static/apis/" + project.name))
+        outputDirectory.set(repoRootProject.dir("docs/static/apis/" + project.name))
     }
 
     dokkaSourceSets.configureEach {
@@ -38,7 +39,7 @@ dokka {
         )
 
         sourceLink {
-            localDirectory.set(rootProject.projectDir)
+            localDirectory.set(repoRootProject)
             remoteUrl.set(
                 URI(
                     "https://github.com/airbnb/viaduct/tree/v" + project.version.toString()

@@ -7,7 +7,7 @@ plugins {
 dependencies {
     api(libs.javax.inject)
     api(libs.guice)
-    api(project(":service:service-api"))
+    api(libs.viaduct.service.api)
 
     implementation(libs.kotlinx.coroutines.core)
 
@@ -17,10 +17,10 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.debug)
     runtimeOnly(libs.kotlinx.coroutines.jdk8)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(project(":shared:utils"))
+    testImplementation(libs.viaduct.shared.utils)
 
     testCompileOnly(libs.kotlinx.coroutines.jdk8)
 
     testFixturesImplementation(libs.kotlinx.coroutines.test)
-    testFixturesImplementation(project(":service:service-api"))
+    testFixturesImplementation(libs.viaduct.service.api)
 }

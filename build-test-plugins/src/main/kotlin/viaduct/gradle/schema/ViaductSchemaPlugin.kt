@@ -5,14 +5,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.tasks.Jar
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.the
 import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 
@@ -73,88 +68,17 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
         val packageName = schema.grtPackageName.orNull
             ?: throw GradleException("Required property 'grtPackageName' not set for schema '$name'")
 
-        // Configuration of the compile and Runtime classpath to recognize the generated Class dir
-        val javaExtension = project.extensions.getByType<JavaPluginExtension>()
-
-        val defaultSourceSets = setOf("main", "test")
-        val effectiveSourceSets = schema.targetSourceSets.orNull.let {
-            if (it.isNullOrEmpty()) {
-                defaultSourceSets
-            } else {
-                it
-            }
-        }
-
         val taskName = "generate${name.capitalize()}Bytecode"
-        val toolchainService = project.extensions.getByType(JavaToolchainService::class.java)
-        val javaPluginExt = project.extensions.getByType(JavaPluginExtension::class.java)
-        val javaExecutable = toolchainService
-            .launcherFor(javaPluginExt.toolchain)
-            .get()
-            .executablePath
-            .asFile
-            .absolutePath
 
         // Check if we're in internal mode (tenant projects available) or standalone mode
         val mainProject = project.rootProject.findProject(":tenant:tenant-codegen")
         val apiProject = project.rootProject.findProject(":tenant:tenant-api")
         val isInternalMode = mainProject != null && apiProject != null
 
-        val classpath = if (isInternalMode) {
-            mainProject!!
-            apiProject!!
-            project.logger.info("Running in internal mode with tenant projects")
-            /**
-             * In order to get the Clikt Command we need to put the project where it is being used
-             * as a classPath dependency so it can run.
-             *
-             * The Clikt Command needs to have as runtime deps a list of Classes and Interfaces
-             * that are present in tenant:api. Therefore, we must give them as classPath.
-             */
-            effectiveSourceSets.forEach { sourceSetName ->
-                javaExtension.sourceSets.named(sourceSetName) {
-                    compileClasspath += project.files(schema.generatedClassesDir.get())
-                    runtimeClasspath += project.files(schema.generatedClassesDir.get())
-
-                    compileClasspath += apiProject.the<JavaPluginExtension>().sourceSets["main"].output
-                    runtimeClasspath += apiProject.the<JavaPluginExtension>().sourceSets["main"].output
-
-                    // Add the generated classes directory to the source sets (same as original)
-                    java.srcDir(schema.generatedClassesDir.get())
-                }
-            }
-
-            mainProject.the<JavaPluginExtension>().sourceSets["main"].runtimeClasspath +
-                apiProject.the<JavaPluginExtension>().sourceSets["main"].runtimeClasspath
-        } else {
-            project.logger.info("Running in standalone mode without tenant projects")
-            /**
-             * If the project is not available, we need to add the classpath of the current project
-             * as a dependency.
-             *
-             * This is the default case when the plugin is used in a project that is not part of the tenant module.
-             */
-            effectiveSourceSets.forEach { sourceSetName ->
-                javaExtension.sourceSets.named(sourceSetName) {
-                    // Add the generated classes directory to the source sets (same as original)
-                    java.srcDir(schema.generatedClassesDir.get())
-                }
-            }
-
-            /**
-             * If plugin is being applied in non-oss env; it needs to be running in stand-alone mode, meaning it
-             * should not depend on anything other than published Viaduct jar.
-             *
-             * If artifact resolution fails, as a last resort we assume required dependencies already exist in
-             * the runtimeClasspath.
-             */
-            fallbackSchemaClassPath(project)
-        }
-
         /**
          * Register the generation task where the schema will be created
          */
-        val generateByteCodeTask = project.tasks.register<ViaductSchemaTask>(taskName) {
+        project.tasks.register<ViaductSchemaTask>(taskName) {
             group = "viaduct-schema"
             description = "Generates schema objects bytecode for $name"
 
@@ -164,8 +88,6 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
             this.workerNumber.set(schema.workerNumber)
             this.workerCount.set(schema.workerCount)
             this.includeIneligibleForTesting.set(schema.includeIneligibleForTesting)
-            this.mainProjectClasspath.from(classpath)
-            this.javaExecutable.set(javaExecutable)
             this.generatedSrcDir.set(project.layout.buildDirectory.dir("generated-sources/schema/$name/generated_classes"))
 
             // Depend on processResources to ensure default schema is available
@@ -177,9 +99,6 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
                 dependsOn(apiProject!!.tasks.named("classes"))
             }
         }
-
-        val mainSourceSet = javaExtension.sourceSets.getByName("main")
-        mainSourceSet.java.srcDir(generateByteCodeTask.map { it.outputs.files })
     }
 
     private fun viaductArtifactClassPath(project: Project): FileCollection {
@@ -189,17 +108,6 @@ abstract class ViaductSchemaPlugin : Plugin<Project> {
     }
 
     private fun projectClassPath(project: Project): FileCollection = project.configurations.getByName("runtimeClasspath")
-
-    /**
-     * Attempts resolving published viaduct artifact so schema plugin works as stand-alone.
-     * It should not depend on anything other than viaduct.jar.
-     */
-    private fun fallbackSchemaClassPath(project: Project): FileCollection =
-        runCatching { viaductArtifactClassPath(project) }
-            .getOrElse {
-                project.logger.debug("Falling back to runtimeClasspath: ${it.message}")
-                projectClassPath(project)
-            }
 
     /**
      * Configures viaduct app mode: auto-discovers tenant schemas and creates combined schema

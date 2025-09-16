@@ -1,0 +1,38 @@
+import settings.includeNamed
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+    includeBuild("../../build-logic-settings")
+    includeBuild("../../build-logic-root")
+    includeBuild("../../build-logic")
+}
+
+plugins {
+    id("common")
+}
+
+rootProject.name = "viaduct-core"
+
+// Include core modules
+includeNamed(":engine:api", "../..")
+includeNamed(":engine:runtime", "../..")
+includeNamed(":service", "../..")
+includeNamed(":service:api", "../..")
+includeNamed(":service:runtime", "../..")
+includeNamed(":service:wiring", "../..")
+includeNamed(":tenant:api", "../..")
+includeNamed(":tenant:runtime", "../..")
+
+// Include all shared modules
+includeNamed(":shared:arbitrary", "../..")
+includeNamed(":shared:dataloader", "../..")
+includeNamed(":shared:utils", "../..")
+includeNamed(":shared:logging", "../..")
+includeNamed(":shared:deferred", "../..")
+includeNamed(":shared:graphql", "../..")
+includeNamed(":shared:viaductschema", "../..")
+includeNamed(":shared:invariants", "../..")
+includeNamed(":shared:codegen", "../..")
+includeNamed(":snipped:errors", "../..")

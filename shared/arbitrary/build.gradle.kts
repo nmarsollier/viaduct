@@ -10,11 +10,11 @@ tasks.withType<Test>().configureEach {
 dependencies {
     api(libs.graphql.java)
     api(libs.kotest.property.jvm)
-    api(project(":shared:invariants"))
-    api(project(":shared:viaductschema"))
+    api(libs.viaduct.shared.invariants)
+    api(libs.viaduct.shared.viaductschema)
 
-    implementation(project(":engine:engine-api"))
-    implementation(project(":shared:utils"))
+    implementation(libs.viaduct.engine.api)
+    implementation(libs.viaduct.shared.utils)
     implementation(libs.kotest.common.jvm)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.core.jvm)

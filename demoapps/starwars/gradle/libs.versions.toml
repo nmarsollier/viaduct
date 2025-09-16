@@ -6,7 +6,6 @@ kotlin = "1.9.24"
 reactor = "3.5.0"
 springBoot = "3.5.0"
 springContext = "6.2.7"
-viaduct = "0.1.0"
 mockk-jvm = "1.13.3"
 
 [plugins]
@@ -14,6 +13,8 @@ dependencyManagement = { id = "io.spring.dependency-management", version.ref = "
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+viaduct-application = { id = "com.airbnb.viaduct.application-gradle-plugin", version.ref = "viaductGradlePluginVersion" }
+viaduct-module = { id = "com.airbnb.viaduct.module-gradle-plugin", version.ref = "viaductGradlePluginVersion" }
 
 [libraries]
 jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin" }
@@ -29,6 +30,5 @@ junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 kotest-runner-junit = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotest" }
-viaduct-runtime = { group = "com.airbnb.viaduct", name = "runtime", version.ref = "viaduct" }
 io-mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk-jvm" }
 io-mockk-jvm = { module = "io.mockk:mockk-jvm", version.ref = "mockk-jvm" }

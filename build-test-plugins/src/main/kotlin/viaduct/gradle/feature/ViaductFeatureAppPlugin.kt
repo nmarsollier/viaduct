@@ -7,12 +7,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.the
 import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 
@@ -45,20 +42,28 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         project: Project,
         extension: ViaductFeatureAppExtension
     ): List<File> {
-        val featureAppFiles = mutableListOf<File>()
-        val pattern = extension.fileNamePattern.get().toRegex()
-        val files = project.projectDir.walkTopDown()
-            .filter { it.isFile }
-            .filter { it.extension in listOf("kt", "java") }
-            .filter { pattern.containsMatchIn(it.name) }
-            .toList()
-        files.forEach { file ->
-            if (isFeatureAppFile(file)) {
-                featureAppFiles.add(file)
-            }
-        }
+        val testSS = project.extensions.getByType(JavaPluginExtension::class.java)
+            .sourceSets.getByName("test")
 
-        return featureAppFiles.distinctBy { it.absolutePath }
+        // allSource includes Kotlin sources when the Kotlin plugin is applied
+        val roots = (testSS.allSource.srcDirs + testSS.resources.srcDirs)
+            .filter { it.exists() }
+            .toSet()
+
+        val pattern = extension.fileNamePattern.get().toRegex()
+
+        return roots
+            .flatMap { root ->
+                project.fileTree(root).matching {
+                    include("**/*.kt", "**/*.java")
+                }.files
+            }
+            .asSequence()
+            .filter { pattern.containsMatchIn(it.name) }
+            .filter(::isFeatureAppFile)
+            .map { it.canonicalFile }
+            .distinct()
+            .toList()
     }
 
     /**
@@ -226,17 +231,6 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         packageName: String,
         extractionTask: TaskProvider<Task>
     ): TaskProvider<ViaductFeatureAppSchemaTask> {
-        val toolchainService = project.extensions.getByType<JavaToolchainService>()
-        val javaPluginExt = project.extensions.getByType<JavaPluginExtension>()
-        val javaExecutable = toolchainService
-            .launcherFor(javaPluginExt.toolchain)
-            .get()
-            .executablePath
-            .asFile
-            .absolutePath
-
-        val classpath = getMainProjectClasspath(project)
-
         return project.tasks.register<ViaductFeatureAppSchemaTask>(
             "generate${featureAppName.capitalize()}SchemaObjects"
         ) {
@@ -252,8 +246,6 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             this.workerCount.set(1)
             this.includeIneligibleForTesting.set(true)
             this.schemaFiles.from(schemaFile)
-            this.mainProjectClasspath.from(classpath)
-            this.javaExecutable.set(javaExecutable)
             this.generatedSrcDir.set(project.layout.buildDirectory.dir("generated-sources/featureapp/schema/$featureAppName"))
         }
     }
@@ -277,17 +269,6 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
         // This prevents the generated sources from leaking to consuming projects
         project.dependencies.add("testImplementation", project.files(schemaOutputDir))
 
-        val toolchainService = project.extensions.getByType<JavaToolchainService>()
-        val javaPluginExt = project.extensions.getByType<JavaPluginExtension>()
-        val javaExecutable = toolchainService
-            .launcherFor(javaPluginExt.toolchain)
-            .get()
-            .executablePath
-            .asFile
-            .absolutePath
-
-        val baseClasspath = getMainProjectClasspath(project)
-        val extendedClasspath = baseClasspath + project.files(schemaOutputDir)
         return project.tasks.register<ViaductFeatureAppTenantTask>(
             "generate${featureAppName.capitalize()}Tenant"
         ) {
@@ -297,9 +278,7 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             this.tenantName.set(tenantName)
             this.packageNamePrefix.set(tenantPackageName)
             this.schemaFiles.from(schemaFile)
-            this.tenantFromSourceNameRegex.set(".*")
-            this.mainProjectClasspath.from(extendedClasspath)
-            this.javaExecutable.set(javaExecutable)
+            this.tenantFromSourceNameRegex.set("(.*)")
             this.modernModuleSrcDir.set(project.layout.buildDirectory.dir("generated-sources/featureapp/tenant/$featureAppName/modernmodule"))
             this.resolverSrcDir.set(project.layout.buildDirectory.dir("generated-sources/featureapp/tenant/$featureAppName/resolverbases"))
             this.metaInfSrcDir.set(project.layout.buildDirectory.dir("generated-sources/featureapp/tenant/$featureAppName/META-INF"))
@@ -309,25 +288,4 @@ abstract class ViaductFeatureAppPlugin : Plugin<Project> {
             dependsOn("processResources")
         }
     }
-
-    /**
-     * Get the main project classpath for code generation
-     */
-    private fun getMainProjectClasspath(project: Project) =
-        try {
-            // Try to get from specific projects first
-            val mainProject = project.findProject(":tenant:tenant-codegen")
-            val apiProject = project.findProject(":tenant:tenant-api")
-
-            if (mainProject != null && apiProject != null) {
-                mainProject.the<JavaPluginExtension>().sourceSets["main"].runtimeClasspath +
-                    apiProject.the<JavaPluginExtension>().sourceSets["main"].runtimeClasspath
-            } else {
-                // Fallback to current project's runtime classpath
-                project.configurations.getByName("runtimeClasspath")
-            }
-        } catch (e: Exception) {
-            project.logger.info("Using fallback classpath: ${e.message}")
-            project.configurations.getByName("runtimeClasspath")
-        }
 }

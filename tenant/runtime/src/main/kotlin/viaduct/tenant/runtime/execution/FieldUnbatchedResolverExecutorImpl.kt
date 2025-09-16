@@ -30,7 +30,7 @@ import viaduct.tenant.runtime.select.SelectionsLoaderImpl
 class FieldUnbatchedResolverExecutorImpl(
     override val objectSelectionSet: RequiredSelectionSet?,
     override val querySelectionSet: RequiredSelectionSet?,
-    internal val resolver: Provider<out @JvmSuppressWildcards ResolverBase<*>>, // internal for testing
+    val resolver: Provider<out @JvmSuppressWildcards ResolverBase<*>>,
     private val resolveFn: KFunction<*>,
     override val resolverId: String,
     private val globalIDCodec: GlobalIDCodec,

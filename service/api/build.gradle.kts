@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     api(libs.graphql.java)
-    api(project(":engine:engine-api"))
+    api(libs.viaduct.engine.api)
 
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
@@ -20,28 +20,15 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.strikt.core)
 
-    testFixturesApi(project(":engine:engine-api"))
+    testFixturesApi(libs.viaduct.engine.api)
 }
 
-tasks.register<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
+mavenPublishing {
+    pom {
+        name.set("Viaduct [service-api]")
+        description.set("The service API/SPI exposed by Viaduct.")
+    }
 }
-
-/*publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifact(tasks["sourcesJar"])
-        }
-    }
-    repositories {
-        <define repository>
-    }
-}*/
-// TODO: not necessary now, just for the demoapps;
-//  might be needed later, when some version get released and
-//  published to a real artefact repository
 
 dokka {
     dokkaPublications.html {

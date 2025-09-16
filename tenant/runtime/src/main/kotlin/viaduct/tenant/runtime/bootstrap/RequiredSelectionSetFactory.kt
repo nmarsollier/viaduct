@@ -80,7 +80,7 @@ class RequiredSelectionSetFactory(
      * This method performs validation that ensures VariablesProvider variables are used across both
      * object and query selection sets.
      */
-    internal fun mkRequiredSelectionSets(
+    fun mkRequiredSelectionSets(
         variablesProvider: VariablesProviderInfo?,
         objectSelections: ParsedSelections?,
         querySelections: ParsedSelections?,

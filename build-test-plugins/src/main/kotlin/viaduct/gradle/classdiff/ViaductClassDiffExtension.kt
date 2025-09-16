@@ -4,6 +4,8 @@ import java.io.File
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 
 /**
  * Extension for configuring ClassDiff code generation.
@@ -54,13 +56,19 @@ class SchemaDiff(
         .convention("viaduct.api.grts.$name")
 
     /**
-     * List of schema resource file paths.
-     * These can be relative to the project root or absolute paths.
+     * List of schema resource paths (relative paths within the source set resource dirs).
      */
     private val schemaResources: ListProperty<String> = project.objects.listProperty(String::class.java)
 
     /**
+     * Source set names to search (e.g., "main", "test"). Defaults to ["main", "test"].
+     */
+    val sourceSetNames: ListProperty<String> = project.objects.listProperty(String::class.java)
+        .convention(listOf(SourceSet.MAIN_SOURCE_SET_NAME, SourceSet.TEST_SOURCE_SET_NAME))
+
+    /**
      * Add a schema resource file path.
+     * The path should be relative to a resource directory of the selected source sets.
      */
     fun schemaResource(path: String) {
         schemaResources.add(path)
@@ -75,40 +83,61 @@ class SchemaDiff(
     }
 
     /**
-     * Resolve schema resource files to actual File objects.
+     * Resolve schema resource files to actual File objects by searching the configured source sets'
+     * resource directories.
      */
     internal fun resolveSchemaFiles(): List<File> {
-        return schemaResources.get().mapNotNull { resourcePath ->
-            findResourceFile(resourcePath)
-        }
-    }
-
-    /**
-     * Find resource file in common locations.
-     */
-    private fun findResourceFile(resourcePath: String): File? {
-        val commonResourcePaths = listOf(
-            // Direct path from project root
-            resourcePath,
-            // Standard resource directories
-            "src/main/resources/$resourcePath",
-            "src/test/resources/$resourcePath",
-            // Relative to src directory
-            "src/$resourcePath",
-            // In schema-specific directories
-            "schemas/$resourcePath",
-            "src/main/resources/schemas/$resourcePath",
-            "src/test/resources/schemas/$resourcePath"
-        )
-
-        val resolvedFile = commonResourcePaths
-            .map { File(project.projectDir, it) }
-            .firstOrNull { it.exists() && it.isFile }
-
-        if (resolvedFile == null) {
-            project.logger.warn("Schema resource not found: $resourcePath")
+        val container = project.extensions.findByType(SourceSetContainer::class.java)
+        if (container == null) {
+            project.logger.warn("No SourceSetContainer found. Ensure the Java/Kotlin plugin is applied.")
+            return emptyList()
         }
 
-        return resolvedFile
+        val selectedSets: List<SourceSet> =
+            sourceSetNames.get()
+                .mapNotNull { ssName ->
+                    container.findByName(ssName).also {
+                        if (it == null) {
+                            project.logger.warn("Source set '$ssName' not found in project '${project.path}'.")
+                        }
+                    }
+                }
+
+        if (selectedSets.isEmpty()) {
+            project.logger.warn("No valid source sets configured for schema diff '$name'.")
+            return emptyList()
+        }
+
+        // Collect all resource roots from the selected source sets
+        val resourceRoots: List<File> =
+            selectedSets.flatMap { it.resources.srcDirs }
+                .filter { it.exists() && it.isDirectory }
+
+        if (resourceRoots.isEmpty()) {
+            project.logger.info(
+                "No resource directories found in source sets ${sourceSetNames.get()} for schema diff '$name'."
+            )
+        }
+
+        // For each declared resource path, find the first matching file under any resource root.
+        val resolved = mutableListOf<File>()
+        schemaResources.get().forEach { resourcePath ->
+            val normalized = resourcePath.trimStart('/', '\\')
+            val found = resourceRoots
+                .asSequence()
+                .map { root -> File(root, normalized) }
+                .firstOrNull { it.exists() && it.isFile }
+
+            if (found != null) {
+                resolved += found
+            } else {
+                project.logger.warn(
+                    "Schema resource '$resourcePath' not found in source sets ${sourceSetNames.get()} " +
+                        "for schema diff '$name'. Searched roots: ${resourceRoots.joinToString { it.absolutePath }}"
+                )
+            }
+        }
+
+        return resolved
     }
 }

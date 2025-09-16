@@ -18,7 +18,7 @@ viaductTenant {
 }
 
 dependencies {
-    implementation(project(":tenant:tenant-api"))
-    implementation(project(":tenant:tenant-runtime"))
+    implementation(libs.viaduct.tenant.api)
+    implementation(libs.viaduct.tenant.runtime)
     implementation(libs.graphql.java)
 }

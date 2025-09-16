@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     alias(libs.plugins.kotlinJvm)
-    id("com.airbnb.viaduct.module-gradle-plugin")
+    alias(libs.plugins.viaduct.module)
 }
 
 viaductModule {
@@ -9,6 +9,5 @@ viaductModule {
 }
 
 dependencies {
-    implementation(libs.viaduct.runtime)
     implementation(libs.spring.context)
 }

@@ -10,7 +10,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.process.ExecOperations
+import viaduct.tenant.codegen.cli.ViaductGenerator
 
 /**
  * Base class for tenant generation tasks.
@@ -27,16 +27,10 @@ abstract class ViaductTenantTaskBase : DefaultTask() {
     abstract val packageNamePrefix: Property<String>
 
     @get:Input
-    abstract val javaExecutable: Property<String>
-
-    @get:Input
     abstract val tenantFromSourceNameRegex: Property<String>
 
     @get:InputFiles
     abstract val schemaFiles: ConfigurableFileCollection
-
-    @get:InputFiles
-    abstract val mainProjectClasspath: ConfigurableFileCollection
 
     @get:OutputDirectory
     abstract val modernModuleSrcDir: DirectoryProperty
@@ -48,17 +42,12 @@ abstract class ViaductTenantTaskBase : DefaultTask() {
     abstract val metaInfSrcDir: DirectoryProperty
 
     @get:Inject
-    abstract val execOperations: ExecOperations
-
-    @get:Inject
     abstract val projectLayout: ProjectLayout
 
     /**
      * Common tenant generation logic that can be called by subclasses
      */
     protected fun executeTenantGeneration() {
-        val classpath = mainProjectClasspath.asPath
-
         // Get temporary generation directories
         val modernModuleSrcDirFile = modernModuleSrcDir.get().asFile
         val resolverSrcDirFile = resolverSrcDir.get().asFile
@@ -75,7 +64,10 @@ abstract class ViaductTenantTaskBase : DefaultTask() {
         }
 
         // Include the default schema along with the configured schema files
-        val allSchemaFiles = DefaultSchemaUtil.getSchemaFilesIncludingDefault(schemaFiles, projectLayout, logger)
+        val allSchemaFiles = DefaultSchemaUtil
+            .getSchemaFilesIncludingDefault(schemaFiles, projectLayout, logger)
+            .toList()
+            .sortedBy { it.absolutePath }
 
         // Build arguments for code generation
         val baseArgs = mutableListOf(
@@ -101,19 +93,10 @@ abstract class ViaductTenantTaskBase : DefaultTask() {
             baseArgs
         }
 
-        // Execute code generation
-        val result = execOperations.exec {
-            executable = javaExecutable.get()
-            args = listOf(
-                "-cp",
-                classpath,
-                "viaduct.tenant.codegen.cli.ViaductGenerator\$Main"
-            ) + finalArgs
-            isIgnoreExitValue = true
-        }
-
-        if (result.exitValue != 0) {
-            throw GradleException("ViaductGenerator execution failed with exit code ${result.exitValue}")
+        try {
+            ViaductGenerator.Main.main(finalArgs.toTypedArray())
+        } catch (e: Exception) {
+            throw GradleException("ViaductGenerator execution failed: ${e.message}", e)
         }
     }
 }

@@ -12,3 +12,7 @@ dependencyResolutionManagement {
         }
     }
 }
+
+pluginManagement {
+    includeBuild("../build-logic-settings")
+}

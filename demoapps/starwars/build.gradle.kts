@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlinSpring)
     alias(libs.plugins.springBoot)
     alias(libs.plugins.dependencyManagement)
-    id("com.airbnb.viaduct.application-gradle-plugin")
+    alias(libs.plugins.viaduct.application)
     jacoco
 }
 
@@ -13,8 +13,6 @@ viaductApplication {
 }
 
 dependencies {
-    implementation(libs.viaduct.runtime)
-
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.reactor)

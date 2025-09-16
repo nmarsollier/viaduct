@@ -6,54 +6,31 @@ pluginManagement {
     includeBuild("build-logic-root")
     includeBuild("build-logic")
     includeBuild("build-test-plugins")
-
-    plugins {
-        id("org.jetbrains.dokka") version "2.0.0"
-    }
-}
-
-@Suppress("UnstableApiUsage")
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
-    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
 }
 
 plugins {
+    id("common")
     id("build-scans")
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-
-    kotlin("jvm") version "1.9.10" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
+    kotlin("jvm") version "1.9.24" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
 }
 
 rootProject.name = "viaduct"
 
-includeNamed("runtime-publisher", "runtime")
+includeBuild("included-builds/core")
+includeBuild("included-builds/codegen")
+includeBuild("gradle-plugins")
 
-includeNamed("engine:api")
-includeNamed("engine:runtime")
-includeNamed("service")
-includeNamed("service:api")
-includeNamed("service:runtime")
-includeNamed("service:wiring")
-includeNamed("tenant:api")
-includeNamed("tenant:codegen")
-includeNamed("tenant:runtime")
-includeNamed("shared:codegen")
+// demo apps
+includeBuild("demoapps/cli-starter")
+includeBuild("demoapps/starwars")
+includeBuild("demoapps/spring-starter")
 
+// integration tests
+include(":tenant:codegen-integration-tests")
+include(":tenant:api-integration-tests")
+include(":tenant:runtime-integration-tests")
 
-include("tools")
-include("shared:utils")
-include("shared:logging")
-include("shared:deferred")
-include("shared:graphql")
-include("shared:arbitrary")
-include("shared:viaductschema")
-include("shared:invariants")
-include("shared:dataloader")
-include("snipped:errors")
-
+// testapps
 include("tenant:testapps:fixtures")
 include("tenant:testapps:policycheck")
 include("tenant:testapps:policycheck:tenants:tenant1")
@@ -68,18 +45,7 @@ include("tenant:testapps:schemaregistration:tenants:tenant1")
 include("tenant:testapps:schemaregistration:tenants:tenant2")
 include("tenant:testapps:schemaregistration:schema")
 
+// misc
 include("docs")
-
-/**
- * Include a project with a given name that is different from the path.
- *
- * @param path The path to the project.
- * @param projectName The name to assign to the project. If null, the path will be used as the name replacing ":" with "-".
- */
-fun includeNamed(
-    path: String,
-    projectName: String? = null
-) {
-    include(path)
-    project(":$path").name = projectName ?: path.replace(":", "-")
-}
+include("viaduct-bom")
+include(":tools")

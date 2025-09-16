@@ -1,6 +1,6 @@
 [versions]
 # Project
-project = "0.2.3"
+project = "INCLUDED"
 
 # Libraries
 antlr-st4 = "4.2"
@@ -20,7 +20,7 @@ jmh = "1.25"
 junit5 = "5.9.1"
 konsist = "0.15.1"
 kotest = "5.8.1"
-kotlin = "1.9.10"
+kotlin = "1.9.24"
 kotlinx = "1.5.2"
 kotlinx-debug = "1.8.0"
 kotlinx-metadata = "0.9.0"
@@ -38,6 +38,9 @@ detekt = "1.23.6"
 dependency-analysis = "1.33.0"
 jacoco = "0.8.11"
 dokka = "2.0.0"
+gradle-maven-publish = "0.34.0"
+gradle-enterprise = "3.19.2"
+foojay-resolver-convention = "1.0.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -46,8 +49,34 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 jacoco = { id = "jacoco", version.ref = "jacoco" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+gradle-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "gradle-maven-publish" }
+gradle-enterprise = { id = "com.gradle.develocity", version.ref = "gradle-enterprise" }
+foojay-resolver-convention = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver-convention" }
 
 [libraries]
+# Project
+viaduct-engine-api = { module = "com.airbnb.viaduct:engine-api", version.ref = "project" }
+viaduct-engine-runtime = { module = "com.airbnb.viaduct:engine-runtime", version.ref = "project" }
+viaduct-tenant-api = { module = "com.airbnb.viaduct:tenant-api", version.ref = "project" }
+viaduct-tenant-runtime = { module = "com.airbnb.viaduct:tenant-runtime", version.ref = "project" }
+viaduct-tenant-codegen = { module = "com.airbnb.viaduct:tenant-codegen", version.ref = "project" }
+
+viaduct-service-api = { module = "com.airbnb.viaduct:service-api", version.ref = "project" }
+viaduct-service-runtime = { module = "com.airbnb.viaduct:service-runtime", version.ref = "project" }
+viaduct-service-wiring = { module = "com.airbnb.viaduct:service-wiring", version.ref = "project" }
+
+viaduct-shared-arbitrary = { module = "com.airbnb.viaduct:shared-arbitrary", version.ref = "project" }
+viaduct-shared-codegen = { module = "com.airbnb.viaduct:shared-codegen", version.ref = "project" }
+viaduct-shared-dataloader = { module = "com.airbnb.viaduct:shared-dataloader", version.ref = "project" }
+viaduct-shared-deferred = { module = "com.airbnb.viaduct:shared-deferred", version.ref = "project" }
+viaduct-shared-graphql = { module = "com.airbnb.viaduct:shared-graphql", version.ref = "project" }
+viaduct-shared-invariants = { module = "com.airbnb.viaduct:shared-invariants", version.ref = "project" }
+viaduct-shared-logging = { module = "com.airbnb.viaduct:shared-logging", version.ref = "project" }
+viaduct-shared-utils = { module = "com.airbnb.viaduct:shared-utils", version.ref = "project" }
+viaduct-shared-viaductschema = { module = "com.airbnb.viaduct:shared-viaductschema", version.ref = "project" }
+
+viaduct-snipped-errors = { module = "com.airbnb.viaduct:snipped-errors", version.ref = "project" }
+
 # Kotlin
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
@@ -82,12 +111,12 @@ guava = { module = "com.google.guava:guava", version.ref = "guava" }
 guava-testlib = { module = "com.google.guava:guava-testlib", version.ref = "guava" }
 io-mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk-jvm" }
 io-mockk-jvm = { module = "io.mockk:mockk-jvm", version.ref = "mockk-jvm" }
-jmh-annotation-processor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh"}
-jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh"}
+jmh-annotation-processor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
+jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 junit = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
-junit-launcher = { module = "org.junit.platform:junit-platform-launcher" } # version intentionally not specified
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }                               # version intentionally not specified
 kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
 kotest-assertions-core-jvm = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 kotest-common-jvm = { module = "io.kotest:kotest-common-jvm", version.ref = "kotest" }

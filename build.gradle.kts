@@ -4,34 +4,20 @@ plugins {
     id("dependency-analysis")
     jacoco
     `jacoco-report-aggregation`
+    id("orchestration")
 }
 
-val projectVersion = libs.versions.project
-val groupId: String by project
-group = groupId
-
-val jarVersion = projectVersion.get()
-version = jarVersion
-
-subprojects {
-    group = groupId
-    version = jarVersion
-}
-
-tasks.register("cleanBuildAndPublish") {
-    outputs.upToDateWhen { false }
-    notCompatibleWithConfigurationCache("Uses exec and Gradle subprocesses")
-
-    doLast {
-        val execOperations = project.serviceOf<ExecOperations>()
-        // execOperations.exec { commandLine("./gradlew", "clean") } // clean shouldn't ever be used; if something doesn't work without it, then it needs a proper fix, which is *NOT* the clean task
-        execOperations.exec { commandLine("./gradlew", ":tenant:tenant-codegen:publishToMavenLocal", "--no-configuration-cache") }
-        execOperations.exec { commandLine("./gradlew", ":runtime:publishToMavenLocal", "--no-configuration-cache", "--no-scan") }
-        execOperations.exec {
-            workingDir = file("gradle-plugins")
-            commandLine("./gradlew", "publishToMavenLocal", "--no-configuration-cache")
-        }
-    }
+orchestration {
+    // Included builds to publish:
+    publishIncludedBuilds.set(listOf(
+        "viaduct-core",
+        "viaduct-codegen",
+        "viaduct-gradle-plugins"
+    ))
+    // Root projects to publish:
+    publishRootProjects.set(listOf(
+        ":viaduct-bom"
+    ))
 }
 
 // Jacoco configuration
@@ -41,24 +27,23 @@ jacoco {
 
 // Dependencies for jacoco aggregation - all Java subprojects with jacoco
 dependencies {
-    jacocoAggregation(project(":engine:engine-api"))
-    jacocoAggregation(project(":engine:engine-runtime"))
-    jacocoAggregation(project(":runtime"))
-    jacocoAggregation(project(":service:service-api"))
-    jacocoAggregation(project(":service:service-runtime"))
-    jacocoAggregation(project(":shared:arbitrary"))
-    jacocoAggregation(project(":shared:dataloader"))
-    jacocoAggregation(project(":shared:deferred"))
-    jacocoAggregation(project(":shared:graphql"))
-    jacocoAggregation(project(":shared:invariants"))
-    jacocoAggregation(project(":shared:logging"))
-    jacocoAggregation(project(":shared:shared-codegen"))
-    jacocoAggregation(project(":shared:utils"))
-    jacocoAggregation(project(":shared:viaductschema"))
-    jacocoAggregation(project(":snipped:errors"))
-    jacocoAggregation(project(":tenant:tenant-api"))
-    jacocoAggregation(project(":tenant:tenant-codegen"))
-    jacocoAggregation(project(":tenant:tenant-runtime"))
+    jacocoAggregation(libs.viaduct.engine.api)
+    jacocoAggregation(libs.viaduct.engine.runtime)
+    jacocoAggregation(libs.viaduct.service.api)
+    jacocoAggregation(libs.viaduct.service.runtime)
+    jacocoAggregation(libs.viaduct.shared.arbitrary)
+    jacocoAggregation(libs.viaduct.shared.dataloader)
+    jacocoAggregation(libs.viaduct.shared.deferred)
+    jacocoAggregation(libs.viaduct.shared.graphql)
+    jacocoAggregation(libs.viaduct.shared.invariants)
+    jacocoAggregation(libs.viaduct.shared.logging)
+    jacocoAggregation(libs.viaduct.shared.codegen)
+    jacocoAggregation(libs.viaduct.shared.utils)
+    jacocoAggregation(libs.viaduct.shared.viaductschema)
+    jacocoAggregation(libs.viaduct.snipped.errors)
+    jacocoAggregation(libs.viaduct.tenant.api)
+    jacocoAggregation(libs.viaduct.tenant.codegen)
+    jacocoAggregation(libs.viaduct.tenant.runtime)
     jacocoAggregation(project(":tenant:testapps:policycheck"))
     jacocoAggregation(project(":tenant:testapps:resolver"))
     jacocoAggregation(project(":tenant:testapps:schemaregistration"))

@@ -20,7 +20,7 @@ import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
 import viaduct.tenant.runtime.select.SelectionsLoaderImpl
 
 class NodeUnbatchedResolverExecutorImpl(
-    internal val resolver: Provider<out @JvmSuppressWildcards NodeResolverBase<*>>, // internal for testing
+    val resolver: Provider<out @JvmSuppressWildcards NodeResolverBase<*>>,
     private val resolveFunction: KFunction<*>,
     override val typeName: String,
     private val globalIDCodec: GlobalIDCodec,

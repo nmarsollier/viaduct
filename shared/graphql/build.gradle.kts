@@ -7,7 +7,7 @@ plugins {
 dependencies {
     api(libs.graphql.java)
 
-    implementation(project(":shared:utils"))
+    implementation(libs.viaduct.shared.utils)
     implementation(libs.graphql.java.extension)
     implementation(libs.slf4j.api)
 

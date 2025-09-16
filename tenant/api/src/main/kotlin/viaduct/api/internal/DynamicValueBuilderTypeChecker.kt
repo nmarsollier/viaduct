@@ -31,7 +31,7 @@ private fun graphqlScalarTypeToKotlinClass(
     }
 
 @JvmInline
-internal value class DynamicValueBuilderTypeChecker(val ctx: InternalContext) {
+value class DynamicValueBuilderTypeChecker(val ctx: InternalContext) {
     data class FieldContext(
         val fieldDefinition: GraphQLFieldDefinition,
         val parentType: GraphQLObjectType

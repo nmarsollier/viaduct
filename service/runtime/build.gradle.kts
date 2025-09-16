@@ -3,13 +3,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":engine:engine-runtime"))
-    api(project(":service:service-api"))
+    api(libs.viaduct.engine.runtime)
+    api(libs.viaduct.service.api)
     api(libs.graphql.java)
     api(libs.guice)
 
-    implementation(project(":shared:graphql"))
-    implementation(project(":shared:utils"))
+    implementation(libs.viaduct.shared.graphql)
+    implementation(libs.viaduct.shared.utils)
     implementation(libs.caffeine)
     implementation(libs.classgraph)
     implementation(libs.slf4j.api)
@@ -17,10 +17,17 @@ dependencies {
     implementation(libs.kotlinx.coroutines.jdk8)
     implementation(libs.micrometer.core)
 
-    testImplementation(testFixtures(project(":engine:engine-api")))
-    testImplementation(testFixtures(project(":shared:graphql")))
+    testImplementation(testFixtures(libs.viaduct.engine.api))
+    testImplementation(testFixtures(libs.viaduct.shared.graphql))
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.jspecify)
     testImplementation(libs.kotlinx.coroutines.test)
+}
+
+mavenPublishing {
+    pom {
+        name.set("Viaduct [service-runtime]")
+        description.set("The main entrypoint for Viaduct at runtime.")
+    }
 }

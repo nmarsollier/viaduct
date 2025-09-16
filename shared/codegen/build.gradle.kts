@@ -10,8 +10,8 @@ tasks.test {
 dependencies {
     api(libs.javassist)
     api(libs.kotlinx.metadata.jvm)
-    api(project(":shared:invariants"))
-    api(project(":shared:utils"))
+    api(libs.viaduct.shared.invariants)
+    api(libs.viaduct.shared.utils)
 
     implementation(libs.antlr.st4)
     implementation(libs.kotlinx.coroutines.core)

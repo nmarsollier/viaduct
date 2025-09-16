@@ -13,9 +13,9 @@ tasks.test {
 dependencies {
     api(libs.graphql.java)
     api(libs.junit)
-    api(project(":shared:invariants"))
-    api(project(":shared:graphql"))
-    api(project(":shared:utils"))
+    api(libs.viaduct.shared.invariants)
+    api(libs.viaduct.shared.graphql)
+    api(libs.viaduct.shared.utils)
 
     implementation(libs.guava)
     implementation(libs.kotlin.reflect)

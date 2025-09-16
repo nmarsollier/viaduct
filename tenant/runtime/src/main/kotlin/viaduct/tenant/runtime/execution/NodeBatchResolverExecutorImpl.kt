@@ -21,7 +21,7 @@ import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
 import viaduct.tenant.runtime.select.SelectionsLoaderImpl
 
 class NodeBatchResolverExecutorImpl(
-    internal val resolver: Provider<out NodeResolverBase<*>>, // internal for testing
+    val resolver: Provider<out NodeResolverBase<*>>,
     private val batchResolveFunction: KFunction<*>,
     override val typeName: String,
     private val globalIDCodec: GlobalIDCodec,

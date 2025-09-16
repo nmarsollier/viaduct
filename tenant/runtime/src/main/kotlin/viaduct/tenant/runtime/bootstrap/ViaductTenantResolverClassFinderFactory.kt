@@ -15,7 +15,7 @@ import viaduct.utils.slf4j.logger
  */
 class ViaductTenantResolverClassFinderFactory
     @VisibleForTesting
-    internal constructor(private val grtPackagePrefix: String) : TenantResolverClassFinderFactory {
+    constructor(private val grtPackagePrefix: String) : TenantResolverClassFinderFactory {
         constructor() : this(grtPackagePrefix = "viaduct.api.grts")
 
         companion object {

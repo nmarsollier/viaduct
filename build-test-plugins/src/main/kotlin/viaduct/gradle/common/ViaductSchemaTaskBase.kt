@@ -10,16 +10,13 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.process.ExecOperations
+import viaduct.tenant.codegen.cli.SchemaObjectsBytecode
 
 /**
  * Base class for schema generation tasks.
  * Contains common functionality shared between viaduct-schema and viaduct-feature-app plugins.
  */
 abstract class ViaductSchemaTaskBase : DefaultTask() {
-    @get:Inject
-    abstract val execOperations: ExecOperations
-
     @get:Inject
     abstract val projectLayout: ProjectLayout
 
@@ -38,14 +35,8 @@ abstract class ViaductSchemaTaskBase : DefaultTask() {
     @get:Input
     abstract val includeIneligibleForTesting: Property<Boolean>
 
-    @get:Input
-    abstract val javaExecutable: Property<String>
-
     @get:InputFiles
     abstract val schemaFiles: ConfigurableFileCollection
-
-    @get:InputFiles
-    abstract val mainProjectClasspath: ConfigurableFileCollection
 
     @get:OutputDirectory
     abstract val generatedSrcDir: DirectoryProperty
@@ -55,10 +46,13 @@ abstract class ViaductSchemaTaskBase : DefaultTask() {
      */
     protected fun executeSchemaGeneration() {
         val outputDir = generatedSrcDir.get().asFile
-        val classpath = mainProjectClasspath.asPath
+        // val classpath = mainProjectClasspath.asPath
 
         // Include the default schema along with the configured schema files
-        val allSchemaFiles = DefaultSchemaUtil.getSchemaFilesIncludingDefault(schemaFiles, projectLayout, logger)
+        val allSchemaFiles = DefaultSchemaUtil
+            .getSchemaFilesIncludingDefault(schemaFiles, projectLayout, logger)
+            .toList()
+            .sortedBy { it.absolutePath }
         val schemaFilesArg = allSchemaFiles.joinToString(",") { it.absolutePath }
         val workerNumberArg = workerNumber.get().toString()
         val workerCountArg = workerCount.get().toString()
@@ -87,18 +81,12 @@ abstract class ViaductSchemaTaskBase : DefaultTask() {
             baseArgs
         }
 
-        val result = execOperations.exec {
-            executable = javaExecutable.get()
-            args = listOf(
-                "-cp",
-                classpath,
-                "viaduct.tenant.codegen.cli.SchemaObjectsBytecode\$Main"
-            ) + finalArgs
-            isIgnoreExitValue = true
-        }
-
-        if (result.exitValue != 0) {
-            throw GradleException("SchemaObjectsBytecode execution failed with exit code ${result.exitValue}")
+        try {
+            SchemaObjectsBytecode.Main.main(
+                finalArgs.toTypedArray()
+            )
+        } catch (e: Exception) {
+            throw GradleException("SchemaObjectsBytecode execution failed: ${e.message}", e)
         }
 
         // Ensure the generated directory has content
