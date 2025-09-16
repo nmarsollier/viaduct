@@ -2,7 +2,7 @@
 coroutinesReactor = "1.7.3"
 dependencyManagement = "1.1.7"
 kotest = "5.8.0"
-kotlin = "1.9.24"
+kotlin = "1.9.10"
 reactor = "3.5.0"
 springBoot = "3.5.0"
 springContext = "6.2.7"
