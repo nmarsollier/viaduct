@@ -47,6 +47,7 @@ class FilmNodeResolver : NodeResolvers.Film() {
             .director(film.director)
             .producers(film.producers)
             .releaseDate(film.releaseDate)
+            .openingCrawl(film.openingCrawl)
             .created(film.created.toString())
             .edited(film.edited.toString())
             .build()

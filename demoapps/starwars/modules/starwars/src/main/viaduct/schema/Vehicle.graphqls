@@ -66,16 +66,6 @@ type Vehicle implements Node @scope(to: ["default"]) @resolver {
   consumables: String
 
   """
-  The films that this vehicle has appeared in.
-  """
-  films(limit: Int): [Film] @backingData(class: "starwars.vehicle.FilmConnection")
-
-  """
-  The pilots that have piloted this vehicle.
-  """
-  pilots(limit: Int): [Character] @backingData(class: "starwars.vehicle.PilotConnection")
-
-  """
   The ISO 8601 date format of the time that this resource was created.
   """
   created: String

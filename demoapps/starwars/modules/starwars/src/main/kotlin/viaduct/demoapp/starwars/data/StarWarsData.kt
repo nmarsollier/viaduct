@@ -254,6 +254,18 @@ object StarWarsData {
             climates = listOf("temperate"),
             terrains = listOf("grass"),
             surfaceWater = null
+        ),
+        Planet(
+            id = "5",
+            name = "Earth",
+            diameter = UNKNOWN_DIAMETER,
+            rotationPeriod = 24,
+            orbitalPeriod = 365,
+            gravity = 9.8f,
+            population = 8_000_000_000F,
+            climates = listOf("temperate"),
+            terrains = listOf("grass"),
+            surfaceWater = 70F
         )
     )
 
@@ -268,7 +280,7 @@ object StarWarsData {
             eyeColors = listOf("brown", "blue", "green", "hazel", "grey", "amber"),
             hairColors = listOf("blonde", "brown", "black", "red"),
             language = "Galactic Basic",
-            homeworldId = "9",
+            homeworldId = "5",
             extrasData = SpeciesExtrasData(
                 culturalNotes = "Diverse species with strong adaptability and technological advancement",
                 rarityLevel = "Common",

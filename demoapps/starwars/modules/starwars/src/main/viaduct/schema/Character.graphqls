@@ -63,24 +63,9 @@ type Character implements Node @scope(to: ["default"]) @resolver {
   homeworld: Planet @resolver
 
   """
-  The films that this character has been in.
-  """
-  films(limit: Int): [Film] @backingData(class: "starwars.character.FilmConnection")
-
-  """
   The species that this character belongs to, or null if unknown.
   """
   species: Species @resolver
-
-  """
-  The starships that this character has piloted, or an empty list if none.
-  """
-  starships(limit: Int): [Starship] @backingData(class: "starwars.character.StarshipConnection")
-
-  """
-  The vehicles that this character has piloted, or an empty list if none.
-  """
-  vehicles(limit: Int): [Vehicle] @backingData(class: "starwars.character.VehicleConnection")
 
   """
   Display name for the character (demonstrates shorthand fragment syntax)

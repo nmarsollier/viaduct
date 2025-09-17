@@ -89,14 +89,4 @@ type Starship implements Node @scope(to: ["default"]) @resolver {
   The ISO 8601 date format of the time that this resource was edited.
   """
   edited: String
-
-  """
-  The films that this starship has appeared in.
-  """
-  films(limit: Int): [Film] @backingData(class: "starwars.starship.FilmConnection")
-
-  """
-  The pilots that have piloted this starship.
-  """
-  pilots(limit: Int): [Character] @backingData(class: "starwars.starship.PilotConnection")
 }

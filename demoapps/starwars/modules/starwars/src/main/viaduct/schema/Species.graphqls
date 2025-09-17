@@ -52,17 +52,12 @@ type Species implements Node @scope(to: ["default", "extras"]) @resolver {
   """
   A planet that this species originates from.
   """
-  homeworld: Planet
+  homeworld: Planet @resolver
 
   """
   The people that are a part of this species.
   """
-  people(limit: Int): [Character] @backingData(class: "starwars.species.CharacterConnection")
-
-  """
-  The films that this species has appeared in.
-  """
-  films(limit: Int): [Film] @backingData(class: "starwars.species.FilmConnection")
+  people(limit: Int): [Character] @resolver
 
   """
   The ISO 8601 date format of the time that this resource was created.

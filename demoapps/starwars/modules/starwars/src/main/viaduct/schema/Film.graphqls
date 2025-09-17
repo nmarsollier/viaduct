@@ -40,27 +40,17 @@ type Film implements Node @scope(to: ["default"]) @resolver {
   """
   The characters that appear in this film.
   """
-  characters(limit: Int): [Character] @backingData(class: "starwars.film.CharacterConnection")
+  characters(limit: Int): [Character] @resolver
 
   """
   The planets that appear in this film.
   """
-  planets(limit: Int): [Planet] @backingData(class: "starwars.film.PlanetConnection")
-
-  """
-  The starships that appear in this film.
-  """
-  starships(limit: Int): [Starship] @backingData(class: "starwars.film.StarshipConnection")
-
-  """
-  The vehicles that appear in this film.
-  """
-  vehicles(limit: Int): [Vehicle] @backingData(class: "starwars.film.VehicleConnection")
+  planets(limit: Int): [Planet] @resolver
 
   """
   The species that appear in this film.
   """
-  species(limit: Int): [Species] @backingData(class: "starwars.film.SpeciesConnection")
+  species(limit: Int): [Species] @resolver
 
   """
   The ISO 8601 date format of the time that this resource was created.

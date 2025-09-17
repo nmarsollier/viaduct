@@ -70,10 +70,10 @@ type Planet implements Node @scope(to: ["default"]) @resolver {
   """
   The residents of this planet.
   """
-  residents(limit: Int): [Character] @backingData(class: "starwars.planet.ResidentConnection")
+  residents(limit: Int): [Character] @resolver
 
   """
   The films that this planet has appeared in.
   """
-  films(limit: Int): [Film] @backingData(class: "starwars.planet.FilmConnection")
+  films(limit: Int): [Film] @resolver
 }
