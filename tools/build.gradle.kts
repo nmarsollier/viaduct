@@ -3,6 +3,7 @@ plugins {
     `maven-publish`
     `java-test-fixtures`
     id("kotlin-static-analysis")
+    id("kotlin-project")
     signing
 }
 
