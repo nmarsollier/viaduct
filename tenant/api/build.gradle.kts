@@ -37,11 +37,3 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.strikt.core)
 }
-
-// afterEvaluate {
-//     // TODO: a hack for the sake of this dependency-analysis task...
-//     tasks.named("explodeCodeSourceTest") {
-//         dependsOn(tasks.named("generateApischemaSchemaObjects"))
-//         dependsOn(tasks.named("generateApischemaTenant"))
-//     }
-// }
