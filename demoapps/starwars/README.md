@@ -65,4 +65,4 @@ query {
 
 ## Technical Deep Dive
 
-For comprehensive technical details, see [DEEPDIVE.md](DEEPDIVE.md).
+For comprehensive technical details - especially if you want to write your own application, see [DEEPDIVE.md](DEEPDIVE.md).

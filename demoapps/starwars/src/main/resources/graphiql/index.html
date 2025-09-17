@@ -84,7 +84,14 @@ query GetNode {
       homeworld
     }
   }
-}`;
+}
+
+# This query demonstrates node resolution using GlobalIDs in Viaduct.
+# The node field allows you to retrieve any entity by its GlobalID.
+# For detailed explanations of how nodes work, batch resolvers, and many more
+# example queries, see DEEPDIVE.md in this project.
+
+`;
 
       function App() {
         return React.createElement(GraphiQL, {

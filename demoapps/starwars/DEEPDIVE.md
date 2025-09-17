@@ -4,50 +4,159 @@
 
 This demo application showcases a comprehensive GraphQL API implementation using Viaduct's custom directives and batch resolvers. The demo features Star Wars characters, films, planets, and other entities with full relationship mapping and optimized N+1 query prevention.
 
-## Custom Directives Demonstrated
+## Viaduct Core Functionality
 
-### @resolver
-**Purpose**: Indicates that a field or object requires custom resolution logic rather than simple property access.
+### Nodes: The Foundation of Entity Resolution
 
-**Usage**: Applied to fields that need runtime computation, database lookups, or complex business logic.
+Node resolvers are the backbone of GraphQL entity resolution in Viaduct. Every entity that you wish to fetch individually should be extend the global `node` interface using a GlobalID. This design pattern enables powerful batch resolution capabilities and provides a consistent interface for retrieving any entity by its identifier.
 
-**Fragment Syntax**: The @resolver directive supports two types of fragment syntax for efficient field resolution:
+#### Global IDs: The Universal Key System
 
-**Use cases**:
-- Computed fields requiring multiple source fields
-- Performance optimization by specifying exact field requirements
-- Complex business logic combining multiple attributes
+GlobalIDs in Viaduct are base64-encoded strings that combine two pieces of information:
+- **Type**: The GraphQL type name (e.g., "Character", "Film", "Planet")
+- **Internal ID**: Your application's internal identifier for that entity
 
-#### Batch Resolver Fragment Syntax
 ```kotlin
-@Resolver(objectValueFragment = "fragment _ on Character { id name }")
-class CharacterBatchResolver : CharacterResolvers.SomeField() {
-  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<String>> {
-    // Process multiple contexts efficiently in one batch
-    return contexts.map { ctx ->
-      val character = ctx.objectValue
-      FieldValue.ofValue("${character.getName()} processed in batch")
+// Example: Character with internal ID "1" becomes "Q2hhcmFjdGVyOjE="
+// Decoded: "Character:1"
+val globalId = GlobalID.fromTypeAndId("Character", "1")
+val encoded = globalId.toString() // "Q2hhcmFjdGVyOjE="
+```
+
+**Key insight**: GlobalIDs are purely for retrieval via `node` queries - they should not exposed to users as readable identifiers. Unlike traditional database applications where you might expose primary keys directly in your UI, GlobalIDs are opaque identifiers used internally by GraphQL for efficient entity resolution.
+
+#### Node Resolver Implementation
+
+Every entity type requires a node resolver that can retrieve the entity by its GlobalID:
+
+```kotlin
+@Component
+class CharacterNodeResolver : NodeResolvers.Character() {
+    override suspend fun resolve(globalId: GlobalID): Character? {
+        val internalId = globalId.internalID
+        return StarWarsData.characters[internalId]
+    }
+}
+```
+
+**Best practices for node resolvers**:
+1. **Always implement for entities**: Every type that represents a business entity should have a node resolver
+2. **Keep logic simple**: Node resolvers should focus solely on entity retrieval by ID
+3. **Handle missing entities gracefully**: Return null for non-existent IDs rather than throwing exceptions
+4. **Batch when possible**: If your data layer supports it, implement batch node resolution
+
+#### The Batch Resolution Advantage
+
+The real power of node resolvers emerges when combined with batch field resolvers. Consider this query:
+
+```graphql
+query {
+  allCharacters(limit: 100) {
+    homeworld {
+      name
     }
   }
 }
 ```
 
-**Use cases**:
-- Preventing N+1 query problems
-- Efficient batch processing of multiple field requests
-- Performance optimization for list queries
+Without batch resolution, this creates the classic N+1 problem:
+- 1 query to get all characters
+- 100 individual queries to get each character's homeworld
 
-**Example**:
-```graphql
-type Character {
-  name: String @resolver
-  homeworld: Planet @resolver      # Standard resolver (or batch resolver)
-  displayName: String @resolver    # Shorthand fragment: @Resolver("name")
-  summary: String @resolver        # Full fragment: @Resolver("fragment _ on Character { name birthYear }")
-  filmCount: Int @resolver         # Batch resolver for efficient counting
-  richSummary: String @resolver    # Batch resolver with complex logic
+With proper node resolvers and batch field resolvers, this becomes:
+- 1 query to get all characters
+- 1 batch query to resolve all homeworlds
+
+The node resolver pattern makes this optimization possible because entities are consistently retrievable by GlobalID, allowing the batch resolver to efficiently group and resolve multiple requests.
+
+### Field Resolvers: Custom Logic for Complex Fields
+
+Field resolvers handle the computation of individual fields that require more than simple property access. They complement node resolvers by providing the business logic layer above basic entity retrieval.
+
+#### When to Use Field Resolvers
+
+Field resolvers are appropriate when:
+- **Computed fields**: Values that don't exist in your data store but are calculated from other fields
+- **Cross-entity relationships**: Fields that require loading related entities
+- **Performance optimization**: Fields that benefit from batching multiple requests
+- **Business logic**: Fields that require complex rules or transformations
+
+#### Single Field Resolvers
+
+For simple computed fields, use standard field resolvers:
+
+```kotlin
+@Resolver("name homeworld { name }")
+class CharacterDisplayNameResolver : CharacterResolvers.DisplayName() {
+    override suspend fun resolve(ctx: Context): String {
+        val character = ctx.objectValue
+        val homeworld = character.getHomeworld()
+        return "${character.getName()} of ${homeworld?.getName() ?: "Unknown"}"
+    }
 }
 ```
+
+
+#### Batch Field Resolvers: The Performance Game-Changer
+
+Batch field resolvers process multiple field requests simultaneously, dramatically improving performance when the same field is requested across multiple entities:
+
+```kotlin
+@Resolver(objectValueFragment = "fragment _ on Character { id }")
+class CharacterFilmCountBatchResolver : CharacterResolvers.FilmCount() {
+    override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Int>> {
+        // Extract all character IDs from the batch
+        val characterIds = contexts.map { it.objectValue.getId().internalID }
+
+        // Single database query to get film counts for all characters
+        val filmCounts = StarWarsData.getFilmCountsForCharacters(characterIds)
+
+        // Map results back to contexts in the same order
+        return contexts.map { ctx ->
+            val characterId = ctx.objectValue.getId().internalID
+            FieldValue.ofValue(filmCounts[characterId] ?: 0)
+        }
+    }
+}
+```
+
+**Critical batch resolver principles**:
+1. **One-to-one result mapping**: Always return results in the same order as input contexts
+2. **Minimize data layer calls**: The entire point is to replace N calls with 1 call
+3. **Handle missing data**: Gracefully handle cases where batch data is incomplete
+
+### Resolver Integration Patterns
+
+#### Standard Entity Pattern
+Every entity follows this pattern:
+1. **Node resolver** for GlobalID-based retrieval via `node` queries
+2. **Batch field resolvers** for expensive computed fields that benefit from batching
+3. **Single field resolvers** for simple computed fields
+
+```kotlin
+// Node resolution for `node(id: "Q2hhcmFjdGVyOjE=")` queries
+@Component
+class PlanetNodeResolver : NodeResolvers.Planet() { /* ... */ }
+
+// Batch field resolution for performance
+@Resolver(objectValueFragment = "fragment _ on Planet { id }")
+class PlanetResidentsBatchResolver : PlanetResolvers.Residents() { /* ... */ }
+
+// Simple field resolution
+@Resolver("name climate")
+class PlanetDescriptionResolver : PlanetResolvers.Description() { /* ... */ }
+```
+
+#### The Entity Resolution Flow
+
+1. **Query parsing**: GraphQL query identifies entities needed via `node(id:)` or other entry points
+2. **Node resolution**: Node resolvers retrieve entities by GlobalID when accessed via `node` field
+3. **Field resolution**: Field resolvers compute additional fields, using batch resolution where possible
+4. **Result assembly**: Viaduct combines node and field data into the final response
+
+This separation allows for clean code organization and optimal performance through batching at the field level.
+
+## Custom Directives Demonstrated
 
 ### @backingData
 **Purpose**: Specifies a backing data class for complex field resolution.
@@ -265,29 +374,6 @@ val characterFilmRelations = mapOf(
 )
 ```
 
-### Single vs Batch Resolvers
-The demo includes both patterns:
-
-**Single Resolvers** (traditional approach):
-```kotlin
-@Resolver("id")
-class CharacterHomeworldResolver : CharacterResolvers.Homeworld() {
-  override suspend fun resolve(ctx: Context): Planet? {
-    // Resolves one character's homeworld
-  }
-}
-```
-
-**Batch Resolvers** (optimized approach):
-```kotlin
-@Resolver(objectValueFragment = "fragment _ on Character { id }")
-class CharacterHomeworldBatchResolver : CharacterResolvers.Homeworld() {
-  override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Planet?>> {
-    // Resolves multiple characters' homeworlds efficiently
-  }
-}
-```
-
 ### List Implementation
 GraphQL lists are implemented using backing data classes:
 - Simple list queries for characters, films, planets, species, vehicles
@@ -333,81 +419,7 @@ class CharacterRichSummaryResolver : CharacterResolvers.RichSummary() {
 }
 ```
 
-## Advanced Example Queries
-
-### Basic Character Query (with batch optimization)
-```graphql
-query {
-  allCharacters(limit: 5) {
-    name
-    homeworld { name }  # Batch resolved efficiently
-    filmCount          # Batch calculated
-  }
-}
-```
-
-### Complex Batch Query
-```graphql
-query {
-  allCharacters(limit: 10) {
-    name
-    richSummary      # Combines multiple data sources
-    homeworld { name }
-    species { name }
-    filmCount
-  }
-}
-```
-
-### Film with Batch Character Resolution
-```graphql
-query {
-  allFilms {
-    title
-    mainCharacters {  # Batch resolved
-      name
-      homeworld { name }
-    }
-  }
-}
-```
-
-### Search with @oneOf
-```graphql
-query {
-  searchCharacter(search: { byName: "Luke" }) {
-    name
-    birthYear
-    homeworld { name }
-  }
-}
-```
-
-### Scoped Species Query
-```graphql
-# Basic query (default scope)
-query {
-  node(id: "U3BlY2llczox") {  # Human species
-    ... on Species {
-      name
-      classification
-    }
-  }
-}
-
-# Extended query (requires "extras" scope header)
-query {
-  node(id: "U3BlY2llczox") {  # Human species
-    ... on Species {
-      name
-      culturalNotes      # Only available with extras scope
-      specialAbilities
-    }
-  }
-}
-```
-
-### Variables and Variable Providers Examples
+## Variables and Variable Providers Examples
 ```graphql
 # Variables with @Variable fromArgument
 query BasicProfile {
@@ -504,26 +516,6 @@ query {
 }
 ```
 
-## Performance Benefits
-
-### Without Batch Resolvers
-```
-Query: 100 characters with homeworlds
-- 1 query for characters
-- 100 individual homeworld queries
-Total: 101 database calls 😰
-```
-
-### With Batch Resolvers
-```
-Query: 100 characters with homeworlds
-- 1 query for characters
-- 1 batch query for homeworlds
-Total: 2 database calls 🚀
-```
-
-**Result**: 50x performance improvement!
-
 ## Testing
 
 The demo includes comprehensive tests:
@@ -540,3 +532,5 @@ Key test files:
 - `GlobalIDDemoTest.kt` - Tests GlobalID functionality
 
 The implementation demonstrates how Viaduct's custom directives and batch resolvers enable powerful GraphQL schema capabilities while maintaining optimal performance and clean, understandable code organization.
+
+All examples shown in this document are representations of actual working code in this demo application. More example queries and usage patterns can be found in the [integration tests](src/test/kotlin/viaduct/demoapp/starwars/ResolverIntegrationTest.kt).
