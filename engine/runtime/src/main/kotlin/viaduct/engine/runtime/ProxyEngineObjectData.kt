@@ -16,9 +16,13 @@ import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.RAW_VALUE_SLOT
  * A proxy that handles projecting the given tenant selection set onto an unprojected EngineObjectData.
  * @param objectEngineResult Parent engine result
  * @param selectionSet The selection set required by the resolver
+ *
+ * TODO (https://app.asana.com/1/150975571430/project/1203659453427089/task/1211379042763526?focus=true):
+ * move errorMessage out and provide this information in the tenant API instead
  */
 class ProxyEngineObjectData(
     private val objectEngineResult: ObjectEngineResult,
+    private val errorMessage: String,
     private val selectionSet: RawSelectionSet? = null,
     private val applyAccessChecks: Boolean = true,
 ) : EngineObjectData {
@@ -55,7 +59,7 @@ class ProxyEngineObjectData(
             throw UnsetSelectionException(
                 selection,
                 graphQLObjectType,
-                "please add it to the @Resolver fragment"
+                errorMessage
             )
         }
         return selectionSet
@@ -90,7 +94,7 @@ class ProxyEngineObjectData(
             is ObjectEngineResultImpl -> {
                 val exception = value.resolvedExceptionOrNull()
                 if (exception != null) throw exception
-                ProxyEngineObjectData(value, subselections, applyAccessChecks)
+                ProxyEngineObjectData(value, errorMessage, subselections, applyAccessChecks)
             }
             is List<*> -> value.map { marshal(it, subselections) }
             is FieldResolutionResult -> {

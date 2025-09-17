@@ -14,15 +14,23 @@ import viaduct.engine.runtime.select.hash
 class RawSelectionsLoaderImpl constructor(
     private val schema: ViaductSchema,
     private val fragmentLoader: FragmentLoader,
-    private val mkDFPMetadata: MkDFPMetadata,
+    private val operationType: OperationType,
+    resolverId: String,
 ) : RawSelectionsLoader {
+    private val mkDFPMetadata by lazy {
+        when (operationType) {
+            OperationType.QUERY -> MkQueryMetadata(resolverId)
+            OperationType.MUTATION -> MkMutationMetadata(resolverId)
+        }
+    }
+
     class Factory(
         private val fragmentLoader: FragmentLoader,
         private val schema: ViaductSchema
     ) : RawSelectionsLoader.Factory {
-        override fun forQuery(resolverId: String): RawSelectionsLoaderImpl = RawSelectionsLoaderImpl(schema, fragmentLoader, MkQueryMetadata(resolverId))
+        override fun forQuery(resolverId: String): RawSelectionsLoaderImpl = RawSelectionsLoaderImpl(schema, fragmentLoader, OperationType.QUERY, resolverId)
 
-        override fun forMutation(resolverId: String): RawSelectionsLoaderImpl = RawSelectionsLoaderImpl(schema, fragmentLoader, MkMutationMetadata(resolverId))
+        override fun forMutation(resolverId: String): RawSelectionsLoaderImpl = RawSelectionsLoaderImpl(schema, fragmentLoader, OperationType.MUTATION, resolverId)
     }
 
     override suspend fun load(selections: RawSelectionSet): EngineObjectData {
@@ -56,7 +64,11 @@ class RawSelectionsLoaderImpl constructor(
             selections
         )
 
-        return ProxyEngineObjectData(oer, rawSS)
+        return ProxyEngineObjectData(
+            oer,
+            "add it to the selection set provided to ${operationType.utilName} in order to access it from the result",
+            rawSS
+        )
     }
 
     private fun loadError(errors: List<FragmentFieldEngineResolutionError>): RuntimeException {
@@ -66,6 +78,11 @@ class RawSelectionsLoaderImpl constructor(
         val errorMessages = errors.map { it.message }.joinToString("; ")
         val cause = errors.firstNotNullOfOrNull { it.cause }
         return RuntimeException("$message, errors: $errorMessages", cause)
+    }
+
+    enum class OperationType(val utilName: String) {
+        QUERY("Context.query"),
+        MUTATION("Context.mutation")
     }
 }
 

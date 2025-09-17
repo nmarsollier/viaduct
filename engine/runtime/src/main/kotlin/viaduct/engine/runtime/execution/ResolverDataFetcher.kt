@@ -113,7 +113,7 @@ class ResolverDataFetcher(
         engineResults: EngineResults,
     ): EngineObjectData {
         val selectionSetFactory = localExecutionContext.rawSelectionSetFactory
-        val fieldResolverDispatcherEOD = fieldResolverDispatcher.objectSelectionSet?.let { rss ->
+        val objectSelectionSet = fieldResolverDispatcher.objectSelectionSet?.let { rss ->
             val variables = resolveVariables(
                 variablesResolvers = rss.variablesResolvers,
                 arguments = environment.arguments,
@@ -121,12 +121,15 @@ class ResolverDataFetcher(
                 queryEngineData = engineResults.queryResult,
                 engineExecutionContext = localExecutionContext
             )
-            ProxyEngineObjectData(
-                engineResults.parentResult,
-                selectionSetFactory.rawSelectionSet(rss.selections, variables)
-            )
-        } ?: ProxyEngineObjectData(engineResults.parentResult)
-        val queryProxyEOD = fieldResolverDispatcher.querySelectionSet?.let { rss ->
+            selectionSetFactory.rawSelectionSet(rss.selections, variables)
+        }
+        val fieldResolverDispatcherEOD = ProxyEngineObjectData(
+            engineResults.parentResult,
+            "add it to @Resolver's objectValueFragment before accessing it via Context.objectValue",
+            objectSelectionSet
+        )
+
+        val querySelectionSet = fieldResolverDispatcher.querySelectionSet?.let { rss ->
             val variables = resolveVariables(
                 variablesResolvers = rss.variablesResolvers,
                 arguments = environment.arguments,
@@ -134,11 +137,15 @@ class ResolverDataFetcher(
                 queryEngineData = engineResults.queryResult,
                 engineExecutionContext = localExecutionContext
             )
-            ProxyEngineObjectData(
-                engineResults.queryResult,
-                selectionSetFactory.rawSelectionSet(rss.selections, variables)
-            )
-        } ?: ProxyEngineObjectData(engineResults.queryResult)
+            selectionSetFactory.rawSelectionSet(rss.selections, variables)
+        }
+
+        val queryProxyEOD = ProxyEngineObjectData(
+            engineResults.queryResult,
+            "add it to @Resolver's queryValueFragment before accessing it via Context.queryValue",
+            querySelectionSet
+        )
+
         return EngineObjectData(fieldResolverDispatcherEOD, queryProxyEOD)
     }
 
@@ -192,12 +199,12 @@ class ResolverDataFetcher(
         val selectionSetFactory =
             environment.findLocalContextForType<EngineExecutionContextImpl>().rawSelectionSetFactory
         return checkerSelectionSetMap.mapValues { (_, rss) ->
-            rss?.let {
-                ProxyEngineObjectData(
-                    engineResult,
-                    selectionSetFactory.rawSelectionSet(rss.selections, emptyMap())
-                )
-            } ?: ProxyEngineObjectData(engineResult)
+            val selectionSet = rss?.let { selectionSetFactory.rawSelectionSet(rss.selections, emptyMap()) }
+            ProxyEngineObjectData(
+                engineResult,
+                "missing from checker RSS",
+                selectionSet
+            )
         }
     }
 }

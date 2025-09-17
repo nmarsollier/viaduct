@@ -34,7 +34,8 @@ class RawSelectionsLoaderImplTest {
                 RawSelectionsLoaderImpl(
                     ViaductSchema(SelectTestSchemaFixture.schema),
                     MockFragmentLoader.empty,
-                    MkQueryMetadata("myResolverId")
+                    RawSelectionsLoaderImpl.OperationType.QUERY,
+                    "myResolverId"
                 ).load(RawSelectionSet.empty("Query"))
             }
         }
@@ -47,7 +48,8 @@ class RawSelectionsLoaderImplTest {
                 RawSelectionsLoaderImpl(
                     ViaductSchema(SelectTestSchemaFixture.schema),
                     MockFragmentLoader(result),
-                    MkQueryMetadata("myResolverId")
+                    RawSelectionsLoaderImpl.OperationType.QUERY,
+                    "myResolverId"
                 )
 
             val selections = ssFactory.rawSelectionSet(
@@ -76,7 +78,8 @@ class RawSelectionsLoaderImplTest {
                 RawSelectionsLoaderImpl(
                     ViaductSchema(SelectTestSchemaFixture.schema),
                     MockFragmentLoader(result),
-                    MkQueryMetadata("myResolverId")
+                    RawSelectionsLoaderImpl.OperationType.QUERY,
+                    "myResolverId"
                 )
 
             val selections = ssFactory.rawSelectionSet(

@@ -176,6 +176,7 @@ class AccessCheckRunner(
                 }
                 ProxyEngineObjectData(
                     objectEngineResult,
+                    "missing from checker RSS",
                     selectionSet,
                     // Bypass access checks for checker required selection sets
                     applyAccessChecks = false

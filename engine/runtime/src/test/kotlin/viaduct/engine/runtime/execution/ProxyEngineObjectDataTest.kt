@@ -1,6 +1,7 @@
 package viaduct.engine.runtime.execution
 
 import graphql.validation.ValidationError
+import kotlin.test.assertContains
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -65,7 +66,7 @@ class ProxyEngineObjectDataTest {
                 schema,
                 selectionSet ?: mkRss(typename, "id", emptyMap(), schema)
             )
-            return ProxyEngineObjectData(oer, selectionSet)
+            return ProxyEngineObjectData(oer, "error msg", selectionSet)
         }
 
         @JvmName("mkProxy2")
@@ -88,7 +89,7 @@ class ProxyEngineObjectDataTest {
                 schema,
                 selectionSet ?: mkRss(typename, "id", emptyMap(), schema)
             )
-            return ProxyEngineObjectData(oer, selectionSet)
+            return ProxyEngineObjectData(oer, "error", selectionSet)
         }
 
         @JvmName("mkProxy3")
@@ -102,7 +103,7 @@ class ProxyEngineObjectDataTest {
                 fragment?.let {
                     selectionSetFactory.rawSelectionSet(oer.graphQLObjectType.name, fragment, variables)
                 }
-            return ProxyEngineObjectData(oer, selectionSet, applyAccessChecks)
+            return ProxyEngineObjectData(oer, "error", selectionSet, applyAccessChecks)
         }
 
         init {
@@ -364,7 +365,8 @@ class ProxyEngineObjectDataTest {
     fun `fetch invalid field`() {
         Fixture("type Query { x: Int }") {
             val o1 = mkProxy(null, "Query", emptyMap<String, Any>())
-            assertThrows<UnsetSelectionException> { o1.fetch("invalidField") }
+            val e = assertThrows<UnsetSelectionException> { o1.fetch("invalidField") }
+            assertContains(e.message, "error msg")
         }
     }
 

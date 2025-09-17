@@ -66,7 +66,7 @@ class CrossTenantResolverTests : TestBase(
             "errors" to arrayOf(
                 {
                     "message" to "viaduct.api.ViaductTenantUsageException: Attempted to access field Query.throwsException " +
-                        "but it was not set: please add it to the @Resolver fragment"
+                        "but it was not set: add it to @Resolver's objectValueFragment before accessing it via Context.objectValue"
                     "locations" to arrayOf(
                         {
                             "line" to 2
@@ -107,7 +107,7 @@ class CrossTenantResolverTests : TestBase(
             "errors" to arrayOf(
                 {
                     "message" to "viaduct.api.ViaductTenantUsageException: " +
-                        "Attempted to access field Query.throwsException but it was not set: please add it to the @Resolver fragment"
+                        "Attempted to access field Query.throwsException but it was not set: add it to @Resolver's objectValueFragment before accessing it via Context.objectValue"
                     "locations" to arrayOf(
                         {
                             "line" to 2
