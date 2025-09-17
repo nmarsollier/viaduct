@@ -7,17 +7,11 @@ plugins {
     id("orchestration")
 }
 
+
 orchestration {
-    // Included builds to publish:
-    publishIncludedBuilds.set(listOf(
-        "viaduct-core",
-        "viaduct-codegen",
-        "viaduct-gradle-plugins"
-    ))
-    // Root projects to publish:
-    publishRootProjects.set(listOf(
-        ":viaduct-bom"
-    ))
+    participatingIncludedBuilds.set(
+        listOf("core", "codegen", "gradle-plugins")
+    )
 }
 
 // Jacoco configuration

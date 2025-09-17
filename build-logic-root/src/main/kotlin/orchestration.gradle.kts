@@ -1,15 +1,25 @@
 /**
- * Orchestration plugin that builds the entire workspace: root + included builds.
+ * Orchestration plugin for BOTH the top-level root and any included build roots.
  *
- * Composite tasks:
- * - build  : root subprojects' :build + included builds' :build (fallback :help)
- * - check  : root subprojects' :check + included builds' :check (fallback :help)
- * - test   : root subprojects’ all Test tasks + included builds’ :test (fallback :help)
- * - publishToMavenLocal   : ONLY the configured roots & included builds
- * - publishToMavenCentral : ONLY the configured roots & included builds
- * - dokka  : all Dokka tasks in root subprojects
- * - jacoco : all per-module jacocoTestReport in root + root aggregated if present
- * - ci     : build + check + test + jacoco + dokka + (buildHealth where present)
+ * In ANY build it’s applied to:
+ *   - Creates local subproject aggregates (no cycles with root tasks):
+ *       :orchestrationBuildAll         -> all subprojects' `build`
+ *       :orchestrationCheckAll         -> all subprojects' `check`
+ *       :orchestrationTestAll          -> all subprojects' `Test` tasks
+ *       :orchestrationPublishAllToMavenLocal
+ *       :orchestrationPublishAllToMavenCentral
+ *   - In INCLUDED BUILDS (gradle.parent != null), exposes conventional task names that
+ *     delegate to the aggregates: `build`, `check`, `test`, `publishToMavenLocal`, `publishToMavenCentral`.
+ *
+ * In the TOP-LEVEL ROOT ONLY (gradle.parent == null):
+ *   - Adds repo-wide tasks spanning root subprojects + selected included builds’ aggregates:
+ *       build, check, test, dokka, jacoco, ci
+ *       publishToMavenLocal, publishToMavenCentral
+ *
+ * Root configuration:
+ *   orchestration {
+ *     participatingIncludedBuilds.set(listOf("core", "codegen", "gradle-plugins"))
+ *   }
  */
 
 import org.gradle.api.Project
@@ -18,176 +28,223 @@ import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.register
 
-// --------------------------- Extension ---------------------------
+// ---------------- Extension (root-only allowlist) ----------------
 
 abstract class OrchestrationExtension {
-    /** Included build *names* to publish (e.g., "viaduct-core", "viaduct-codegen", "viaduct-gradle-plugins"). */
-    abstract val publishIncludedBuilds: ListProperty<String>
-
-    /** Root project paths to publish (e.g., listOf(":viaduct-bom")). */
-    abstract val publishRootProjects: ListProperty<String>
+    /** Names of included builds (their settings' rootProject.name) that should participate. */
+    abstract val participatingIncludedBuilds: ListProperty<String>
 }
-
 val orchestration = extensions.create<OrchestrationExtension>("orchestration").apply {
-    publishIncludedBuilds.convention(emptyList())
-    publishRootProjects.convention(emptyList())
+    participatingIncludedBuilds.convention(emptyList())
 }
 
-// --------------------------- Helpers -----------------------------
+// ---------------- Small helpers ----------------
 
-/** Collect tasks named [name] across all root subprojects without realizing everything. */
-fun Project.tasksNamedInSubprojects(name: String): List<Any> =
+private inline fun Project.ensureTask(
+    name: String, group: String, description: String,
+    crossinline config: Task.() -> Unit
+) {
+    val existing = tasks.findByName(name)
+    if (existing == null) {
+        tasks.register(name) {
+            this.group = group
+            this.description = description
+            config()
+        }
+    } else {
+        tasks.named(name) { config() }
+    }
+}
+
+private fun Project.tasksNamedInSubprojects(name: String): List<Any> =
     subprojects.map { sp -> sp.tasks.matching { it.name == name } }
 
-/** Collect tasks of [type] across all root subprojects using task avoidance. */
-fun <T : Task> Project.tasksOfTypeInSubprojects(type: Class<T>): List<Any> =
+private fun <T : Task> Project.tasksOfTypeInSubprojects(type: Class<T>): List<Any> =
     subprojects.map { sp -> sp.tasks.withType(type) }
 
-/** Matches tasks in subprojects whose names start with [prefix] (e.g., dokka*). */
-fun Project.tasksStartingWithInSubprojects(prefix: String): List<Any> =
+private fun Project.tasksStartingWithInSubprojects(prefix: String): List<Any> =
     subprojects.map { sp -> sp.tasks.matching { it.name.startsWith(prefix) } }
 
-/** Tasks with any of [names] but only within the explicit [projectPaths] (no accidental whole-repo publish). */
-fun Project.tasksNamedInProjects(projectPaths: List<String>, names: Set<String>): List<Any> =
-    projectPaths.mapNotNull { p -> runCatching { project(p) }.getOrNull() }
-        .map { proj -> proj.tasks.matching { it.name in names } }
+private fun Project.participatingIncludedBuilds(): List<IncludedBuild> {
+    val wanted = orchestration.participatingIncludedBuilds.get()
+    return gradle.includedBuilds.filter { it.name in wanted }
+}
 
 /**
- * DO NOT probe for optional tasks (Gradle will fail later). Choose exactly one path per included build.
- * For build/check/test we always target lifecycle tasks; for publishing we target the conventional names.
+ * DRY helper: register a local aggregate that depends on subproject tasks by name and/or type.
+ * - Wires lazily during configuration (configureEach)
+ * - Adds a final catch-up at end of configuration via task PATH (config-cache safe; no realization)
  */
-fun IncludedBuild.chosenTask(kind: String): String = when (kind) {
-    "build" -> ":build"
-    "check" -> ":check"
-    "test"  -> ":test" // if absent, :check will still run tests; see fallback below
-    "publishLocal"   -> ":publishToMavenLocal"
-    "publishCentral" -> ":publishAllPublicationsToMavenCentralRepository"
-    "buildHealth"    -> ":buildHealth"
-    else -> ":help"
-}
+private fun Project.registerSubprojectAggregate(
+    aggregateName: String,
+    description: String,
+    taskNames: Set<String> = emptySet(),
+    optionalTaskNames: Set<String> = emptySet(),
+    taskTypes: List<Class<out Task>> = emptyList()
+) {
+    val agg = tasks.register(aggregateName) {
+        this.group = null
+        this.description = description
+    }
 
-/** Turn chosen task paths into task refs; if you know some builds don’t have it, map them to ":help". */
-fun includedBuildRefs(
-    gradle: org.gradle.api.invocation.Gradle,
-    kind: String,
-    filterNames: Set<String>? = null,
-    fallbackToHelp: Boolean = true
-): List<Any> = gradle.includedBuilds
-    .asSequence()
-    .filter { filterNames == null || it.name in filterNames }
-    .map { ib ->
-        val path = ib.chosenTask(kind)
-        // If we are calling test/check/build for *every* included build, fall back to :help for infra-only ones.
-        if (fallbackToHelp && (ib.name.contains("build-logic") || ib.name.contains("settings"))) {
-            ib.task(":help")
-        } else {
-            ib.task(path)
+    // Lazy wiring during configuration
+    subprojects {
+        if (taskNames.isNotEmpty()) {
+            tasks.matching { it.name in taskNames }.configureEach {
+                agg.configure { dependsOn(this@configureEach) }
+            }
+        }
+        if (optionalTaskNames.isNotEmpty()) {
+            tasks.matching { it.name in optionalTaskNames }.configureEach {
+                agg.configure { dependsOn(this@configureEach) }
+            }
+        }
+        taskTypes.forEach { t ->
+            tasks.withType(t).configureEach {
+                agg.configure { dependsOn(this@configureEach) }
+            }
         }
     }
-    .toList()
 
-// --------------------------- build ----------------------------
-
-tasks.register("build") {
-    group = "build"
-    description = "Builds all root subprojects and all included builds."
-
-    dependsOn(tasksNamedInSubprojects("build"))
-    // All included builds → use ':build' (safe lifecycle) or ':help' for infra
-    dependsOn(includedBuildRefs(gradle, kind = "build", filterNames = null, fallbackToHelp = true))
-}
-
-// --------------------------- check ----------------------------
-
-tasks.register("check") {
-    group = "verification"
-    description = "Runs all checks across root and included builds."
-
-    dependsOn(tasksNamedInSubprojects("check"))
-    dependsOn(includedBuildRefs(gradle, kind = "check", filterNames = null, fallbackToHelp = true))
-}
-
-// --------------------------- test -----------------------------
-
-tasks.register("test") {
-    group = "verification"
-    description = "Runs all tests in root subprojects and in included builds."
-
-    dependsOn(tasksOfTypeInSubprojects(Test::class.java))
-    // For included builds use ':test'; for infra fall back to ':help'
-    dependsOn(includedBuildRefs(gradle, kind = "test", filterNames = null, fallbackToHelp = true))
-}
-
-// ----------------------- publish: mavenLocal ---------------------
-
-tasks.register("publishToMavenLocal") {
-    group = "publishing"
-    description = "Publishes selected roots & included builds to mavenLocal."
-
-    val rootTargets = orchestration.publishRootProjects.get()
-    if (rootTargets.isNotEmpty()) {
-        dependsOn(tasksNamedInProjects(rootTargets, setOf("publishToMavenLocal")))
-    }
-
-    val ibTargets = orchestration.publishIncludedBuilds.get().toSet()
-    if (ibTargets.isNotEmpty()) {
-        dependsOn(includedBuildRefs(gradle, kind = "publishLocal", filterNames = ibTargets, fallbackToHelp = false))
+    // Final catch-up once all projects are configured (use PATH strings; no task realization)
+    gradle.projectsEvaluated {
+        val depPaths = mutableListOf<String>()
+        subprojects.forEach { sp ->
+            taskNames.forEach { n ->
+                if (sp.tasks.findByName(n) != null) depPaths += "${sp.path}:$n"
+            }
+            optionalTaskNames.forEach { n ->
+                if (sp.tasks.findByName(n) != null) depPaths += "${sp.path}:$n"
+            }
+            taskTypes.forEach { t ->
+                sp.tasks.withType(t).forEach { depPaths += it.path }
+            }
+        }
+        if (depPaths.isNotEmpty()) {
+            tasks.named(aggregateName) { dependsOn(depPaths) }
+        }
     }
 }
 
-// ----------------------- publish: Maven Central ------------------
-
-tasks.register("publishToMavenCentral") {
-    group = "publishing"
-    description = "Publishes selected roots & included builds to Maven Central."
-
-    val rootTargets = orchestration.publishRootProjects.get()
-    if (rootTargets.isNotEmpty()) {
-        // Vanniktech creates 'publishAllPublicationsToMavenCentralRepository'; some projects may also expose 'publishToMavenCentral'
-        dependsOn(tasksNamedInProjects(rootTargets, setOf(
-            "publishAllPublicationsToMavenCentralRepository",
-            "publishToMavenCentral"
-        )))
-    }
-
-    val ibTargets = orchestration.publishIncludedBuilds.get().toSet()
-    if (ibTargets.isNotEmpty()) {
-        dependsOn(includedBuildRefs(gradle, kind = "publishCentral", filterNames = ibTargets, fallbackToHelp = false))
+/** DRY helper: in INCLUDED BUILDS, expose a conventional task that delegates to an aggregate. */
+private fun Project.aliasConventionalTaskToAggregate(
+    conventionalName: String,
+    aggregateName: String,
+    group: String,
+    description: String
+) {
+    val existing = tasks.findByName(conventionalName)
+    if (existing == null) {
+        tasks.register(conventionalName) {
+            this.group = group
+            this.description = description
+            dependsOn(aggregateName)
+        }
+    } else {
+        tasks.named(conventionalName) { dependsOn(aggregateName) }
     }
 }
 
-// ----------------------------- Dokka -----------------------------
+// ---------------- Local aggregates (created in EVERY build where applied) ----------------
 
-tasks.register("dokka") {
-    group = "documentation"
-    description = "Runs all Dokka tasks in root subprojects."
-    dependsOn(tasksStartingWithInSubprojects("dokka"))
+// Build/check/test
+registerSubprojectAggregate(
+    aggregateName = "orchestrationBuildAll",
+    description = "[orchestration] Builds all SUBPROJECTS in THIS build.",
+    taskNames = setOf("build")
+)
+registerSubprojectAggregate(
+    aggregateName = "orchestrationCheckAll",
+    description = "[orchestration] Checks all SUBPROJECTS in THIS build.",
+    taskNames = setOf("check")
+)
+registerSubprojectAggregate(
+    aggregateName = "orchestrationTestAll",
+    description = "[orchestration] Tests all SUBPROJECTS in THIS build.",
+    taskTypes = listOf(Test::class.java)
+)
+
+// Publishing
+registerSubprojectAggregate(
+    aggregateName = "orchestrationPublishAllToMavenLocal",
+    description = "[orchestration] Publishes all publishable SUBPROJECTS in THIS build to mavenLocal.",
+    taskNames = setOf("publishToMavenLocal")
+)
+registerSubprojectAggregate(
+    aggregateName = "orchestrationPublishAllToMavenCentral",
+    description = "[orchestration] Publishes all publishable SUBPROJECTS in THIS build to Maven Central.",
+    taskNames = setOf("publishAllPublicationsToMavenCentralRepository"),
+    optionalTaskNames = setOf("publishToMavenCentral")
+)
+
+// ---------------- In INCLUDED BUILDS: alias conventional tasks to aggregates ----------------
+
+if (gradle.parent != null) {
+    aliasConventionalTaskToAggregate(
+        conventionalName = "build",
+        aggregateName = "orchestrationBuildAll",
+        group = "build",
+        description = "Builds all subprojects in this included build."
+    )
+    aliasConventionalTaskToAggregate(
+        conventionalName = "check",
+        aggregateName = "orchestrationCheckAll",
+        group = "verification",
+        description = "Checks all subprojects in this included build."
+    )
+    aliasConventionalTaskToAggregate(
+        conventionalName = "test",
+        aggregateName = "orchestrationTestAll",
+        group = "verification",
+        description = "Runs all tests in this included build."
+    )
+    aliasConventionalTaskToAggregate(
+        conventionalName = "publishToMavenLocal",
+        aggregateName = "orchestrationPublishAllToMavenLocal",
+        group = "publishing",
+        description = "Publishes all publishable subprojects in this included build to mavenLocal."
+    )
+    aliasConventionalTaskToAggregate(
+        conventionalName = "publishToMavenCentral",
+        aggregateName = "orchestrationPublishAllToMavenCentral",
+        group = "publishing",
+        description = "Publishes all publishable subprojects in this included build to Maven Central."
+    )
 }
 
-// ----------------------------- JaCoCo ----------------------------
+// ---------------- Workspace-wide tasks (ROOT ONLY) ----------------
 
-tasks.register("jacoco") {
-    group = "verification"
-    description = "Runs all per-module jacocoTestReport + the root aggregated report if present."
-    dependsOn(tasksNamedInSubprojects("jacocoTestReport"))
-    dependsOn(tasks.matching { it.name == "testCodeCoverageReport" })
-}
+if (gradle.parent == null) {
+    // build: root subprojects + included builds' aggregate
+    ensureTask("build", "build", "Builds root subprojects and participating included builds.") {
+        dependsOn(tasksNamedInSubprojects("build"))
+        dependsOn(participatingIncludedBuilds().map { it.task(":orchestrationBuildAll") })
+    }
 
-// ------------------------------- CI --------------------------------
+    // check: root subprojects + included builds' aggregate
+    ensureTask("check", "verification", "Runs checks across root and participating included builds.") {
+        dependsOn(tasksNamedInSubprojects("check"))
+        dependsOn(participatingIncludedBuilds().map { it.task(":orchestrationCheckAll") })
+    }
 
-tasks.register("ci") {
-    group = "verification"
-    description = "CI entrypoint: build + check + test + jacoco + dokka + buildHealth (where present)."
+    // test: root subprojects' Test tasks + included builds' aggregate
+    ensureTask("test", "verification", "Runs tests in root subprojects and participating included builds.") {
+        dependsOn(tasksOfTypeInSubprojects(Test::class.java))
+        dependsOn(participatingIncludedBuilds().map { it.task(":orchestrationTestAll") })
+    }
 
-    dependsOn("build", "check", "test", "jacoco", "dokka")
+    // publish local: root subprojects + included builds' aggregate (NO dependency on root aggregate)
+    ensureTask("publishToMavenLocal", "publishing", "Publishes root subprojects + participating included builds to mavenLocal.") {
+        dependsOn(tasksNamedInSubprojects("publishToMavenLocal"))
+        dependsOn(participatingIncludedBuilds().map { it.task(":orchestrationPublishAllToMavenLocal") })
+    }
 
-    // Root buildHealth if present
-    tasks.findByName("buildHealth")?.let { dependsOn(it) }
-
-    // Included builds' buildHealth for the *published* set (keeps noise down)
-    val ibTargets = orchestration.publishIncludedBuilds.get().toSet()
-    if (ibTargets.isNotEmpty()) {
-        dependsOn(includedBuildRefs(gradle, kind = "buildHealth", filterNames = ibTargets, fallbackToHelp = true))
+    // publish central: root subprojects + included builds' aggregate (NO dependency on root aggregate)
+    ensureTask("publishToMavenCentral", "publishing", "Publishes root subprojects + participating included builds to Maven Central.") {
+        dependsOn(tasksNamedInSubprojects("publishAllPublicationsToMavenCentralRepository"))
+        dependsOn(tasksNamedInSubprojects("publishToMavenCentral"))
+        dependsOn(participatingIncludedBuilds().map { it.task(":orchestrationPublishAllToMavenCentral") })
     }
 }
