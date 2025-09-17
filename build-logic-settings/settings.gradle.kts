@@ -1,3 +1,4 @@
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()
@@ -9,6 +10,10 @@ dependencyResolutionManagement {
             from(files("../gradle/libs.versions.toml"))
         }
     }
+}
+
+pluginManagement {
+    includeBuild("../build-logic-commons")
 }
 
 rootProject.name = "build-logic-settings"

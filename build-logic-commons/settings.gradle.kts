@@ -4,16 +4,12 @@ dependencyResolutionManagement {
         gradlePluginPortal()
     }
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
-
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
 }
 
 pluginManagement {
-    includeBuild("../build-logic-commons")
+    repositories {
+        gradlePluginPortal()
+    }
 }
 
-rootProject.name = "build-logic"
+rootProject.name = "build-logic-commons"
