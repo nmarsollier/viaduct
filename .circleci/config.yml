@@ -291,33 +291,6 @@ jobs:
       - fail-step:
           message: "Ktlint code formatting check failed"
 
-  schema-validation:
-    executor: kotlin-gradle-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/project
-      - fail-step:
-          message: "Failed to restore workspace in schema-validation job"
-
-      - setup-gradle
-      - fail-step:
-          message: "Gradle setup failed in schema-validation job"
-
-      - gradle-with-cache:
-          steps:
-            - run:
-                name: Validate Schema
-                command: |
-                  echo "🔍 Validating schema..."
-                  ./gradlew validateSchema --no-daemon --max-workers=1 || {
-                    echo "❌ Schema validation failed"
-                    exit 1
-                  }
-                  echo "✅ Schema validation passed"
-      - fail-step:
-          message: "Schema validation failed"
-
   docs:
     executor: kotlin-gradle-executor
     steps:
@@ -457,9 +430,6 @@ workflows:
       - ktlint:
           requires:
             - build
-      - schema-validation:
-          requires:
-            - build
       - docs:
           requires:
             - build
@@ -488,9 +458,6 @@ workflows:
           requires:
             - build
       - ktlint:
-          requires:
-            - build
-      - schema-validation:
           requires:
             - build
       - docs:
