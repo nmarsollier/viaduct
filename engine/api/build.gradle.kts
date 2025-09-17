@@ -4,6 +4,11 @@ plugins {
     id("kotlin-static-analysis")
 }
 
+viaductPublishing {
+    name.set("Engine API")
+    description.set("The API exposed by the Viaduct engine.")
+}
+
 dependencies {
     api(libs.graphql.java)
     api(libs.guice)
@@ -38,11 +43,4 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.viaduct.engine.runtime)
     testImplementation(testFixtures(libs.viaduct.engine.runtime))
-}
-
-mavenPublishing {
-    pom {
-        name.set("Viaduct [engine-api]")
-        description.set("The API exposed by the Viaduct engine.")
-    }
 }

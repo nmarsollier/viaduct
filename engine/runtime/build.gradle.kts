@@ -5,6 +5,11 @@ plugins {
     id("kotlin-static-analysis")
 }
 
+viaductPublishing {
+    name.set("Engine Runtime")
+    description.set("The Viaduct engine runtime.")
+}
+
 dependencies {
     api(libs.graphql.java)
     api(libs.jackson.annotations)
@@ -70,11 +75,4 @@ dependencies {
     jmhImplementation(libs.kotlinx.coroutines.jdk8)
     jmhImplementation(libs.viaduct.engine.runtime)
     jmhImplementation(testFixtures(libs.viaduct.engine.runtime))
-}
-
-mavenPublishing {
-    pom {
-        name.set("Viaduct [engine-runtime]")
-        description.set("The Viaduct engine runtime.")
-    }
 }

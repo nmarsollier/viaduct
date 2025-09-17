@@ -4,6 +4,12 @@ plugins {
     `java-platform`
     `maven-publish`
     id("com.vanniktech.maven.publish") version "0.34.0"
+    id("viaduct-publishing")
+}
+
+viaductPublishing {
+    name.set("Bill of Materials")
+    description.set("The Viaduct BOM module holds the dependency constraints for all Viaduct modules.")
 }
 
 dependencies {
@@ -49,11 +55,4 @@ dependencies {
         api("com.airbnb.viaduct:tenant-api:${version}:test-fixtures")
         api("com.airbnb.viaduct:tenant-runtime:${version}:test-fixtures")
     }
-}
-
-mavenPublishing {
-    publishToMavenCentral()
-    signAllPublications()
-    configure(JavaPlatform())
-    coordinates(group as String, "bom", version.toString())
 }

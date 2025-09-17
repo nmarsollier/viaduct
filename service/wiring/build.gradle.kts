@@ -3,6 +3,11 @@ plugins {
     id("dokka")
 }
 
+viaductPublishing {
+    name.set("Viaduct Service Wiring")
+    description.set("Bindings between the tenant and engine runtimes.")
+}
+
 dependencies {
     api(libs.viaduct.service.api)
     api(libs.graphql.java)
@@ -19,12 +24,5 @@ dokka {
     }
     pluginsConfiguration.html {
         customStyleSheets.from(rootProject.file("docs/kdoc-service-styles.css"))
-    }
-}
-
-mavenPublishing {
-    pom {
-        name.set("Viaduct [service-wiring]")
-        description.set("Bindings between the tenant and engine runtimeBindings between the tenant and engine runtimess.")
     }
 }

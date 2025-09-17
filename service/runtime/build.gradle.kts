@@ -2,6 +2,11 @@ plugins {
     id("kotlin-project")
 }
 
+viaductPublishing {
+    name.set("Service Runtime")
+    description.set("The main entrypoint for Viaduct at runtime.")
+}
+
 dependencies {
     api(libs.viaduct.engine.runtime)
     api(libs.viaduct.service.api)
@@ -23,11 +28,4 @@ dependencies {
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.jspecify)
     testImplementation(libs.kotlinx.coroutines.test)
-}
-
-mavenPublishing {
-    pom {
-        name.set("Viaduct [service-runtime]")
-        description.set("The main entrypoint for Viaduct at runtime.")
-    }
 }

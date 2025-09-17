@@ -7,6 +7,11 @@ plugins {
     id("dokka")
 }
 
+viaductPublishing {
+    name.set("Service API")
+    description.set("The API/SPI exposed for consumption by Viaduct implementing services.")
+}
+
 dependencies {
     api(libs.graphql.java)
     api(libs.viaduct.engine.api)
@@ -21,13 +26,6 @@ dependencies {
     testImplementation(libs.strikt.core)
 
     testFixturesApi(libs.viaduct.engine.api)
-}
-
-mavenPublishing {
-    pom {
-        name.set("Viaduct [service-api]")
-        description.set("The service API/SPI exposed by Viaduct.")
-    }
 }
 
 dokka {

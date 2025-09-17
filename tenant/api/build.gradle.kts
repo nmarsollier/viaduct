@@ -7,6 +7,11 @@ plugins {
     id("dokka")
 }
 
+viaductPublishing {
+    name.set("Tenant API")
+    description.set("Viaduct Tenant API")
+}
+
 dependencies {
     api(libs.graphql.java)
     api(libs.javax.inject)

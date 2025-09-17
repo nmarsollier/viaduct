@@ -4,6 +4,11 @@ plugins {
     `java-test-fixtures`
 }
 
+viaductPublishing {
+    name.set("Tenant Runtime")
+    description.set("The Viaduct tenant runtime.")
+}
+
 dependencies {
     api(libs.graphql.java)
     api(libs.guice)

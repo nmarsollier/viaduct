@@ -4,6 +4,10 @@ plugins {
     `maven-publish`
 }
 
+viaductPublishing {
+    name.set("Codegen")
+    description.set("The Viaduct code generator and command-line interface.")
+}
 
 dependencies {
     implementation(libs.clikt.jvm)

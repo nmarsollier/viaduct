@@ -6,7 +6,7 @@ plugins {
     id("kotlin-project")
     id("kotlin-static-analysis")
     id("com.gradle.plugin-publish") version "2.0.0"
-    id("com.vanniktech.maven.publish")
+    id("viaduct-publishing")
 }
 
 java {
@@ -44,60 +44,15 @@ gradlePlugin {
             // e.g., com.airbnb.viaduct.application-gradle-plugin
             id = "$group.application-gradle-plugin"
             implementationClass = "viaduct.gradle.ViaductApplicationPlugin"
-            displayName = "Viaduct Application Plugin"
+            displayName = "Viaduct :: Application Plugin"
             description = "Application plugin for Viaduct-based apps."
             tags.set(listOf("viaduct", "graphql", "kotlin"))
         }
     }
 }
 
-publishing {
-    publications.withType<MavenPublication> {
-        versionMapping {
-            usage("java-api") { fromResolutionOf("runtimeClasspath") }
-            usage("java-runtime") { fromResolutionResult() }
-        }
-    }
-}
-
-mavenPublishing {
-    publishToMavenCentral()
-    signAllPublications()
-
-    // Publish this subproject as its own artifact coordinate
-    // Resulting artifactId will be "application-gradle-plugin"
-    configure(GradlePublishPlugin())
-    coordinates(group as String, "application-gradle-plugin", version.toString())
-
-    pom {
-        name.set("Viaduct Application Gradle Plugin")
-        description.set("Gradle plugin for Viaduct application projects.")
-        url.set("https://airbnb.io/viaduct/")
-
-        organization {
-            name.set("Airbnb, Inc.")
-            url.set("https://github.com/airbnb")
-        }
-
-        licenses {
-            license {
-                name.set("Apache License, Version 2.0")
-                url.set("https://www.apache.org/licenses/LICENSE-2.0")
-            }
-        }
-
-        developers {
-            developer {
-                id.set("airbnb")
-                name.set("Airbnb, Inc.")
-                email.set("viaduct-maintainers@airbnb.com")
-            }
-        }
-
-        scm {
-            connection.set("scm:git:git://github.com/airbnb/viaduct.git")
-            developerConnection.set("scm:git:ssh://github.com/airbnb/viaduct.git")
-            url.set("https://github.com/airbnb/viaduct")
-        }
-    }
+viaductPublishing {
+    name.set("Application Gradle Plugin")
+    description.set("Gradle plugin for Viaduct application projects.")
+    artifactId.set("application-gradle-plugin")
 }
