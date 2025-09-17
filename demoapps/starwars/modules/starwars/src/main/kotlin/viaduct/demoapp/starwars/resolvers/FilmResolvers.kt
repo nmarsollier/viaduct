@@ -9,18 +9,6 @@ import viaduct.api.Resolver
  */
 
 /**
- * Resolver for the openingCrawl field - large data field that requires custom resolution.
- * Updated to extend generated base class.
- */
-@Resolver
-class FilmOpeningCrawlResolver : viaduct.demoapp.starwars.resolverbases.FilmResolvers.OpeningCrawl() {
-    override suspend fun resolve(ctx: Context): String? {
-        // Access the source Film from the context
-        return ctx.objectValue.getOpeningCrawl()
-    }
-}
-
-/**
  * Demonstrates shorthand fragment syntax - delegates to title field
  * @resolver("title"): Shorthand fragment syntax for simple field delegation
  * Updated to extend generated base class.

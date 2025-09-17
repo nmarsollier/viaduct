@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import viaduct.api.grts.Film
 import viaduct.demoapp.starwars.resolvers.FilmCharacterCountSummaryResolver
 import viaduct.demoapp.starwars.resolvers.FilmDisplayTitleResolver
-import viaduct.demoapp.starwars.resolvers.FilmOpeningCrawlResolver
 import viaduct.demoapp.starwars.resolvers.FilmProductionDetailsResolver
 import viaduct.demoapp.starwars.resolvers.FilmSummaryResolver
 import viaduct.engine.api.ViaductSchema
@@ -40,23 +39,6 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
             )
 
             assertEquals("Star Wars: A New Hope", result)
-        }
-
-    @Test
-    fun `FilmOpeningCrawlResolver returns opening crawl`() =
-        runBlockingTest {
-            val resolver = FilmOpeningCrawlResolver()
-
-            val crawl = "It is a period of civil war. Rebel spaceships..."
-            val result = runFieldResolver(
-                resolver = resolver,
-                objectValue = Film.Builder(context)
-                    .title("Star Wars: A New Hope")
-                    .openingCrawl(crawl)
-                    .build(),
-            )
-
-            assertEquals(crawl, result)
         }
 
     @Test

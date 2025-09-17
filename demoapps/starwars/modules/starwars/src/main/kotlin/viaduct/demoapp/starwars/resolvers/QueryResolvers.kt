@@ -108,6 +108,7 @@ class AllFilmsResolver : QueryResolvers.AllFilms() {
                 .releaseDate(film.releaseDate)
                 .created(film.created.toString())
                 .edited(film.edited.toString())
+                .openingCrawl(film.openingCrawl)
                 .build()
         }
     }
