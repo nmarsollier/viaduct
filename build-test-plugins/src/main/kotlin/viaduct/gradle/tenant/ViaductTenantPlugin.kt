@@ -8,7 +8,9 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import viaduct.gradle.defaultschema.DefaultSchemaPlugin
 import viaduct.gradle.utils.capitalize
 
@@ -21,48 +23,47 @@ import viaduct.gradle.utils.capitalize
  */
 abstract class ViaductTenantPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        // Ensure default schema resources exist (task-safe)
+        // Ensure default schema resources exist
         DefaultSchemaPlugin.ensureApplied(project)
 
-        // Create the DSL
+        // Create the DSL extension
         val extension = project.extensions.create<ViaductTenantExtension>("viaductTenant", project)
 
-        // Java source sets (we always have Java plugin via Kotlin/Java ecosystem)
+        // Store generation tasks for later dependency wiring
+        val generationTasks = mutableListOf<TaskProvider<ViaductTenantTask>>()
+
+        // Configure source sets early (not in afterEvaluate)
         val javaExt = project.extensions.getByType<JavaPluginExtension>()
         val mainJavaSS = javaExt.sourceSets.getByName("main")
 
-        // Kotlin is optional; wire if present without hard dependency
-        var addToKotlinMain: ((Any) -> Unit)? = null
+        // Kotlin configuration if present
+        var mainKotlinSS: org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet? = null
         project.plugins.withId("org.jetbrains.kotlin.jvm") {
             val kotlinExt = project.extensions.getByType(KotlinJvmProjectExtension::class.java)
-            val mainKotlinSS = kotlinExt.sourceSets.getByName("main")
-            addToKotlinMain = { provider -> mainKotlinSS.kotlin.srcDir(provider) }
+            mainKotlinSS = kotlinExt.sourceSets.getByName("main")
         }
 
-        // Lazily configure tenants after the DSL is set
+        // Configure tenants after DSL is populated
         project.afterEvaluate {
             extension.tenantContainer.forEach { tenant ->
                 val generateTask = configureTenant(project, tenant)
+                generationTasks.add(generateTask)
 
-                // Wire GENERATOR OUTPUTS (sources) into existing 'main' source set.
-                // These are DirectoryProperty providers from the task; adding them here
-                // creates producer→consumer edges so compilation waits for generation.
-
+                // Add generated sources to source sets using task outputs
+                // This creates proper task dependencies via Gradle's provider chain
                 mainJavaSS.java.srcDir(generateTask.flatMap { it.resolverSrcDir })
                 mainJavaSS.java.srcDir(generateTask.flatMap { it.modernModuleSrcDir })
-                mainJavaSS.java.srcDir(generateTask.flatMap { it.metaInfSrcDir })
+                mainJavaSS.resources.srcDir(generateTask.flatMap { it.metaInfSrcDir })
 
-                addToKotlinMain?.invoke(generateTask.flatMap { it.resolverSrcDir })
-                addToKotlinMain?.invoke(generateTask.flatMap { it.modernModuleSrcDir })
-                // metaInf typically contains resources; if yours emits Kotlin/Java there too, keep it:
-                addToKotlinMain?.invoke(generateTask.flatMap { it.metaInfSrcDir })
+                // Add to Kotlin source set if present
+                mainKotlinSS?.let { kotlinSS ->
+                    kotlinSS.kotlin.srcDir(generateTask.flatMap { it.resolverSrcDir })
+                    kotlinSS.kotlin.srcDir(generateTask.flatMap { it.modernModuleSrcDir })
+                }
 
-                // SCHEMA PROJECT CLASSPATH:
-                // Instead of pointing at some build/generated directory, depend on the schema
-                // project's 'main' SourceSet output — this pulls in its compiled classes/resources
-                // and wires task dependencies correctly.
+                // Schema project dependency
                 val schemaProjectPath = tenant.schemaProjectPath.orNull
-                    ?: throw GradleException("Schema Project Path is a required property")
+                    ?: throw GradleException("Schema Project Path is required")
 
                 val schemaProject = project.project(schemaProjectPath)
                 val schemaMainOutput = schemaProject
@@ -74,44 +75,67 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
 
                 project.dependencies.add("implementation", schemaMainOutput)
             }
+
+            // CRITICAL: Wire explicit task dependencies
+            wireTaskDependencies(project, generationTasks)
         }
     }
 
-    /**
-     * Registers the tenant generation task with lazy (provider-based) outputs.
-     *
-     * NOTE: ViaductTenantTask should annotate its output dirs with @OutputDirectory so that
-     * these DirectoryPropertys act as proper task outputs.
-     */
+    private fun wireTaskDependencies(
+        project: Project,
+        generationTasks: List<TaskProvider<ViaductTenantTask>>
+    ) {
+        // Make all compilation tasks depend on ALL generation tasks
+        // This ensures generation completes before ANY compilation starts
+
+        // Wire Java compilation
+        project.tasks.named("compileJava") {
+            generationTasks.forEach { genTask ->
+                dependsOn(genTask)
+            }
+        }
+
+        // Wire Kotlin compilation if present
+        project.plugins.withId("org.jetbrains.kotlin.jvm") {
+            // Use withType to catch all Kotlin compilation tasks
+            project.tasks.withType<KotlinCompile>().configureEach {
+                generationTasks.forEach { genTask ->
+                    dependsOn(genTask)
+                }
+            }
+        }
+
+        // Also wire the classes task to ensure proper ordering
+        project.tasks.named("classes") {
+            generationTasks.forEach { genTask ->
+                dependsOn(genTask)
+            }
+        }
+
+        // For incremental builds, ensure source set outputs depend on generation
+        val sourceSets = project.extensions.getByType<JavaPluginExtension>().sourceSets
+        sourceSets.named("main") {
+            output.dir(generationTasks.map { it.flatMap { task -> task.resolverSrcDir } })
+            output.dir(generationTasks.map { it.flatMap { task -> task.modernModuleSrcDir } })
+            output.dir(generationTasks.map { it.flatMap { task -> task.metaInfSrcDir } })
+        }
+    }
+
     private fun configureTenant(
         project: Project,
         tenant: ViaductTenant
     ): TaskProvider<ViaductTenantTask> {
         val name = tenant.name
-
         val packageName = tenant.packageName.orNull
-            ?: throw GradleException("Package Name is a required property")
-
+            ?: throw GradleException("Package Name is required")
         val schemaProjectPath = tenant.schemaProjectPath.orNull
-            ?: throw GradleException("Schema Project Path is a required property")
+            ?: throw GradleException("Schema Project Path is required")
 
-        // We only validate presence; actual classes come from schema project's 'main' output
-        val schemaName = tenant.schemaName.orNull
-            ?: throw GradleException("Schema Name is a required property")
-
-        // Compute base generated root as a Provider (no mkdirs at configuration)
-        val generatedRoot = project.layout.buildDirectory.dir("generated-sources")
-
-        // Compute package path lazily
+        // Compute paths
         val fullTenantPackage = "$packageName.$name"
         val packagePath = fullTenantPackage.replace('.', '/')
 
-        // Output dirs (as DirectoryProperty providers)
-        val resolverSrcDir = project.layout.buildDirectory.dir("generated-sources/$packagePath/resolverbases")
-        val modernModuleSrcDir = project.layout.buildDirectory.dir("generated-sources/$packagePath/modernmodule")
-        val metaInfSrcDir = project.layout.buildDirectory.dir("generated-sources/$packagePath/metainf")
-
-        // Register generator task
+        // Register the generation task
         return project.tasks.register<ViaductTenantTask>("generate${name.capitalize()}Tenant") {
             group = "viaduct-tenant"
             description = "Generates Viaduct sources for tenant $name"
@@ -122,13 +146,20 @@ abstract class ViaductTenantPlugin : Plugin<Project> {
             schemaFiles.from(tenant.schemaFiles)
             tenantFromSourceNameRegex.set(tenant.tenantFromSourceNameRegex)
 
-            // Ensure default schema is available
-            dependsOn("processResources")
+            // Set output directories
+            resolverSrcDir.set(
+                project.layout.buildDirectory.dir("generated-sources/$packagePath/resolverbases")
+            )
+            modernModuleSrcDir.set(
+                project.layout.buildDirectory.dir("generated-sources/$packagePath/modernmodule")
+            )
+            metaInfSrcDir.set(
+                project.layout.buildDirectory.dir("generated-sources/$packagePath/metainf")
+            )
 
-            // Outputs (DirectoryProperty providers)
-            this.resolverSrcDir.set(resolverSrcDir)
-            this.modernModuleSrcDir.set(modernModuleSrcDir)
-            this.metaInfSrcDir.set(metaInfSrcDir)
+            // Make generation depend on schema project compilation
+            val schemaProject = project.project(schemaProjectPath)
+            dependsOn(schemaProject.tasks.named("classes"))
         }
     }
 }
