@@ -1,6 +1,7 @@
 plugins {
     id("viaduct-publishing") apply false
     id("orchestration")
+    id("versioning")
 }
 
 subprojects {

@@ -6,7 +6,6 @@ kotlin = "1.9.24"
 reactor = "3.5.0"
 springBoot = "3.5.0"
 springContext = "6.2.7"
-viaduct = "0.2.3-skevy-1-SNAPSHOT"
 
 [plugins]
 dependencyManagement = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }

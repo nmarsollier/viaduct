@@ -1,3 +1,5 @@
+import settings.includeNamed
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -16,9 +18,16 @@ plugins {
 
 rootProject.name = "viaduct"
 
+includeBuild(".")
 includeBuild("included-builds/core")
 includeBuild("included-builds/codegen")
-includeBuild("gradle-plugins")
+includeBuild("gradle-plugins") {
+    dependencySubstitution {
+        substitute(module("com.airbnb.viaduct:gradle-plugins-common")).using(project(":common"))
+        substitute(module("com.airbnb.viaduct:module-gradle-plugin")).using(project(":module-plugin"))
+        substitute(module("com.airbnb.viaduct:application-gradle-plugin")).using(project(":application-plugin"))
+    }
+}
 
 // demo apps
 includeBuild("demoapps/cli-starter")
@@ -32,6 +41,7 @@ include(":tenant:runtime-integration-tests")
 
 // testapps
 include("tenant:testapps:fixtures")
+
 /*
 include("tenant:testapps:policycheck")
 include("tenant:testapps:policycheck:tenants:tenant1")
@@ -48,6 +58,6 @@ include("tenant:testapps:schemaregistration:schema")
 */
 
 // misc
-include("docs")
-include("viaduct-bom")
+include(":docs")
+includeNamed(":viaduct-bom", projectName = "bom")
 include(":tools")

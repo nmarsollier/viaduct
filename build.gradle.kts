@@ -2,9 +2,10 @@ import org.gradle.internal.extensions.core.serviceOf
 
 plugins {
     id("dependency-analysis")
+    id("orchestration")
+    id("versioning")
     jacoco
     `jacoco-report-aggregation`
-    id("orchestration")
 }
 
 

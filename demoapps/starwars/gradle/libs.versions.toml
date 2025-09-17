@@ -13,8 +13,8 @@ dependencyManagement = { id = "io.spring.dependency-management", version.ref = "
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinSpring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-viaduct-application = { id = "com.airbnb.viaduct.application-gradle-plugin", version.ref = "viaductGradlePluginVersion" }
-viaduct-module = { id = "com.airbnb.viaduct.module-gradle-plugin", version.ref = "viaductGradlePluginVersion" }
+viaduct-application = { id = "com.airbnb.viaduct.application-gradle-plugin", version.ref = "viaduct" }
+viaduct-module = { id = "com.airbnb.viaduct.module-gradle-plugin", version.ref = "viaduct" }
 
 [libraries]
 jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin" }
