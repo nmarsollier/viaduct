@@ -1,6 +1,6 @@
-package com.example.viadapp.helloworld
+package com.example.viadapp.resolvers
 
-import com.example.viadapp.helloworld.resolverbases.QueryResolvers
+import com.example.viadapp.resolvers.resolverbases.QueryResolvers
 import viaduct.api.Resolver
 
 @Resolver

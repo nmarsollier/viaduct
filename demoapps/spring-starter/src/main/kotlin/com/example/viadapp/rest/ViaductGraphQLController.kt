@@ -1,4 +1,4 @@
-package com.airbnb.viaduct.demoapp.helloworld.rest
+package com.example.viadapp.rest
 
 import graphql.ExecutionResult
 import kotlinx.coroutines.future.await
@@ -12,7 +12,6 @@ import viaduct.service.api.ExecutionInput
 import viaduct.service.api.Viaduct
 
 const val SCHEMA_ID = "publicSchema"
-const val SCOPE_ID = "publicScope"
 
 @RestController
 class ViaductGraphQLController {

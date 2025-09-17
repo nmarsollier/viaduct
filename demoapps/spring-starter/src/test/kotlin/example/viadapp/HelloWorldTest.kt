@@ -1,4 +1,4 @@
-package com.airbnb.viaduct.demoapp.helloworld
+package com.example.viadapp
 
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
@@ -28,7 +28,8 @@ class HelloWorldTest(
             {
                 "query":"
                     query HelloWorld {
-                        helloWorld
+                        greeting
+                        author
                     }
                 "
             }
@@ -42,7 +43,8 @@ class HelloWorldTest(
         response.body!! shouldEqualJson """
             {
               "data": {
-                "helloWorld": "Hello World!"
+                "greeting": "Hello, World!",
+                "author": "Brian Kernighan"
               }
             }
         """.trimIndent()

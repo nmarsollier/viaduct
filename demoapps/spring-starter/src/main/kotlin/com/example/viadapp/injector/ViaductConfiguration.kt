@@ -1,7 +1,6 @@
-package com.airbnb.viaduct.demoapp.helloworld.injector
+package com.example.viadapp.injector
 
-import com.airbnb.viaduct.demoapp.helloworld.rest.SCHEMA_ID
-import com.airbnb.viaduct.demoapp.helloworld.rest.SCOPE_ID
+import com.example.viadapp.rest.SCHEMA_ID
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,11 +23,10 @@ class ViaductConfiguration {
     fun viaductService() =
         BasicViaductFactory.create(
             schemaRegistrationInfo = SchemaRegistrationInfo(
-                scopes = listOf(SchemaScopeInfo(SCHEMA_ID, setOf(SCOPE_ID))),
-                packagePrefix = "viaduct.demoapp",
+                scopes = listOf(SchemaScopeInfo(SCHEMA_ID)),
             ),
             tenantRegistrationInfo = TenantRegistrationInfo(
-                tenantPackagePrefix = "viaduct.demoapp.resolvers",
+                tenantPackagePrefix = "com.example.viadapp",
                 tenantCodeInjector = codeInjector
             )
         )

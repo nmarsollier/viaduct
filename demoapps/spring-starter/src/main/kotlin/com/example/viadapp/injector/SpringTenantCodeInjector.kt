@@ -1,4 +1,4 @@
-package com.airbnb.viaduct.demoapp.helloworld.injector
+package com.example.viadapp.injector
 
 import javax.inject.Provider
 import org.springframework.context.ApplicationContext

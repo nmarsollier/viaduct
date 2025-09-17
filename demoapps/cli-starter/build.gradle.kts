@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.24" // TODO - why doesn't it work with "1.8.22"
+    kotlin("jvm") version "1.9.24"
     alias(libs.plugins.viaduct.application)
     alias(libs.plugins.viaduct.module)
     application
@@ -10,7 +10,7 @@ viaductApplication {
 }
 
 viaductModule {
-    modulePackageSuffix.set("helloworld")
+    modulePackageSuffix.set("resolvers")
 }
 
 dependencies {
