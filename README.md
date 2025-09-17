@@ -1,5 +1,5 @@
 ![CircleCI](https://img.shields.io/circleci/build/github/airbnb/viaduct)
-![Maven Central Version](https://img.shields.io/maven-central/v/com.airbnb.viaduct/runtime)
+![Maven Central Version](https://img.shields.io/maven-central/v/com.airbnb.viaduct/bom)
 ![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/com.airbnb.viaduct.application-gradle-plugin)
 
 <p align="center">
