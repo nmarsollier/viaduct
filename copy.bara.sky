@@ -1,0 +1,70 @@
+# Exports the starwars demo app from the viaduct repository to viaduct-graphql/starwars
+# This extracts only the demoapps/starwars directory contents to a separate repository.
+
+core.workflow(
+    name = "starwars-extraction",
+    mode = "ITERATIVE",
+    origin = git.origin(
+        url = "file:///Users/walter_phillips/airlab/repos/viaduct-test",
+        ref = "main",
+        partial_fetch = True,
+        describe_version = False,
+    ),
+    origin_files = glob(
+        include = ["demoapps/starwars/**"],
+        exclude = [
+            "**/ALLOWED_DEPS",
+            "**/*.bara.sky",
+            "**/_infra/**",
+            "**/src/airbnb/**",
+            "**/src/airbnbtest/**",
+            "**/BUILD.bazel",
+            "**/bazel/**",
+        ],
+    ),
+    destination = git.destination(
+        url = "git@github.com:viaduct-graphql/starwars.git",
+        fetch = "main",
+    ),
+    authoring = authoring.pass_thru("Viaduct Maintainers <viaduct-maintainers@airbnb.com>"),  # pass through all, except empty committer
+    transformations = [
+        core.move("demoapps/starwars/", ""),
+    ],
+)
+
+# Workflow for migrating a single specific commit as init attributing to everyone uncommented in author map.
+core.workflow(
+    name = "initial-commit",
+    mode = "SQUASH",
+    origin = git.origin(
+        url = "file:///Users/walter_phillips/airlab/repos/viaduct-test",
+        ref = "main",
+        partial_fetch = True,
+        describe_version = False,
+    ),
+    origin_files = glob(
+        include = ["demoapps/starwars/**"],
+        exclude = [
+            "**/ALLOWED_DEPS",
+            "**/*.bara.sky",
+            "**/_infra/**",
+            "**/src/airbnb/**",
+            "**/src/airbnbtest/**",
+            "**/BUILD.bazel",
+            "**/bazel/**",
+        ],
+    ),
+    destination = git.destination(
+        url = "git@github.com:viaduct-graphql/starwars.git",
+        fetch = "main",
+    ),
+    # For initial commit, overwrite all authors with default
+    authoring = authoring.overwrite("Viaduct Maintainers <viaduct-maintainers@airbnb.com>"),
+    transformations = [
+        core.move("demoapps/starwars/", ""),
+        # Replace the commit message for initial commit
+        metadata.replace_message(
+            "🌟 Star Wars GraphQL Demo App\n\nExtracted from the Viaduct repository to serve as a standalone demo application showcasing GraphQL capabilities.",
+        ),
+    ],
+)
