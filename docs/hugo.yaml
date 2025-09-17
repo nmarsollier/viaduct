@@ -188,6 +188,10 @@ menu:
     - name: Blog
       url: https://medium.com/airbnb-engineering
       weight: 10
+    - name: Github
+      url: https://github.com/airbnb/viaduct
+      weight: 50
+      pre: <i class="fa-brands fa-github"></i>
 
 module:
   # Uncomment the next line to build and serve using local docsy clone declared in the named Hugo workspace:
