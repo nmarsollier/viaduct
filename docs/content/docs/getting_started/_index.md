@@ -28,25 +28,11 @@ Currently Viaduct is only published to Maven Central as snapshot versions. To us
 
 ```kotlin
 plugins {
-  id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
-}
-
-
-repositories {
-  maven {
-    name = "Central Portal Snapshots"
-    url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-
-    // Only search this repository for the specific dependency
-    content {
-      includeModule("com.airbnb.viaduct", "runtime")
-    }
-  }
-  mavenCentral()
+  id("com.airbnb.viaduct.application-gradle-plugin") version "0.3.0"
 }
 
 dependencies {
-  implementation("com.airbnb.viaduct:runtime:0.2.0-SNAPSHOT")
+  implementation("com.airbnb.viaduct:runtime:0.3.0")
 }
 ```
 
@@ -55,16 +41,8 @@ And add the following to your `settings.gradle.kts` file:
 ```kotlin
 pluginManagement {
     plugins {
-        id("com.airbnb.viaduct.application-gradle-plugin") version "0.2.0-SNAPSHOT"
-        id("com.airbnb.viaduct.module-gradle-plugin") version "0.2.0-SNAPSHOT"
-    }
-    repositories {
-        mavenLocal()
-        gradlePluginPortal()
-        maven {
-            name = "Central Portal Snapshots"
-            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-        }
+        id("com.airbnb.viaduct.application-gradle-plugin") version "0.3.0"
+        id("com.airbnb.viaduct.module-gradle-plugin") version "0.3.0"
     }
 }
 ```
