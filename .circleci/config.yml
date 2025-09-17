@@ -233,36 +233,90 @@ jobs:
       - store_artifacts:
           path: build/reports
 
-  lint:
+  detekt:
     executor: kotlin-gradle-executor
     steps:
       - checkout
       - attach_workspace:
           at: ~/project
       - fail-step:
-          message: "Failed to restore workspace in lint job"
+          message: "Failed to restore workspace in detekt job"
 
       - setup-gradle
       - fail-step:
-          message: "Gradle setup failed in lint job"
+          message: "Gradle setup failed in detekt job"
 
       - gradle-with-cache:
           steps:
             - run:
-                name: Static Analysis
+                name: Run Detekt Static Analysis
                 command: |
-                  echo "🧹 Running static analysis checks..."
-                  ./gradlew check --no-daemon --max-workers=1 || {
-                    echo "❌ Static analysis found code style violations"
+                  echo "🧹 Running Detekt static analysis..."
+                  ./gradlew detekt --no-daemon --max-workers=1 || {
+                    echo "❌ Detekt found code style violations"
                     exit 1
                   }
-                  echo "✅ static analysis checks passed"
+                  echo "✅ Detekt analysis passed"
       - fail-step:
-          message: "Static analysis failed"
+          message: "Detekt static analysis failed"
 
       - store_artifacts:
           path: build/reports/detekt
           destination: detekt-reports
+
+  ktlint:
+    executor: kotlin-gradle-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - fail-step:
+          message: "Failed to restore workspace in ktlint job"
+
+      - setup-gradle
+      - fail-step:
+          message: "Gradle setup failed in ktlint job"
+
+      - gradle-with-cache:
+          steps:
+            - run:
+                name: Run Ktlint Code Formatting Check
+                command: |
+                  echo "🧹 Running Ktlint code formatting check..."
+                  ./gradlew ktlintCheck --no-daemon --max-workers=1 || {
+                    echo "❌ Ktlint found code formatting violations"
+                    exit 1
+                  }
+                  echo "✅ Ktlint formatting check passed"
+      - fail-step:
+          message: "Ktlint code formatting check failed"
+
+  schema-validation:
+    executor: kotlin-gradle-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - fail-step:
+          message: "Failed to restore workspace in schema-validation job"
+
+      - setup-gradle
+      - fail-step:
+          message: "Gradle setup failed in schema-validation job"
+
+      - gradle-with-cache:
+          steps:
+            - run:
+                name: Validate Schema
+                command: |
+                  echo "🔍 Validating schema..."
+                  ./gradlew validateSchema --no-daemon --max-workers=1 || {
+                    echo "❌ Schema validation failed"
+                    exit 1
+                  }
+                  echo "✅ Schema validation passed"
+      - fail-step:
+          message: "Schema validation failed"
 
   docs:
     executor: kotlin-gradle-executor
@@ -397,7 +451,13 @@ workflows:
       - test:
           requires:
             - build
-      - lint:
+      - detekt:
+          requires:
+            - build
+      - ktlint:
+          requires:
+            - build
+      - schema-validation:
           requires:
             - build
       - docs:
@@ -424,7 +484,13 @@ workflows:
       - test:
           requires:
             - build
-      - lint:
+      - detekt:
+          requires:
+            - build
+      - ktlint:
+          requires:
+            - build
+      - schema-validation:
           requires:
             - build
       - docs:
