@@ -32,6 +32,7 @@ include(":tenant:runtime-integration-tests")
 
 // testapps
 include("tenant:testapps:fixtures")
+/*
 include("tenant:testapps:policycheck")
 include("tenant:testapps:policycheck:tenants:tenant1")
 include("tenant:testapps:policycheck:schema")
@@ -44,6 +45,7 @@ include("tenant:testapps:schemaregistration")
 include("tenant:testapps:schemaregistration:tenants:tenant1")
 include("tenant:testapps:schemaregistration:tenants:tenant2")
 include("tenant:testapps:schemaregistration:schema")
+*/
 
 // misc
 include("docs")

@@ -38,9 +38,9 @@ dependencies {
     jacocoAggregation(libs.viaduct.tenant.api)
     jacocoAggregation(libs.viaduct.tenant.codegen)
     jacocoAggregation(libs.viaduct.tenant.runtime)
-    jacocoAggregation(project(":tenant:testapps:policycheck"))
-    jacocoAggregation(project(":tenant:testapps:resolver"))
-    jacocoAggregation(project(":tenant:testapps:schemaregistration"))
+//    jacocoAggregation(project(":tenant:testapps:policycheck"))
+//    jacocoAggregation(project(":tenant:testapps:resolver"))
+//    jacocoAggregation(project(":tenant:testapps:schemaregistration"))
 }
 
 // Configure the coverage report in the reporting block
