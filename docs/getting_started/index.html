@@ -29,12 +29,12 @@
 
   <meta itemprop="name" content="Getting Started">
   <meta itemprop="description" content="Setting up and modifying a simple Viaduct application">
-  <meta itemprop="wordCount" content="210">
+  <meta itemprop="wordCount" content="1042">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Getting Started">
   <meta name="twitter:description" content="Setting up and modifying a simple Viaduct application">
-<link rel="preload" href="/viaduct/scss/main.min.05b2b7ed415bf68be3a595af9d40e6014ab2dcfdc38741cedda4add4b4dcdde7.css" as="style" integrity="sha256-BbK37UFb9ovjpZWvnUDmAUqy3P3Dh0HO3aSt1LTc3ec=" crossorigin="anonymous">
-<link href="/viaduct/scss/main.min.05b2b7ed415bf68be3a595af9d40e6014ab2dcfdc38741cedda4add4b4dcdde7.css" rel="stylesheet" integrity="sha256-BbK37UFb9ovjpZWvnUDmAUqy3P3Dh0HO3aSt1LTc3ec=" crossorigin="anonymous">
+<link rel="preload" href="/viaduct/scss/main.min.0daecd2ddc85d632d39c35d0166cdaa4fec77d7bc3172e71bdd628a9edc80ed9.css" as="style" integrity="sha256-Da7NLdyF1jLTnDXQFmzapP7HfXvDFy5xvdYoqe3IDtk=" crossorigin="anonymous">
+<link href="/viaduct/scss/main.min.0daecd2ddc85d632d39c35d0166cdaa4fec77d7bc3172e71bdd628a9edc80ed9.css" rel="stylesheet" integrity="sha256-Da7NLdyF1jLTnDXQFmzapP7HfXvDFy5xvdYoqe3IDtk=" crossorigin="anonymous">
 <script
   src="https://code.jquery.com/jquery-3.7.1.min.js"
   integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
@@ -96,7 +96,7 @@
     aria-label="Search this site…"
     autocomplete="off"
     
-    data-offline-search-index-json-src="/viaduct/offline-search-index.411339c4053337a957c24f21d50d923b.json"
+    data-offline-search-index-json-src="/viaduct/offline-search-index.0c4ab2a28bdb283ad1900e4b19c6fe8a.json"
     data-offline-search-base-href="/"
     data-offline-search-max-results="10"
   >
@@ -121,7 +121,7 @@
     aria-label="Search this site…"
     autocomplete="off"
     
-    data-offline-search-index-json-src="/viaduct/offline-search-index.411339c4053337a957c24f21d50d923b.json"
+    data-offline-search-index-json-src="/viaduct/offline-search-index.0c4ab2a28bdb283ad1900e4b19c6fe8a.json"
     data-offline-search-base-href="/"
     data-offline-search-max-results="10"
   >
@@ -245,15 +245,18 @@
   <ul>
     <li><a href="#getting-started-with-viaduct">Getting Started with Viaduct</a>
       <ul>
-        <li><a href="#system-requirements">System Requirements</a></li>
+        <li><a href="#requirements">Requirements</a></li>
         <li><a href="#running-the-simple-application">Running the Simple Application</a></li>
+        <li><a href="#touring-the-application">Touring the Application</a></li>
       </ul>
     </li>
-    <li><a href="#using-viaduct-in-your-own-application">Using Viaduct in your own application</a>
+    <li><a href="#extending-the-application">Extending the Application</a>
       <ul>
-        <li><a href="#going-further">Going further</a></li>
+        <li><a href="#extending-the-schema">Extending the Schema</a></li>
+        <li><a href="#extending-the-code">Extending the code</a></li>
       </ul>
     </li>
+    <li><a href="#whats-next">What’s Next</a></li>
   </ul>
 </nav>
       </div>
@@ -279,33 +282,105 @@
 	<header class="article-meta">
 		
   </header>
-	<h2 id="getting-started-with-viaduct">Getting Started with Viaduct<a class="td-heading-self-link" href="#getting-started-with-viaduct" aria-label="Heading self-link"></a></h2><p>Using a set of scripts bundled with the Viaduct release, this document will walk you through the process of running a very simple Viaduct application.  Viaduct comes with built-in, Gradle-based tooling for building, testing, and running your sample application.  This guide uses that tooling and assumes a basic familiarity with Gradle.</p>
-<h3 id="system-requirements">System Requirements<a class="td-heading-self-link" href="#system-requirements" aria-label="Heading self-link"></a></h3><p>Java 21 must be on the path or available via JAVA_HOME.</p>
-<h3 id="running-the-simple-application">Running the Simple Application<a class="td-heading-self-link" href="#running-the-simple-application" aria-label="Heading self-link"></a></h3><p>Viaduct comes with a number of demonstration applications you can find in the <code>demoapps</code> directory.  Let’s start with the <code>demoapps/cli-starter</code> application.  Change into that directory and type:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>./gradlew -q run --args<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;&#39;{ author }&#39;&#34;</span>
-</span></span></code></pre></div><p>This command will build the simple application run a graphql query with Viaduct.</p>
-<h2 id="using-viaduct-in-your-own-application">Using Viaduct in your own application<a class="td-heading-self-link" href="#using-viaduct-in-your-own-application" aria-label="Heading self-link"></a></h2><p>Currently Viaduct is only published to Maven Central as snapshot versions. To use Viaduct in your own application, add the following to your <code>build.gradle.kts</code> file:</p>
+	<h2 id="getting-started-with-viaduct">Getting Started with Viaduct<a class="td-heading-self-link" href="#getting-started-with-viaduct" aria-label="Heading self-link"></a></h2><p>To get you started with Viaduct, we have a created a number of small demonstration applications to illustrate what is a Viaduct application and how you write and build one.  You can find these at <a href="https://github.com/viaduct-graphql">github.com/viaduct-graphql</a>.  In particular, in order of complexity, we have a CLI starter, a Spring starter, and a more full-featured StarWars application.  This document walks you through the CLI starter in some detail, and provides suggestions for how to explore the other two.</p>
+<h3 id="requirements">Requirements<a class="td-heading-self-link" href="#requirements" aria-label="Heading self-link"></a></h3><p>Java 21 must be on the path or available via JAVA_HOME.</p>
+<p>We assume a basic familiarity with GraphQL.  The GraphQL Foundation has excellent <a href="https://graphql.org/learn/">learning materials</a> on this topic.</p>
+<h3 id="running-the-simple-application">Running the Simple Application<a class="td-heading-self-link" href="#running-the-simple-application" aria-label="Heading self-link"></a></h3><p>Start by making a local clone of the <a href="https://github.com/viaduct-graphql/cli-starter">CLI starter</a>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>git clone https://github.com/viaduct-graphql/cli-starter.git
+</span></span></code></pre></div><p>Next <code>cd</code> into that clone and test that your environment is ready by typing:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>./gradle <span style="color:#6639ba">test</span>
+</span></span></code></pre></div><p>After building and testing the CLI demo, Gradle should report that the build was successful.</p>
+<p>Although Viaduct is typically hosted in a Web server, to keep things simple the CLI demo simply calls it directly from the application&rsquo;s main directory.  You can do this through Gradle:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>./gradlew -q run --args<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;&#39;{ greeting }&#39;&#34;</span>
+</span></span></code></pre></div><p>Here is the full schema for this simple application:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-graphql" data-lang="graphql"><span style="display:flex;"><span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">Query</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span>greeting<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">   </span>author<span style="color:#1f2328">:</span><span style="color:#fff"> </span><span style="color:#1f2328">String</span><span style="color:#fff"> </span><span style="color:#0550ae">@resolver</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff"></span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre></div><p>Through the command line you issue any query against this schema.</p>
+<h3 id="touring-the-application">Touring the Application<a class="td-heading-self-link" href="#touring-the-application" aria-label="Heading self-link"></a></h3><p>The main elements of this application&rsquo;s source-code directory are the following:</p>
+<pre tabindex="0"><code>build.gradle.kts
+src/
+   main/viaduct/schema/schema.graphqls
+   main/kotlin/com/example/viadapp/ViaductApplication.kt
+   main/kotlin/com/example/viadapp/resolvers/HelloWorldResolvers.kt
+   ...
+...
+</code></pre><p>You can see that a Viaduct application is a Gradle project.  The file:</p>
+<ul>
+<li>
+<p><code>schema.graphqls</code> contains the GraphQL schema for the application.  All files matching <code>**/*.graphqls</code> in that directory collectively define the schema of the application</p>
+</li>
+<li>
+<p><code>ViaductApplication.kt</code> contains the <code>main</code> function for this command-line tool.  This function creates an instance of a <code>Viaduct</code> engine and sends the query it gets as its command-line argument to that engine.</p>
+</li>
+<li>
+<p><code>HelloWorldResolvers.kt</code> contain the &ldquo;application logic&rdquo; for our schema, the code that says how to resolver the fields of the schema.</p>
+</li>
+</ul>
+<p>At the top of <code>build.gradle.kts</code> you&rsquo;ll see:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>plugins <span style="color:#1f2328">{</span>
-</span></span><span style="display:flex;"><span>  id<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;com.airbnb.viaduct.application-gradle-plugin&#34;</span><span style="color:#1f2328">)</span> version <span style="color:#0a3069">&#34;0.3.0&#34;</span>
+</span></span><span style="display:flex;"><span>    alias<span style="color:#1f2328">(</span>libs<span style="color:#1f2328">.</span>plugins<span style="color:#1f2328">.</span>kotlinJvm<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    alias<span style="color:#1f2328">(</span>libs<span style="color:#1f2328">.</span>plugins<span style="color:#1f2328">.</span>viaduct<span style="color:#1f2328">.</span>application<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    alias<span style="color:#1f2328">(</span>libs<span style="color:#1f2328">.</span>plugins<span style="color:#1f2328">.</span>viaduct<span style="color:#1f2328">.</span>module<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    application
 </span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
+</span></span></code></pre></div><p>You can see the two Viaduct plugins appearing here.  Viaduct applications are structured as multi-project Gradle builds.  The root project must contain the <em>application</em> plugin shown above: this plugin coordinates certain build processes across the engine application.  In addition, one or more projects also apply the <em>module</em> plugin, which indicates that that project contains application code (in our case, the code found in <code>HelloWorldResolvers.kt</code>).  As this example shows, a Viaduct application can be as simple as a single project build, in which case both plugins are applied to taht one project.</p>
+<h2 id="extending-the-application">Extending the Application<a class="td-heading-self-link" href="#extending-the-application" aria-label="Heading self-link"></a></h2><h3 id="extending-the-schema">Extending the Schema<a class="td-heading-self-link" href="#extending-the-schema" aria-label="Heading self-link"></a></h3><p>Let’s explore our sample application more deeply by extending its functionality.  Viaduct is a “schema first” GraphQL environment, meaning you write your schema first, and then generate classes to write your code against.  So in that spirit, let’s start by extending the schema in <code>schema.graphqls</code> (in the location noted above).  You should see the following in that file:</p>
+<pre tabindex="0"><code>extend type Query {
+  greeting: String @resolver
+  author: String @resolver
+}
+</code></pre><p>Viaduct itself has built-in definitions for the root GraphQL types <code>Query</code> and <code>Mutation</code> (Viaduct doesn’t yet support subscriptions).  Since <code>Query</code> is built-in, application code should extend it as illustrated above.  You’ll also see in this schema fragment that both fields have <code>@resolver</code> applied to them, meaning that a developer-provided function is needed to compute their respective value.  (<em>All</em> fields of <code>Query</code> must have <code>@resolver</code> applied to them.)</p>
+<p>Let’s extend this schema to add a new field, <code>attributedGreeting</code>, which will attribute the greeting to its author:</p>
+<pre tabindex="0"><code>extend type Query @scope(to: [&#34;publicScope&#34;]) {
+  greeting: String @resolver
+  author: String @resolver
+  attributedGreeting: AttributedGreeting @resolver
+}
+
+type AttributedGreeting {
+  greeting: String
+}
+</code></pre><p>There’s no practical reason to have the <code>AttributedGreeting</code> type here: <code>attributedGreeting</code> could’ve just been a <code>String</code>.  We’re using a GraphQL object-type here in order to demonstrate some features of our API.</p>
+<h3 id="extending-the-code">Extending the code<a class="td-heading-self-link" href="#extending-the-code" aria-label="Heading self-link"></a></h3><p>After you make a schema change, in your application root directory (the one that applies the application plugin) you need to run <code>./gradlew generateViaductGRTs generateViaductResolverBases</code>.  This will regenerate the code needed to build your application.  (We&rsquo;re working to streamline this.)</p>
+<p>Having done that, you need to write a resolver for our new field.  Actually, you could add it to <code>HelloWorldResolvers.kt</code>: resolvers for this application can be placed to any file as long it&rsquo;s in the <code>com.example.viadapp.resolvers</code> package.  To support copy-and-paste, create a file named <code>AttributedGreetingResolver.kt</code> (or whatever) in the same subdirectory as <code>HelloWorldResolvers.kt</code> and copy the following code into it:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#cf222e">package</span> <span style="color:#24292e">com.example.viadapp.resolvers</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>dependencies <span style="color:#1f2328">{</span>
-</span></span><span style="display:flex;"><span>  implementation<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;com.airbnb.viaduct:runtime:0.3.0&#34;</span><span style="color:#1f2328">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
-</span></span></code></pre></div><p>And add the following to your <code>settings.gradle.kts</code> file:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>pluginManagement <span style="color:#1f2328">{</span>
-</span></span><span style="display:flex;"><span>    plugins <span style="color:#1f2328">{</span>
-</span></span><span style="display:flex;"><span>        id<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;com.airbnb.viaduct.application-gradle-plugin&#34;</span><span style="color:#1f2328">)</span> version <span style="color:#0a3069">&#34;0.3.0&#34;</span>
-</span></span><span style="display:flex;"><span>        id<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;com.airbnb.viaduct.module-gradle-plugin&#34;</span><span style="color:#1f2328">)</span> version <span style="color:#0a3069">&#34;0.3.0&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">viaduct.api.Resolver</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">com.example.viadapp.helloworld.resolverbases.QueryResolvers</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">import</span> <span style="color:#24292e">viaduct.api.grts.AttributedGreeting</span> <span style="color:#57606a">// The class generated for our AttributedGreeting type
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a"></span>
+</span></span><span style="display:flex;"><span><span style="color:#57606a">// New code:
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a"></span><span style="color:#0550ae">@Resolver</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  greeting
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">  author
+</span></span></span><span style="display:flex;"><span><span style="color:#0a3069">&#34;&#34;&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AttributedGreetingResolver</span> <span style="color:#1f2328">:</span> <span style="color:#1f2328">QueryResolvers</span><span style="color:#1f2328">.</span>AttributedGreeting<span style="color:#1f2328">()</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">override</span> <span style="color:#cf222e">suspend</span> <span style="color:#cf222e">fun</span> <span style="color:#6639ba">resolve</span><span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">:</span> Context<span style="color:#1f2328">):</span> AttributedGreeting <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">val</span> greeting <span style="color:#1f2328">=</span> ctx<span style="color:#1f2328">.</span>objectValue<span style="color:#1f2328">.</span>getGreeting<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">val</span> author <span style="color:#1f2328">=</span> ctx<span style="color:#1f2328">.</span>objectValue<span style="color:#1f2328">.</span>getAuthor<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> <span style="color:#1f2328">AttributedGreeting</span><span style="color:#1f2328">.</span>Builder<span style="color:#1f2328">(</span>ctx<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>greeting<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;</span><span style="color:#0a3069">$author</span><span style="color:#0a3069"> says: </span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">$greeting</span><span style="color:#0a3069">\&#34;</span><span style="color:#0a3069">&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">.</span>build<span style="color:#1f2328">()</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#1f2328">}</span>
 </span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span>
-</span></span></code></pre></div><h3 id="going-further">Going further<a class="td-heading-self-link" href="#going-further" aria-label="Heading self-link"></a></h3><p>There are three demo applications:</p>
+</span></span></code></pre></div><p>The basic idea is that the resolver for <code>attributedGreeting</code> will combine <code>author</code> and <code>greeting</code> into a string that attributes the greeting to the author.  The resolver has access to these two fields because its <code>@Resolver</code> annotation indicates that it needs those fields: if the <code>@Resolver</code> annotation didn’t mention the <code>author</code> field, for example, then the attempt to read <code>objectValue.author()</code> would fail at runtime.</p>
+<p>Let’s examine some of the details of Viaduct that are illustrated by this file:</p>
 <ul>
-<li><a href="https://github.com/airbnb/viaduct/blob/main/demoapps/cli-starter/">cli-starter</a> - the simplest possible starting point for a Viaduct application.</li>
-<li><a href="https://github.com/airbnb/viaduct/blob/main/demoapps/spring-starter/README.md">spring-starter</a> - a simple integration of Viaduct with Spring.</li>
-<li><a href="https://github.com/airbnb/viaduct/blob/main/demoapps/starwars/README.md">starwars</a> - a comprehensive demo of Viaduct&rsquo;s features
-Viaduct.</li>
+<li>
+<p>For every GraphQL type, Viaduct generates a Kotlin interface or class to represent it in code.  We call these GraphQL Representational Types, or GRTs for short.  These GRTs are all placed in the <code>viaduct.api.grts</code> package.</p>
+</li>
+<li>
+<p>Viaduct generates also generate a <em>resolver base class</em> for writing resolvers.  For each field <em>Type.field</em> with an <code>@resolver</code> directive in the schema, we generate a base class <em><code>Type.Field</code></em>.  As illustrated by our example, to write a resolver for that field, you subclass this base class and override the <code>resolve</code> function.</p>
+</li>
 </ul>
+<p>You can save this file and the run:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>./gradlew -q run --args<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;&#39;{ attributedGreeting }&#39;&#34;</span>
+</span></span></code></pre></div><p>and you should see the appropriate response.</p>
+<h2 id="whats-next">What’s Next<a class="td-heading-self-link" href="#whats-next" aria-label="Heading self-link"></a></h2><p><strong>StarWars Deep Dive.</strong>  The StarWars application comes with a deep dive document describing Viaduct features in some detail.</p>
+<p><strong>Documentation.</strong>  Explore our <a href="/viaduct/docs/">documentation site</a>.</p>
+<p><strong>Building your own application.</strong>  Pick the structure that you like best - single project, two project (root plus on module), or multi-module.  Make a copy of the respective demo app (CLI, Spring, or StarWars) and make a copy.</p>
 
 	<div class="section-index">
     
