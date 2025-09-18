@@ -1,4 +1,4 @@
-import buildlogic.repoRoot
+import viaduct.gradle.internal.repoRoot
 
 plugins {
     id("org.jetbrains.dokka")

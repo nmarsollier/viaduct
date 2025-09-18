@@ -1,8 +1,8 @@
-package buildlogic
+package viaduct.gradle.internal
 
-import java.io.File
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
+import java.io.File
 
 /**
  * Best-effort repo root detector. Looks for any of the [sentinels] at or above this project.

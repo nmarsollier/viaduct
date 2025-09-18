@@ -1,6 +1,6 @@
 package conventions
 
-import buildlogic.repoRoot
+import viaduct.gradle.internal.repoRoot
 import java.net.URI
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 

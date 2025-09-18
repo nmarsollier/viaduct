@@ -1,6 +1,6 @@
 package conventions
 
-import buildlogic.repoRoot
+import viaduct.gradle.internal.repoRoot
 
 plugins {
     id("io.gitlab.arturbosch.detekt")
