@@ -3,7 +3,6 @@ pluginManagement {
         gradlePluginPortal()
     }
     includeBuild("../../build-logic-settings")
-    includeBuild("../../build-logic-root")
     includeBuild("../../build-logic")
 }
 

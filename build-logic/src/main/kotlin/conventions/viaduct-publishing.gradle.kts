@@ -8,7 +8,9 @@ import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.configure
 
-plugins { id("com.vanniktech.maven.publish") }
+plugins {
+    id("com.vanniktech.maven.publish")
+}
 
 abstract class ViaductPublishingExtension @Inject constructor(objects: ObjectFactory) {
     val artifactId: Property<String> = objects.property(String::class.java).convention("")

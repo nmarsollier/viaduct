@@ -13,4 +13,6 @@ dependencies {
     implementation(plugin(libs.plugins.ktlintPlugin))
 
     implementation(plugin(libs.plugins.dokka))
+
+    implementation(plugin(libs.plugins.dependency.analysis))
 }

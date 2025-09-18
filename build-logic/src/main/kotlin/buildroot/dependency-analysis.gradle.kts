@@ -1,3 +1,5 @@
+package buildroot
+
 plugins {
     id("com.autonomousapps.dependency-analysis")
 }

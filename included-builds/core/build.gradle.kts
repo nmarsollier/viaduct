@@ -1,7 +1,7 @@
 plugins {
     id("conventions.viaduct-publishing") apply false
-    id("orchestration")
-    id("versioning")
+    id("buildroot.orchestration")
+    id("buildroot.versioning")
 }
 
 subprojects {
