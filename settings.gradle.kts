@@ -11,9 +11,6 @@ pluginManagement {
 plugins {
     id("settings.common")
     id("settings.build-scans")
-    kotlin("jvm") version "1.9.24" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
-                                                //  should be bumped to the version embedded in the Gradle version used anyways
-                                                //  that is 2.0.21
 }
 
 rootProject.name = "viaduct"
