@@ -1,3 +1,5 @@
+package conventions
+
 import buildlogic.repoRoot
 import java.net.URI
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier

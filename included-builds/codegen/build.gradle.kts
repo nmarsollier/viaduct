@@ -1,11 +1,11 @@
 plugins {
-    id("viaduct-publishing") apply false
+    id("conventions.viaduct-publishing") apply false
     id("orchestration")
     id("versioning")
 }
 
 subprojects {
     plugins.withId("org.jetbrains.kotlin.jvm") {
-        pluginManager.apply("viaduct-publishing")
+        pluginManager.apply("conventions.viaduct-publishing")
     }
 }

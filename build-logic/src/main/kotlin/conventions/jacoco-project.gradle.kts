@@ -1,3 +1,5 @@
+package conventions
+
 plugins {
     jacoco
 }

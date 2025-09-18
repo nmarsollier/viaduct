@@ -1,7 +1,7 @@
 plugins {
-    id("kotlin-project")
+    id("conventions.kotlin-project")
     id("test-feature-app")
-    id("kotlin-static-analysis")
+    id("conventions.kotlin-static-analysis")
 }
 
 viaductFeatureApp {}

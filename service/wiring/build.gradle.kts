@@ -1,8 +1,8 @@
 import buildlogic.repoRoot
 
 plugins {
-    id("kotlin-project")
-    id("dokka")
+    id("conventions.kotlin-project")
+    id("conventions.dokka")
 }
 
 viaductPublishing {

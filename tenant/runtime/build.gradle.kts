@@ -1,6 +1,6 @@
 plugins {
-    id("kotlin-project")
-    id("kotlin-static-analysis")
+    id("conventions.kotlin-project")
+    id("conventions.kotlin-static-analysis")
     `java-test-fixtures`
 }
 

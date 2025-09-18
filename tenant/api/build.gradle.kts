@@ -1,10 +1,10 @@
 plugins {
     `java-library`
-    id("kotlin-project")
+    id("conventions.kotlin-project")
     `maven-publish`
     `java-test-fixtures`
-    id("kotlin-static-analysis")
-    id("dokka")
+    id("conventions.kotlin-static-analysis")
+    id("conventions.dokka")
 }
 
 viaductPublishing {

@@ -4,9 +4,9 @@ plugins {
     `java-library`
     `maven-publish`
     `java-test-fixtures`
-    id("kotlin-project")
-    id("kotlin-static-analysis")
-    id("dokka")
+    id("conventions.kotlin-project")
+    id("conventions.kotlin-static-analysis")
+    id("conventions.dokka")
 }
 
 viaductPublishing {

@@ -2,7 +2,7 @@ import buildlogic.repoRoot
 
 plugins {
     id("org.jetbrains.dokka")
-    id("dokka")
+    id("conventions.dokka")
 }
 
 dependencies {

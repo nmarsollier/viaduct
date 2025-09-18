@@ -1,6 +1,8 @@
+package conventions
+
 plugins {
-    id("kotlin-project-without-tests")
-    id("jacoco-project")
+    id("conventions.kotlin-project-without-tests")
+    id("conventions.jacoco-project")
 }
 
 val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")

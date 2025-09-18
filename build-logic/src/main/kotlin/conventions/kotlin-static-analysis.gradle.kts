@@ -1,3 +1,5 @@
+package conventions
+
 import buildlogic.repoRoot
 
 plugins {
@@ -24,8 +26,8 @@ ktlint {
     filter {
         exclude { element ->
             element.file.path.contains("/generated-sources/") ||
-            element.file.path.contains("/build/generated/") ||
-            element.file.name.contains("SchemaObjects")
+                    element.file.path.contains("/build/generated/") ||
+                    element.file.name.contains("SchemaObjects")
         }
     }
 }

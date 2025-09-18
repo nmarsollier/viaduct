@@ -1,3 +1,5 @@
+package conventions
+
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import com.vanniktech.maven.publish.*
 import javax.inject.Inject

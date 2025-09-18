@@ -1,5 +1,5 @@
 plugins {
-    id("kotlin-project")
+    id("conventions.kotlin-project")
     id("test-app")
 }
 
