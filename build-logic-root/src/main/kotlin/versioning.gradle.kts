@@ -105,10 +105,6 @@ if (gradle.parent == null) {
         abstract val demoappDirs: ListProperty<String>
     }
 
-    val demoappsSync = extensions.create<DemoappsSyncExtension>("demoappsSync").apply {
-        demoappDirs.convention(listOf("demoapps/cli-starter", "demoapps/starwars", "demoapps/spring-starter"))
-    }
-
     // --- registrations (root only) ---
 
     tasks.register<SyncDemoAppVersionsTask>("syncDemoAppVersions") {
