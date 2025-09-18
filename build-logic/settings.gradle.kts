@@ -12,8 +12,4 @@ dependencyResolutionManagement {
     }
 }
 
-pluginManagement {
-    includeBuild("../build-logic-commons")
-}
-
 rootProject.name = "build-logic"

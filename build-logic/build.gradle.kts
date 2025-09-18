@@ -1,6 +1,5 @@
 plugins {
     `kotlin-dsl`
-    id("build-logic-utils")
 }
 
 description = "Provides PROJECT level convention plugins for the build"
@@ -21,3 +20,10 @@ dependencies {
     implementation(plugin(libs.plugins.foojay.resolver.convention))
     implementation(plugin(libs.plugins.dokka))
 }
+
+/**
+ * Helper function that transforms a Gradle Plugin alias from a
+ * Version Catalog into a valid dependency notation for buildSrc
+ * */
+fun plugin(plugin: Provider<PluginDependency>) =
+    plugin.map { "${it.pluginId}:${it.pluginId}.gradle.plugin:${it.version}" }

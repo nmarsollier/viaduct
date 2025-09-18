@@ -1,1 +1,0 @@
-// No content, exists only to be able to use helper functions defined in the project
