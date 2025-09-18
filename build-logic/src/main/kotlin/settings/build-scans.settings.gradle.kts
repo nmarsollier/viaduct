@@ -1,3 +1,5 @@
+package settings
+
 plugins {
     id("com.gradle.develocity")
 }

@@ -1,3 +1,5 @@
+package viaduct.gradle.internal
+
 import java.io.File
 import org.gradle.api.initialization.Settings
 

@@ -1,13 +1,14 @@
+import viaduct.gradle.internal.includeNamed
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
     }
-    includeBuild("../../build-logic-settings")
     includeBuild("../../build-logic")
 }
 
 plugins {
-    id("common")
+    id("settings.common")
 }
 
 rootProject.name = "viaduct-codegen"

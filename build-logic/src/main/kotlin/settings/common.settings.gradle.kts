@@ -1,3 +1,5 @@
+package settings
+
 pluginManagement {
     plugins {
         id("org.jetbrains.dokka")

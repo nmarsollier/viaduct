@@ -1,15 +1,16 @@
+import viaduct.gradle.internal.includeNamed
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
     }
-    includeBuild("build-logic-settings")
     includeBuild("build-logic")
     includeBuild("build-test-plugins")
 }
 
 plugins {
-    id("common")
-    id("build-scans")
+    id("settings.common")
+    id("settings.build-scans")
     kotlin("jvm") version "1.9.24" apply(false) // TODO: for some reason the dependency analysis plugin won't work without this...
                                                 //  should be bumped to the version embedded in the Gradle version used anyways
                                                 //  that is 2.0.21
