@@ -12,14 +12,14 @@ sourceSets {
         resources.setSrcDirs(emptyList<File>())
     }
     named("test") {
-        resources.srcDir("${rootDir}/tenant/runtime/src/integrationTest/resources")
+        resources.srcDir("$rootDir/tenant/runtime/src/integrationTest/resources")
     }
 }
 
 kotlin {
     sourceSets {
         val test by getting {
-            kotlin.srcDir("${rootDir}/tenant/runtime/src/integrationTest/kotlin")
+            kotlin.srcDir("$rootDir/tenant/runtime/src/integrationTest/kotlin")
         }
     }
 }
