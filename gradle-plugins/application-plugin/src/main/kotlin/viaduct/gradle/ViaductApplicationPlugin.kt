@@ -152,7 +152,7 @@ class ViaductApplicationPlugin : Plugin<Project> {
             }
 
         val generateGRTClassesTask = tasks.register<JavaExec>("generateViaductGRTClassFiles") {
-            group = "viaduct"
+            // No group: don't want this to appear in task list
             description = "Generate compiled GRT class files from the central schema."
 
             dependsOn(generateCentralSchemaTask)

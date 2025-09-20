@@ -118,7 +118,7 @@ There’s no practical reason to have the `AttributedGreeting` type here: `attri
 
 ### Extending the code
 
-After you make a schema change, in your application root directory (the one that applies the application plugin) you need to run `./gradlew generateViaductGRTs generateViaductResolverBases`.  This will regenerate the code needed to build your application.  (We're working to streamline this.)
+After you make a schema change, in your application root directory (the one that applies the application plugin) you need to run `./gradlew viaductCodegen`.  This will regenerate the code needed to build your application.
 
 Having done that, you need to write a resolver for our new field.  Actually, you could add it to `HelloWorldResolvers.kt`: resolvers for this application can be placed to any file as long it's in the `com.example.viadapp.resolvers` package.  To support copy-and-paste, create a file named `AttributedGreetingResolver.kt` (or whatever) in the same subdirectory as `HelloWorldResolvers.kt` and copy the following code into it:
 
