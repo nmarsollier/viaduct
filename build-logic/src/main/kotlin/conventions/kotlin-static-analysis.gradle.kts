@@ -1,4 +1,6 @@
-import buildlogic.repoRoot
+package conventions
+
+import viaduct.gradle.internal.repoRoot
 
 plugins {
     id("io.gitlab.arturbosch.detekt")
@@ -24,8 +26,8 @@ ktlint {
     filter {
         exclude { element ->
             element.file.path.contains("/generated-sources/") ||
-            element.file.path.contains("/build/generated/") ||
-            element.file.name.contains("SchemaObjects")
+                    element.file.path.contains("/build/generated/") ||
+                    element.file.name.contains("SchemaObjects")
         }
     }
 }

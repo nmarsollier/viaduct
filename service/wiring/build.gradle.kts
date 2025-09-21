@@ -1,8 +1,8 @@
-import buildlogic.repoRoot
+import viaduct.gradle.internal.repoRoot
 
 plugins {
-    id("kotlin-project")
-    id("dokka")
+    id("conventions.kotlin")
+    id("conventions.dokka")
 }
 
 viaductPublishing {

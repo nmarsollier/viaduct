@@ -1,12 +1,12 @@
-import buildlogic.repoRoot
+import viaduct.gradle.internal.repoRoot
 
 plugins {
     `java-library`
     `maven-publish`
     `java-test-fixtures`
-    id("kotlin-project")
-    id("kotlin-static-analysis")
-    id("dokka")
+    id("conventions.kotlin")
+    id("conventions.kotlin-static-analysis")
+    id("conventions.dokka")
 }
 
 viaductPublishing {

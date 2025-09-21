@@ -1,3 +1,5 @@
+package buildroot
+
 import java.util.Properties
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -6,7 +8,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 
 plugins { /* no-op plugin, just conventions */ }
@@ -103,10 +104,6 @@ if (gradle.parent == null) {
     // Extension to configure which demoapps to touch
     abstract class DemoappsSyncExtension {
         abstract val demoappDirs: ListProperty<String>
-    }
-
-    val demoappsSync = extensions.create<DemoappsSyncExtension>("demoappsSync").apply {
-        demoappDirs.convention(listOf("demoapps/cli-starter", "demoapps/starwars", "demoapps/spring-starter"))
     }
 
     // --- registrations (root only) ---
