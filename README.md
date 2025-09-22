@@ -75,3 +75,4 @@ information about reporting vulnerabilities.
 * JDK 11+, 64-bit
 
 * change 1
+* change 2
