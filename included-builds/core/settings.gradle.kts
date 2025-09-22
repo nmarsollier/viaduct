@@ -11,8 +11,6 @@ plugins {
     id("settings.common")
 }
 
-rootProject.name = "viaduct-core"
-
 // Include core modules
 includeNamed(":engine:api", "../..")
 includeNamed(":engine:runtime", "../..")
