@@ -87,7 +87,8 @@ class ViaductApplicationPlugin : Plugin<Project> {
             // The content is stable (no timestamps etc.).
             doLast {
                 val baseFile = centralSchemaDir.get().asFile.resolve(BUILTIN_SCHEMA_FILE)
-                baseFile.writeText(DefaultSchemaProvider.getSDL())
+                val allSchemaFiles = centralSchemaDir.get().asFileTree.matching { include("**/*.graphqls") }.files
+                baseFile.writeText(DefaultSchemaProvider.getDefaultSDL(existingSDLFiles = allSchemaFiles.toList()))
             }
         }
 
