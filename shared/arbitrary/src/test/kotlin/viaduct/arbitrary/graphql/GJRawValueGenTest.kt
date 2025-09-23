@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
+@file:Suppress("ForbiddenImport")
 
 package viaduct.arbitrary.graphql
 
@@ -20,8 +20,7 @@ import io.kotest.property.arbitrary.flatMap
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.set
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.KotestPropertyBase
 import viaduct.arbitrary.common.checkInvariants
@@ -62,8 +61,8 @@ class GJRawValueGenTest : KotestPropertyBase() {
         get() = (this as? RawScalar)?.typename
 
     @Test
-    fun `object values`() =
-        runBlockingTest {
+    fun `object values`(): Unit =
+        runBlocking {
             val inp = mkType<GraphQLInputObjectType>(
                 "Input",
                 "input Input { int: Int! str: String! }"
@@ -88,8 +87,8 @@ class GJRawValueGenTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `enull and inull`() =
-        runBlockingTest {
+    fun `enull and inull`(): Unit =
+        runBlocking {
             val inp = mkType<GraphQLInputObjectType>(
                 "Input",
                 """
@@ -131,8 +130,8 @@ class GJRawValueGenTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `non-null values`() =
-        runBlockingTest {
+    fun `non-null values`(): Unit =
+        runBlocking {
             val inp = mkType<GraphQLInputObjectType>(
                 "Input",
                 """

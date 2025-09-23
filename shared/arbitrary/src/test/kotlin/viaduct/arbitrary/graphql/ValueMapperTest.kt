@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
+@file:Suppress("ForbiddenImport")
 
 package viaduct.arbitrary.graphql
 
@@ -19,8 +19,7 @@ import io.kotest.property.exhaustive.boolean
 import io.kotest.property.exhaustive.exhaustive
 import io.kotest.property.forAll
 import java.math.BigDecimal
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -52,7 +51,7 @@ class ValueMapperTest : KotestPropertyBase() {
         val gjKotlinRoundtripper = RawToKotlin.map(GJKotlinToRaw(resolver))
 
         init {
-            runBlockingTest { fn() }
+            runBlocking { fn() }
         }
 
         fun roundtrips(
@@ -91,7 +90,7 @@ class ValueMapperTest : KotestPropertyBase() {
     @Test
     fun `roundtrip int scalar`() {
         Fixture {
-            runBlockingTest {
+            runBlocking {
                 Arb.int().forAll { int ->
                     roundtrips("Int", int.scalar)
                 }
@@ -102,7 +101,7 @@ class ValueMapperTest : KotestPropertyBase() {
     @Test
     fun `roundtrip boolean scalar`() {
         Fixture {
-            runBlockingTest {
+            runBlocking {
                 Exhaustive.boolean().forAll { bool ->
                     roundtrips("Boolean", bool.scalar)
                 }
