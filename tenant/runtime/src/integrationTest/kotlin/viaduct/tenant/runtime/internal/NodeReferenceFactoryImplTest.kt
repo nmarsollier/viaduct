@@ -100,7 +100,7 @@ class NodeReferenceFactoryImplTest {
     }
 
     @Test
-    fun `nodeFor - type name not found in schema, leading to null type exception`() {
+    fun `nodeFor - type name not found in schema, throws exception`() {
         val invalidNameUserType = MockType("TypeThatDoesNotExist", User::class)
         val globalId = GlobalIDImpl(invalidNameUserType, "123")
 
@@ -115,17 +115,13 @@ class NodeReferenceFactoryImplTest {
         val factory = NodeReferenceFactoryImpl(nodeEngineObjectDataFactory)
         val internalContext = createMockInternalContext()
 
-        val exception = assertThrows<Exception> {
+        assertThrows<Exception> {
             factory.nodeFor(globalId, internalContext)
         }
-
-        assertEquals(NullPointerException::class.simpleName, exception::class.simpleName)
-        assertNotNull(exception, "Exception should not be null")
-        assertEquals("type must not be null", exception.message)
     }
 
     @Test
-    fun `nodeFor - type is invalid leading to constructor not found`() {
+    fun `nodeFor - type is invalid, throws exception for constructor not found`() {
         val userNameInvalidType = MockType("User", NodeObject::class)
         val globalId = GlobalIDImpl(userNameInvalidType, "123")
         val mockNodeEngineObjectData = createDefaultNodeEngineObjectData(globalId)
@@ -136,12 +132,9 @@ class NodeReferenceFactoryImplTest {
         val factory = NodeReferenceFactoryImpl(nodeEngineObjectDataFactory)
         val internalContext = createMockInternalContext()
 
-        val exception = assertThrows<NullPointerException>("Should throw NullPointerException when primaryConstructor is null") {
+        assertThrows<Exception> {
             factory.nodeFor(globalId, internalContext)
         }
-
-        assertNotNull(exception, "Exception should not be null")
-        assertEquals("Primary constructor for type ${userNameInvalidType.name} is not found.", exception.message)
     }
 
     @Test

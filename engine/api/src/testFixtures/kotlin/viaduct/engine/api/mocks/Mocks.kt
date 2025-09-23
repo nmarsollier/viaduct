@@ -12,6 +12,7 @@ import graphql.schema.GraphQLList
 import graphql.schema.GraphQLNonNull
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLOutputType
+import graphql.schema.GraphQLType
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -32,11 +33,13 @@ import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.api.ResolvedEngineObjectData
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
+import viaduct.engine.api.mocks.MockEngineObjectData.Companion.maybeWrap
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.DispatcherRegistry
@@ -373,6 +376,35 @@ class MockTenantModuleBootstrapper(
     }
 }
 
+fun mkEngineObjectData(
+    graphQLObjectType: GraphQLObjectType,
+    data: Map<String, Any?>,
+): ResolvedEngineObjectData {
+    fun cvt(
+        type: GraphQLType,
+        value: Any?
+    ): Any? =
+        when (type) {
+            is GraphQLNonNull -> cvt(type.wrappedType as GraphQLOutputType, value)
+            is GraphQLList -> (value as List<*>?)?.map {
+                cvt(type.wrappedType as GraphQLOutputType, it)
+            }
+            is GraphQLObjectType -> (value as Map<String, Any?>?)?.let { mkEngineObjectData(type, it) }
+            is GraphQLCompositeType -> throw IllegalArgumentException("don't know how to wrap type $type with value $value")
+            else -> value
+        }
+
+    return ResolvedEngineObjectData
+        .Builder(graphQLObjectType)
+        .apply {
+            data.forEach { (fname, value) ->
+                val cvtValue = cvt(graphQLObjectType.getFieldDefinition(fname).type, value)
+                put(fname, cvtValue)
+            }
+        }.build()
+}
+
+@Deprecated("Use mkEngineObjectData insetad (we don't need to fake this class)")
 data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectType, val data: Map<String, Any?>) : EngineObjectData {
     override suspend fun fetch(selection: String): Any? = data[selection]
 

@@ -24,6 +24,9 @@ class ResolvedEngineObjectData private constructor(
         return data[selection]
     }
 
+    // internal for testing
+    internal fun selectionsThatAreSet(): Set<String> = data.keys
+
     class Builder(override val graphQLObjectType: GraphQLObjectType) : EngineObjectDataBuilder {
         private val data = mutableMapOf<String, Any?>()
 
