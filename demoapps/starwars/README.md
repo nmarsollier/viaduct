@@ -25,7 +25,7 @@ The server will start on `http://localhost:8080`.
 
 ### 2. Access GraphiQL
 
-Open your browser and go to [http://localhost:8080/graphiql](http://localhost:8080/graphiql).
+Open your browser and go to [http://localhost:8080/graphiql](http://localhost:8080/graphiql)
 
 ### 3. Try Example Queries
 
