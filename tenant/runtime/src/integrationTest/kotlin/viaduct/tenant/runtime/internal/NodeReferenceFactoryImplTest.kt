@@ -1,3 +1,5 @@
+@file:Suppress("ForbiddenImport")
+
 package viaduct.tenant.runtime.internal
 
 import graphql.schema.GraphQLObjectType
@@ -5,7 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import javax.inject.Provider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -32,8 +34,8 @@ import viaduct.tenant.runtime.globalid.User
 @OptIn(ExperimentalCoroutinesApi::class)
 class NodeReferenceFactoryImplTest {
     @Test
-    fun `nodeFor returns a Node Reference`() =
-        runBlockingTest {
+    fun `nodeFor returns a Node Reference`(): Unit =
+        runBlocking {
             val nodeResolverRegistryProvider = mockk<Provider<NodeResolverDispatcherRegistry>>()
             val nodeCheckerRegistryProvider = mockk<Provider<TypeCheckerDispatcherRegistry>>()
             every { nodeResolverRegistryProvider.get() } returns mockk()
@@ -150,7 +152,7 @@ class NodeReferenceFactoryImplTest {
 
         val user = factory.nodeFor(globalId, internalContext)
 
-        runBlockingTest {
+        runBlocking {
             val userInternalId = (user.getId() as MockGlobalID<User>).internalID
             assertEquals(internalId, userInternalId)
         }

@@ -1,8 +1,10 @@
+@file:Suppress("ForbiddenImport")
+
 package viaduct.engine.api
 
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotSame
@@ -27,7 +29,7 @@ class VariablesResolverTest {
         expected: VariablesResolver,
         actual: VariablesResolver,
         arguments: Map<String, Any?> = emptyMap()
-    ) = runBlockingTest {
+    ) = runBlocking {
         assertEquals(expected.variableNames, actual.variableNames)
         assertEquals(
             expected.resolve(mkResolverCtx(objectData, arguments)),
@@ -39,7 +41,7 @@ class VariablesResolverTest {
         expected: List<VariablesResolver>,
         actual: List<VariablesResolver>,
         arguments: Map<String, Any?> = emptyMap()
-    ) = runBlockingTest {
+    ) = runBlocking {
         val expMap = expected.toMap()
         val actMap = actual.toMap()
         assertEquals(expMap.keys, actMap.keys)
@@ -65,14 +67,14 @@ class VariablesResolverTest {
     }
 
     @Test
-    fun `validated -- empty`() =
-        runBlockingTest {
+    fun `validated -- empty`(): Unit =
+        runBlocking {
             assertSame(VariablesResolver.Empty, VariablesResolver.Empty.validated())
         }
 
     @Test
-    fun `validated -- resolve`() =
-        runBlockingTest {
+    fun `validated -- resolve`(): Unit =
+        runBlocking {
             val vr = MockVariablesResolver("a") { mapOf("b" to 1) }
 
             // sanity
@@ -87,8 +89,8 @@ class VariablesResolverTest {
         }
 
     @Test
-    fun `validated -- null value`() =
-        runBlockingTest {
+    fun `validated -- null value`(): Unit =
+        runBlocking {
             val vr = VariablesResolver.const(mapOf("a" to null))
             assertEquals(
                 mapOf("a" to null),
@@ -259,8 +261,8 @@ class VariablesResolverTest {
     }
 
     @Test
-    fun `VariablesResolver -- variableNames`() =
-        runBlockingTest {
+    fun `VariablesResolver -- variableNames`(): Unit =
+        runBlocking {
             // empty
             assertEquals(emptySet<String>(), emptyList<VariablesResolver>().variableNames)
 
@@ -272,8 +274,8 @@ class VariablesResolverTest {
         }
 
     @Test
-    fun `VariablesResolver -- resolve`() =
-        runBlockingTest {
+    fun `VariablesResolver -- resolve`(): Unit =
+        runBlocking {
             // empty
             assertEquals(
                 emptyMap<String, Any?>(),

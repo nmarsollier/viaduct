@@ -1,9 +1,9 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("ForbiddenImport", "DEPRECATION")
 
 package viaduct.demoapp.starwars
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -26,8 +26,8 @@ class StarshipResolversUnitTests : DefaultAbstractResolverTestBase() {
     private fun queryObj() = viaduct.api.grts.Query.Builder(context).build()
 
     @Test
-    fun `AllStarshipsResolver returns default page size when limit is not provided`() =
-        runBlockingTest {
+    fun `AllStarshipsResolver returns default page size when limit is not provided`(): Unit =
+        runBlocking {
             val resolver = AllStarshipsResolver()
             val args = Query_AllStarships_Arguments.Builder(context).build()
 
@@ -43,8 +43,8 @@ class StarshipResolversUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `AllStarshipsResolver respects custom limit and maps fields`() =
-        runBlockingTest {
+    fun `AllStarshipsResolver respects custom limit and maps fields`(): Unit =
+        runBlocking {
             val resolver = AllStarshipsResolver()
             val limit = 2
             val args = Query_AllStarships_Arguments.Builder(context).limit(limit).build()
@@ -64,8 +64,8 @@ class StarshipResolversUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `starship by id returns the correct Starship using node resolver`() =
-        runBlockingTest {
+    fun `starship by id returns the correct Starship using node resolver`(): Unit =
+        runBlocking {
             val resolver = StarshipNodeResolver()
             val starshipId = "1" // Millennium Falcon ID
 
@@ -78,8 +78,8 @@ class StarshipResolversUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `starship by id returns the correct X-wing using node resolver`() =
-        runBlockingTest {
+    fun `starship by id returns the correct X-wing using node resolver`(): Unit =
+        runBlocking {
             val resolver = StarshipNodeResolver()
             val starshipId = "2" // X-wing ID
 

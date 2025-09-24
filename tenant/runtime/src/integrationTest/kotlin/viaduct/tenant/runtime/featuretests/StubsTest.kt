@@ -1,7 +1,9 @@
+@file:Suppress("ForbiddenImport")
+
 package viaduct.tenant.runtime.featuretests
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -27,8 +29,8 @@ class ObjectStubTest {
         }
 
     @Test
-    fun `get`() =
-        runBlockingTest {
+    fun `get`(): Unit =
+        runBlocking {
             // missing
             mk("extend type Query { x: Int }").apply {
                 assertNull(get<Int?>("x"))

@@ -1,9 +1,9 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("ForbiddenImport", "DEPRECATION")
 
 package viaduct.demoapp.starwars
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertIterableEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -37,8 +37,8 @@ class SpeciesExtrasResolverUnitTests : DefaultAbstractResolverTestBase() {
             .build()
 
     @Test
-    fun `SpeciesCulturalNotesResolver returns cultural notes from extrasData`() =
-        runBlockingTest {
+    fun `SpeciesCulturalNotesResolver returns cultural notes from extrasData`(): Unit =
+        runBlocking {
             val ref = StarWarsData.species.first()
             val resolver = SpeciesCulturalNotesResolver()
 
@@ -51,8 +51,8 @@ class SpeciesExtrasResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `SpeciesRarityLevelResolver returns rarity level from extrasData`() =
-        runBlockingTest {
+    fun `SpeciesRarityLevelResolver returns rarity level from extrasData`(): Unit =
+        runBlocking {
             val ref = StarWarsData.species.first()
             val resolver = SpeciesRarityLevelResolver()
 
@@ -65,8 +65,8 @@ class SpeciesExtrasResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `SpeciesSpecialAbilitiesResolver returns abilities list from extrasData`() =
-        runBlockingTest {
+    fun `SpeciesSpecialAbilitiesResolver returns abilities list from extrasData`(): Unit =
+        runBlocking {
             val ref = StarWarsData.species.first()
             val resolver = SpeciesSpecialAbilitiesResolver()
 
@@ -83,8 +83,8 @@ class SpeciesExtrasResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `SpeciesTechnologicalLevelResolver returns tech level from extrasData`() =
-        runBlockingTest {
+    fun `SpeciesTechnologicalLevelResolver returns tech level from extrasData`(): Unit =
+        runBlocking {
             val ref = StarWarsData.species.first()
             val resolver = SpeciesTechnologicalLevelResolver()
 
@@ -97,8 +97,8 @@ class SpeciesExtrasResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `resolvers return null when species id not found`() =
-        runBlockingTest {
+    fun `resolvers return null when species id not found`(): Unit =
+        runBlocking {
             val fakeId = "non-existent-id-123"
             val grt = speciesGrtForId(fakeId)
 

@@ -1,9 +1,11 @@
+@file:Suppress("ForbiddenImport")
+
 package viaduct.service.runtime
 
 import com.google.common.net.UrlEscapers
 import java.util.Base64
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
@@ -334,7 +336,7 @@ class ViaductNodeResolversTest {
                 selections = null
             )
 
-            runBlockingTest {
+            runBlocking {
                 val mockContext = MOCK_TENANT_MODULE_BOOTSTRAPPER.contextMocks.engineExecutionContext
                 val result = fieldResolver.batchResolve(listOf(mockSelector), mockContext)
                 val error = result[mockSelector]?.exceptionOrNull()
@@ -353,7 +355,7 @@ class ViaductNodeResolversTest {
                 selections = null
             )
 
-            runBlockingTest {
+            runBlocking {
                 val mockContext = MOCK_TENANT_MODULE_BOOTSTRAPPER.contextMocks.engineExecutionContext
                 val result = fieldResolver.batchResolve(listOf(mockSelector), mockContext)
                 val error = result[mockSelector]?.exceptionOrNull()

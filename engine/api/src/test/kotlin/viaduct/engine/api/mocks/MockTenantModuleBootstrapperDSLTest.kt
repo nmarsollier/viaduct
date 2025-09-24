@@ -1,9 +1,8 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
+@file:Suppress("ForbiddenImport")
 
 package viaduct.engine.api.mocks
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -118,7 +117,7 @@ class MockTenantModuleBootstrapperDSLTest {
         assertTrue(module.checkerExecutors.containsKey(Coordinate("TestType", "cField")))
 
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
-        runBlockingTest {
+        runBlocking {
             val result1 = reg.getFieldCheckerDispatcher("TestType", "aField")!!.execute(emptyArgs, emptyObjectMap, ctx)
             assertEquals(CheckerResult.Success, result1)
 
@@ -183,7 +182,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
         val testObject = MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestType"), emptyMap())
         val testQuery = MockEngineObjectData(Samples.testSchema.schema.getObjectType("Query"), emptyMap())
-        runBlockingTest {
+        runBlocking {
             val result = reg.getFieldResolverDispatcher("TestType", "aField")!!.resolve(
                 emptyArgs,
                 testObject,
@@ -219,7 +218,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
         val testObject = MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestType"), emptyMap())
         val testQuery = MockEngineObjectData(Samples.testSchema.schema.getObjectType("Query"), emptyMap())
-        runBlockingTest {
+        runBlocking {
             val result = reg.getFieldResolverDispatcher("TestType", "aField")!!.resolve(
                 mapOf("input" to "test-input"),
                 testObject,
@@ -373,7 +372,7 @@ class MockTenantModuleBootstrapperDSLTest {
 
         // Execute the node resolver and verify it works
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
-        runBlockingTest {
+        runBlocking {
             val selectionSet = ctx.rawSelectionSetFactory.rawSelectionSet("TestNode", "id", emptyMap())
             val result = reg.getNodeResolverDispatcher("TestNode")!!.resolve("test-id", selectionSet, ctx)
             assertEquals("test-id", result.fetch("id"))
@@ -404,7 +403,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
         val testObject = MockEngineObjectData(Samples.testSchema.schema.getObjectType("TestType"), emptyMap())
         val testQuery = MockEngineObjectData(Samples.testSchema.schema.getObjectType("Query"), emptyMap())
-        runBlockingTest {
+        runBlocking {
             val result = reg.getFieldResolverDispatcher("TestType", "aField")!!.resolve(
                 emptyArgs,
                 testObject,

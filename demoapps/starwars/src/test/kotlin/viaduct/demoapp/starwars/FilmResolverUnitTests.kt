@@ -1,9 +1,9 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("ForbiddenImport", "DEPRECATION")
 
 package viaduct.demoapp.starwars
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import viaduct.api.grts.Film
@@ -27,8 +27,8 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
     }
 
     @Test
-    fun `FilmDisplayTitleResolver returns title`() =
-        runBlockingTest {
+    fun `FilmDisplayTitleResolver returns title`(): Unit =
+        runBlocking {
             val resolver = FilmDisplayTitleResolver()
 
             val result = runFieldResolver(
@@ -42,8 +42,8 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `FilmSummaryResolver formats episode title and director`() =
-        runBlockingTest {
+    fun `FilmSummaryResolver formats episode title and director`(): Unit =
+        runBlocking {
             val resolver = FilmSummaryResolver()
 
             val result = runFieldResolver(
@@ -59,8 +59,8 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `FilmProductionDetailsResolver formats release director and producers`() =
-        runBlockingTest {
+    fun `FilmProductionDetailsResolver formats release director and producers`(): Unit =
+        runBlocking {
             val resolver = FilmProductionDetailsResolver()
 
             val result = runFieldResolver(
@@ -80,8 +80,8 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `FilmProductionDetailsResolver handles missing producers gracefully`() =
-        runBlockingTest {
+    fun `FilmProductionDetailsResolver handles missing producers gracefully`(): Unit =
+        runBlocking {
             val resolver = FilmProductionDetailsResolver()
 
             val result = runFieldResolver(
@@ -101,8 +101,8 @@ class FilmResolverUnitTests : DefaultAbstractResolverTestBase() {
         }
 
     @Test
-    fun `FilmCharacterCountSummaryResolver counts characters`() =
-        runBlockingTest {
+    fun `FilmCharacterCountSummaryResolver counts characters`(): Unit =
+        runBlocking {
             val resolver = FilmCharacterCountSummaryResolver()
 
             val result = runFieldResolver(

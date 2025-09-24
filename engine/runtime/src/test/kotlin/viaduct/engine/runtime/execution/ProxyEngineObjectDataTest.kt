@@ -1,9 +1,11 @@
+@file:Suppress("ForbiddenImport")
+
 package viaduct.engine.runtime.execution
 
 import graphql.validation.ValidationError
 import kotlin.test.assertContains
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
@@ -107,7 +109,7 @@ class ProxyEngineObjectDataTest {
         }
 
         init {
-            runBlockingTest {
+            runBlocking {
                 test()
             }
         }
