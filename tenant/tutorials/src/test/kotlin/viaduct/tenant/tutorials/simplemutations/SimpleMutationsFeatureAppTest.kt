@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.simplemutations
+package viaduct.tenant.tutorials.simplemutations
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.simplemutations.resolverbases.MutationResolvers
-import viaduct.tenant.runtime.tutorials.simplemutations.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.simplemutations.resolverbases.MutationResolvers
+import viaduct.tenant.tutorials.simplemutations.resolverbases.QueryResolvers
 
 /**
  * Demonstrates basic GraphQL mutations in Viaduct with best practices.

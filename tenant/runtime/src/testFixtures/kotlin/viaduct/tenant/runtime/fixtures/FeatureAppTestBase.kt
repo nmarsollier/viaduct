@@ -69,8 +69,7 @@ abstract class FeatureAppTestBase {
     private val injector: Injector by lazy { Guice.createInjector() }
     private val guiceTenantCodeInjector by lazy { GuiceTenantCodeInjector(injector) }
     private val flagManager = MockFlagManager()
-    @Suppress("VariableNaming")
-    private val DEFAULT_SCOPE_ID = "public"
+    private val defaultScopeId = "public"
 
     // GlobalID codec for creating GlobalID strings in tests
     private val globalIdCodec by lazy {
@@ -91,7 +90,7 @@ abstract class FeatureAppTestBase {
         grtPackagePrefix = derivedClassPackagePrefix
     )
 
-    internal val viaductTenantAPIBootstrapperBuilder =
+    protected val viaductTenantAPIBootstrapperBuilder =
         ViaductTenantAPIBootstrapper.Builder()
             .tenantCodeInjector(guiceTenantCodeInjector)
             .tenantResolverClassFinderFactory(tenantResolverClassFinderFactory)
@@ -114,7 +113,7 @@ abstract class FeatureAppTestBase {
         if (!::viaductSchemaRegistryBuilder.isInitialized) {
             viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
                 .withFullSchemaFromSdl(sdl, customScalars.toList())
-                .registerFullSchema(DEFAULT_SCOPE_ID)
+                .registerFullSchema(defaultScopeId)
         }
         if (!::viaductBuilder.isInitialized) {
             viaductBuilder = ViaductBuilder()
@@ -160,7 +159,7 @@ abstract class FeatureAppTestBase {
     protected fun execute(
         query: String,
         variables: Map<String, Any?> = mapOf(),
-        scopeId: String = DEFAULT_SCOPE_ID
+        scopeId: String = defaultScopeId
     ): ExecutionResult {
         return runBlocking {
             tryBuildViaductService()
@@ -178,13 +177,12 @@ abstract class FeatureAppTestBase {
     /**
      * Attempts to build the [StandardViaduct] instance if it has not been initialized yet.
      */
-    @Suppress("TooGenericExceptionCaught")
     protected fun tryBuildViaductService() {
         if (!::viaductService.isInitialized) {
             try {
                 viaductService = viaductBuilder.build()
-            } catch (t: Throwable) {
-                throw RuntimeException("Failed to build Viaduct service", t)
+            } catch (exception: Exception) {
+                throw RuntimeException("Failed to build Viaduct service", exception)
             }
         }
     }

@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.variablesdirective
+package viaduct.tenant.tutorials.variablesdirective
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
@@ -11,8 +11,8 @@ import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.variablesdirective.resolverbases.QueryResolvers
-import viaduct.tenant.runtime.tutorials.variablesdirective.resolverbases.UserResolvers
+import viaduct.tenant.tutorials.variablesdirective.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.variablesdirective.resolverbases.UserResolvers
 
 /**
  * Demonstrates Viaduct's ability to use variables to control GraphQL directives

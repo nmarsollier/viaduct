@@ -1,12 +1,12 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.simplescopes
+package viaduct.tenant.tutorials.simplescopes
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.simplescopes.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.simplescopes.resolverbases.QueryResolvers
 
 /**
  * Demonstrates Viaduct's Scopes feature for API security and organization.

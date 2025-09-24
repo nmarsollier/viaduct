@@ -44,4 +44,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.strikt.core)
     testImplementation(libs.micrometer.core)
+    testImplementation(testFixtures(libs.viaduct.tenant.runtime))
 }

@@ -1,14 +1,14 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.simpleresolvers
+package viaduct.tenant.tutorials.simpleresolvers
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.graphql.test.hasError
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.simpleresolvers.resolverbases.QueryResolvers
-import viaduct.tenant.runtime.tutorials.simpleresolvers.resolverbases.UserResolvers
+import viaduct.tenant.tutorials.simpleresolvers.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.simpleresolvers.resolverbases.UserResolvers
 
 /**
  * Demonstrates Node Resolvers and Field Resolvers working together.

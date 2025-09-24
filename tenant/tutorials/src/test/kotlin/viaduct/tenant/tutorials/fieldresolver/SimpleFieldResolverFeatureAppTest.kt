@@ -1,12 +1,12 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.fieldresolver
+package viaduct.tenant.tutorials.fieldresolver
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.fieldresolver.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.fieldresolver.resolverbases.QueryResolvers
 
 /**
  * Demonstrates the simplest Viaduct resolver - a Field Resolver.

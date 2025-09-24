@@ -1,13 +1,13 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.noderesolver
+package viaduct.tenant.tutorials.noderesolver
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.graphql.test.hasError
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.noderesolver.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.noderesolver.resolverbases.QueryResolvers
 
 /**
  * Demonstrates Viaduct's Node Resolver system for object resolution by GlobalID.

@@ -22,6 +22,7 @@ import viaduct.service.runtime.StandardViaduct
  * e.g. see `ViaductModernEndToEndTests`
  *
  * Usage:
+ *
  * ```kotlin
  *    FeatureTestBuilder()
  *      .sdl(<schema>)

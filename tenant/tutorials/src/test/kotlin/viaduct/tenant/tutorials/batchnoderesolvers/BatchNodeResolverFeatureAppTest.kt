@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.batchnoderesolvers
+package viaduct.tenant.tutorials.batchnoderesolvers
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.assertEquals as kotlinAssertEquals
@@ -11,7 +11,7 @@ import viaduct.api.FieldValue
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.batchnoderesolvers.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.batchnoderesolvers.resolverbases.QueryResolvers
 
 /**
  * Demonstrates Viaduct's Batch Node Resolver feature for efficient object loading.

@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.variablesforarguments
+package viaduct.tenant.tutorials.variablesforarguments
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
@@ -11,7 +11,7 @@ import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.variablesforarguments.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.variablesforarguments.resolverbases.QueryResolvers
 
 /**
  * Demonstrates Viaduct's powerful ability to use variables to control what arguments to give

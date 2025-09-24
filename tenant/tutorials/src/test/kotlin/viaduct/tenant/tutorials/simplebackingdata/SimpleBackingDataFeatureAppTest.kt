@@ -1,13 +1,13 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.runtime.tutorials.simplebackingdata
+package viaduct.tenant.tutorials.simplebackingdata
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.runtime.tutorials.simplebackingdata.resolverbases.QueryResolvers
-import viaduct.tenant.runtime.tutorials.simplebackingdata.resolverbases.UserResolvers
+import viaduct.tenant.tutorials.simplebackingdata.resolverbases.QueryResolvers
+import viaduct.tenant.tutorials.simplebackingdata.resolverbases.UserResolvers
 
 /**
  * Demonstrates Viaduct's Backing Data feature for efficient data fetching.

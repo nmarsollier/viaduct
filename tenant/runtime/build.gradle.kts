@@ -27,6 +27,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core.jvm)
 
     testFixturesImplementation(libs.viaduct.engine.api)
+    testFixturesImplementation(testFixtures(libs.viaduct.service.api))
+    testFixturesImplementation(libs.viaduct.service.runtime)
+    testFixturesImplementation(libs.viaduct.service.wiring)
+    testFixturesImplementation(libs.slf4j.api)
     testFixturesImplementation(libs.viaduct.engine.runtime)
     testFixturesImplementation(libs.viaduct.service.api)
     testFixturesImplementation(libs.viaduct.tenant.api)
@@ -35,7 +39,8 @@ dependencies {
     testFixturesImplementation(libs.io.mockk.jvm)
     testFixturesImplementation(libs.kotlin.reflect)
     testFixturesImplementation(libs.kotlinx.coroutines.core)
-
+    testFixturesImplementation(libs.kotlinx.coroutines.jdk8)
+    testFixturesImplementation(libs.kotlinx.coroutines.test)
     testImplementation(testFixtures(libs.viaduct.engine.api))
     testImplementation(testFixtures(libs.viaduct.service.api))
     testImplementation(testFixtures(libs.viaduct.shared.graphql))
