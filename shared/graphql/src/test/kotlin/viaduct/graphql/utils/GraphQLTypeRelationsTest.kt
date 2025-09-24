@@ -1,4 +1,4 @@
-package viaduct.utils.graphql
+package viaduct.graphql.utils
 
 import graphql.schema.GraphQLCompositeType
 import graphql.schema.GraphQLObjectType
@@ -86,7 +86,7 @@ class GraphQLTypeRelationsTest : Assertions() {
     }
 
     @Test
-    fun `identity`() {
+    fun identity() {
         val f =
             Fixture(
                 """

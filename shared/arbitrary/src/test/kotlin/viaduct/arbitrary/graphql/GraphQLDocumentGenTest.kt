@@ -18,7 +18,6 @@ import graphql.language.VariableDefinition
 import graphql.language.VariableReference
 import graphql.schema.GraphQLSchema
 import graphql.validation.ValidationError
-import io.kotest.assertions.print.print
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.int
@@ -26,6 +25,7 @@ import io.kotest.property.arbitrary.take
 import io.kotest.property.assume
 import io.kotest.property.checkAll
 import io.kotest.property.forAll
+import kotlin.math.sqrt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -35,9 +35,9 @@ import viaduct.arbitrary.common.CompoundingWeight
 import viaduct.arbitrary.common.Config
 import viaduct.arbitrary.common.KotestPropertyBase
 import viaduct.arbitrary.common.minViolation
-import viaduct.utils.graphql.GraphQLTypeRelations
-import viaduct.utils.graphql.allChildren
-import viaduct.utils.graphql.allChildrenOfType
+import viaduct.graphql.utils.GraphQLTypeRelations
+import viaduct.graphql.utils.allChildren
+import viaduct.graphql.utils.allChildrenOfType
 
 // a baseline iteration count. Individual tests may scale this up or down depending on their relative speed.
 private const val iterCount = 5_000
@@ -146,7 +146,7 @@ class GraphQLDocumentGenTest : KotestPropertyBase() {
 
         // our test matrix is N schemas by M documents. To get good coverage while being in
         // the ballpark of `iterCount`, let's use a square root value for each M/N dimension
-        val iter = Math.sqrt(iterCount.toDouble()).toInt()
+        val iter = sqrt(iterCount.toDouble()).toInt()
 
         Arb.graphQLSchema(cfg)
             .take(iter, randomSource)
@@ -299,7 +299,7 @@ class GraphQLDocumentGenTest : KotestPropertyBase() {
             mkConfig(anonymousOperationWeight = 0.0).let { cfg ->
                 Arb.graphQLDocument(schema, cfg).forAll {
                     val operations = it.getDefinitionsOfType(OperationDefinition::class.java)
-                    operations.size > 0 && operations.all { it.name != null }
+                    operations.isNotEmpty() && operations.all { op -> op.name != null }
                 }
             }
 
@@ -319,14 +319,14 @@ class GraphQLDocumentGenTest : KotestPropertyBase() {
             // disabled
             mkConfig(directiveWeight = CompoundingWeight.Never).let { cfg ->
                 Arb.graphQLDocument(schema, cfg).forAll {
-                    it.allChildrenOfType<DirectivesContainer<*>>().all { it.directives.isEmpty() }
+                    it.allChildrenOfType<DirectivesContainer<*>>().all { child -> child.directives.isEmpty() }
                 }
             }
 
             // enabled
             mkConfig(directiveWeight = CompoundingWeight.Once).let { cfg ->
                 Arb.graphQLDocument(schema, cfg).forAll {
-                    it.allChildrenOfType<DirectivesContainer<*>>().all { it.directives.isNotEmpty() }
+                    it.allChildrenOfType<DirectivesContainer<*>>().all { child -> child.directives.isNotEmpty() }
                 }
             }
         }

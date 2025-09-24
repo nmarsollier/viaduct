@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.CompoundingWeight
 import viaduct.arbitrary.common.KotestPropertyBase
-import viaduct.utils.graphql.allChildrenOfType
+import viaduct.graphql.utils.allChildrenOfType
 
 class UtilTest : KotestPropertyBase() {
     @Test
@@ -100,7 +100,7 @@ class UtilTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `filterNotNull`(): Unit =
+    fun filterNotNull(): Unit =
         runBlocking {
             val range = 0..100
             Arb.int(range)
@@ -110,7 +110,7 @@ class UtilTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `zip`(): Unit =
+    fun zip(): Unit =
         runBlocking {
             Arb.pair(Arb.int(), Arb.string())
                 .flatMap { (int, string) ->
@@ -123,7 +123,7 @@ class UtilTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `weightedChoose`(): Unit =
+    fun weightedChoose(): Unit =
         runBlocking {
             val weighted = Arb.constant(true)
             val fallback = Arb.constant(false)
@@ -138,10 +138,10 @@ class UtilTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `Arb_unit`(): Unit = runBlocking { Arb.unit().forAll { it == Unit } }
+    fun `Arb unit`(): Unit = runBlocking { Arb.unit().forAll { it == Unit } }
 
     @Test
-    fun `collect`(): Unit =
+    fun collect(): Unit =
         runBlocking {
             listOf(Arb.int(), Arb.string(), Arb.char())
                 .collect()
@@ -151,7 +151,7 @@ class UtilTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `RandomSource_sampleWeight`(): Unit =
+    fun `RandomSource sampleWeight`(): Unit =
         runBlocking {
             // always true
             arbitrary { rs -> rs.sampleWeight(1.0) }
@@ -163,7 +163,7 @@ class UtilTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `RandomSource_count`(): Unit =
+    fun `RandomSource count`(): Unit =
         runBlocking {
             arbitrary { rs -> rs.count(CompoundingWeight.Never) }
                 .forAll { it == 0 }
@@ -226,13 +226,13 @@ class UtilTest : KotestPropertyBase() {
     }
 
     @Test
-    fun `String_asSchema`() {
+    fun `String asSchema`() {
         val schema = "type Query { x:Int }".asSchema
         assertNotNull(schema.queryType.getField("x"))
     }
 
     @Test
-    fun `String_asDocument`() {
+    fun `String asDocument`() {
         val sdl = "type Query {x: Int}"
         assertEquals(sdl, AstPrinter.printAstCompact(sdl.asDocument))
     }

@@ -1,4 +1,4 @@
-package viaduct.utils.graphql
+package viaduct.graphql.utils
 
 import graphql.language.Node
 import graphql.schema.GraphQLNamedSchemaElement

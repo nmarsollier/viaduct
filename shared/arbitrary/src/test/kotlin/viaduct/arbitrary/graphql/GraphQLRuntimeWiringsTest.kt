@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.CompoundingWeight
 import viaduct.arbitrary.common.Config
 import viaduct.arbitrary.common.KotestPropertyBase
-import viaduct.utils.graphql.allChildrenOfType
+import viaduct.graphql.utils.allChildrenOfType
 
 @ExperimentalCoroutinesApi
 class GraphQLRuntimeWiringsTest : KotestPropertyBase() {
@@ -62,7 +62,7 @@ class GraphQLRuntimeWiringsTest : KotestPropertyBase() {
 
             Arb.graphQLDocument(schema, cfg)
                 // require that queries select an interesting field
-                .filter { it.allChildrenOfType<Field>().any { it.name == "x" } }
+                .filter { it.allChildrenOfType<Field>().any { child -> child.name == "x" } }
                 .flatMap { doc ->
                     arbitrary { rs ->
                         Arb.long()
@@ -221,7 +221,7 @@ class GraphQLRuntimeWiringsTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `NullNonNullableWeight`(): Unit =
+    fun NullNonNullableWeight(): Unit =
         runBlocking {
             val sdl = "type Query { x:Int! }"
             val doc = "{x}".asDocument
@@ -253,7 +253,7 @@ class GraphQLRuntimeWiringsTest : KotestPropertyBase() {
 
     @Test
     @Suppress("UNCHECKED_CAST")
-    fun `ExplicitNullValueWeight`(): Unit =
+    fun ExplicitNullValueWeight(): Unit =
         runBlocking {
             val sdl = "type Query { x:Int }"
             val doc = "{x}".asDocument
@@ -287,7 +287,7 @@ class GraphQLRuntimeWiringsTest : KotestPropertyBase() {
 
     @Test
     @Suppress("UNCHECKED_CAST")
-    fun `ListValueSize`(): Unit =
+    fun ListValueSize(): Unit =
         runBlocking {
             val sdl = "type Query { x:[Int] }"
             val doc = "{x}".asDocument
@@ -309,7 +309,7 @@ class GraphQLRuntimeWiringsTest : KotestPropertyBase() {
         }
 
     @Test
-    fun `ResolverExceptionWeight`(): Unit =
+    fun ResolverExceptionWeight(): Unit =
         runBlocking {
             val sdl = "type Query { x:[Int] }"
             val doc = "{x}".asDocument

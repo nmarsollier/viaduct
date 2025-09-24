@@ -14,9 +14,9 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.engine.runtime.validation.Validator
+import viaduct.graphql.utils.GraphQLTypeRelation
 import viaduct.graphql.utils.VariableUsageInfo
 import viaduct.graphql.utils.collectVariableUsages
-import viaduct.utils.graphql.GraphQLTypeRelation
 
 class FromFieldVariablesHaveValidPaths(
     private val schema: ViaductSchema
