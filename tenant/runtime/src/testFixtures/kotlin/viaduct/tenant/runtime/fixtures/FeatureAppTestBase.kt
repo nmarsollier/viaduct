@@ -64,12 +64,13 @@ import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 abstract class FeatureAppTestBase {
     open lateinit var sdl: String
         protected set
+    open val defaultScopeId = "public"
+    open val defaultSchemaId = "public"
 
     protected open var customScalars: Set<GraphQLScalarType> = emptySet()
     private val injector: Injector by lazy { Guice.createInjector() }
     private val guiceTenantCodeInjector by lazy { GuiceTenantCodeInjector(injector) }
     private val flagManager = MockFlagManager()
-    private val defaultScopeId = "public"
 
     // GlobalID codec for creating GlobalID strings in tests
     private val globalIdCodec by lazy {
@@ -97,8 +98,8 @@ abstract class FeatureAppTestBase {
             .tenantPackagePrefix(derivedClassPackagePrefix)
 
     private lateinit var viaductBuilder: ViaductBuilder
-    private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
-    private lateinit var viaductService: StandardViaduct
+    lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
+    lateinit var viaductService: StandardViaduct
 
     fun withViaductBuilder(builderUpdate: ViaductBuilder.() -> Unit) {
         viaductBuilder.apply(builderUpdate)
@@ -109,11 +110,11 @@ abstract class FeatureAppTestBase {
     }
 
     @BeforeEach
-    fun initViaductBuilder() {
+    open fun initViaductBuilder() {
         if (!::viaductSchemaRegistryBuilder.isInitialized) {
             viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
                 .withFullSchemaFromSdl(sdl, customScalars.toList())
-                .registerFullSchema(defaultScopeId)
+                .registerFullSchema(defaultSchemaId)
         }
         if (!::viaductBuilder.isInitialized) {
             viaductBuilder = ViaductBuilder()
@@ -156,10 +157,10 @@ abstract class FeatureAppTestBase {
      *
      * @return The result of the query execution.
      */
-    protected fun execute(
+    open fun execute(
         query: String,
         variables: Map<String, Any?> = mapOf(),
-        scopeId: String = defaultScopeId
+        schemaId: String = defaultSchemaId
     ): ExecutionResult {
         return runBlocking {
             tryBuildViaductService()
@@ -167,7 +168,7 @@ abstract class FeatureAppTestBase {
                 query = query,
                 variables = variables,
                 requestContext = object {},
-                schemaId = scopeId
+                schemaId = schemaId
             )
             val result = viaductService.executeAsync(executionInput).await()
             result
@@ -177,12 +178,13 @@ abstract class FeatureAppTestBase {
     /**
      * Attempts to build the [StandardViaduct] instance if it has not been initialized yet.
      */
-    protected fun tryBuildViaductService() {
+    @Suppress("TooGenericExceptionCaught")
+    fun tryBuildViaductService() {
         if (!::viaductService.isInitialized) {
             try {
                 viaductService = viaductBuilder.build()
-            } catch (exception: Exception) {
-                throw RuntimeException("Failed to build Viaduct service", exception)
+            } catch (t: Throwable) {
+                throw RuntimeException("Failed to build Viaduct service", t)
             }
         }
     }

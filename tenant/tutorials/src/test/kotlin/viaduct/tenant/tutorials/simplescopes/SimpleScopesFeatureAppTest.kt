@@ -85,7 +85,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
                     myOrders(userId: "user-123")
                 }
             """.trimIndent(),
-            scopeId = "CUSTOMER_API"
+            schemaId = "CUSTOMER_API"
         ).assertEquals {
             "data" to {
                 "myOrders" to listOf("Order #1001", "Order #1002")
@@ -100,7 +100,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
                     allUserData
                 }
             """.trimIndent(),
-            scopeId = "CUSTOMER_API"
+            schemaId = "CUSTOMER_API"
         ).assertEquals {
             "errors" to arrayOf(
                 {
@@ -135,7 +135,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
                     allUserData
                 }
             """.trimIndent(),
-            scopeId = "ADMIN_API"
+            schemaId = "ADMIN_API"
         ).assertEquals {
             "data" to {
                 "allUserData" to listOf("User: john@example.com", "User: jane@example.com")
@@ -150,7 +150,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
                     myOrders(userId: "user-123")
                 }
             """.trimIndent(),
-            scopeId = "ADMIN_API"
+            schemaId = "ADMIN_API"
         ).assertEquals {
             "errors" to arrayOf(
                 {
@@ -187,7 +187,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
                     allUserData
                 }
             """.trimIndent(),
-            scopeId = "INTERNAL_API"
+            schemaId = "INTERNAL_API"
         ).assertEquals {
             "data" to {
                 "myOrders" to listOf("Order #2001") // Different user's data
@@ -206,7 +206,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
                     myOrders(userId: "user-123")
                 }
             """.trimIndent(),
-            scopeId = "UNKNOWN_API"
+            schemaId = "UNKNOWN_API"
         ).assertEquals {
             "errors" to arrayOf(
                 {

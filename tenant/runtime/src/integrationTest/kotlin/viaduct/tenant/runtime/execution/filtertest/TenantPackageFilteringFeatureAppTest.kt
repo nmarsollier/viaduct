@@ -39,16 +39,16 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
         | #END_SCHEMA
     """.trimMargin()
 
-    private val scopeId1 = "SCHEMA_ID_1"
-    private val scopeId2 = "SCHEMA_ID_2"
+    private val schemaId1 = "SCHEMA_ID_1"
+    private val schemaId2 = "SCHEMA_ID_2"
     private val scopes1 = setOf("SCOPE1")
     private val scopes2 = setOf("SCOPE2")
 
     @BeforeEach
     fun registerSchemas() {
         withSchemaRegistryBuilder {
-            registerScopedSchema(scopeId1, scopes1)
-            registerScopedSchema(scopeId2, scopes2)
+            registerScopedSchema(schemaId1, scopes1)
+            registerScopedSchema(schemaId2, scopes2)
         }
     }
 
@@ -70,7 +70,7 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
                     }
                 }
             """.trimIndent(),
-            scopeId = scopeId1
+            schemaId = schemaId1
         ).assertEquals {
             "data" to {
                 "scope1Value" to {
@@ -87,7 +87,7 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
                     }
                 }
             """.trimIndent(),
-            scopeId = scopeId2
+            schemaId = schemaId2
         ).assertEquals {
             "data" to {
                 "scope2Value" to null
@@ -118,7 +118,7 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
                     }
                 }
             """.trimIndent(),
-            scopeId = "SCOPE1_ONLY"
+            schemaId = "SCOPE1_ONLY"
         ).assertEquals {
             "errors" to arrayOf(
                 {
@@ -145,7 +145,7 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
                     }
                 }
             """.trimIndent(),
-            scopeId = "SCOPE2_ONLY"
+            schemaId = "SCOPE2_ONLY"
         ).assertEquals {
             "data" to {
                 "scope2Value" to null
