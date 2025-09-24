@@ -3,7 +3,7 @@
 ## Requirements
 
 - Java JDK 21 is installed
-- JAVA_HOME environment variable or `java` in the classpath
+- JAVA_HOME environment variable is set correctly or `java` is in the classpath
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ curl 'http://localhost:8080/graphql' -H 'content-type: application/json' --data-
 
 You should see the following output:
 ```json
-{"data":{"greeting":"Hello World!"}}
+{"data":{"greeting":"Hello, World!"}}
 ```
 
 #### GraphiQL
