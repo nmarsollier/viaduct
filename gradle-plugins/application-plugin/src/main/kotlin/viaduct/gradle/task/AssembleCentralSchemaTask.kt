@@ -1,4 +1,4 @@
-package viaduct.gradle.tasks
+package viaduct.gradle.task
 
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
@@ -21,7 +21,7 @@ import viaduct.graphql.utils.DefaultSchemaProvider
  * and stores it in a file.
  */
 @CacheableTask
-abstract class GenerateViaductCentralSchemaTask
+abstract class AssembleCentralSchemaTask
     @Inject
     constructor(
         private var fileSystemOperations: FileSystemOperations

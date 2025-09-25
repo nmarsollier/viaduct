@@ -208,7 +208,6 @@ class StandardViaduct internal constructor(
         //     apply {
         //         this.dataFetcherErrorBuilder = dataFetcherErrorBuilder
         //     }
-
         @Deprecated("For advance uses, Airbnb-use only", level = DeprecationLevel.WARNING)
         fun withInstrumentation(
             instrumentation: Instrumentation?,
