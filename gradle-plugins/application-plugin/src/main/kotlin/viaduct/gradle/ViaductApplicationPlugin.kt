@@ -2,6 +2,7 @@ package viaduct.gradle
 
 import centralSchemaDirectory
 import grtClassesDirectory
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Category
@@ -12,6 +13,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.register
+import org.slf4j.LoggerFactory
 import viaduct.gradle.ViaductPluginCommon.addViaductDependencies
 import viaduct.gradle.ViaductPluginCommon.addViaductTestFixtures
 import viaduct.gradle.ViaductPluginCommon.applyViaductBOM
@@ -39,7 +41,33 @@ class ViaductApplicationPlugin : Plugin<Project> {
             }
 
             val assembleCentralSchemaTask = setupAssembleCentralSchemaTask()
-            val generateGRTsTask = setupGenerateGRTsTask(appExt, assembleCentralSchemaTask)
+
+            // Create validate schema task at project level
+            val validateSchemaTask = tasks.register("validateViaductSchema") {
+                group = "viaduct"
+                description = "Validate the central GraphQL schema. Fails the build if invalid."
+                dependsOn(assembleCentralSchemaTask)
+
+                // Capture schema directory as a provider to avoid Project reference in doLast
+                val schemaDir = centralSchemaDirectory()
+                val schemaFiles = schemaDir.map { it.asFileTree.matching { include("**/*.graphqls") } }
+
+                doLast {
+                    // Get schema files at execution time instead of using inputs
+                    val filesToValidate = schemaFiles.get().files.toList()
+                    val logger = LoggerFactory.getLogger(ViaductApplicationPlugin::class.java)
+                    val validator = ViaductBasicSchemaValidator(logger)
+                    val errors = validator.validateSchema(filesToValidate)
+                    if (errors.isNotEmpty()) {
+                        errors.forEach { logger.error(it.message ?: it.toString()) }
+                        throw GradleException("GraphQL schema validation failed. See errors above.")
+                    } else {
+                        logger.info("GraphQL schema validation successful.")
+                    }
+                }
+            }
+
+            val generateGRTsTask = setupGenerateGRTsTask(appExt, generateCentralSchemaTask = assembleCentralSchemaTask, validateSchemaTask = validateSchemaTask)
 
             setupConsumableConfigurationForGRT(generateGRTsTask.flatMap { it.archiveFile })
 
@@ -79,10 +107,12 @@ class ViaductApplicationPlugin : Plugin<Project> {
     private fun Project.setupGenerateGRTsTask(
         appExt: ViaductApplicationExtension,
         generateCentralSchemaTask: TaskProvider<AssembleCentralSchemaTask>,
+        validateSchemaTask: TaskProvider<*>,
     ): TaskProvider<Jar> {
         val pluginClasspath = files(ViaductPluginCommon.getClassPathElements(this@ViaductApplicationPlugin::class.java))
 
         val generateGRTClassesTask = tasks.register<GenerateGRTClassFilesTask>("generateViaductGRTClassFiles") {
+            dependsOn(validateSchemaTask)
             grtClassesDirectory.set(grtClassesDirectory())
             schemaFiles.setFrom(generateCentralSchemaTask.flatMap { it.outputDirectory.map { dir -> dir.asFileTree.matching { include("**/*.graphqls") }.files } })
             grtPackageName.set(appExt.grtPackageName)
