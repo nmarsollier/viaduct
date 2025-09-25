@@ -1,7 +1,6 @@
 package viaduct.gradle
 
 import centralSchemaDirectoryName
-import javax.inject.Inject
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
