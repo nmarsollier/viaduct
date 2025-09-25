@@ -30,11 +30,8 @@ import viaduct.tenant.runtime.context.factory.ArgumentsArgs
 import viaduct.tenant.runtime.context.factory.ArgumentsFactory
 import viaduct.tenant.runtime.context.factory.Factory
 import viaduct.tenant.runtime.context.factory.FieldExecutionContextMetaFactory
-import viaduct.tenant.runtime.context.factory.MutationFieldExecutionContextMetaFactory
 import viaduct.tenant.runtime.context.factory.NodeExecutionContextMetaFactory
-import viaduct.tenant.runtime.context.factory.NodeResolverContextFactory
 import viaduct.tenant.runtime.context.factory.ObjectFactory
-import viaduct.tenant.runtime.context.factory.ResolverContextFactory
 import viaduct.tenant.runtime.context.factory.SelectionSetFactory as SelectionSetContextFactory
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
@@ -134,17 +131,11 @@ class FeatureTestBuilder {
         val argsFactory = ArgumentsFactory.ifClass(argumentsCls)
             ?: Factory { args: ArgumentsArgs -> ArgumentsStub(args.arguments) }
 
-        val ctxFactory = ResolverContextFactory.ifContext(
-            ctxCls,
-            MutationFieldExecutionContextMetaFactory.ifMutation(
-                ctxCls,
-                FieldExecutionContextMetaFactory.create(
-                    objFactory,
-                    queryFactory,
-                    argsFactory,
-                    SelectionSetContextFactory.forClass(outputCls)
-                )
-            )
+        val ctxFactory = FieldExecutionContextMetaFactory.create(
+            objFactory,
+            queryFactory,
+            argsFactory,
+            SelectionSetContextFactory.forClass(outputCls)
         )
 
         val objectSelections = objectValueFragment?.let { SelectionsParser.parse(coordinate.first, it) }
@@ -232,11 +223,8 @@ class FeatureTestBuilder {
         resolveFn: suspend (ctx: Ctx) -> NodeObject
     ): FeatureTestBuilder {
         val resolver = NodeUnbatchedResolverStub(
-            NodeResolverContextFactory.ifContext(
-                ctxCls,
-                NodeExecutionContextMetaFactory.create(
-                    selections = SelectionSetContextFactory.forTypeName(typeName)
-                )
+            NodeExecutionContextMetaFactory.create(
+                selections = SelectionSetContextFactory.forTypeName(typeName)
             )
         ) { ctx ->
             @Suppress("UNCHECKED_CAST")
@@ -264,11 +252,8 @@ class FeatureTestBuilder {
         batchResolveFn: suspend (ctxs: List<Ctx>) -> List<FieldValue<NodeObject>>
     ): FeatureTestBuilder {
         val resolver = NodeBatchResolverStub(
-            NodeResolverContextFactory.ifContext(
-                ctxCls,
-                NodeExecutionContextMetaFactory.create(
-                    selections = SelectionSetContextFactory.forTypeName(typeName)
-                )
+            NodeExecutionContextMetaFactory.create(
+                selections = SelectionSetContextFactory.forTypeName(typeName)
             )
         ) { ctxs ->
             batchResolveFn(ctxs as List<Ctx>)
