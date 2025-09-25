@@ -44,7 +44,7 @@ query {
 
 To perform a query that needs some scope field like culturalNotes on Species, that needs the "extras" scope, include the `X-Viaduct-Scope` header in your request:
 
-```
+```graphql
 query {
  node(id: "U3BlY2llczox") {
   ... on Species {
