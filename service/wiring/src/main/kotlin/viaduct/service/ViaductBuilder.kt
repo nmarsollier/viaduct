@@ -6,7 +6,7 @@ import viaduct.service.runtime.StandardViaduct
 import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 class ViaductBuilder {
-    private val builder = StandardViaduct.Builder()
+    val builder = StandardViaduct.Builder()
 
     /** See [withTenantAPIBootstrapperBuilder]. */
     fun withTenantAPIBootstrapperBuilder(builder: TenantAPIBootstrapperBuilder) =

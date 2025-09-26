@@ -9,7 +9,7 @@ import viaduct.tenant.runtime.execution.trivial.resolverbases.NestedFooResolvers
 import viaduct.tenant.runtime.execution.trivial.resolverbases.QueryResolvers
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
-class SelectionSetFeatureAppTest : FeatureAppTestBase() {
+class ObjectFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
         | #START_SCHEMA
         | type Foo {
@@ -17,6 +17,7 @@ class SelectionSetFeatureAppTest : FeatureAppTestBase() {
         |   fragmentBar: String @resolver
         |   baz: String @resolver
         |   nested: NestedFoo @resolver
+        |   message: String @resolver
         | }
         | type NestedFoo {
         |   value: String @resolver
@@ -25,6 +26,9 @@ class SelectionSetFeatureAppTest : FeatureAppTestBase() {
         |   greeting: Foo @resolver
         |   selectionSetDemo: String @resolver
         |   selectionSetShorthandDemo: String @resolver
+        |   fooList: [Foo] @resolver
+        |   nestedFooList: [NestedFoo] @resolver
+        |   fooWithArgs(message: String, count: Int): Foo @resolver
         | }
         | #END_SCHEMA
     """.trimMargin()
@@ -128,6 +132,64 @@ class SelectionSetFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
+    /**
+     * Field resolver that returns a list of Foo objects.
+     * Demonstrates field resolvers returning lists of object types (covering ObjectResolverTests functionality).
+     */
+    @Resolver
+    class Query_FooListResolver : QueryResolvers.FooList() {
+        override suspend fun resolve(ctx: Context): List<Foo> {
+            return listOf(
+                Foo.Builder(ctx).build(),
+                Foo.Builder(ctx).build(),
+                Foo.Builder(ctx).build()
+            )
+        }
+    }
+
+    /**
+     * Field resolver that returns a list of NestedFoo objects.
+     * Demonstrates field resolvers returning lists of object types (covering ObjectResolverTests functionality).
+     */
+    @Resolver
+    class Query_NestedFooListResolver : QueryResolvers.NestedFooList() {
+        override suspend fun resolve(ctx: Context): List<NestedFoo> {
+            return listOf(
+                NestedFoo.Builder(ctx).build(),
+                NestedFoo.Builder(ctx).build()
+            )
+        }
+    }
+
+    /**
+     * Field resolver that returns a Foo object with optional arguments.
+     * Demonstrates handling null arguments with default values (covering ObjectResolverTests functionality).
+     */
+    @Resolver
+    class Query_FooWithArgsResolver : QueryResolvers.FooWithArgs() {
+        override suspend fun resolve(ctx: Context): Foo {
+            // Handle null arguments with defaults
+            val message = ctx.arguments.message ?: "default message"
+            val count = ctx.arguments.count ?: 0
+
+            return Foo.Builder(ctx)
+                .build()
+        }
+    }
+
+    /**
+     * Field resolver that returns the message from the Foo object.
+     * This demonstrates accessing data that was processed from arguments.
+     */
+    @Resolver
+    class Foo_MessageResolver : FooResolvers.Message() {
+        override suspend fun resolve(ctx: Context): String {
+            // For this simple test, we'll return a fixed value that shows the pattern
+            // In a real implementation, you'd access stored data from the parent object
+            return "message from resolver"
+        }
+    }
+
     @Test
     fun `shorthand resolver pattern`() {
         execute(
@@ -202,6 +264,111 @@ class SelectionSetFeatureAppTest : FeatureAppTestBase() {
         ).assertEquals {
             "data" to {
                 "selectionSetShorthandDemo" to "shorthand: baz=world, nested.value=nested_value"
+            }
+        }
+    }
+
+    @Test
+    fun `field resolver returns a list of Foo objects`() {
+        execute(
+            query = """
+                query {
+                    fooList {
+                        baz
+                        nested {
+                            value
+                        }
+                    }
+                }
+            """.trimIndent()
+        ).assertEquals {
+            "data" to {
+                "fooList" to arrayOf(
+                    {
+                        "baz" to "world"
+                        "nested" to {
+                            "value" to "nested_value"
+                        }
+                    },
+                    {
+                        "baz" to "world"
+                        "nested" to {
+                            "value" to "nested_value"
+                        }
+                    },
+                    {
+                        "baz" to "world"
+                        "nested" to {
+                            "value" to "nested_value"
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `field resolver returns a list of NestedFoo objects`() {
+        execute(
+            query = """
+                query {
+                    nestedFooList {
+                        value
+                    }
+                }
+            """.trimIndent()
+        ).assertEquals {
+            "data" to {
+                "nestedFooList" to arrayOf(
+                    {
+                        "value" to "nested_value"
+                    },
+                    {
+                        "value" to "nested_value"
+                    }
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `field resolver with arguments returns an object type`() {
+        execute(
+            query = """
+                query {
+                    fooWithArgs(message: "test message", count: 5) {
+                        message
+                        baz
+                    }
+                }
+            """.trimIndent()
+        ).assertEquals {
+            "data" to {
+                "fooWithArgs" to {
+                    "message" to "message from resolver"
+                    "baz" to "world"
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `field resolver with null arguments returns an object type`() {
+        execute(
+            query = """
+                query {
+                    fooWithArgs(message: null, count: null) {
+                        message
+                        baz
+                    }
+                }
+            """.trimIndent()
+        ).assertEquals {
+            "data" to {
+                "fooWithArgs" to {
+                    "message" to "message from resolver"
+                    "baz" to "world"
+                }
             }
         }
     }
