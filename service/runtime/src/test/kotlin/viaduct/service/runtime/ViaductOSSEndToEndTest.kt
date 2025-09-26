@@ -8,7 +8,6 @@ import graphql.language.SourceLocation
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
-import io.mockk.mockk
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,7 +37,7 @@ class ViaductOSSEndToEndTest {
 
     val sdl =
         """
-            extend type Query @scope(to: ["viaduct-public"]) { field: Int }
+        extend type Query @scope(to: ["viaduct-public"]) { field: Int }
         """.trimIndent()
 
     @BeforeEach
@@ -50,7 +49,6 @@ class ViaductOSSEndToEndTest {
         subject = StandardViaduct.Builder()
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
-            .withDataFetcherExceptionHandler(mockk())
             .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
             .build()
     }
@@ -71,9 +69,9 @@ class ViaductOSSEndToEndTest {
     fun `Viaduct with no instrumentations or wirings successfully returns null for valid query`() =
         runBlocking {
             val query = """
-                    query TestQuery {
-                        field
-                    }
+            query TestQuery {
+                field
+            }
             """.trimIndent()
             val executionInput = ExecutionInput(query, "public", object {})
 
@@ -109,110 +107,107 @@ class ViaductOSSEndToEndTest {
             assertEquals(expected.toSpecification(), actual.toSpecification())
         }
 
-    // @Test
-    // fun `test injector properties from Viaduct Builder`() {
-    //     // Mock the static method Guice.createInjector
-    //     mockkStatic(Guice::class)
-    //     lateinit var injector: Injector
-    //
-    //     // Spy on the actual injector returned by Guice.createInjector
-    //     every { Guice.createInjector(any<Iterable<Module>>()) } answers {
-    //         injector = callOriginal()
-    //         injector
-    //     }
-    //
-    //     // Create the Viaduct instance using the builder
-    //     subject = StandardViaduct.Builder()
-    //         .withFlagManager(flagManager)
-    //         .withNoTenantAPIBootstrapper()
-    //         .withDataFetcherExceptionHandler(mockk())
-    //         .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
-    //         .build()
-    //
-    //     val bindingsMap = injector.allBindings.map { (key, value) ->
-    //         val keyString = key.annotation?.let { annotation ->
-    //             if (annotation is Named) annotation.value else key.typeLiteral.rawType.simpleName
-    //         } ?: key.typeLiteral.rawType.simpleName
-    //         keyString to value.provider.get()
-    //     }.toMap()
-    //     val viaduct = injector.getInstance(StandardViaduct::class.java)
-    //     val chainedInstrumentationInvariant = FieldInvariant(
-    //         ChainedInstrumentation::class,
-    //         mapOf(
-    //             "instrumentations" to FieldTypeInvariant(
-    //                 List::class,
-    //                 listOf(
-    //                     FieldInvariant(
-    //                         ViaductInstrumentationAdapter::class,
-    //                         mapOf("viaductInstrumentation" to ClassTypeInvariant(ScopeInstrumentation::class))
-    //                     ),
-    //                     ClassTypeInvariant(ResolverInstrumentation::class)
-    //                 )
-    //             )
-    //         )
-    //     )
-    //
-    //     val viaductInvariant = FieldInvariant(
-    //         StandardViaduct::class,
-    //         mapOf(
-    //             "queryExecutionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-    //             "mutationExecutionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-    //             "subscriptionExecutionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-    //             // This is to ensure it's not null.
-    //             "viaductSchemaRegistry" to ClassTypeInvariant(ViaductSchemaRegistry::class),
-    //             "chainedInstrumentation" to chainedInstrumentationInvariant
-    //         )
-    //     )
-    //
-    //     viaductInvariant.check(viaduct)
-    //
-    //     val viaductSchemaRegistry = injector.getInstance(ViaductSchemaRegistry::class.java)
-    //
-    //     val viaductSchemaRegistryInvariant = FieldInvariant(
-    //         ViaductSchemaRegistry::class,
-    //         mapOf(
-    //             "enginesById" to FieldTypeInvariant(
-    //                 Map::class,
-    //                 listOf(
-    //                     FieldInvariant(
-    //                         typeInfo<Lazy<ViaductSchemaRegistry.GraphQLEngine>>(),
-    //                         mapOf(
-    //                             "graphQL" to FieldInvariant(
-    //                                 typeInfo<GraphQL>(),
-    //                                 mapOf(
-    //                                     "queryStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-    //                                     "mutationStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-    //                                     "subscriptionStrategy" to ClassTypeInvariant(WrappedCoroutineExecutionStrategy::class),
-    //                                     "instrumentation" to chainedInstrumentationInvariant,
-    //                                     "preparsedDocumentProvider" to ClassTypeInvariant(IntrospectionRestrictingPreparsedDocumentProvider::class),
-    //                                 )
-    //                             )
-    //                         )
-    //                     )
-    //                 )
-    //             )
-    //         )
-    //     )
-    //
-    //     viaductSchemaRegistryInvariant.check(viaductSchemaRegistry)
-    //
-    //     // Define the expected properties using FieldInvariant
-    //     val bindingsInvariant = FieldInvariant(
-    //         Map::class,
-    //         mapOf(
-    //             "ViaductSchemaRegistry" to ClassTypeInvariant(ViaductSchemaRegistry::class),
-    //             "FlagManager" to ClassTypeInvariant(FlagManager::class),
-    //             "DataFetcherExceptionHandler" to ClassTypeInvariant(DataFetcherExceptionHandler::class),
-    //             "CoroutineInterop" to ClassTypeInvariant(CoroutineInterop::class),
-    //             "CheckerExecutorFactory" to ClassTypeInvariant(CheckerExecutorFactory::class),
-    //             "QueryExecutionStrategy" to ClassTypeInvariant(ExecutionStrategy::class),
-    //             "MutationExecutionStrategy" to ClassTypeInvariant(ExecutionStrategy::class),
-    //             "SubscriptionExecutionStrategy" to ClassTypeInvariant(ExecutionStrategy::class)
-    //         )
-    //     )
-    //
-    //     bindingsInvariant.check(bindingsMap)
-    // }
+    @Test
+    fun `executeAsync returns error for missing schema`() =
+        runBlocking {
+            val query = "query { field }"
+            val executionInput = ExecutionInput(query, "nonexistent_schema", object {})
 
-    private fun mkSchema(sdl: String): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING))
+            val result = subject.executeAsync(executionInput).await()
+            assertEquals(1, result.errors.size)
+            assertEquals("Schema not found for schemaId=nonexistent_schema", result.errors.first().message)
+            assertNull(result.getData())
+        }
+
+    @Test
+    fun `handles exceptions from data fetchers gracefully`() =
+        runBlocking {
+            val exceptionWiring = RuntimeWiring.newRuntimeWiring()
+                .type("Foo") { builder ->
+                    builder.dataFetcher("field") { throw RuntimeException("Data fetcher error") }
+                }
+                .build()
+
+            val exceptionSchema = mkSchema(
+                """
+                    directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+
+                    schema { query: Foo }
+                    type Foo @scope(to: ["viaduct-public"]) { field: Int }
+                """.trimIndent(),
+                exceptionWiring
+            )
+
+            val exceptionSchemaConfig = SchemaRegistryConfiguration.fromSchema(
+                exceptionSchema,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("exception-test", setOf("viaduct-public")))
+            )
+
+            val exceptionSubject = StandardViaduct.Builder()
+                .withFlagManager(flagManager)
+                .withNoTenantAPIBootstrapper()
+                .withSchemaRegistryConfiguration(exceptionSchemaConfig)
+                .build()
+
+            val query = "query { field }"
+            val executionInput = ExecutionInput(query, "exception-test", object {})
+
+            val result = exceptionSubject.executeAsync(executionInput).await()
+            assertEquals(1, result.errors.size)
+            assertEquals("java.lang.RuntimeException: Data fetcher error", result.errors.first().message)
+            assertNull(result.getData<Any>()?.let { (it as Map<*, *>)["field"] })
+        }
+
+    @Test
+    fun `executes query with variables and operation name`() =
+        runBlocking {
+            val variableWiring = RuntimeWiring.newRuntimeWiring()
+                .type("Foo") { builder ->
+                    builder.dataFetcher("fieldWithInput") { env ->
+                        val input = env.getArgument<String>("input")
+                        "Hello, $input!"
+                    }
+                }
+                .build()
+
+            val variableSchema = mkSchema(
+                """
+                    directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+
+                    schema { query: Foo }
+                    type Foo @scope(to: ["viaduct-public"]) {
+                        fieldWithInput(input: String!): String
+                    }
+                """.trimIndent(),
+                variableWiring
+            )
+
+            val variableSchemaConfig = SchemaRegistryConfiguration.fromSchema(
+                variableSchema,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("variable-test", setOf("viaduct-public")))
+            )
+
+            val variableSubject = StandardViaduct.Builder()
+                .withFlagManager(flagManager)
+                .withNoTenantAPIBootstrapper()
+                .withSchemaRegistryConfiguration(variableSchemaConfig)
+                .build()
+
+            val query = """
+                query TestQuery(${'$'}name: String!) {
+                    fieldWithInput(input: ${'$'}name)
+                }
+            """.trimIndent()
+            val variables = mapOf("name" to "World")
+            val executionInput = ExecutionInput(query, "variable-test", object {}, variables, "TestQuery")
+
+            val result = variableSubject.executeAsync(executionInput).await()
+            assertEquals(mapOf("fieldWithInput" to "Hello, World!"), result.getData())
+            assertEquals(0, result.errors.size)
+        }
+
+    private fun mkSchema(
+        sdl: String,
+        wiring: RuntimeWiring
+    ): ViaductSchema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), wiring))
 }

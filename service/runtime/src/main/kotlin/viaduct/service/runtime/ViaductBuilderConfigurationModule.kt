@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
 import graphql.execution.instrumentation.Instrumentation
+import io.micrometer.core.instrument.MeterRegistry
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.CheckerExecutorFactoryCreator
 import viaduct.engine.api.FragmentLoader
@@ -19,6 +20,7 @@ import viaduct.engine.runtime.execution.TenantNameResolver
 data class ViaductBuilderConfiguration(
     val instrumentation: Instrumentation?,
     val fragmentLoader: FragmentLoader?,
+    val meterRegistry: MeterRegistry?,
     val tenantNameResolver: TenantNameResolver,
     val chainInstrumentationWithDefaults: Boolean,
     val checkerExecutorFactory: CheckerExecutorFactory?,

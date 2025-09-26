@@ -13,5 +13,9 @@ class StatelessFactoryModule : AbstractModule() {
         // Factory for creating ViaductSchemaRegistry instances
         bind(ViaductSchemaRegistry.Factory::class.java)
             .`in`(Singleton::class.java)
+
+        // Factory for creating StandardViaduct instances with child injectors
+        bind(StandardViaduct.Factory::class.java)
+            .`in`(Singleton::class.java)
     }
 }
