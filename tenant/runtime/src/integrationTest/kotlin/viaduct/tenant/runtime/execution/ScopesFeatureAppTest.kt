@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.tenant.runtime.execution.scopes.resolverbases.QueryResolvers
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 
@@ -58,9 +59,13 @@ class ScopesFeatureAppTest : FeatureAppTestBase() {
 
         @BeforeEach
         fun setup() {
-            withSchemaRegistryBuilder {
-                registerScopedSchema(schemaId, scopes)
-            }
+            withSchemaRegistryConfiguration(
+                SchemaRegistryConfiguration
+                    .fromSdl(
+                        sdl,
+                        scopes = setOf(SchemaRegistryConfiguration.ScopeConfig(schemaId, scopes))
+                    )
+            )
         }
 
         @Test
@@ -148,10 +153,15 @@ class ScopesFeatureAppTest : FeatureAppTestBase() {
 
         @BeforeEach
         fun setup() {
-            withSchemaRegistryBuilder {
-                registerScopedSchema(scopeId1, scopes1)
-                registerScopedSchema(scopeId2, scopes2)
-            }
+            withSchemaRegistryConfiguration(
+                SchemaRegistryConfiguration.fromSdl(
+                    sdl,
+                    scopes = setOf(
+                        SchemaRegistryConfiguration.ScopeConfig(scopeId1, scopes1),
+                        SchemaRegistryConfiguration.ScopeConfig(scopeId2, scopes2)
+                    )
+                )
+            )
         }
 
         @Test

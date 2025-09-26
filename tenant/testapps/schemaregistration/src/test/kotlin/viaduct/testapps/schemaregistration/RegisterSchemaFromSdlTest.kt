@@ -3,6 +3,7 @@ package viaduct.testapps.schemaregistration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Test
 import viaduct.graphql.test.assertEquals
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
 
@@ -13,7 +14,7 @@ import viaduct.testapps.testfixtures.TestBase
  */
 @ExperimentalCoroutinesApi
 class RegisterSchemaFromSdlTest : TestBase(
-    customSchemaRegistration = {
+    customSchemaRegistryConfiguration = run {
         val sdl = """
             type TestScope1Object {
               strValue: String!
@@ -31,8 +32,7 @@ class RegisterSchemaFromSdlTest : TestBase(
               scope2Value: TestScope2Object @resolver
             }
         """
-        it.withFullSchemaFromSdl(sdl)
-        it.registerSchemaFromSdl("PUBLIC", sdl)
+        SchemaRegistryConfiguration.fromSdl(sdl, fullSchemaIds = listOf("PUBLIC"))
     },
     tenantPackageFinder = TestTenantPackageFinder(Tenants),
 ) {

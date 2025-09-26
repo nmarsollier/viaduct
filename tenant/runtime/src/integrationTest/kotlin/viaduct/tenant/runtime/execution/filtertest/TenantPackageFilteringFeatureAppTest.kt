@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.api.TenantModule
 import viaduct.graphql.test.assertEquals
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
 import viaduct.tenant.runtime.execution.filtertest.resolverbases.QueryResolvers
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
@@ -46,10 +47,15 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
 
     @BeforeEach
     fun registerSchemas() {
-        withSchemaRegistryBuilder {
-            registerScopedSchema(schemaId1, scopes1)
-            registerScopedSchema(schemaId2, scopes2)
-        }
+        withSchemaRegistryConfiguration(
+            SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(
+                    SchemaRegistryConfiguration.ScopeConfig(schemaId1, scopes1),
+                    SchemaRegistryConfiguration.ScopeConfig(schemaId2, scopes2)
+                )
+            )
+        )
     }
 
     @Test
@@ -97,10 +103,15 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
 
     @Test
     fun `Validation errors vs missing resolvers due to tenant filtering`() {
-        withSchemaRegistryBuilder {
-            registerScopedSchema("SCOPE1_ONLY", setOf("SCOPE1"))
-            registerScopedSchema("SCOPE2_ONLY", setOf("SCOPE2"))
-        }
+        withSchemaRegistryConfiguration(
+            SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(
+                    SchemaRegistryConfiguration.ScopeConfig("SCOPE1_ONLY", setOf("SCOPE1")),
+                    SchemaRegistryConfiguration.ScopeConfig("SCOPE2_ONLY", setOf("SCOPE2"))
+                )
+            )
+        )
 
         withViaductBuilder {
             withTenantAPIBootstrapperBuilder(

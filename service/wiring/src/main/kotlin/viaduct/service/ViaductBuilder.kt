@@ -2,8 +2,8 @@ package viaduct.service
 
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 
 class ViaductBuilder {
     val builder = StandardViaduct.Builder()
@@ -53,9 +53,9 @@ class ViaductBuilder {
             builder.withoutDefaultQueryNodeResolvers(standardNodeBehavior)
         }
 
-    fun withSchemaRegistryBuilder(viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder) =
+    fun withSchemaRegistryConfiguration(schemaRegistryConfiguration: SchemaRegistryConfiguration) =
         apply {
-            builder.withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+            builder.withSchemaRegistryConfiguration(schemaRegistryConfiguration)
         }
 
     /**

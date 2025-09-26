@@ -19,7 +19,7 @@ import viaduct.service.api.spi.FlagManager
 @ExperimentalCoroutinesApi
 class IntrospectionEndToEndTest {
     private lateinit var subject: StandardViaduct
-    private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
+    private lateinit var schemaRegistryConfiguration: SchemaRegistryConfiguration
 
     val flagManager = object : FlagManager {
         override fun isEnabled(flag: Flag) = true
@@ -42,12 +42,15 @@ class IntrospectionEndToEndTest {
 
     @BeforeEach
     fun setUp() {
-        viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("publicScope"))
+        schemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(
+            sdl,
+            scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("public", setOf("publicScope")))
+        )
         subject = StandardViaduct.Builder()
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
             .withDataFetcherExceptionHandler(mockk())
-            .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+            .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
             .build()
     }
 

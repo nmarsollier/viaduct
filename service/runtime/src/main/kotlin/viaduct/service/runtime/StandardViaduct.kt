@@ -122,7 +122,7 @@ class StandardViaduct internal constructor(
         private var resolverErrorReporter: ResolverErrorReporter? = null
         private var resolverErrorBuilder: ResolverErrorBuilder? = null
         private var coroutineInterop: CoroutineInterop? = null
-        private var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
+        private var schemaRegistryConfiguration: SchemaRegistryConfiguration = SchemaRegistryConfiguration()
         private var tenantNameResolver: TenantNameResolver = TenantNameResolver()
         private var tenantAPIBootstrapperBuilders: List<TenantAPIBootstrapperBuilder> = emptyList()
         private var chainInstrumentationWithDefaults: Boolean = false
@@ -184,9 +184,9 @@ class StandardViaduct internal constructor(
                 this.checkerExecutorFactoryCreator = factoryCreator
             }
 
-        fun withSchemaRegistryBuilder(viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder): Builder =
+        fun withSchemaRegistryConfiguration(schemaRegistryConfiguration: SchemaRegistryConfiguration): Builder =
             apply {
-                this.viaductSchemaRegistryBuilder = viaductSchemaRegistryBuilder
+                this.schemaRegistryConfiguration = schemaRegistryConfiguration
             }
 
         fun withFlagManager(flagManager: FlagManager): Builder =
@@ -224,7 +224,7 @@ class StandardViaduct internal constructor(
             }
 
         @Deprecated("For advance uses, Airbnb-use only.", level = DeprecationLevel.WARNING)
-        fun getSchemaRegistryBuilder(): ViaductSchemaRegistryBuilder = viaductSchemaRegistryBuilder
+        fun getSchemaRegistryConfiguration(): SchemaRegistryConfiguration = schemaRegistryConfiguration
 
         fun withMeterRegistry(meterRegistry: MeterRegistry) =
             apply {
@@ -238,7 +238,8 @@ class StandardViaduct internal constructor(
          */
         fun build(): StandardViaduct {
             val scopedFuture = coroutineInterop ?: DefaultCoroutineInterop
-            val schemaRegistry = viaductSchemaRegistryBuilder.build(scopedFuture)
+            val schemaRegistryConfig = schemaRegistryConfiguration
+            val schemaRegistry = ViaductSchemaRegistry.Factory(scopedFuture).createRegistry(schemaRegistryConfig)
             val fullSchema = schemaRegistry.getFullSchema()
             checkerExecutorFactory = checkerExecutorFactory ?: checkerExecutorFactoryCreator?.invoke(fullSchema)
             val internalEngineModule = ViaductInternalEngineModule(
@@ -328,13 +329,15 @@ class StandardViaduct internal constructor(
      * all the properties from the existing instance except the schema registry builder.
      * Caller is expected to construct the schema register builder then pass it in.
      */
-    fun newForSchema(viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder) =
-        StandardViaduct(
+    fun newForSchema(config: SchemaRegistryConfiguration): StandardViaduct {
+        val schemaRegistryConfigInfo = config
+        val schemaRegistry = ViaductSchemaRegistry.Factory(coroutineInterop).createRegistry(schemaRegistryConfigInfo)
+        return StandardViaduct(
             chainedInstrumentation,
             queryExecutionStrategy,
             mutationExecutionStrategy,
             subscriptionExecutionStrategy,
-            viaductSchemaRegistryBuilder.build(coroutineInterop),
+            schemaRegistry,
             dispatcherRegistry,
             coroutineInterop,
             fragmentLoader,
@@ -342,6 +345,7 @@ class StandardViaduct internal constructor(
             resolverInstrumentation,
             flagManager
         )
+    }
 
     fun mkSchemaNotFoundError(schemaId: String): CompletableFuture<ExecutionResult> {
         val error: GraphQLError = GraphqlErrorBuilder.newError()

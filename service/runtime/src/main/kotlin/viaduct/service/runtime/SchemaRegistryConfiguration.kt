@@ -10,8 +10,6 @@ import graphql.schema.idl.SchemaParser
 import io.github.classgraph.ClassGraph
 import java.util.SortedSet
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.forEach
-import kotlin.collections.plus
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import viaduct.engine.api.ViaductSchema
@@ -23,11 +21,103 @@ import viaduct.utils.slf4j.logger
 
 class ViaductSchemaLoadException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-class ViaductSchemaRegistryBuilder {
+class SchemaRegistryConfiguration {
     private var graphQLSchemaFactory: GraphQLSchemaFactory = GraphQLSchemaFactory.FromRuntimeFiles()
     private var publicSchemaRegistration = mutableListOf<PublicSchemaRegistration>()
     private var asyncSchemaRegistration = ConcurrentHashMap<String, AsyncScopedSchema>()
-    var fullSchema: ViaductSchema? = null
+    private var fullSchema: ViaductSchema? = null
+
+    /**
+     * Configuration for registering a scoped schema that filters the full schema to specific scope identifiers.
+     * Types/fields that are members of scopes are defined using the @scope directive in GraphQL schema definitions.
+     *
+     * @param schemaId unique identifier used to select this scoped schema when executing operations
+     * @param scopeIds set of scope identifiers (from @scope directives) to include in the filtered schema
+     */
+    data class ScopeConfig(
+        val schemaId: String,
+        val scopeIds: Set<String>
+    )
+
+    companion object {
+        /**
+         * Create configuration with a pre-built schema, optionally registering it with given IDs.
+         *
+         * @param schema the pre-built ViaductSchema instance to use
+         * @param scopes set of scope configurations to register as scoped schemas
+         * @param fullSchemaIds list of schema IDs to register the full schema under (defaults to empty ID if not provided)
+         * @return configured SchemaRegistryConfiguration instance
+         */
+        fun fromSchema(
+            schema: ViaductSchema,
+            scopes: Set<ScopeConfig> = emptySet(),
+            fullSchemaIds: List<String> = emptyList(),
+        ): SchemaRegistryConfiguration {
+            val config = SchemaRegistryConfiguration()
+            config.graphQLSchemaFactory = GraphQLSchemaFactory.Defined(schema)
+            registerSchemas(config, scopes, fullSchemaIds)
+            return config
+        }
+
+        /**
+         * Load schema from SDL, optionally registering with given IDs.
+         *
+         * @param sdl the GraphQL Schema Definition Language string to parse
+         * @param scopes set of scope configurations to register as scoped schemas
+         * @param customScalars optional list of custom scalar types to include in the schema
+         * @param fullSchemaIds list of schema IDs to register the full schema under (defaults to empty ID if not provided)
+         * @return configured SchemaRegistryConfiguration instance
+         */
+        fun fromSdl(
+            sdl: String,
+            scopes: Set<ScopeConfig> = emptySet(),
+            customScalars: List<GraphQLScalarType>? = null,
+            fullSchemaIds: List<String> = emptyList()
+        ): SchemaRegistryConfiguration {
+            val config = SchemaRegistryConfiguration()
+            config.graphQLSchemaFactory = GraphQLSchemaFactory.FromSdl(sdl, customScalars)
+            registerSchemas(config, scopes, fullSchemaIds)
+            return config
+        }
+
+        /**
+         * Load schema from resources, optionally registering with given IDs.
+         *
+         * @param packagePrefix optional package prefix to limit the search scope for GraphQL schema files
+         * @param resourcesIncluded optional regex pattern string to match specific resource files (defaults to ".*graphqls")
+         * @param scopes set of scope configurations to register as scoped schemas
+         * @param fullSchemaIds list of schema IDs to register the full schema under (defaults to empty ID if not provided)
+         * @return configured SchemaRegistryConfiguration instance
+         */
+        fun fromResources(
+            packagePrefix: String? = null,
+            resourcesIncluded: String? = null,
+            scopes: Set<ScopeConfig> = emptySet(),
+            fullSchemaIds: List<String> = emptyList()
+        ): SchemaRegistryConfiguration {
+            val config = SchemaRegistryConfiguration()
+            config.graphQLSchemaFactory = GraphQLSchemaFactory.FromRuntimeFiles(packagePrefix, resourcesIncluded?.toRegex())
+            registerSchemas(config, scopes, fullSchemaIds)
+            return config
+        }
+
+        private fun registerSchemas(
+            config: SchemaRegistryConfiguration,
+            scopes: Set<ScopeConfig>,
+            fullSchemaIds: List<String>
+        ) {
+            if (fullSchemaIds.isEmpty()) {
+                config.registerFullSchema("") // default schema ID
+            } else {
+                fullSchemaIds.forEach { schemaId ->
+                    config.registerFullSchema(schemaId)
+                }
+            }
+            scopes.forEach {
+                config.registerScopedSchema(it.schemaId, it.scopeIds)
+            }
+        }
+    }
 
     data class AsyncScopedSchema(
         val schemaComputeBlock: () -> ViaductSchema,
@@ -35,137 +125,57 @@ class ViaductSchemaRegistryBuilder {
         val lazy: Boolean = true
     )
 
+    @Deprecated("Airbnb specific. Do not use.")
     fun registerSchema(
         schemaId: String,
         scopedSchemaComputeBlock: () -> ViaductSchema,
         documentProviderFactory: ((ViaductSchema) -> PreparsedDocumentProvider)? = null,
         lazy: Boolean = false,
-    ): ViaductSchemaRegistryBuilder {
+    ) {
         asyncSchemaRegistration[schemaId] = AsyncScopedSchema(scopedSchemaComputeBlock, documentProviderFactory, lazy)
-        return this
     }
-
-    /**
-     * Defines the schema with a given instance of the schema
-     *
-     * @param schema the full schema to register
-     */
-    fun withFullSchema(schema: ViaductSchema): ViaductSchemaRegistryBuilder {
-        graphQLSchemaFactory = GraphQLSchemaFactory.Defined(schema)
-        return this
-    }
-
-    /**
-     * Specifies that the schema should be loaded from files in the project.
-     *
-     * @param packagePrefix the package prefix to search for the graphqls files, default ""
-     * @param resourcesIncluded the regex to match the files to include, default ".*graphqls"
-     */
-    fun withFullSchemaFromResources(
-        packagePrefix: String? = null,
-        resourcesIncluded: String? = null,
-    ): ViaductSchemaRegistryBuilder {
-        graphQLSchemaFactory = GraphQLSchemaFactory.FromRuntimeFiles(
-            packagePrefix,
-            resourcesIncluded?.toRegex(),
-        )
-        return this
-    }
-
-    /**
-     * Specify the schema with a graphqls string.
-     *
-     * @param sdl the graphqls string to register the schema from
-     */
-    fun withFullSchemaFromSdl(
-        sdl: String,
-        customScalars: List<GraphQLScalarType>? = null,
-    ): ViaductSchemaRegistryBuilder {
-        graphQLSchemaFactory = GraphQLSchemaFactory.FromSdl(
-            sdl = sdl,
-            customScalars = customScalars,
-        )
-        return this
-    }
-
-    // START OF Register Public Schema methods
 
     /**
      * This function will be used to register schema scopes from the full schema on the builder.
      *
      * @param scopeIds a set of scopes (the identifiers in @scope directive) to filter the full schema with
      * @param schemaId an identifier used to select the schema against which to run an operation
-     *
      */
-    fun registerScopedSchema(
+    private fun registerScopedSchema(
         schemaId: String,
         scopeIds: Set<String>
-    ): ViaductSchemaRegistryBuilder {
+    ) {
         publicSchemaRegistration.add(PublicSchemaRegistration.ScopedSchema(schemaId, scopeIds))
-        return this
-    }
-
-    /**
-     * This function will be used to register scoped schema using a schema sdl string
-     *
-     * * @param schemaId an identifier used to select the schema against which to run an operation
-     * * @param schemaSdl the schema to be associated with this schemaId - must be a projection of the full schemas
-     *
-     */
-    fun registerSchemaFromSdl(
-        schemaId: String,
-        schemaSdl: String,
-    ): ViaductSchemaRegistryBuilder {
-        publicSchemaRegistration.add(
-            PublicSchemaRegistration.SchemaFromSdl(
-                schemaId,
-                schemaSdl
-            )
-        )
-
-        return this
     }
 
     /**
      * This function will be used to register the full schema as public, setting the scopeId as the schemaId
      *
      * @param schemaId an identifier used to select the schema against which to run an operation
-     *
      */
-    fun registerFullSchema(schemaId: String): ViaductSchemaRegistryBuilder {
+    private fun registerFullSchema(schemaId: String): SchemaRegistryConfiguration {
         publicSchemaRegistration.add(PublicSchemaRegistration.FullSchema(schemaId))
-
         return this
     }
-    // END OF Register Public Schema methods
 
-    fun build(scopedFuture: CoroutineInterop): ViaductSchemaRegistry {
-        fullSchema = fullSchema ?: graphQLSchemaFactory.createSchema(scopedFuture)
-
-        val scopedSchemas: ConcurrentHashMap<String, ViaductSchema> = ConcurrentHashMap()
-        val schemaDocumentProvider = ConcurrentHashMap<ViaductSchema, PreparsedDocumentProvider>()
-
-        publicSchemaRegistration.forEach {
-            it.buildPublicSchema(fullSchema!!, scopedFuture).let { generatedSchema ->
-                scopedSchemas.put(generatedSchema.schemaId, generatedSchema.schema)
-                schemaDocumentProvider.put(generatedSchema.schema, generatedSchema.schemaDocumentProvider)
-            }
-        }
-
-        // Validate that there are no duplicate schema IDs in scopedSchemas and asyncGeneratedSchemas
-        val duplicateKeys = scopedSchemas.keys.intersect(asyncSchemaRegistration.keys)
-        if (duplicateKeys.isNotEmpty()) {
-            throw IllegalStateException("Duplicate schema IDs found in scopedSchemas and asyncGeneratedSchemas: $duplicateKeys")
-        }
-
-        return ViaductSchemaRegistry(scopedSchemas, asyncSchemaRegistration, schemaDocumentProvider, fullSchema!!)
+    /**
+     * Internal method to convert mutable configuration to immutable info.
+     * This is called by StandardViaduct.Builder at build time.
+     */
+    internal fun toInfo(): SchemaRegistryConfigurationInfo {
+        return SchemaRegistryConfigurationInfo(
+            graphQLSchemaFactory = graphQLSchemaFactory,
+            publicSchemaRegistration = publicSchemaRegistration.toList(),
+            asyncSchemaRegistration = asyncSchemaRegistration.toMap(),
+            fullSchema = fullSchema
+        )
     }
 }
 
 /**
  * Different strategies to register the public schema
  */
-private sealed interface PublicSchemaRegistration {
+sealed interface PublicSchemaRegistration {
     data class GeneratedSchema(
         val schemaId: String,
         val schema: ViaductSchema,
@@ -240,7 +250,7 @@ private sealed interface PublicSchemaRegistration {
 /**
  * Different strategies to build the GraphQLSchema
  */
-private sealed interface GraphQLSchemaFactory {
+sealed interface GraphQLSchemaFactory {
     fun createSchema(coroutineInterop: CoroutineInterop): ViaductSchema
 
     /**
@@ -305,7 +315,6 @@ private sealed interface GraphQLSchemaFactory {
                     }
                 }
             }
-
             log.debug(
                 "Got {} resources for pattern {} in {}",
                 resources.size,

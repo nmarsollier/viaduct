@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.ViaductSchema
 import viaduct.graphql.test.assertEquals
 import viaduct.graphql.utils.DefaultSchemaProvider
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.testapps.fixtures.TestTenantPackageFinder
 import viaduct.testapps.testfixtures.TestBase
 
@@ -18,7 +19,7 @@ import viaduct.testapps.testfixtures.TestBase
  */
 @ExperimentalCoroutinesApi
 class RegisterFullSchemaTest : TestBase(
-    customSchemaRegistration = {
+    customSchemaRegistryConfiguration = run {
         val schema = mkSchema(
             """
                 type TestScope1Object {
@@ -38,8 +39,7 @@ class RegisterFullSchemaTest : TestBase(
                 }
             """.trimIndent()
         )
-        it.withFullSchema(schema)
-        it.registerFullSchema("FULL_SCHEMA")
+        SchemaRegistryConfiguration.fromSchema(schema, fullSchemaIds = listOf("FULL_SCHEMA"))
     },
     tenantPackageFinder = TestTenantPackageFinder(Tenants)
 ) {

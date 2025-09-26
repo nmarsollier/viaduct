@@ -2,7 +2,7 @@ package viaduct.testapps.testfixtures
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.BeforeEach
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
 import viaduct.testapps.fixtures.ScopedSchemaInfo
 import viaduct.testapps.fixtures.ViaductModernTestApplication
@@ -17,20 +17,20 @@ import viaduct.testapps.fixtures.ViaductModernTestApplication
  * For those tests related with schema loading, you can use the customSchemaRegistration to register a custom full schema and public schema.
  *
  * @param scopedSchemaInfo The set of info to used to register scoped schemas. Each info includes a schema ID and a set of scope IDs.
- * @param customSchemaRegistration The custom schema registration function to use for the test application. Common tests should not use this.
+ * @param customSchemaRegistryConfiguration The custom schema registry configuration to use for the test application.
  */
 @ExperimentalCoroutinesApi
 abstract class TestBase(
-    private val scopeSchemaInfo: Set<ScopedSchemaInfo> = setOf(ScopedSchemaInfo("schemaId", setOf())),
+    private val scopedSchemaInfo: Set<ScopedSchemaInfo> = setOf(ScopedSchemaInfo("schemaId", setOf())),
     private val fullSchemaRegex: String? = null,
     private val tenantPackageFinder: TenantPackageFinder,
-    private val customSchemaRegistration: ((builder: ViaductSchemaRegistryBuilder) -> Unit)? = null
+    private val customSchemaRegistryConfiguration: SchemaRegistryConfiguration? = null
 ) {
     protected lateinit var testApp: ViaductModernTestApplication
 
     @BeforeEach
     open fun beforeEach() {
-        testApp = ViaductModernTestApplication(scopeSchemaInfo, fullSchemaRegex, tenantPackageFinder, customSchemaRegistration)
+        testApp = ViaductModernTestApplication(scopedSchemaInfo, fullSchemaRegex, tenantPackageFinder, customSchemaRegistryConfiguration)
     }
 
     /**

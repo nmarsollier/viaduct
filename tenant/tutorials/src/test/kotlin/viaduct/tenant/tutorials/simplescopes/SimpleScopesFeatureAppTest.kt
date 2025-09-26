@@ -5,6 +5,7 @@ package viaduct.tenant.tutorials.simplescopes
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 import viaduct.tenant.tutorials.simplescopes.resolverbases.QueryResolvers
 
@@ -70,13 +71,16 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
 
     @Test
     fun `Customer app can access user orders but not admin data`() {
-        // `withSchemaRegistryBuilder` gives you access to the [SchemaRegistryBuilder] used
+        // `withSchemaRegistryConfiguration` lets you pass in a schema registry config
         // to configure the [Viaduct] object being tested.  In this example we're creating a
         // scoped schema named "CUSTOMER_API".  See Viaduct user docs for more on
         // schema scoping.
-        withSchemaRegistryBuilder {
-            registerScopedSchema("CUSTOMER_API", setOf("USER"))
-        }
+        withSchemaRegistryConfiguration(
+            SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("CUSTOMER_API", setOf("USER")))
+            )
+        )
 
         // User can see their orders - myOrders field is available because USER scope is included
         execute(
@@ -124,9 +128,14 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
     fun `Admin dashboard can access admin data but not user-specific data`() {
         // Register admin dashboard schema with ADMIN scope only
         // This simulates deploying the API for internal admin tools and dashboards
-        withSchemaRegistryBuilder {
-            registerScopedSchema("ADMIN_API", setOf("ADMIN"))
-        }
+        withSchemaRegistryConfiguration(
+            SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(
+                    SchemaRegistryConfiguration.ScopeConfig("ADMIN_API", setOf("ADMIN"))
+                )
+            )
+        )
 
         // Admin can see all user data - allUserData field is available because ADMIN scope is included
         execute(
@@ -174,9 +183,14 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
     fun `Internal tools with both scopes can access everything`() {
         // Register internal tools schema with both USER and ADMIN scopes
         // This simulates deploying the API for support tools that need access to everything
-        withSchemaRegistryBuilder {
-            registerScopedSchema("INTERNAL_API", setOf("USER", "ADMIN"))
-        }
+        withSchemaRegistryConfiguration(
+            SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(
+                    SchemaRegistryConfiguration.ScopeConfig("INTERNAL_API", setOf("USER", "ADMIN"))
+                )
+            )
+        )
 
         // Internal tools can access both user and admin fields
         // This is useful for customer support, debugging, and internal operations

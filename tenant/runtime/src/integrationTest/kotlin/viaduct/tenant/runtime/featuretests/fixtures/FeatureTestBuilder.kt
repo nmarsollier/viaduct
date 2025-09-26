@@ -23,8 +23,8 @@ import viaduct.engine.api.SelectionSetVariable
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.tenant.runtime.context.factory.ArgumentsArgs
 import viaduct.tenant.runtime.context.factory.ArgumentsFactory
@@ -387,11 +387,19 @@ class FeatureTestBuilder {
         @Suppress("DEPRECATION")
         val viaductTenantAPIBootstrapperBuilder = ViaductTenantAPIBootstrapper.Builder().tenantPackageFinder(tenantPackageFinder)
         val builders = listOf(viaductTenantAPIBootstrapperBuilder, featureTestTenantAPIBootstrapperBuilder)
-        val viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
-            .withFullSchemaFromSdl(sdl)
-            .apply {
-                scopedSchemaSdl?.let { registerSchemaFromSdl(SCHEMA_ID, it) } ?: registerFullSchema(SCHEMA_ID)
-            }
+        val schemaRegistryConfiguration = if (scopedSchemaSdl != null) {
+            // Register scoped schema when scopedSchemaSdl is provided
+            SchemaRegistryConfiguration.fromSdl(
+                sdl = sdl,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig(SCHEMA_ID, emptySet()))
+            )
+        } else {
+            // Register full schema when no scoped SDL
+            SchemaRegistryConfiguration.fromSdl(
+                sdl = sdl,
+                fullSchemaIds = listOf(SCHEMA_ID)
+            )
+        }
 
         val standardViaduct = StandardViaduct.Builder()
             .withTenantAPIBootstrapperBuilders(builders)
@@ -400,7 +408,7 @@ class FeatureTestBuilder {
                     Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY
                 )
             )
-            .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+            .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
             .withCheckerExecutorFactory(
                 object : CheckerExecutorFactory {
                     override fun checkerExecutorForField(

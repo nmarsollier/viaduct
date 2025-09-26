@@ -14,8 +14,8 @@ import viaduct.api.types.NodeObject
 import viaduct.service.ViaductBuilder
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.mocks.MockFlagManager
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.GuiceTenantCodeInjector
 import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinderFactory
@@ -98,29 +98,24 @@ abstract class FeatureAppTestBase {
             .tenantPackagePrefix(derivedClassPackagePrefix)
 
     private lateinit var viaductBuilder: ViaductBuilder
-    lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
+    lateinit var viaductSchemaRegistryConfiguration: SchemaRegistryConfiguration
     lateinit var viaductService: StandardViaduct
 
     fun withViaductBuilder(builderUpdate: ViaductBuilder.() -> Unit) {
         viaductBuilder.apply(builderUpdate)
     }
 
-    fun withSchemaRegistryBuilder(builderUpdate: ViaductSchemaRegistryBuilder.() -> Unit) {
-        viaductSchemaRegistryBuilder.apply(builderUpdate)
+    fun withSchemaRegistryConfiguration(config: SchemaRegistryConfiguration) {
+        viaductBuilder = viaductBuilder.withSchemaRegistryConfiguration(config)
+        viaductSchemaRegistryConfiguration = config
     }
 
     @BeforeEach
     open fun initViaductBuilder() {
-        if (!::viaductSchemaRegistryBuilder.isInitialized) {
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
-                .withFullSchemaFromSdl(sdl, customScalars.toList())
-                .registerFullSchema(defaultSchemaId)
-        }
         if (!::viaductBuilder.isInitialized) {
             viaductBuilder = ViaductBuilder()
                 .withFlagManager(flagManager)
                 .withTenantAPIBootstrapperBuilder(viaductTenantAPIBootstrapperBuilder)
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
         }
     }
 
@@ -180,6 +175,10 @@ abstract class FeatureAppTestBase {
      */
     @Suppress("TooGenericExceptionCaught")
     fun tryBuildViaductService() {
+        if (!::viaductSchemaRegistryConfiguration.isInitialized) {
+            viaductSchemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(sdl, customScalars = customScalars.toList(), fullSchemaIds = listOf(defaultSchemaId))
+            viaductBuilder.withSchemaRegistryConfiguration(viaductSchemaRegistryConfiguration)
+        }
         if (!::viaductService.isInitialized) {
             try {
                 viaductService = viaductBuilder.build()

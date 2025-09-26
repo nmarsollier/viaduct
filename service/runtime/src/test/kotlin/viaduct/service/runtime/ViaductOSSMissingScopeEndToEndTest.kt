@@ -17,7 +17,7 @@ import viaduct.service.api.spi.FlagManager
 @ExperimentalCoroutinesApi
 class ViaductOSSMissingScopeEndToEndTest {
     private lateinit var subject: StandardViaduct
-    private lateinit var schemaRegistryBuilder: ViaductSchemaRegistryBuilder
+    private lateinit var schemaRegistryConfiguration: SchemaRegistryConfiguration
 
     val flagManager = object : FlagManager {
         override fun isEnabled(flag: Flag) = true
@@ -38,7 +38,10 @@ class ViaductOSSMissingScopeEndToEndTest {
 
     @BeforeEach
     fun setUp() {
-        schemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("publicScope"))
+        schemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(
+            sdl,
+            scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("public", setOf("publicScope")))
+        )
     }
 
     @Test
@@ -48,7 +51,7 @@ class ViaductOSSMissingScopeEndToEndTest {
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
                 .withDataFetcherExceptionHandler(mockk())
-                .withSchemaRegistryBuilder(schemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
         }
         assertEquals(

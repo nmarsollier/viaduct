@@ -37,7 +37,7 @@ import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
 import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.FlagManager
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder.AsyncScopedSchema
+import viaduct.service.runtime.SchemaRegistryConfiguration.AsyncScopedSchema
 
 class StandardViaductTest {
     private lateinit var subject: StandardViaduct
@@ -327,11 +327,11 @@ class StandardViaductTest {
             """.trimIndent()
         )
 
-        val registryBuilder = ViaductSchemaRegistryBuilder().withFullSchema(fullSchema).registerScopedSchema(
-            SCHEMA_ID,
-            setOf("scope1"),
+        val config = SchemaRegistryConfiguration.fromSchema(
+            fullSchema,
+            scopes = setOf(SchemaRegistryConfiguration.ScopeConfig(SCHEMA_ID, setOf("scope1")))
         )
-        val viaductBuilder = StandardViaduct.Builder().withSchemaRegistryBuilder(registryBuilder)
+        val viaductBuilder = StandardViaduct.Builder().withSchemaRegistryConfiguration(config)
 
         val stdViaduct = viaductBuilder.build()
         val queryType = stdViaduct.getSchema(SCHEMA_ID)?.schema?.typeMap?.get("Query") as GraphQLObjectType?
@@ -362,18 +362,18 @@ class StandardViaductTest {
     fun `test newForSchema creates new instance with different schema registry`() {
         createSimpleStandardViaduct()
 
-        val newViaductSchemaRegistryBuilder = mockk<ViaductSchemaRegistryBuilder>()
-        val newSchemaRegistry = mockk<ViaductSchemaRegistry>()
-        val newSchema = mockk<GraphQLSchema>()
+        // Create a real SchemaRegistryConfiguration instead of mocking it
+        val newSchemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(
+            """
+            extend type Query {
+                hello: String
+            }
+            """.trimIndent()
+        )
 
-        every { newViaductSchemaRegistryBuilder.build(any()) } returns newSchemaRegistry
-        every { newSchemaRegistry.registerSchema(any(), any(), any(), any()) } returns Unit
-        every { newSchema.allTypesAsList } returns listOf()
-        every { newSchemaRegistry.getFullSchema() } returns ViaductSchema(newSchema)
+        val newViaduct = subject.newForSchema(newSchemaRegistryConfiguration)
 
-        val newViaduct = subject.newForSchema(newViaductSchemaRegistryBuilder)
-
-        assertEquals(newSchemaRegistry, newViaduct.viaductSchemaRegistry)
+        assertTrue(subject.viaductSchemaRegistry !== newViaduct.viaductSchemaRegistry)
         assertEquals(subject.chainedInstrumentation, newViaduct.chainedInstrumentation)
     }
 }
