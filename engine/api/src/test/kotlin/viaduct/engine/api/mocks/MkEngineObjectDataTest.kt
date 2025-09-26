@@ -10,7 +10,7 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.ResolvedEngineObjectData
 import viaduct.engine.api.UnsetSelectionException
 
-class EngineObjectDataFromTest {
+class MkEngineObjectDataTest {
     val schema = MockSchema.mk(
         """
         extend type Query {
@@ -163,7 +163,8 @@ class EngineObjectDataFromTest {
             is Map<*, *> -> {
                 assertInstanceOf(ResolvedEngineObjectData::class.java, actual)
                 actual as ResolvedEngineObjectData
-                assertEquals(expected.keys, actual.selectionsThatAreSet())
+                val selectionsThatAreSet = actual.data.keys
+                assertEquals(expected.keys, selectionsThatAreSet)
                 expected.forEach { (key, value) -> test(value, actual.fetchSync(key as String)) }
             }
             else -> assertEquals(expected, actual)

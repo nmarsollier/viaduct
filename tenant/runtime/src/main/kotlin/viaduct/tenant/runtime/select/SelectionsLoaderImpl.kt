@@ -9,7 +9,7 @@ import viaduct.api.types.Mutation
 import viaduct.api.types.Query
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RawSelectionsLoader
-import viaduct.tenant.runtime.wrap
+import viaduct.tenant.runtime.toGRT
 
 class SelectionsLoaderImpl<T : CompositeOutput>(
     private val rawSelectionsLoader: RawSelectionsLoader
@@ -30,7 +30,7 @@ class SelectionsLoaderImpl<T : CompositeOutput>(
     ): U {
         val rawSelectionSet = selections.toRawSelectionSet()
         val proxyData = rawSelectionsLoader.load(rawSelectionSet)
-        return proxyData.wrap(ctx.internal, selections.type)
+        return proxyData.toGRT(ctx.internal, selections.type)
     }
 
     private fun SelectionSet<*>.toRawSelectionSet(): RawSelectionSet {
