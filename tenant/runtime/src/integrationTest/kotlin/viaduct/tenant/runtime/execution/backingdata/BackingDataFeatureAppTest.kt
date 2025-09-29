@@ -85,6 +85,73 @@ class BackingDataFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
+    @Test
+    fun `Resolver includes a backing data fields in its required selections validation error`() {
+        execute(
+            query = """
+                    query TestQuery {
+                        foo {
+                            backingDataValue {
+                                iValue,
+                                sValue
+                            }
+                        }
+                    }
+            """.trimIndent()
+        ).assertEquals {
+            "errors" to arrayOf(
+                {
+                    "message" to "Validation error (SubselectionNotAllowed@[foo/backingDataValue]) : Subselection not allowed on leaf type " +
+                        "'BackingData' of field 'backingDataValue'"
+                    "locations" to arrayOf(
+                        {
+                            "line" to 3
+                            "column" to 9
+                        }
+                    )
+                    "extensions" to {
+                        "classification" to "ValidationError"
+                    }
+                }
+            )
+            "data" to null
+        }
+    }
+
+    @Test
+    fun `Resolver includes a backing data type in its required selections serialize error`() {
+        execute(
+            query = """
+                    query TestQuery {
+                        foo {
+                            backingDataValue
+                        }
+                    }
+            """.trimIndent()
+        ).assertEquals {
+            "errors" to arrayOf(
+                {
+                    "message" to "serialize should not be called for BackingData scalar type. This is a no-op."
+                    "locations" to arrayOf(
+                        {
+                            "line" to 3
+                            "column" to 9
+                        }
+                    )
+                    "path" to listOf("foo", "backingDataValue")
+                    "extensions" to {
+                        "classification" to "VIADUCT_INTERNAL_ENGINE_EXCEPTION"
+                    }
+                }
+            )
+            "data" to {
+                "foo" to {
+                    "backingDataValue" to null
+                }
+            }
+        }
+    }
+
     companion object {
         val EXPECTED_BACKING_DATA =
             BackingDataValue(10, "Hello, World!")

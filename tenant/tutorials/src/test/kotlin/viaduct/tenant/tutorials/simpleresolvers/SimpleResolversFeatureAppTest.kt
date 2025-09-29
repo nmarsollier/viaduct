@@ -23,7 +23,12 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
         """
         | #START_SCHEMA
         |
-        | type User implements Node @resolver {
+        | interface Person {
+        |   firstname: String!
+        |   lastname: String!
+        | }
+        |
+        | type User implements Node & Person @resolver {
         |   id: ID!
         |   firstname: String!
         |   lastname: String!
@@ -32,6 +37,8 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
         |
         | extend type Query {
         |   user(id: String!): User! @resolver
+        |   person: Person! @resolver
+        |   userWithArgs(firstname: String, lastname: String): User! @resolver
         | }
         | #END_SCHEMA
         """.trimMargin()
@@ -69,6 +76,39 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
         override suspend fun resolve(ctx: Context): User {
             // Get ID from query arguments and create GlobalID for Node Resolver lookup
             return ctx.nodeFor(ctx.globalIDFor(User.Reflection, ctx.arguments.id))
+        }
+    }
+
+    /**
+     * Query Field Resolver that returns an interface type (Person).
+     * Tests interface type resolution functionality.
+     */
+    @Resolver
+    class GetPersonResolver : QueryResolvers.Person() {
+        override suspend fun resolve(ctx: Context): Person {
+            // Return a User object that implements Person interface
+            return ctx.nodeFor(ctx.globalIDFor(User.Reflection, "john-doe"))
+        }
+    }
+
+    /**
+     * Query Field Resolver with optional arguments that can be null.
+     * Tests null argument handling functionality.
+     */
+    @Resolver
+    class GetUserWithArgsResolver : QueryResolvers.UserWithArgs() {
+        override suspend fun resolve(ctx: Context): User {
+            // Handle optional arguments - use defaults if null
+            val firstname = ctx.arguments.firstname ?: "DefaultFirst"
+            val lastname = ctx.arguments.lastname ?: "DefaultLast"
+
+            // Create a user with provided or default names
+            val globalId = ctx.globalIDFor(User.Reflection, "args-user")
+            return User.Builder(ctx)
+                .id(globalId)
+                .firstname(firstname)
+                .lastname(lastname)
+                .build()
         }
     }
 
@@ -151,5 +191,49 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
                     }
             """.trimIndent()
         ).hasError("User not found: unknown-user")
+    }
+
+    @Test
+    fun `Resolver returns an interface type`() {
+        execute(
+            query = """
+                    query TestQuery {
+                        person {
+                            firstname
+                            lastname
+                        }
+                    }
+            """.trimIndent()
+        ).assertEquals {
+            "data" to {
+                "person" to {
+                    "firstname" to "John"
+                    "lastname" to "Doe"
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Resolver with arguments null returns an object type`() {
+        execute(
+            query = """
+                    query TestQuery {
+                        userWithArgs(firstname: null, lastname: null) {
+                            firstname
+                            lastname
+                            fullName
+                        }
+                    }
+            """.trimIndent()
+        ).assertEquals {
+            "data" to {
+                "userWithArgs" to {
+                    "firstname" to "DefaultFirst"
+                    "lastname" to "DefaultLast"
+                    "fullName" to "DefaultFirst DefaultLast"
+                }
+            }
+        }
     }
 }
