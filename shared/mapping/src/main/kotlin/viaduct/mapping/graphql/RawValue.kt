@@ -1,4 +1,8 @@
-package viaduct.arbitrary.graphql
+package viaduct.mapping.graphql
+
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * A RawValue describes an intermediate representation for data.
@@ -30,7 +34,17 @@ sealed interface RawValue {
         val Boolean.scalar: RawScalar get() = RawScalar("Boolean", this)
         val Double.scalar: RawScalar get() = RawScalar("Float", this)
         val Int.scalar: RawScalar get() = RawScalar("Int", this)
+        val Long.scalar: RawScalar get() = RawScalar("Long", this)
+        val Short.scalar: RawScalar get() = RawScalar("Short", this)
         val String.scalar: RawScalar get() = RawScalar("String", this)
+        val LocalDate.scalar: RawScalar get() = RawScalar("Date", this)
+        val Instant.scalar: RawScalar get() = RawScalar("DateTime", this)
+        val LocalTime.scalar: RawScalar get() = RawScalar("Time", this)
+        val Byte.scalar: RawScalar get() = RawScalar("Byte", this)
+
+        // TODO: support JSON
+        // TODO: support backing data
+        // TODO: support ID
         val String.enum: RawEnum get() = RawEnum(this)
 
         fun enum(valueName: String): RawEnum = RawEnum(valueName)

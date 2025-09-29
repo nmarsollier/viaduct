@@ -19,36 +19,18 @@ import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLType
 import graphql.schema.GraphQLTypeReference
 import graphql.schema.GraphQLTypeUtil
-import viaduct.arbitrary.graphql.BridgeGJToRaw.scalar
-import viaduct.arbitrary.graphql.RawValue.Companion.ifNotINull
+import viaduct.arbitrary.graphql.BridgeGJToRaw.ifNotINull
 import viaduct.graphql.schema.ViaductExtendedSchema
-
-/** A generic mapping function that can use a [Type] to map a [Value] from one domain to another */
-interface ValueMapper<in Type, From, To> : Function2<Type, From, To> {
-    private class Map<AType, BType, From, To, NewTo>(
-        val a: ValueMapper<AType, From, To>,
-        val b: ValueMapper<BType, To, NewTo>
-    ) : ValueMapper<AType, From, NewTo> {
-        @Suppress("UNCHECKED_CAST")
-        override fun invoke(
-            type: AType,
-            v: From
-        ): NewTo = b(type as BType, a(type, v))
-    }
-
-    private class Fn<Type, From, To>(val fn: Function2<Type, From, To>) : ValueMapper<Type, From, To> {
-        override fun invoke(
-            type: Type,
-            from: From
-        ): To = fn(type, from)
-    }
-
-    fun <NewTo, BT : Type> map(other: ValueMapper<BT, To, NewTo>): ValueMapper<Type, From, NewTo> = Map(this, other)
-
-    companion object {
-        fun <Type, From, To> mk(fn: (Type, From) -> To): ValueMapper<Type, From, To> = Fn(fn)
-    }
-}
+import viaduct.mapping.graphql.RawENull
+import viaduct.mapping.graphql.RawEnum
+import viaduct.mapping.graphql.RawINull
+import viaduct.mapping.graphql.RawInput
+import viaduct.mapping.graphql.RawList
+import viaduct.mapping.graphql.RawObject
+import viaduct.mapping.graphql.RawScalar
+import viaduct.mapping.graphql.RawValue
+import viaduct.mapping.graphql.RawValue.Companion.scalar
+import viaduct.mapping.graphql.ValueMapper
 
 private data class BridgeTypeCtx(
     val type: ViaductExtendedSchema.TypeExpr,

@@ -24,9 +24,16 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.KotestPropertyBase
-import viaduct.arbitrary.graphql.RawValue.Companion.enum
-import viaduct.arbitrary.graphql.RawValue.Companion.scalar
 import viaduct.graphql.schema.ViaductExtendedSchema
+import viaduct.mapping.graphql.RawENull
+import viaduct.mapping.graphql.RawINull
+import viaduct.mapping.graphql.RawInput
+import viaduct.mapping.graphql.RawList
+import viaduct.mapping.graphql.RawObject
+import viaduct.mapping.graphql.RawValue
+import viaduct.mapping.graphql.RawValue.Companion.enum
+import viaduct.mapping.graphql.RawValue.Companion.scalar
+import viaduct.mapping.graphql.ValueMapper
 
 private typealias Roundtripper<T> = ValueMapper<T, RawValue, RawValue>
 

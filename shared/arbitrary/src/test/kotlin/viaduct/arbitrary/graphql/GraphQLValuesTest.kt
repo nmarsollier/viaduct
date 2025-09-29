@@ -11,6 +11,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.Config
 import viaduct.graphql.schema.ViaductExtendedSchema
+import viaduct.mapping.graphql.RawValue
+import viaduct.mapping.graphql.ValueMapper
 
 class GraphQLValuesTest {
     private object ToStringMapper : ValueMapper<ViaductExtendedSchema.TypeExpr, RawValue, String> {

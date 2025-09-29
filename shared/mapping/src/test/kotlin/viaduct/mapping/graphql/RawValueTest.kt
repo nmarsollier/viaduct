@@ -1,4 +1,4 @@
-package viaduct.arbitrary.graphql
+package viaduct.mapping.graphql
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
