@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.runFeatureTest
-import viaduct.graphql.test.assertData
+import viaduct.graphql.test.assertJson
 
 @ExperimentalCoroutinesApi
 class BatchFieldResolverTest {
@@ -119,14 +119,14 @@ class BatchFieldResolverTest {
             }
         }.runFeatureTest {
             viaduct.runQuery("{ items { x y }}")
-                .assertData("""{"items": [{"x": 1, "y": null}, {"x": 2, "y": null}]}""") { errors ->
+                .apply {
                     assertEquals(2, errors.size)
                     errors.forEachIndexed { idx, error ->
                         assertEquals(listOf("items", idx, "y"), error.path)
                         assertTrue(error.message.contains("Item y resolver failed"))
                         assertEquals("DataFetchingException", error.errorType.toString())
                     }
-                }
+                }.getData<Map<String, Any?>>().assertJson("""{"items": [{"x": 1, "y": null}, {"x": 2, "y": null}]}""")
         }
     }
 
@@ -163,13 +163,13 @@ class BatchFieldResolverTest {
             }
         }.runFeatureTest {
             viaduct.runQuery("{ items { x y }}")
-                .assertData("""{"items": [{"x": 1, "y": 1}, {"x": 2, "y": null}]}""") { errors ->
+                .apply {
                     assertEquals(1, errors.size)
                     val error = errors.first()
                     assertEquals(listOf("items", 1, "y"), error.path)
                     assertTrue(error.message.contains("Even idx for item"))
                     assertEquals("DataFetchingException", error.errorType.toString())
-                }
+                }.getData<Map<String, Any?>>().assertJson("""{"items": [{"x": 1, "y": 1}, {"x": 2, "y": null}]}""")
         }
     }
 

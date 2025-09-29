@@ -125,13 +125,13 @@ class AccessCheckExecutionTest {
     //         )
     //         .build()
     //         .execute("{ boo { value } }")
-    //         .assertData("{boo: {value: null}}") { errors ->
+    //         .apply { errors ->
     //             assertEquals(1, errors.size)
     //             errors[0].let { error ->
     //                 assertEquals(listOf("boo", "value"), error.path)
     //                 assertTrue(error.message.contains("permission denied"))
     //             }
-    //         }
+    //         }.getData<Map<String, Any?>>().assertJson("{boo: {value: null}}")
     // }
 
     @Test

@@ -5,7 +5,7 @@ package viaduct.tenant.tutorials.simpleresolvers
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
-import viaduct.graphql.test.hasError
+import viaduct.graphql.test.assertHasError
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 import viaduct.tenant.tutorials.simpleresolvers.resolverbases.QueryResolvers
 import viaduct.tenant.tutorials.simpleresolvers.resolverbases.UserResolvers
@@ -190,7 +190,7 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
                         }
                     }
             """.trimIndent()
-        ).hasError("User not found: unknown-user")
+        ).assertHasError("User not found: unknown-user")
     }
 
     @Test

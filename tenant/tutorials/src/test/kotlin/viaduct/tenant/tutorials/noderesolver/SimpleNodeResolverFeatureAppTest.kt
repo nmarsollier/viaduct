@@ -5,7 +5,7 @@ package viaduct.tenant.tutorials.noderesolver
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
-import viaduct.graphql.test.hasError
+import viaduct.graphql.test.assertHasError
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
 import viaduct.tenant.tutorials.noderesolver.resolverbases.QueryResolvers
 
@@ -121,6 +121,6 @@ class SimpleNodeResolverFeatureAppTest : FeatureAppTestBase() {
                    }
                 }
             """.trimIndent()
-        ).hasError("Foo not found: unknown-foo")
+        ).assertHasError("Foo not found: unknown-foo")
     }
 }
