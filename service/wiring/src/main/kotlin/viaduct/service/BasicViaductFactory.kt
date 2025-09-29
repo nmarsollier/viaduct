@@ -1,10 +1,10 @@
 package viaduct.service
 
+import viaduct.api.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.service.api.Viaduct
 import viaduct.service.api.spi.TenantCodeInjector
 import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
 object BasicViaductFactory {
     /**

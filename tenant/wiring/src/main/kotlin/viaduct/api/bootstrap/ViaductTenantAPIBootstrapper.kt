@@ -1,4 +1,4 @@
-package viaduct.tenant.runtime.bootstrap
+package viaduct.api.bootstrap
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -7,6 +7,11 @@ import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
 import viaduct.service.api.spi.TenantCodeInjector
+import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
+import viaduct.tenant.runtime.bootstrap.TenantResolverClassFinderFactory
+import viaduct.tenant.runtime.bootstrap.ViaductTenantModuleBootstrapper
+import viaduct.tenant.runtime.bootstrap.ViaductTenantPackageFinder
+import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinderFactory
 import viaduct.utils.slf4j.logger
 
 /**

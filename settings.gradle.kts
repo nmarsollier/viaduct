@@ -36,6 +36,7 @@ include(":tenant:codegen-integration-tests")
 include(":tenant:api-integration-tests")
 include(":tenant:runtime-integration-tests")
 include(":tenant:tutorials")
+include(":tenant:wiring")
 
 // testapps
 include("tenant:testapps:fixtures")

@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.api.FieldValue
+import viaduct.api.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.context.NodeExecutionContext
 import viaduct.api.internal.ObjectBase
@@ -25,7 +26,6 @@ import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
 import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.tenant.runtime.context.factory.ArgumentsArgs
 import viaduct.tenant.runtime.context.factory.ArgumentsFactory
 import viaduct.tenant.runtime.context.factory.Factory
@@ -80,7 +80,6 @@ class FeatureTestBuilder {
         resolverName: String? = null
     ): FeatureTestBuilder =
         resolver(
-            Ctx::class,
             T::class,
             Q::class,
             A::class,
@@ -101,7 +100,6 @@ class FeatureTestBuilder {
         A : Arguments,
         O : CompositeOutput
         > resolver(
-        ctxCls: KClass<Ctx>,
         objCls: KClass<T>,
         queryCls: KClass<Q>,
         argumentsCls: KClass<A>,
@@ -247,7 +245,7 @@ class FeatureTestBuilder {
 
     @Suppress("UNCHECKED_CAST")
     fun <Ctx : NodeExecutionContext<T>, T : NodeObject> nodeBatchResolver(
-        ctxCls: KClass<Ctx>,
+        @Suppress("UNUSED_PARAMETER") ctxCls: KClass<Ctx>,
         typeName: String,
         batchResolveFn: suspend (ctxs: List<Ctx>) -> List<FieldValue<NodeObject>>
     ): FeatureTestBuilder {
@@ -368,7 +366,7 @@ class FeatureTestBuilder {
     fun instrumentation(instrumentation: Instrumentation): FeatureTestBuilder =
         this.also {
             this.instrumentation = instrumentation
-    }
+        }
 
     fun meterRegistry(meterRegistry: MeterRegistry) =
         this.also {

@@ -6,13 +6,13 @@ import graphql.ExecutionResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
+import viaduct.api.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
 import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
 /**
  * Viaduct Modern test application.

@@ -9,6 +9,7 @@ import graphql.schema.GraphQLScalarType
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
+import viaduct.api.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.api.reflect.Type
 import viaduct.api.types.NodeObject
 import viaduct.service.ViaductBuilder
@@ -17,7 +18,6 @@ import viaduct.service.api.spi.mocks.MockFlagManager
 import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
 import viaduct.tenant.runtime.bootstrap.GuiceTenantCodeInjector
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinderFactory
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl

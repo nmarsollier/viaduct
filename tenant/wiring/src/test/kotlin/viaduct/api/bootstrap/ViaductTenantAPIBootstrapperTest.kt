@@ -1,6 +1,6 @@
 @file:Suppress("ForbiddenImport")
 
-package viaduct.tenant.runtime.bootstrap
+package viaduct.api.bootstrap
 
 import com.google.inject.AbstractModule
 import com.google.inject.Guice
@@ -29,9 +29,14 @@ import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.spi.TenantCodeInjector
+import viaduct.tenant.runtime.bootstrap.GuiceTenantCodeInjector
+import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
+import viaduct.tenant.runtime.bootstrap.TenantResolverClassFinder
+import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinder
 import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl
+import viaduct.testapps.fixtures.TestTenantPackageFinder
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ViaductTenantAPIBootstrapperTest {
