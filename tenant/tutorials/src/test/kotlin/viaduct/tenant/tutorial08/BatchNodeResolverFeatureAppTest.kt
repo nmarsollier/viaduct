@@ -1,29 +1,37 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.batchnoderesolvers
+package viaduct.tenant.tutorial08
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.assertEquals as kotlinAssertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import viaduct.api.FieldValue
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.batchnoderesolvers.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial08.resolverbases.QueryResolvers
 
 /**
- * Demonstrates Viaduct's Batch Node Resolver feature for efficient object loading.
+ * LEARNING OBJECTIVES:
+ * - Apply batching to Node Resolver operations
+ * - Optimize multiple object lookups by GlobalID
+ * - Handle mixed valid/invalid IDs in batch operations
+ * - Combine Node Resolvers with batch optimization
  *
- * Batch Node Resolvers solve the N+1 problem when fetching multiple objects by ID.
- * Instead of making separate database calls for each product lookup, one batch call
- * can fetch all requested products at once. This is especially useful when a query
- * requests multiple related objects or when fragments cause multiple node lookups.
+ * VIADUCT FEATURES DEMONSTRATED:
+ * - Batch Node Resolvers with batchResolve() method
+ * - FieldValue error handling for individual failures
+ * - ctx.nodeFor() automatic batching
+ * - Multiple node requests in single GraphQL query
  *
- * When multiple ctx.nodeFor() calls request the same object type, Viaduct automatically
- * groups them into a single batchResolve() call, similar to DataLoaders but built into
- * the Node Resolver system.
+ * CONCEPTS COVERED:
+ * - N+1 problem at object level (multiple node lookups)
+ * - Batch object creation from multiple GlobalIDs
+ * - Error isolation in batch operations
+ *
+ * PREVIOUS: [viaduct.tenant.tutorial07.SimpleBatchResolverFeatureAppTest]
+ * NEXT: [viaduct.tenant.tutorial09.VariablesDirectivesFeatureAppTest]
  */
 class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
@@ -43,6 +51,7 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
     """.trimMargin()
 
     companion object {
+        // PERFORMANCE TRACKING
         val batchResolveCalls = ConcurrentLinkedQueue<Int>()
     }
 
@@ -52,26 +61,33 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Batch Node Resolver for Product objects. Instead of calling resolve() separately
-     * for each product ID, Viaduct calls batchResolve() once with all requested IDs.
-     * This allows for a single optimized database query to fetch all products.
+     * BATCH NODE RESOLVER - Optimizes multiple object creation
      *
-     * batchResolve() receives all contexts that need Product objects and returns
-     * corresponding FieldValue results in the same order.
+     * What YOU write:
+     * - Implement batchResolve() for multiple GlobalIDs at once
+     * - Extract all internal IDs from GlobalIDs
+     * - Make single database call for all requested objects
+     * - Return List<FieldValue<T>> with proper error handling
+     *
+     * What VIADUCT handles:
+     * - Collects all ctx.nodeFor() calls requesting same object type
+     * - Routes to batchResolve() instead of individual resolve() calls
+     * - Maps results back to individual node requests
+     * - Handles per-object error cases
      */
-    class ProductNodeResolver : NodeResolvers.Product() {
+    class ProductNodeResolver : NodeResolvers.Product() { // Generated from "type Product implements Node @resolver"
         override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<Product>> {
-            // Extract all internal IDs from the batch of GlobalIDs
+            // EXTRACT ALL INTERNAL IDS from GlobalIDs
             val productIds = contexts.map { ctx -> ctx.id.internalID }
 
-            // Track this batchResolve call - record the batch size
+            // PERFORMANCE TRACKING
             batchResolveCalls.add(productIds.size)
 
-            // Simulate a single database call that fetches all products at once
-            // In reality: SELECT * FROM products WHERE id IN (...)
+            // SINGLE DATABASE QUERY - instead of N separate queries
+            // In reality: SELECT * FROM products WHERE id IN (?, ?, ?)
             val productsData = fetchProductsByIds(productIds)
 
-            // Return results in the same order as input contexts
+            // RETURN RESULTS with individual error handling
             return contexts.map { ctx ->
                 val productId = ctx.id.internalID
                 val productData = productsData[productId]
@@ -85,14 +101,14 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
                         .build()
                     FieldValue.ofValue(product)
                 } else {
+                    // Individual error - doesn't fail entire batch
                     FieldValue.ofError(IllegalArgumentException("Product not found: $productId"))
                 }
             }
         }
 
-        // Simulates a single database query for multiple products
+        // MOCK DATABASE - simulates single optimized query
         private fun fetchProductsByIds(productIds: List<String>): Map<String, ProductData> {
-            // Mock product database - in reality this would be a single DB query
             val allProducts = mapOf(
                 "laptop-123" to ProductData("Gaming Laptop", 1299.99, "Electronics"),
                 "phone-456" to ProductData("Smartphone", 699.99, "Electronics"),
@@ -101,7 +117,7 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
                 "mouse-202" to ProductData("Wireless Mouse", 29.99, "Electronics")
             )
 
-            // Return only the requested products (simulating WHERE id IN clause)
+            // Filter to only requested products (WHERE id IN clause)
             return allProducts.filter { it.key in productIds }
         }
 
@@ -113,27 +129,20 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Query resolver that fetches multiple products. Each ctx.nodeFor() call
-     * would normally trigger a separate Node Resolver, but with batch resolving
-     * they get grouped into a single batchResolve() call automatically.
+     * QUERY RESOLVER - Triggers batch node resolution
      */
     @Resolver
-    class productsResolver : QueryResolvers.Products() {
+    class productsResolver : QueryResolvers.Products() { // Generated from query field
         override suspend fun resolve(ctx: Context): List<Product> {
-            // Convert each ID to GlobalID and fetch via Node Resolver system
-            // All these ctx.nodeFor() calls get batched automatically
+            // MULTIPLE NODE REQUESTS - automatically batched by Viaduct
             return ctx.arguments.ids.map { id ->
                 ctx.nodeFor(ctx.globalIDFor(Product.Reflection, id))
             }
         }
     }
 
-    /**
-     * Single product query resolver - also uses Node Resolver system.
-     * If called alongside products, this would be included in the same batch.
-     */
     @Resolver
-    class ProductResolver : QueryResolvers.Product() {
+    class ProductResolver : QueryResolvers.Product() { // Generated from query field
         override suspend fun resolve(ctx: Context): Product {
             return ctx.nodeFor(ctx.globalIDFor(Product.Reflection, ctx.arguments.id))
         }
@@ -154,6 +163,7 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
             """.trimIndent()
         ).assertEquals {
             "data" to {
+                // NOTE: createGlobalIdString is a TEST-ONLY utility method provided by FeatureAppTestBase
                 "products" to arrayOf(
                     {
                         "id" to createGlobalIdString(Product.Reflection, "laptop-123")
@@ -177,9 +187,9 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // Assert batching efficiency: only 1 batchResolve call for all 3 products
-        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call for batch loading")
-        kotlinAssertEquals(3, batchResolveCalls.first(), "Expected batch size of 3 products in single call")
+        // EFFICIENCY PROOF - all 3 products in 1 batch call
+        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call")
+        kotlinAssertEquals(3, batchResolveCalls.first(), "Expected batch size of 3 products")
     }
 
     @Test
@@ -206,55 +216,12 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
         }
 
         // Assert: single product still uses batch resolver (batch size 1)
-        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call for single product")
-        kotlinAssertEquals(1, batchResolveCalls.first(), "Expected batch size of 1 product in single call")
+        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call")
+        kotlinAssertEquals(1, batchResolveCalls.first(), "Expected batch size of 1 product")
     }
 
     @Test
-    @Disabled
-    fun `Batch resolver valid and invalid IDs`() {
-        execute(
-            query = """
-                query {
-                    products(ids: ["laptop-123", "invalid-id", "phone-456"]) {
-                        id
-                        name
-                        price
-                    }
-                }
-            """.trimIndent()
-        ).assertEquals {
-            "data" to {
-                "products" to arrayOf(
-                    {
-                        "id" to createGlobalIdString(Product.Reflection, "laptop-123")
-                        "name" to "Gaming Laptop"
-                        "price" to 1299.99
-                    },
-                    null, // Invalid ID results in null
-                    {
-                        "id" to createGlobalIdString(Product.Reflection, "phone-456")
-                        "name" to "Smartphone"
-                        "price" to 699.99
-                    }
-                )
-            }
-            "errors" to arrayOf(
-                {
-                    "message" to "java.lang.IllegalArgumentException: Product not found: invalid-id"
-                    "path" to listOf("products", 1)
-                }
-            )
-        }
-
-        // Assert batching even with mixed valid/invalid IDs
-        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call even with invalid IDs")
-        kotlinAssertEquals(3, batchResolveCalls.first(), "Expected batch size of 3 products (including invalid)")
-    }
-
-    @Test
-    fun `Multiple queries get batched together demonstrating maximum efficiency`() {
-        // When multiple queries request products, they all get batched into one call
+    fun `Multiple queries get batched together for maximum efficiency`() {
         execute(
             query = """
                 query {
@@ -295,9 +262,31 @@ class BatchNodeResolverFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // Assert maximum batching efficiency: all product requests in single call
-        // 2 individual products + 2 from products array = 4 total in 1 batch
-        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call for all product requests")
-        kotlinAssertEquals(4, batchResolveCalls.first(), "Expected batch size of 4 products (2 + 2) in single call")
+        // MAXIMUM BATCHING: 2 individual + 2 from array = 4 total in 1 call
+        kotlinAssertEquals(1, batchResolveCalls.size, "Expected exactly 1 batchResolve call")
+        kotlinAssertEquals(4, batchResolveCalls.first(), "Expected batch size of 4 products")
     }
+
+    /**
+     * EXECUTION FLOW WITH BATCH NODE RESOLVERS:
+     *
+     * Query: products(ids: ["laptop-123", "phone-456"])
+     *
+     * 1. productsResolver.resolve() called
+     * 2. For each ID: ctx.nodeFor(globalIDFor(Product.Reflection, id))
+     * 3. Viaduct collects all Product node requests
+     * 4. Single ProductNodeResolver.batchResolve() call with all contexts
+     * 5. Extract ["laptop-123", "phone-456"] from GlobalIDs
+     * 6. Single database query for both products
+     * 7. Build Product objects and return as FieldValue list
+     * 8. Viaduct maps results back to individual requests
+     *
+     * KEY TAKEAWAYS:
+     * - Batch Node Resolvers optimize multiple object creation
+     * - Use when multiple ctx.nodeFor() calls request same type
+     * - Single database call replaces N separate calls
+     * - FieldValue.ofError() handles individual failures gracefully
+     * - Automatic batching works across different query fields
+     * - Significant performance improvement for object-heavy queries
+     */
 }

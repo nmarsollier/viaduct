@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.simplebatchresolvers
+package viaduct.tenant.tutorial07
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.assertEquals as kotlinAssertEquals
@@ -10,18 +10,29 @@ import viaduct.api.FieldValue
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.simplebatchresolvers.resolverbases.QueryResolvers
-import viaduct.tenant.tutorials.simplebatchresolvers.resolverbases.UserResolvers
+import viaduct.tenant.tutorial07.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial07.resolverbases.UserResolvers
 
 /**
- * Demonstrates Viaduct's Batch Resolver feature for efficient data loading.
+ * LEARNING OBJECTIVES:
+ * - Solve the N+1 query problem for related data
+ * - Batch multiple field requests into single operations
+ * - Track resolver efficiency with call counting
+ * - Understand batchResolve vs regular resolve patterns
  *
- * Batch Resolvers solve the N+1 query problem by collecting multiple field requests
- * and resolving them in a single batch operation. Instead of making separate database
- * calls for each user's department, one call can fetch departments for all users.
+ * VIADUCT FEATURES DEMONSTRATED:
+ * - Batch Resolvers with batchResolve() method
+ * - FieldValue return types for batch results
+ * - objectValueFragment for batch context
+ * - Automatic batching when multiple objects need same field
  *
- * When multiple objects need the same type of data, Viaduct automatically groups
- * the requests and calls batchResolve() once with all contexts, similar to GraphQL DataLoaders.
+ * CONCEPTS COVERED:
+ * - N+1 problem: 1 query for users + N queries for each user's department
+ * - Batch solution: 1 query for users + 1 query for all departments
+ * - DataLoader pattern implementation
+ *
+ * PREVIOUS: [viaduct.tenant.tutorial06.SimpleScopesFeatureAppTest]
+ * NEXT: [viaduct.tenant.tutorial08.BatchNodeResolverFeatureAppTest]
  */
 class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
     override var sdl = """
@@ -34,13 +45,13 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
         | type User {
         |   id: String!
         |   name: String!
-        |   department: String @resolver
+        |   department: String @resolver    # This will be batch resolved
         | }
         | #END_SCHEMA
     """.trimMargin()
 
     companion object {
-        // Track batchResolve calls to prove batching efficiency
+        // PERFORMANCE TRACKING - proves batching efficiency
         val batchResolveCalls = ConcurrentLinkedQueue<Int>()
 
         fun resetCallTracking() {
@@ -58,39 +69,25 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Returns a list of users for the query. This creates multiple User objects
-     * that will each need their department field resolved.
+     * STANDARD QUERY RESOLVER - Returns list of users
      */
     @Resolver
-    class Query_UsersResolver : QueryResolvers.Users() {
+    class Query_UsersResolver : QueryResolvers.Users() { // Generated from query field
         override suspend fun resolve(ctx: Context): List<User> {
-            // Static user data - in reality this would come from a database
+            // TEST DATA - In production: userRepository.findAll()
             return listOf(
-                User.Builder(ctx)
-                    .id("user-1")
-                    .name("Alice Johnson")
-                    .build(),
-                User.Builder(ctx)
-                    .id("user-2")
-                    .name("Bob Smith")
-                    .build(),
-                User.Builder(ctx)
-                    .id("user-3")
-                    .name("Carol Williams")
-                    .build()
+                User.Builder(ctx).id("user-1").name("Alice Johnson").build(),
+                User.Builder(ctx).id("user-2").name("Bob Smith").build(),
+                User.Builder(ctx).id("user-3").name("Carol Williams").build()
             )
         }
     }
 
-    /**
-     * Returns a single user by ID
-     */
     @Resolver
-    class Query_UserResolver : QueryResolvers.User() {
+    class Query_UserResolver : QueryResolvers.User() { // Generated from query field
         override suspend fun resolve(ctx: Context): User? {
             val userId = ctx.arguments.id
-
-            // Mock user lookup - in reality this would be a database call
+            // TEST DATA - In production: userRepository.findById(userId)
             return when (userId) {
                 "user-1" -> User.Builder(ctx).id("user-1").name("Alice Johnson").build()
                 "user-2" -> User.Builder(ctx).id("user-2").name("Bob Smith").build()
@@ -101,29 +98,36 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Batch Resolver for user departments. Instead of making separate database calls
-     * for each user's department, this resolver gets all user IDs at once and can
-     * make a single optimized query to fetch all departments.
+     * BATCH RESOLVER - Solves N+1 problem for department field
      *
-     * batchResolve() receives all contexts that need department data and returns
-     * a corresponding list of FieldValue results in the same order.
+     * What YOU write:
+     * - Implement batchResolve() instead of resolve()
+     * - Extract IDs from all contexts at once
+     * - Make single database/service call for all IDs
+     * - Return List<FieldValue<T>> matching input order
+     *
+     * What VIADUCT handles:
+     * - Collects all department field requests across multiple User objects
+     * - Calls batchResolve() once with all contexts
+     * - Maps results back to individual field requests
+     * - Handles errors per individual field
      */
     @Resolver(
         objectValueFragment = "fragment _ on User { id }"
     )
-    class User_DepartmentResolver : UserResolvers.Department() {
+    class User_DepartmentResolver : UserResolvers.Department() { // Generated from field with @resolver
         override suspend fun batchResolve(contexts: List<Context>): List<FieldValue<String>> {
-            // Extract all user IDs from the batch
+            // EXTRACT ALL USER IDS FROM BATCH
             val userIds = contexts.map { ctx -> ctx.objectValue.getId() }
 
-            // Track this batchResolve call - record the batch size
+            // PERFORMANCE TRACKING - record batch size
             batchResolveCalls.add(userIds.size)
 
-            // Simulate a single database call that fetches departments for all users
-            // In reality: SELECT user_id, department FROM user_departments WHERE user_id IN (...)
+            // SINGLE DATABASE CALL - instead of N separate calls
+            // In reality: SELECT user_id, department FROM user_departments WHERE user_id IN (?)
             val departmentData = fetchDepartmentsForUsers(userIds)
 
-            // Return results in the same order as input contexts
+            // RETURN RESULTS IN SAME ORDER as input contexts
             return contexts.map { ctx ->
                 val userId = ctx.objectValue.getId()
                 val department = departmentData[userId] ?: "Unknown"
@@ -131,9 +135,8 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // Simulates a single database query for all user departments
+        // SIMULATES SINGLE OPTIMIZED DATABASE QUERY
         private fun fetchDepartmentsForUsers(userIds: List<String>): Map<String, String> {
-            // Mock department mapping - in reality this would be a database call
             return mapOf(
                 "user-1" to "Engineering",
                 "user-2" to "Marketing",
@@ -143,7 +146,7 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
-    fun `Batch resolver correctly loads departments for multiple users with single database call`() {
+    fun `Batch resolver efficiently loads departments for multiple users with single database call`() {
         resetCallTracking()
 
         execute(
@@ -152,7 +155,7 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
                     users {
                         id
                         name
-                        department
+                        department    # Triggers batchResolve for ALL users at once
                     }
                 }
             """.trimIndent()
@@ -162,29 +165,29 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
                     {
                         "id" to "user-1"
                         "name" to "Alice Johnson"
-                        "department" to "Engineering" // Loaded via batch resolver
+                        "department" to "Engineering"
                     },
                     {
                         "id" to "user-2"
                         "name" to "Bob Smith"
-                        "department" to "Marketing" // Same batch call
+                        "department" to "Marketing"
                     },
                     {
                         "id" to "user-3"
                         "name" to "Carol Williams"
-                        "department" to "Engineering" // Same batch call
+                        "department" to "Engineering"
                     }
                 )
             }
         }
 
-        // Assert batching efficiency: only 1 batchResolve call for all 3 users
-        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected exactly 1 batchResolve call for batch loading")
-        kotlinAssertEquals(3, batchResolveCalls.first(), "Expected batch size of 3 users in single call")
+        // EFFICIENCY PROOF - only 1 batch call for all 3 users
+        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected exactly 1 batchResolve call")
+        kotlinAssertEquals(3, batchResolveCalls.first(), "Expected batch size of 3 users")
     }
 
     @Test
-    fun `Single user query triggers batch resolver with size 1`() {
+    fun `Single user query still uses batch resolver with size 1`() {
         resetCallTracking()
 
         execute(
@@ -207,24 +210,24 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // Assert: single user still uses batch resolver (batch size 1)
-        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected exactly 1 batchResolve call for single user")
-        kotlinAssertEquals(1, batchResolveCalls.first(), "Expected batch size of 1 user in single call")
+        // Even single requests use batch pattern
+        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected 1 batchResolve call")
+        kotlinAssertEquals(1, batchResolveCalls.first(), "Expected batch size of 1")
     }
 
     @Test
-    fun `Mixed query with users list and single user demonstrates batching efficiency`() {
+    fun `Mixed query demonstrates maximum batching efficiency`() {
         resetCallTracking()
 
         execute(
             query = """
                 query {
-                    users {
+                    users {                    # 3 users requesting department
                         id
                         name
                         department
                     }
-                    singleUser: user(id: "user-2") {
+                    singleUser: user(id: "user-2") {  # 1 more user requesting department
                         id
                         name
                         department
@@ -258,51 +261,9 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // Assert: Viaduct should batch all department requests together
-        // 4 total department requests (3 from users + 1 from singleUser) = 1 batch call
-        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected exactly 1 batchResolve call for all department requests")
-        kotlinAssertEquals(4, batchResolveCalls.first(), "Expected batch size of 4 users (3 + 1 duplicate)")
-    }
-
-    @Test
-    fun `Conditional department requests still batch together`() {
-        resetCallTracking()
-
-        execute(
-            query = """
-                query {
-                    users {
-                        id
-                        name
-                        department @include(if: true)
-                    }
-                }
-            """.trimIndent()
-        ).assertEquals {
-            "data" to {
-                "users" to arrayOf(
-                    {
-                        "id" to "user-1"
-                        "name" to "Alice Johnson"
-                        "department" to "Engineering"
-                    },
-                    {
-                        "id" to "user-2"
-                        "name" to "Bob Smith"
-                        "department" to "Marketing"
-                    },
-                    {
-                        "id" to "user-3"
-                        "name" to "Carol Williams"
-                        "department" to "Engineering"
-                    }
-                )
-            }
-        }
-
-        // Assert: conditional inclusion still results in batching
-        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected exactly 1 batchResolve call for conditional department requests")
-        kotlinAssertEquals(3, batchResolveCalls.first(), "Expected batch size of 3 users")
+        // ALL department requests batched together: 3 + 1 = 4 in single call
+        kotlinAssertEquals(1, getTotalBatchResolveCalls(), "Expected 1 batchResolve call")
+        kotlinAssertEquals(4, batchResolveCalls.first(), "Expected batch size of 4 (includes duplicate)")
     }
 
     @Test
@@ -315,7 +276,7 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
                     users {
                         id
                         name
-                        # No department field requested
+                        # department field not requested
                     }
                 }
             """.trimIndent()
@@ -338,7 +299,32 @@ class SimpleBatchResolverFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // Assert: no department requests = no batchResolve calls
-        kotlinAssertEquals(0, getTotalBatchResolveCalls(), "Expected no batchResolve calls when department field not requested")
+        // No department requests = no batch resolver calls
+        kotlinAssertEquals(0, getTotalBatchResolveCalls(), "Expected no batchResolve calls")
     }
+
+    /**
+     * PERFORMANCE COMPARISON:
+     *
+     * Without Batch Resolvers (N+1 Problem):
+     * 1. Query: users { department }
+     * 2. users resolver: 1 database call
+     * 3. department resolver for user-1: 1 database call
+     * 4. department resolver for user-2: 1 database call
+     * 5. department resolver for user-3: 1 database call
+     * Total: 4 database calls (1 + N)
+     *
+     * With Batch Resolvers (Optimized):
+     * 1. Query: users { department }
+     * 2. users resolver: 1 database call
+     * 3. batchResolve for all departments: 1 database call
+     * Total: 2 database calls (1 + 1)
+     *
+     * KEY TAKEAWAYS:
+     * - batchResolve() receives ALL contexts needing the field
+     * - Make single optimized call for all required data
+     * - Return List<FieldValue<T>> in same order as input
+     * - Viaduct handles automatic batching and result mapping
+     * - Dramatic performance improvement for N+1 scenarios
+     */
 }

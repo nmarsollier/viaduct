@@ -1,14 +1,14 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.simpleresolvers
+package viaduct.tenant.tutorial03
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.graphql.test.assertHasError
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.simpleresolvers.resolverbases.QueryResolvers
-import viaduct.tenant.tutorials.simpleresolvers.resolverbases.UserResolvers
+import viaduct.tenant.tutorial03.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial03.resolverbases.UserResolvers
 
 /**
  * Demonstrates Node Resolvers and Field Resolvers working together.
@@ -80,8 +80,10 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Query Field Resolver that returns an interface type (Person).
-     * Tests interface type resolution functionality.
+     * QUERY FIELD RESOLVER - Returns interface type
+     *
+     * Pattern: Query returns Person interface, actual object is User
+     * User implements Person, so it can be returned where Person is expected
      */
     @Resolver
     class GetPersonResolver : QueryResolvers.Person() {
@@ -92,8 +94,16 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Query Field Resolver with optional arguments that can be null.
-     * Tests null argument handling functionality.
+     * QUERY FIELD RESOLVER - Handles nullable/optional arguments
+     *
+     * What YOU write:
+     * - Check for null arguments with ?: operator
+     * - Provide default values when arguments are null
+     * - Build object with provided or default data
+     *
+     * What VIADUCT handles:
+     * - Arguments without ! in schema are nullable
+     * - Type-safe access via ctx.arguments.firstname (String?)
      */
     @Resolver
     class GetUserWithArgsResolver : QueryResolvers.UserWithArgs() {
@@ -236,4 +246,27 @@ class SimpleResolversFeatureAppTest : FeatureAppTestBase() {
             }
         }
     }
+
+    /**
+     * EXECUTION FLOW WALKTHROUGH:
+     *
+     * Query: user(id: "john-doe") { fullName }
+     *
+     * 1. GetUserResolver.resolve() called with arguments.id = "john-doe"
+     * 2. Creates GlobalID: ctx.globalIDFor(User.Reflection, "john-doe")
+     * 3. ctx.nodeFor() routes to UserNodeResolver.resolve()
+     * 4. UserNodeResolver creates User with firstname="John", lastname="Doe"
+     * 5. Viaduct sees fullName requested in query
+     * 6. Checks User_FullNameResolver.objectValueFragment
+     * 7. Ensures firstname + lastname are available (already fetched in step 4)
+     * 8. User_FullNameResolver.resolve() called with populated ctx.objectValue
+     * 9. Computes "John Doe" and returns to client
+     *
+     * KEY TAKEAWAYS:
+     * - Node Resolvers handle object creation and basic data
+     * - Field Resolvers handle computed/derived fields
+     * - objectValueFragment ensures required parent data is available
+     * - Viaduct optimizes execution order automatically
+     * - Clean separation: creation logic vs computation logic
+     */
 }

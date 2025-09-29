@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.variablesdirective
+package viaduct.tenant.tutorial09
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
@@ -11,35 +11,45 @@ import viaduct.api.context.VariablesProviderContext
 import viaduct.api.types.Arguments
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.variablesdirective.resolverbases.QueryResolvers
-import viaduct.tenant.tutorials.variablesdirective.resolverbases.UserResolvers
+import viaduct.tenant.tutorial09.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial09.resolverbases.UserResolvers
 
 /**
- * Demonstrates Viaduct's ability to use variables to control GraphQL directives
- * (like @include and @skip) within resolver selection sets. This enables conditional field
- * fetching based on runtime conditions.
+ * LEARNING OBJECTIVES:
+ * - Control GraphQL directives (@include/@skip) dynamically
+ * - Use variables to conditionally fetch fields at runtime
+ * - Master 3 patterns: declarative, VariablesProvider, and argument-based
+ * - Implement conditional data fetching based on business logic
  *
- * There are 3 main patterns for controlling directive variables:
- * Pattern 1: Declarative variables from arguments (no code)
- * Pattern 2: VariablesProvider with no arguments access
- * Pattern 3: VariablesProvider with resolver arguments access
+ * VIADUCT FEATURES DEMONSTRATED:
+ * - Variable declarations with @Variable annotation
+ * - VariablesProvider for computed variable values
+ * - objectValueFragment with directive variables
+ * - fromArgument variable population
+ *
+ * CONCEPTS COVERED:
+ * - GraphQL directive system (@include/@skip)
+ * - Runtime field selection optimization
+ * - Conditional data access patterns
+ * - Variable scope and computation
+ *
+ * PREVIOUS: [viaduct.tenant.tutorial08.BatchNodeResolverFeatureAppTest]
+ * NEXT: [viaduct.tenant.tutorial10.VariablesForArgumentsFeatureAppTest]
  */
 class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
-    // Data Source
     companion object {
+        // TEST DATA
         data class UserModel(val id: String, val name: String)
 
         val USER1 = UserModel("user-123", "John Doe")
         val USER2 = UserModel("user-456", "Jane Smith")
         val REVIEWS_USER_1_ANONYMOUS = listOf("Bad!", "Won't buy again")
         val REVIEWS_USER_1_VERIFIED = listOf("Great product!", "Loved the service", "Will buy again")
-
         val REVIEWS_USER_2_ANONYMOUS = listOf("Bad Quality", "Fast delivery")
         val REVIEWS_USER_2_VERIFIED = listOf("Defective Product", "Fast delivery")
     }
 
-    override var sdl =
-        """
+    override var sdl = """
         | #START_SCHEMA
         | type User implements Node @resolver {
         |   id: ID!
@@ -55,7 +65,7 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
         |   user(id: String!): User! @resolver
         | }
         | #END_SCHEMA
-        """.trimMargin()
+    """.trimMargin()
 
     class UserNodeResolver : NodeResolvers.User() {
         override suspend fun resolve(ctx: Context): User {
@@ -102,9 +112,16 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Pattern 1 - Declarative - no code. We can control @include directive using variables
-     * populated by the `variables` parameter to `@Resolver`. The variable comes directly
-     * from the resolver's arguments.
+     * PATTERN 1: DECLARATIVE VARIABLES - No code required
+     *
+     * What YOU write:
+     * - variables = [Variable("name", fromArgument = "argumentName")]
+     * - Use variable in objectValueFragment with @include/@skip
+     *
+     * What VIADUCT handles:
+     * - Automatically extracts argument value into variable
+     * - Evaluates directive at query time
+     * - Only fetches fields when directive condition is true
      */
     @Resolver(
         """
@@ -118,15 +135,18 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
     class UserReviewsResolver : UserResolvers.Reviews() {
         override suspend fun resolve(ctx: Context): List<String> {
             return if (ctx.arguments.anonymous) {
+                // anonymousReviews available due to @include(if: true)
                 ctx.objectValue.getAnonymousReviews() + ctx.objectValue.getVerifiedReviews()
             } else {
+                // anonymousReviews not fetched due to @include(if: false)
                 ctx.objectValue.getVerifiedReviews()
             }
         }
     }
 
     @Test
-    fun `Pattern 1 - Using variables from resolver arguments to control @include directive`() {
+    fun `Pattern 1 - Declarative variables from arguments control field fetching`() {
+        // anonymous = true -> includes anonymousReviews field
         execute("{ user(id: \"${USER1.id}\") { name reviews(anonymous: true) } }").assertEquals {
             "data" to {
                 "user" to {
@@ -136,6 +156,7 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
+        // anonymous = false -> skips anonymousReviews field (performance optimization)
         execute("{ user(id: \"${USER1.id}\") { name reviews(anonymous: false) } }").assertEquals {
             "data" to {
                 "user" to {
@@ -147,9 +168,17 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Pattern 2: VariablesProvider - We can control @include directive using VariablesProvider<Arguments.NoArguments>
-     * which computes variables at runtime. This resolver has no arguments, so it uses computed logic
-     * to determine directive behavior.
+     * PATTERN 2: VARIABLESPROVIDER WITHOUT ARGUMENTS
+     *
+     * What YOU write:
+     * - VariablesProvider class implementing provide() method
+     * - @Variables annotation declaring variable types
+     * - Business logic to compute variable values
+     *
+     * What VIADUCT handles:
+     * - Calls VariablesProvider.provide() at runtime
+     * - Uses returned values to evaluate directives
+     * - Optimizes field fetching based on computed variables
      */
     @Resolver(
         """
@@ -162,8 +191,10 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
     class UserComputedReviews : UserResolvers.ComputedReviews() {
         override suspend fun resolve(ctx: Context): List<String> {
             return try {
+                // If anonymousVar = true, anonymousReviews will be available
                 ctx.objectValue.getAnonymousReviews() + ctx.objectValue.getVerifiedReviews()
             } catch (ex: Exception) {
+                // If anonymousVar = false, anonymousReviews won't be fetched
                 ctx.objectValue.getVerifiedReviews()
             }
         }
@@ -171,29 +202,28 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
         @Variables("anonymousVar: Boolean")
         class Vars : VariablesProvider<Arguments.NoArguments> {
             override suspend fun provide(context: VariablesProviderContext<Arguments.NoArguments>): Map<String, Any> {
-                return mapOf(
-                    "anonymousVar" to false
-                )
+                // BUSINESS LOGIC - could be based on user permissions, feature flags, etc.
+                return mapOf("anonymousVar" to false)
             }
         }
     }
 
     @Test
-    fun `Pattern 2 - Using VariablesProvider with no arguments to control @include directive`() {
+    fun `Pattern 2 - VariablesProvider computes directive values at runtime`() {
         execute("{ user(id: \"${USER2.id}\") { name computedReviews } }").assertEquals {
             "data" to {
                 "user" to {
                     "name" to USER2.name
-                    "computedReviews" to REVIEWS_USER_2_VERIFIED
+                    "computedReviews" to REVIEWS_USER_2_VERIFIED // anonymousVar = false
                 }
             }
         }
     }
 
     /**
-     * Pattern 3: VariablesProvider - We can control @skip directive using VariablesProvider<Generated_Arguments>
-     * which has access to the resolver's input arguments. This allows dynamic directive control
-     * based on the arguments passed to the resolver.
+     * PATTERN 3: VARIABLESPROVIDER WITH RESOLVER ARGUMENTS
+     *
+     * Most powerful pattern - access to resolver arguments for conditional logic
      */
     @Resolver(
         """
@@ -225,7 +255,7 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
-    fun `Pattern 3 - Using VariablesProvider with resolver arguments to control @skip directive`() {
+    fun `Pattern 3 - VariablesProvider with resolver arguments for conditional control`() {
         execute("{ user(id: \"${USER1.id}\") { name computedReviewsWithArgs(userType: \"verified\") } }").assertEquals {
             "data" to {
                 "user" to {
@@ -244,4 +274,28 @@ class VariablesDirectivesFeatureAppTest : FeatureAppTestBase() {
             }
         }
     }
+
+    /**
+     * EXECUTION FLOW WALKTHROUGH:
+     *
+     * Pattern 1: reviews(anonymous: true)
+     * 1. Variable anonymousVar set to true from argument
+     * 2. @include(if: true) -> anonymousReviews field is fetched
+     * 3. UserAnonymousReviews resolver runs
+     * 4. UserReviewsResolver gets both anonymous + verified reviews
+     *
+     * Pattern 3: computedReviewsWithArgs(userType: "verified")
+     * 1. VariablesProvider receives userType="verified"
+     * 2. Computes skipAnonymous=true
+     * 3. @skip(if: true) -> anonymousReviews field is NOT fetched
+     * 4. Only UserVerifiedReviews resolver runs
+     * 5. Result contains only verified reviews
+     *
+     * KEY TAKEAWAYS:
+     * - Variables control @include/@skip directives dynamically
+     * - Pattern 1: Simple argument-based control
+     * - Pattern 2: Computed variables without input context
+     * - Pattern 3: Conditional variables based on resolver arguments
+     * - Performance optimization through selective field fetching
+     */
 }

@@ -1,27 +1,38 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.simplebackingdata
+package viaduct.tenant.tutorial04
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.simplebackingdata.resolverbases.QueryResolvers
-import viaduct.tenant.tutorials.simplebackingdata.resolverbases.UserResolvers
+import viaduct.tenant.tutorial04.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial04.resolverbases.UserResolvers
 
 /**
- * Demonstrates Viaduct's Backing Data feature for efficient data fetching.
+ * LEARNING OBJECTIVES:
+ * - Eliminate redundant expensive operations across multiple fields
+ * - Share complex Kotlin objects between field resolvers
+ * - Understand @backingData directive and BackingData type
+ * - Learn efficient patterns for external service integration
  *
- * Backing Data allows you to store internal Kotlin objects that aren't exposed in the GraphQL schema
- * but can be shared across multiple field resolvers. This prevents redundant database calls when
- * multiple fields need data from the same expensive operation.
+ * VIADUCT FEATURES DEMONSTRATED:
+ * - @backingData directive with custom class specification
+ * - BackingData type in schema
+ * - ctx.objectValue.get() for type-safe backing data access
+ * - Single expensive operation powering multiple GraphQL fields
  *
- * The backing data object stays in Kotlin - it's never serialized to GraphQL. Field resolvers
- * can extract specific values from it, so one database call can power multiple GraphQL fields.
+ * CONCEPTS COVERED:
+ * - Backing data as internal optimization (not exposed to GraphQL)
+ * - Custom Kotlin data classes for complex internal state
+ * - Service layer integration patterns
+ * - Performance optimization through data sharing
+ *
+ * PREVIOUS: [viaduct.tenant.tutorial03.SimpleResolversFeatureAppTest]
+ * NEXT: [viaduct.tenant.tutorial05.SimpleMutationsFeatureAppTest]
  */
 class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
-    override var sdl =
-        """
+    override var sdl = """
         | #START_SCHEMA
         | extend type Query {
         |   user(id: String!): User! @resolver
@@ -31,20 +42,33 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
         |   id: ID!
         |   name: String!
         |   email: String!
-        |   averageStars: Float! @resolver
-        |   reviewsCount: Int! @resolver
-        |   reviewsData: BackingData
+        |   averageStars: Float! @resolver      # Computed from backing data
+        |   reviewsCount: Int! @resolver        # Computed from backing data
+        |   reviewsData: BackingData            # The expensive operation
         |     @resolver
-        |     @backingData(class: "UserReviewsData")
+        |     @backingData(class: "UserReviewsData")  # Your custom Kotlin class
         | }
         | #END_SCHEMA
-        """.trimMargin()
+    """.trimMargin()
 
-    // Resolves User nodes by ID, fetching basic user data from a simulated database.
-    // This acts as the primary data source for User objects in the graph.
+    /**
+     * NODE RESOLVER - Handles basic User data
+     *
+     * What YOU write:
+     * - Fetch basic entity data (typically from primary database)
+     * - Return User objects with core fields
+     *
+     * What VIADUCT generates:
+     * - NodeResolvers.User() base class
+     * - User.Builder for construction
+     */
     @Resolver
     class UserNodeResolver : NodeResolvers.User() {
         override suspend fun resolve(ctx: Context): User {
+            // YOUR BUSINESS LOGIC - typically database lookup
+            // In production: userRepository.findById(internalId)
+
+            // TEST SIMULATION - Mock user data
             val userData = when (val internalId = ctx.id.internalID) {
                 "user-123" -> Pair("John Smith", "john@example.com")
                 "user-456" -> Pair("Jane Doe", "jane@example.com")
@@ -59,8 +83,6 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
-    // Query resolver that converts string IDs to User objects.
-    // Handles the top-level user(id:) query field by delegating to the node resolver.
     @Resolver
     class UserQueryResolver : QueryResolvers.User() {
         override suspend fun resolve(ctx: Context): User {
@@ -68,16 +90,32 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
-    // Resolver uses the objectValue.getId to get the GlobalID from the node and extract the internal ID from it.
-    // The resolve function returns the Kotlin-Object defined in schema, rather than a Generated one.
-    // When multiple field-resolvers request data from a BackingData it will run it once and provide the result for both of them.
+    /**
+     * BACKING DATA RESOLVER - The expensive operation
+     *
+     * What YOU write:
+     * - Return your custom Kotlin object (not generated by Viaduct)
+     * - Implement expensive operation once (API call, complex computation, etc.)
+     * - Use objectValueFragment to access parent data needed for the operation
+     *
+     * What VIADUCT handles:
+     * - Runs this resolver only once per object, regardless of how many fields need the data
+     * - Caches result for use by multiple field resolvers
+     * - Never serializes this data to GraphQL (stays internal)
+     */
     @Resolver(
         """fragment _ on User { id }"""
     )
     class UserReviewsDataResolver : UserResolvers.ReviewsData() {
         override suspend fun resolve(ctx: Context): UserReviewsData {
             val userId = ctx.objectValue.getId().internalID
-            // This in theory stimulates a call to another Microservice, External API, or other sources.
+
+            // EXPENSIVE OPERATION - simulates external service call
+            // In production: reviewsService.getUserReviewSummary(userId)
+            // Or: complexAnalytics.computeUserMetrics(userId)
+            println("EXPENSIVE OPERATION: Fetching reviews data for $userId")
+
+            // TEST SIMULATION - Mock expensive external service call
             return when (userId) {
                 "user-123" -> MOCK_USER_123_REVIEWS
                 "user-456" -> MOCK_USER_456_REVIEWS
@@ -86,8 +124,12 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
         }
     }
 
-    // Extracts the average rating from the shared backing data.
-    // Uses the pre-fetched UserReviewsData instead of making a separate service call.
+    /**
+     * FIELD RESOLVER 1 - Extracts averageStars from shared backing data
+     *
+     * Key pattern: Uses ctx.objectValue.get() to access the UserReviewsData
+     * that was computed by UserReviewsDataResolver
+     */
     @Resolver(
         """
         fragment _ on User { reviewsData }
@@ -95,18 +137,25 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
     )
     class UserAverageStarsResolver : UserResolvers.AverageStars() {
         override suspend fun resolve(ctx: Context): Double {
+            // TYPE-SAFE BACKING DATA ACCESS
             val reviewsData = ctx.objectValue.get<UserReviewsData>("reviewsData", UserReviewsData::class)
             return reviewsData.averageRating
+
+            // No expensive operation here - just data extraction!
         }
     }
 
-    // Extracts the review count from the shared backing data.
-    // Reuses the same UserReviewsData object that was fetched for averageStars.
+    /**
+     * FIELD RESOLVER 2 - Extracts reviewsCount from same backing data
+     *
+     * Both this and averageStars share the SAME UserReviewsData instance
+     */
     @Resolver(
         """fragment _ on User { reviewsData }"""
     )
     class UserReviewsCountResolver : UserResolvers.ReviewsCount() {
         override suspend fun resolve(ctx: Context): Int {
+            // REUSES THE SAME BACKING DATA - no additional expensive operation
             val reviewsData = ctx.objectValue.get<UserReviewsData>("reviewsData", UserReviewsData::class)
             return reviewsData.totalReviews
         }
@@ -120,8 +169,8 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
                     user(id: "user-123") {
                         name
                         email
-                        averageStars
-                        reviewsCount
+                        averageStars    # Triggers UserReviewsDataResolver ONCE
+                        reviewsCount    # Reuses same UserReviewsData instance
                     }
                 }
             """.trimIndent()
@@ -178,6 +227,7 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
     }
 
     companion object {
+        // TEST DATA - simulates external service response
         val MOCK_USER_123_REVIEWS = UserReviewsData(
             averageRating = 4.2,
             totalReviews = 127,
@@ -188,8 +238,29 @@ class SimpleBackingDataFeatureAppTest : FeatureAppTestBase() {
             totalReviews = 43,
         )
     }
+
+    /**
+     * EXECUTION FLOW WITH BACKING DATA:
+     *
+     * Query: user(id: "user-123") { averageStars, reviewsCount }
+     *
+     * 1. UserQueryResolver -> UserNodeResolver (creates basic User object)
+     * 2. Viaduct sees averageStars + reviewsCount both need reviewsData
+     * 3. UserReviewsDataResolver.resolve() called ONCE
+     * 4. UserReviewsData(4.2, 127) stored as backing data
+     * 5. UserAverageStarsResolver accesses backing data -> returns 4.2
+     * 6. UserReviewsCountResolver accesses SAME backing data -> returns 127
+     *
+     * KEY TAKEAWAYS:
+     * - Backing data stays internal (never serialized to GraphQL)
+     * - One expensive operation powers multiple GraphQL fields
+     * - Use custom Kotlin classes for complex internal state
+     * - Perfect for external service integration
+     * - Alternative to batch resolvers for same-object scenarios
+     */
 }
 
+// YOUR CUSTOM KOTLIN CLASS - not generated by Viaduct
 data class UserReviewsData(
     val averageRating: Double,
     val totalReviews: Int,

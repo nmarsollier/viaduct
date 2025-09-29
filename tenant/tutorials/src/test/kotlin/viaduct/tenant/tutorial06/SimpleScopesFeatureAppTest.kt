@@ -1,51 +1,71 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.simplescopes
+package viaduct.tenant.tutorial06
 
 import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.simplescopes.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial06.resolverbases.QueryResolvers
 
 /**
- * Demonstrates Viaduct's Scopes feature for API security and organization.
+ * LEARNING OBJECTIVES:
+ * - Implement API security through field-level access control
+ * - Deploy different API versions for different client types
+ * - Organize GraphQL schemas by scope (USER, ADMIN, INTERNAL)
+ * - Prevent accidental data exposure between client applications
  *
- * Scopes allow you to deploy different versions of your GraphQL API for different clients.
- * Fields and types can be tagged with specific scopes, and only APIs registered with those
- * scopes will include them. This enables secure separation between customer-facing APIs,
- * admin dashboards, and internal tools using the same schema definition.
+ * VIADUCT FEATURES DEMONSTRATED:
+ * - @scope directive for field and type access control
+ * - Multiple API deployments from single schema
+ * - Scoped schema registration with SchemaRegistryBuilder
+ * - Automatic field filtering based on scope permissions
  *
- * Each API deployment gets registered with a set of scopes, controlling what fields
- * are available to that specific client or application.
+ * CONCEPTS COVERED:
+ * - Multi-tenant API architecture
+ * - Security through schema scope separation
+ * - Customer-facing vs admin vs internal API variants
+ * - Schema validation errors for unauthorized fields
+ *
+ * PREVIOUS: [viaduct.tenant.tutorial05.SimpleMutationsFeatureAppTest]
+ * NEXT: [viaduct.tenant.tutorial07.SimpleBatchResolverFeatureAppTest]
  */
 class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
-    override var sdl =
-        """
+    override var sdl = """
         | #START_SCHEMA
-        | extend type Query @scope(to: ["USER"]) {
+        | extend type Query @scope(to: ["USER"]) {          # Only USER scope can access
         |   myOrders(userId: String!): [String!]! @resolver
         | }
         |
-        | extend type Query @scope(to: ["ADMIN"]) {
+        | extend type Query @scope(to: ["ADMIN"]) {         # Only ADMIN scope can access
         |   allUserData: [String!]! @resolver
         | }
         | #END_SCHEMA
-        """.trimMargin()
+    """.trimMargin()
 
     /**
-     * Handles user-specific order queries for customer-facing APIs. Only available in
-     * deployments with USER scope. Viaduct generates QueryResolvers.MyOrders() and wires
-     * this resolver to the myOrders field automatically when USER scope is active.
+     * USER-SCOPED RESOLVER - Customer-facing functionality
+     *
+     * What YOU write:
+     * - Business logic for user-specific operations
+     * - Input validation and security checks
+     * - Data filtering appropriate for customer APIs
+     *
+     * What VIADUCT handles:
+     * - Only generates this resolver in APIs registered with USER scope
+     * - Automatic field exclusion in non-USER deployments
+     * - Schema validation prevents unauthorized access
      */
     @Resolver
-    class MyOrdersResolver : QueryResolvers.MyOrders() {
+    class MyOrdersResolver : QueryResolvers.MyOrders() { // Generated from USER-scoped field
         override suspend fun resolve(ctx: Context): List<String> {
-            // Get userId from query arguments - in reality would validate against auth context
+            // SECURITY CHECK - validate userId against auth context
             val userId = ctx.arguments.userId
 
-            // Static data simulation - in reality this would be a database call
+            // In production: ctx.authContext.validateUserAccess(userId)
+
+            // CUSTOMER DATA - safe for external APIs
             val userOrders = when (userId) {
                 "user-123" -> listOf("Order #1001", "Order #1002")
                 "user-456" -> listOf("Order #2001")
@@ -57,14 +77,16 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Provides admin access to sensitive user data for internal dashboards. Only available
-     * in deployments with ADMIN scope. Returns data that should never be exposed to
-     * customer-facing applications.
+     * ADMIN-SCOPED RESOLVER - Internal dashboard functionality
+     *
+     * Critical: This contains SENSITIVE DATA that should never
+     * be exposed to customer-facing applications
      */
     @Resolver
-    class AllUserDataResolver : QueryResolvers.AllUserData() {
+    class AllUserDataResolver : QueryResolvers.AllUserData() { // Generated from ADMIN-scoped field
         override suspend fun resolve(ctx: Context): List<String> {
-            // In reality, would query all users from database with sensitive info
+            // SENSITIVE INTERNAL DATA
+            // In production: would query all users with PII, financial data, etc.
             return listOf("User: john@example.com", "User: jane@example.com")
         }
     }
@@ -82,26 +104,25 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
             )
         )
 
-        // User can see their orders - myOrders field is available because USER scope is included
+        // USER SCOPE ACCESS - Works
         execute(
             query = """
                 query {
                     myOrders(userId: "user-123")
                 }
             """.trimIndent(),
-            schemaId = "CUSTOMER_API"
+            schemaId = "CUSTOMER_API" // Using customer deployment
         ).assertEquals {
             "data" to {
                 "myOrders" to listOf("Order #1001", "Order #1002")
             }
         }
 
-        // Admin data is not accessible - allUserData field doesn't exist in customer API
-        // This prevents customers from accidentally accessing sensitive admin data
+        // ADMIN SCOPE BLOCKED - Security protection
         execute(
             query = """
                 query {
-                    allUserData
+                    allUserData  # This field doesn't exist in customer API
                 }
             """.trimIndent(),
             schemaId = "CUSTOMER_API"
@@ -137,7 +158,7 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
             )
         )
 
-        // Admin can see all user data - allUserData field is available because ADMIN scope is included
+        // ADMIN SCOPE ACCESS - Works
         execute(
             query = """
                 query {
@@ -151,12 +172,11 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
             }
         }
 
-        // User orders field is not accessible - myOrders field doesn't exist in admin API
-        // This keeps admin APIs focused on admin tasks, not user-specific operations
+        // USER SCOPE BLOCKED - Keeps admin tools focused
         execute(
             query = """
                 query {
-                    myOrders(userId: "user-123")
+                    myOrders(userId: "user-123")  # This field doesn't exist in admin API
                 }
             """.trimIndent(),
             schemaId = "ADMIN_API"
@@ -192,19 +212,18 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
             )
         )
 
-        // Internal tools can access both user and admin fields
-        // This is useful for customer support, debugging, and internal operations
+        // COMBINED ACCESS - Both scopes available
         execute(
             query = """
                 query {
-                    myOrders(userId: "user-456")
-                    allUserData
+                    myOrders(userId: "user-456")    # From USER scope
+                    allUserData                     # From ADMIN scope
                 }
             """.trimIndent(),
             schemaId = "INTERNAL_API"
         ).assertEquals {
             "data" to {
-                "myOrders" to listOf("Order #2001") // Different user's data
+                "myOrders" to listOf("Order #2001")
                 "allUserData" to listOf("User: john@example.com", "User: jane@example.com")
             }
         }
@@ -212,25 +231,50 @@ class SimpleScopesFeatureAppTest : FeatureAppTestBase() {
 
     @Test
     fun `Unknown API deployment fails`() {
-        // Try to use an API that was never deployed/registered
-        // This simulates what happens when someone tries to use a non-existent API endpoint
+        // SECURITY TEST - unregistered API endpoints should fail
         execute(
             query = """
                 query {
                     myOrders(userId: "user-123")
                 }
             """.trimIndent(),
-            schemaId = "UNKNOWN_API"
+            schemaId = "UNKNOWN_API" // Never registered
         ).assertEquals {
             "errors" to arrayOf(
                 {
                     "message" to "Schema not found for schemaId=UNKNOWN_API"
-                    "locations" to emptyList<String>() // No location info for schema-level errors
+                    "locations" to emptyList<String>()
                     "extensions" to {
-                        "classification" to "DataFetchingException" // Different error type than validation
+                        "classification" to "DataFetchingException"
                     }
                 }
             )
         }
     }
+
+    /**
+     * REAL-WORLD DEPLOYMENT SCENARIOS:
+     *
+     * Customer Mobile App:
+     * - Scope: ["USER"]
+     * - Access: myOrders, userProfile, customerSupport
+     * - Blocked: adminData, internalMetrics, allUsers
+     *
+     * Admin Dashboard:
+     * - Scope: ["ADMIN"]
+     * - Access: allUserData, systemMetrics, adminReports
+     * - Blocked: customerSpecific operations (prevents admin from impersonating users)
+     *
+     * Customer Support Tool:
+     * - Scope: ["USER", "ADMIN"]
+     * - Access: Everything (needed for support scenarios)
+     * - Use case: Support agents helping customers
+     *
+     * KEY BENEFITS:
+     * - Same codebase -> multiple secure API deployments
+     * - Impossible to accidentally expose admin data to customers
+     * - Fine-grained access control at field level
+     * - Clear separation of concerns by client type
+     * - Easier compliance and security auditing
+     */
 }

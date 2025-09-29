@@ -1,6 +1,6 @@
 @file:Suppress("unused", "ClassName")
 
-package viaduct.tenant.tutorials.simplemutations
+package viaduct.tenant.tutorial05
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -9,28 +9,41 @@ import org.junit.jupiter.api.Test
 import viaduct.api.Resolver
 import viaduct.graphql.test.assertEquals
 import viaduct.tenant.runtime.fixtures.FeatureAppTestBase
-import viaduct.tenant.tutorials.simplemutations.resolverbases.MutationResolvers
-import viaduct.tenant.tutorials.simplemutations.resolverbases.QueryResolvers
+import viaduct.tenant.tutorial05.resolverbases.MutationResolvers
+import viaduct.tenant.tutorial05.resolverbases.QueryResolvers
 
 /**
- * Demonstrates basic GraphQL mutations in Viaduct with best practices.
+ * LEARNING OBJECTIVES:
+ * - Understand GraphQL mutations for data modification
+ * - Learn ID extraction from mutation results for chaining operations
+ * - See Node Resolver integration with mutations
+ * - Master create/update/query patterns
  *
- * This example shows the fundamental mutation operations:
- * create, update, and query using thread-safe data structures
- * and proper ID extraction from results.
+ * VIADUCT FEATURES DEMONSTRATED:
+ * - Mutation Resolvers (MutationResolvers.CreateUser, UpdateUser)
+ * - Node Resolvers working with mutations
+ * - GlobalID round-trip patterns (create -> extract -> query)
+ * - User.Builder for object construction
+ *
+ * CONCEPTS COVERED:
+ * - Create, Read, Update patterns in GraphQL
+ * - ID extraction from GraphQL responses
+ * - Error handling in mutations vs queries
+ * - Integration between mutations and Node Resolvers
+ *
+ * PREVIOUS: [viaduct.tenant.tutorial04.SimpleBackingDataFeatureAppTest]
+ * NEXT: [viaduct.tenant.tutorial06.SimpleScopesFeatureAppTest]
  */
 class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
-    override var sdl =
-        """
+    override var sdl = """
         | #START_SCHEMA
-        |
-        | type User implements Node @resolver {
+        | type User implements Node @resolver {  # Node interface for GlobalID system
         |   id: ID!
         |   name: String
         |   email: String
         | }
         |
-        | input UserInput {
+        | input UserInput {               # Input type for mutations
         |   name: String!
         |   email: String!
         | }
@@ -39,44 +52,50 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
         |   user(id: String!): User @resolver
         | }
         |
-        | extend type Mutation {
-        |   createUser(input: UserInput!): User @resolver
-        |   updateUser(id: String!, input: UserInput!): User @resolver
+        | extend type Mutation {         # Mutation operations
+        |   createUser(input: UserInput!): User @resolver     # MutationResolvers.CreateUser()
+        |   updateUser(id: String!, input: UserInput!): User @resolver   # MutationResolvers.UpdateUser()
         | }
-        |
         | #END_SCHEMA
-        """.trimMargin()
+    """.trimMargin()
 
     companion object {
-        // In practice, our tests don't execute in parallel, but we make them thread-safe as a reminder
-        // that mutations (and resolvers in general) need to be written in a thread-safe manner.
-        // Structure: Map<InternalId, Pair<Name, Email>> - storing user data by internal ID
+        // TEST-ONLY DATA STORAGE - In production, replace with database
         private val users = ConcurrentHashMap<String, Pair<String, String>>() // id -> (name, email)
         private val nextId = AtomicInteger(1)
     }
 
     @BeforeEach
     fun cleanUp() {
+        // TEST SETUP - Clear data between tests
         users.clear()
         nextId.set(1)
     }
 
     /**
-     * Node Resolver for User objects. Handles creating User objects by GlobalID.
+     * NODE RESOLVER - Handles User object creation by GlobalID
      *
-     * The Node Resolver pattern is Viaduct's way of implementing the Relay Global Object
-     * Identification specification. It allows fetching any object by its global ID,
-     * which encodes both the type information and the internal ID.
+     * What YOU write:
+     * - Implement resolve() to fetch/create User objects from GlobalIDs
+     * - Use your data source (database, service, etc.)
+     * - Return User objects via User.Builder
+     *
+     * What VIADUCT generates:
+     * - NodeResolvers.User() base class
+     * - Context with typed GlobalID (ctx.id)
+     * - User.Builder for object construction
      */
-    class UserNodeResolver : NodeResolvers.User() {
+    class UserNodeResolver : NodeResolvers.User() { // Generated from "type User implements Node @resolver"
         override suspend fun resolve(ctx: Context): User {
-            // Extract the internal ID from the global ID - this is the actual key we use in our storage
             val internalId = ctx.id.internalID
-            val (name, email) = users[internalId]
+
+            // YOUR BUSINESS LOGIC - typically database lookup
+            // In production: userRepository.findById(internalId)
+            val (name, email) = users[internalId] // Test data
                 ?: throw IllegalArgumentException("User not found: $internalId")
 
             return User.Builder(ctx)
-                .id(ctx.id) // Use the original global ID passed in
+                .id(ctx.id)
                 .name(name)
                 .email(email)
                 .build()
@@ -84,46 +103,46 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Query resolver to fetch a user by ID using the Node Resolver system.
-     *
-     * This demonstrates the proper way to query objects in Viaduct:
-     * 1. Convert the string ID to a global ID for the User type
-     * 2. Use the Node Resolver system to fetch the object
-     * 3. Handle cases where the object doesn't exist gracefully
+     * QUERY RESOLVER - Standard Node Resolver integration
      */
     @Resolver
-    class userResolver : QueryResolvers.User() {
+    class userResolver : QueryResolvers.User() { // Generated from query field
         override suspend fun resolve(ctx: Context): User? {
             return try {
-                // nodeFor() uses the registered Node Resolver to fetch the object
-                // globalIDFor() creates a properly typed global ID from the string argument
                 ctx.nodeFor(ctx.globalIDFor(User.Reflection, ctx.arguments.id))
             } catch (e: IllegalArgumentException) {
-                null // Return null if user doesn't exist - GraphQL will handle this gracefully
+                null // GraphQL handles null gracefully
             }
         }
     }
 
     /**
-     * Mutation resolver to create a new user. Uses atomic increment for thread-safe ID generation.
+     * CREATE MUTATION RESOLVER - Demonstrates creation pattern
      *
-     * This shows the standard pattern for create mutations:
-     * 1. Generate a unique internal ID
-     * 2. Store the data using that ID
-     * 3. Return a User object with a proper global ID
+     * What YOU write:
+     * - Generate/assign unique IDs
+     * - Store/persist data using your data layer
+     * - Return User objects with proper GlobalIDs
+     *
+     * What VIADUCT generates:
+     * - MutationResolvers.CreateUser() base class
+     * - Context with typed arguments (ctx.arguments.input)
+     * - Input validation and parsing
      */
     @Resolver
-    class CreateUserResolver : MutationResolvers.CreateUser() {
+    class CreateUserResolver : MutationResolvers.CreateUser() { // Generated from mutation field
         override suspend fun resolve(ctx: Context): User {
             val input = ctx.arguments.input
-            // Generate thread-safe unique ID with descriptive prefix
-            val newId = "user-${nextId.getAndIncrement()}"
 
-            // Store in our thread-safe in-memory database
+            // YOUR BUSINESS LOGIC - typically:
+            // val newUser = userRepository.create(input.name, input.email)
+            // val newId = newUser.id
+
+            // TEST SIMULATION - Generate ID and store
+            val newId = "user-${nextId.getAndIncrement()}"
             users[newId] = Pair(input.name, input.email)
 
-            // Build and return the User object with proper global ID
-            // The global ID will encode both the type (User) and internal ID (newId)
+            // RETURN WITH GLOBALID - Critical for client operations
             return User.Builder(ctx)
                 .id(ctx.globalIDFor(User.Reflection, newId))
                 .name(input.name)
@@ -133,21 +152,24 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
     }
 
     /**
-     * Mutation resolver to update an existing user using Node Resolver system.
+     * UPDATE MUTATION RESOLVER - Demonstrates update pattern
      *
-     * This demonstrates atomic update operations and proper error handling:
-     * - computeIfPresent() ensures the update is atomic
-     * - Returns null if the user doesn't exist (GraphQL handles this gracefully)
-     * - Uses the same ID that was passed in to maintain consistency
+     * What YOU write:
+     * - Validate the object exists
+     * - Update data in your data layer
+     * - Return updated object or null if not found
      */
     @Resolver
-    class UpdateUserResolver : MutationResolvers.UpdateUser() {
+    class UpdateUserResolver : MutationResolvers.UpdateUser() { // Generated from mutation field
         override suspend fun resolve(ctx: Context): User? {
             val input = ctx.arguments.input
             val id = ctx.arguments.id
 
-            // Check if user exists and update atomically using computeIfPresent
-            // This prevents race conditions where a user might be deleted between check and update
+            // YOUR BUSINESS LOGIC - typically:
+            // val updated = userRepository.update(id, input.name, input.email)
+            // return if (updated) { ... } else null
+
+            // TEST SIMULATION - Check and update
             val updated = users.computeIfPresent(id) { _, _ ->
                 Pair(input.name, input.email)
             }
@@ -165,7 +187,7 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
-    fun `creates a new user`() {
+    fun `creates a new user and demonstrates ID extraction`() {
         val result = execute(
             query = """
                 mutation {
@@ -173,7 +195,7 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
                         name: "John Doe"
                         email: "john@example.com"
                     }) {
-                        id
+                        id      # GlobalID returned by mutation
                         name
                         email
                     }
@@ -181,8 +203,7 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
             """.trimIndent()
         )
 
-        // Extract the global ID from the mutation result to use in subsequent queries
-        // This demonstrates the proper way to handle IDs returned from mutations
+        // ID EXTRACTION PATTERN - Critical for follow-up operations
         val createdUserId = result.getData<Map<String, Any>>()
             ?.get("createUser")?.let { it as Map<*, *> }
             ?.get("id") as String
@@ -190,15 +211,14 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
         result.assertEquals {
             "data" to {
                 "createUser" to {
-                    "id" to createdUserId
+                    "id" to createdUserId // GlobalID (encoded)
                     "name" to "John Doe"
                     "email" to "john@example.com"
                 }
             }
         }
 
-        // Convert the global ID back to internal ID for querying
-        // This shows the full round-trip: create -> get global ID -> extract internal ID -> query
+        // ROUND-TRIP TEST - Use extracted ID in query
         val globalId = getInternalId<User>(createdUserId)
         execute(
             query = """
@@ -220,7 +240,8 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
-    fun `updates existing user`() {
+    fun `updates existing user with proper ID handling`() {
+        // CREATE FIRST
         val createResult = execute(
             query = """
                 mutation {
@@ -240,6 +261,7 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
 
         val globalId = getInternalId<User>(createdUserId)
 
+        // UPDATE WITH EXTRACTED ID
         execute(
             query = """
                 mutation {
@@ -256,7 +278,7 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
         ).assertEquals {
             "data" to {
                 "updateUser" to {
-                    "id" to createdUserId
+                    "id" to createdUserId // Same GlobalID as creation
                     "name" to "Jane Smith"
                     "email" to "jane.smith@example.com"
                 }
@@ -265,7 +287,8 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
-    fun `creates and gets user in full flow`() {
+    fun `demonstrates complete CRUD flow`() {
+        // CREATE
         val createResult = execute(
             query = """
                 mutation {
@@ -285,6 +308,7 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
 
         val globalId = getInternalId<User>(createdUserId)
 
+        // READ
         execute(
             query = """
                 query {
@@ -305,4 +329,31 @@ class SimpleMutationsFeatureAppTest : FeatureAppTestBase() {
             }
         }
     }
+
+    /**
+     * EXECUTION FLOW WALKTHROUGH:
+     *
+     * Mutation: createUser(input: {...})
+     *
+     * 1. CreateUserResolver.resolve() called with input arguments
+     * 2. Generate unique ID and store data (your business logic)
+     * 3. Create GlobalID: ctx.globalIDFor(User.Reflection, newId)
+     * 4. Build User object with GlobalID and return
+     * 5. Client receives encoded GlobalID for future operations
+     *
+     * Query: user(id: "user-1")
+     *
+     * 1. userResolver converts string to GlobalID
+     * 2. ctx.nodeFor() routes to UserNodeResolver
+     * 3. Extract internal ID from GlobalID
+     * 4. Fetch data from your data source
+     * 5. Build and return User object
+     *
+     * KEY TAKEAWAYS:
+     * - Mutations create/modify data and return proper GlobalIDs
+     * - ID extraction enables chaining operations
+     * - Node Resolvers work seamlessly with mutation results
+     * - Use User.Builder for consistent object construction
+     * - Error handling: null returns vs exceptions
+     */
 }
