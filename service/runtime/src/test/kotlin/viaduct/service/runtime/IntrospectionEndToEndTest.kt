@@ -139,7 +139,7 @@ class IntrospectionEndToEndTest {
                       }
                     }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val result = subject.executeAsync(executionInput).await()
 
@@ -246,7 +246,7 @@ class IntrospectionEndToEndTest {
                       }
                     }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val result = subject.executeAsync(executionInput).await()
             assertEquals(listOf("Introspective queries cannot select non-introspective fields."), result.errors.map { it.message })
@@ -345,7 +345,7 @@ class IntrospectionEndToEndTest {
                   }
                 }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val result = subject.executeAsync(executionInput).await()
             assertEquals(listOf("Introspective queries cannot select non-introspective fields."), result.errors.map { it.message })
@@ -448,7 +448,7 @@ class IntrospectionEndToEndTest {
                   }
                 }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val result = subject.executeAsync(executionInput).await()
             assertEquals(listOf("Introspective queries cannot select non-introspective fields."), result.errors.map { it.message })
@@ -544,7 +544,7 @@ class IntrospectionEndToEndTest {
                   helloWorld
                 }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val result = subject.executeAsync(executionInput).await()
             assertEquals(listOf("Introspective queries cannot select non-introspective fields."), result.errors.map { it.message })

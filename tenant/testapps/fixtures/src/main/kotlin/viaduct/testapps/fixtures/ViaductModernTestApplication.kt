@@ -69,11 +69,10 @@ open class ViaductModernTestApplication(
         variables: Map<String, Any?> = mapOf()
     ): ExecutionResult =
         runBlocking {
-            val executionInput = ExecutionInput(
-                query = query,
+            val executionInput = ExecutionInput.create(
+                schemaId = scopeId,
+                operationText = query,
                 variables = variables,
-                requestContext = object {},
-                schemaId = scopeId
             )
             standardViaduct.executeAsync(executionInput).await()
         }

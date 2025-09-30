@@ -73,7 +73,7 @@ class ViaductOSSEndToEndTest {
                 field
             }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val actual = subject.execute(executionInput)
             val actualAsynced = subject.executeAsync(executionInput).await()
@@ -92,7 +92,7 @@ class ViaductOSSEndToEndTest {
     fun `Viaduct with no instrumentations or wirings returns failure for invalid query`() =
         runBlocking {
             val query = "query"
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val actual = subject.executeAsync(executionInput).await()
             val expected = ExecutionResult.newExecutionResult()
@@ -111,7 +111,7 @@ class ViaductOSSEndToEndTest {
     fun `executeAsync returns error for missing schema`() =
         runBlocking {
             val query = "query { field }"
-            val executionInput = ExecutionInput(query, "nonexistent_schema", object {})
+            val executionInput = ExecutionInput.create(schemaId = "nonexistent_schema", operationText = query)
 
             val result = subject.executeAsync(executionInput).await()
             assertEquals(1, result.errors.size)
@@ -150,7 +150,7 @@ class ViaductOSSEndToEndTest {
                 .build()
 
             val query = "query { field }"
-            val executionInput = ExecutionInput(query, "exception-test", object {})
+            val executionInput = ExecutionInput.create(schemaId = "exception-test", operationText = query)
 
             val result = exceptionSubject.executeAsync(executionInput).await()
             assertEquals(1, result.errors.size)
@@ -199,7 +199,7 @@ class ViaductOSSEndToEndTest {
                 }
             """.trimIndent()
             val variables = mapOf("name" to "World")
-            val executionInput = ExecutionInput(query, "variable-test", object {}, variables, "TestQuery")
+            val executionInput = ExecutionInput.create(schemaId = "variable-test", operationText = query, variables = variables)
 
             val result = variableSubject.executeAsync(executionInput).await()
             assertEquals(mapOf("fieldWithInput" to "Hello, World!"), result.getData())

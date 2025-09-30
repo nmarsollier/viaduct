@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import graphql.ExecutionResult
-import io.mockk.mockk
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
@@ -45,11 +44,10 @@ open class FeatureTest(
         variables: Map<String, Any?> = mapOf(),
         operationName: String? = null,
     ): CompletableFuture<ExecutionResult> {
-        val executionInput = ExecutionInput(
-            query = query,
-            variables = variables,
-            requestContext = mockk(),
+        val executionInput = ExecutionInput.create(
             schemaId = FeatureTestBuilder.SCHEMA_ID,
+            operationText = query,
+            variables = variables,
             operationName = operationName
         )
         return standardViaduct.executeAsync(executionInput)

@@ -159,11 +159,10 @@ abstract class FeatureAppTestBase {
     ): ExecutionResult {
         return runBlocking {
             tryBuildViaductService()
-            val executionInput = ExecutionInput(
-                query = query,
+            val executionInput = ExecutionInput.create(
+                schemaId = schemaId,
+                operationText = query,
                 variables = variables,
-                requestContext = object {},
-                schemaId = schemaId
             )
             val result = viaductService.executeAsync(executionInput).await()
             result

@@ -413,11 +413,11 @@ class StandardViaduct
             variables: Map<String, Any?> = emptyMap(),
         ): ExecutionResult =
             execute(
-                ExecutionInput(
-                    query = query,
+                ExecutionInput.create(
+                    schemaId = schemaId,
+                    operationText = query,
                     variables = variables,
                     requestContext = Any(),
-                    schemaId = schemaId,
                 )
             )
 
@@ -455,7 +455,7 @@ class StandardViaduct
                 GJExecutionInput
                     .newExecutionInput()
                     .executionId(ExecutionId.generate())
-                    .query(executionInput.query)
+                    .query(executionInput.operationText)
 
             if (executionInput.operationName != null) {
                 executionInputBuilder.operationName(executionInput.operationName)

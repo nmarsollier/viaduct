@@ -141,7 +141,7 @@ class StandardViaductTest {
     fun `executeAsync returns error for missing schema`() {
         val query = "{ test }"
         val context = mapOf("userId" to "user123")
-        val executionInput = ExecutionInput(query, "missing_schema_id", context)
+        val executionInput = ExecutionInput.create(schemaId = "missing_schema_id", operationText = query, requestContext = context)
 
         createSimpleStandardViaduct()
 

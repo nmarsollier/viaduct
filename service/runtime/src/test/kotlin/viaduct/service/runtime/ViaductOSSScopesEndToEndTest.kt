@@ -55,7 +55,7 @@ class ViaductOSSScopesEndToEndTest {
                         field
                     }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create("public", query)
 
             val actual = subject.execute(executionInput)
             val actualAsynced = subject.executeAsync(executionInput).await()
@@ -88,7 +88,7 @@ class ViaductOSSScopesEndToEndTest {
                         field
                     }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val actual = subject.execute(executionInput)
             val actualAsynced = subject.executeAsync(executionInput).await()
@@ -126,7 +126,7 @@ class ViaductOSSScopesEndToEndTest {
                     field
                 }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val actual = subject.execute(executionInput)
             val actualAsynced = subject.executeAsync(executionInput).await()
@@ -203,7 +203,7 @@ class ViaductOSSScopesEndToEndTest {
                     extensionTest
                 }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "SCHEMA_ID", object {})
+            val executionInput = ExecutionInput.create(schemaId = "SCHEMA_ID", operationText = query, requestContext = object {})
             val actualAsynced = subject.executeAsync(executionInput).await()
             val actual = subject.execute(executionInput)
             val expected = ExecutionResult.newExecutionResult()
@@ -238,7 +238,7 @@ class ViaductOSSScopesEndToEndTest {
                 field
             }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val actual = subject.execute(executionInput)
             val actualAsynced = subject.executeAsync(executionInput).await()
@@ -280,7 +280,7 @@ class ViaductOSSScopesEndToEndTest {
                     field
                 }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "public", object {})
+            val executionInput = ExecutionInput.create(schemaId = "public", operationText = query, requestContext = object {})
 
             val actual = subject.execute(executionInput)
             val actualAsynced = subject.executeAsync(executionInput).await()

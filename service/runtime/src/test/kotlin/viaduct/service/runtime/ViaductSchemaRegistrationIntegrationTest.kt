@@ -82,7 +82,7 @@ class ViaductSchemaRegistrationIntegrationTest {
                 }
             }
             """.trimIndent()
-            val executionInput1 = ExecutionInput(query1, "SCHEMA_ID_1", object {})
+            val executionInput1 = ExecutionInput.create("SCHEMA_ID_1", query1, requestContext = object {})
             val result1 = subject.executeAsync(executionInput1).await()
 
             val expected1 = ExecutionResult.newExecutionResult()
@@ -99,7 +99,7 @@ class ViaductSchemaRegistrationIntegrationTest {
                 }
             }
             """.trimIndent()
-            val executionInput2 = ExecutionInput(query2, "SCHEMA_ID_2", object {})
+            val executionInput2 = ExecutionInput.create("SCHEMA_ID_2", query2, requestContext = object {})
             val result2 = subject.executeAsync(executionInput2).await()
 
             val expected2 = ExecutionResult.newExecutionResult()
@@ -154,7 +154,7 @@ class ViaductSchemaRegistrationIntegrationTest {
                 }
             }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "SCOPE1_ONLY", object {})
+            val executionInput = ExecutionInput.create(schemaId = "SCOPE1_ONLY", operationText = query, requestContext = object {})
             val result = subject.executeAsync(executionInput).await()
 
             // Should get validation error because scope2Value is not available in SCOPE1_ONLY schema
@@ -174,7 +174,7 @@ class ViaductSchemaRegistrationIntegrationTest {
                 }
             }
             """.trimIndent()
-            val reverseExecutionInput = ExecutionInput(reverseQuery, "SCOPE2_ONLY", object {})
+            val reverseExecutionInput = ExecutionInput.create(schemaId = "SCOPE2_ONLY", operationText = reverseQuery, requestContext = object {})
             val reverseResult = subject.executeAsync(reverseExecutionInput).await()
 
             assertEquals(1, reverseResult.errors.size)
@@ -217,7 +217,7 @@ class ViaductSchemaRegistrationIntegrationTest {
                 }
             }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "SCHEMA_ID_2", object {}) // Unregistered schema ID
+            val executionInput = ExecutionInput.create(schemaId = "SCHEMA_ID_2", operationText = query, requestContext = object {}) // Unregistered schema ID
             val result = subject.executeAsync(executionInput).await()
 
             // The original test expected this to fail with "Schema not found" error
@@ -269,7 +269,7 @@ class ViaductSchemaRegistrationIntegrationTest {
                 }
             }
             """.trimIndent()
-            val executionInput = ExecutionInput(query, "FULL_SCHEMA", object {})
+            val executionInput = ExecutionInput.create("FULL_SCHEMA", query, requestContext = object {})
             val result = subject.executeAsync(executionInput).await()
 
             val expected = ExecutionResult.newExecutionResult()
