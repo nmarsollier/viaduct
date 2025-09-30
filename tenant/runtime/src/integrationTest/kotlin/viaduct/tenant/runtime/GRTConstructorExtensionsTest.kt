@@ -55,7 +55,7 @@ class GRTConstructorExtensionsTest {
         )
         val internalContext = MockInternalContext(GlobalIdFeatureAppTest.schema)
 
-        val user = mockEngineObjectData.wrap(internalContext, User.Reflection)
+        val user = mockEngineObjectData.toGRT(internalContext, User.Reflection)
 
         assertInstanceOf(User::class.java, user)
 
@@ -86,7 +86,7 @@ class GRTConstructorExtensionsTest {
         val invalidType = MockType("InvalidType", NodeObject::class)
 
         assertThrows<IllegalArgumentException> {
-            mockEngineObjectData.wrap(internalContext, invalidType)
+            mockEngineObjectData.toGRT(internalContext, invalidType)
         }
     }
 
@@ -103,7 +103,7 @@ class GRTConstructorExtensionsTest {
         )
         val internalContext = MockInternalContext(GlobalIdFeatureAppTest.schema)
 
-        val user = mockEngineObjectData.wrap(internalContext, User.Reflection)
+        val user = mockEngineObjectData.toGRT(internalContext, User.Reflection)
 
         // Test that the wrapped object can be used normally
         // This tests that the constructor was called correctly and the object is functional

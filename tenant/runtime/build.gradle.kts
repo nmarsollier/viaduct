@@ -34,6 +34,7 @@ dependencies {
     testFixturesImplementation(libs.viaduct.engine.runtime)
     testFixturesImplementation(libs.viaduct.service.api)
     testFixturesImplementation(libs.viaduct.tenant.api)
+    testFixturesImplementation(libs.viaduct.tenant.wiring)
     testFixturesImplementation(testFixtures(libs.viaduct.tenant.api))
     testFixturesImplementation(libs.graphql.java)
     testFixturesImplementation(libs.io.mockk.jvm)

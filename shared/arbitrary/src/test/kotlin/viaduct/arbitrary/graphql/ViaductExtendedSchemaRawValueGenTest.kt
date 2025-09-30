@@ -9,8 +9,9 @@ import io.kotest.property.forAll
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.KotestPropertyBase
-import viaduct.arbitrary.graphql.RawValue.Companion.inull
-import viaduct.arbitrary.graphql.RawValue.Companion.obj
+import viaduct.mapping.graphql.RawObject
+import viaduct.mapping.graphql.RawValue.Companion.inull
+import viaduct.mapping.graphql.RawValue.Companion.obj
 
 class ViaductExtendedSchemaRawValueGenTest : KotestPropertyBase() {
     @Test

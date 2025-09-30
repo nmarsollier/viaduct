@@ -25,6 +25,13 @@ import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.KotestPropertyBase
 import viaduct.arbitrary.common.checkInvariants
 import viaduct.arbitrary.graphql.BridgeGJToRaw.nullish
+import viaduct.mapping.graphql.RawENull
+import viaduct.mapping.graphql.RawEnum
+import viaduct.mapping.graphql.RawINull
+import viaduct.mapping.graphql.RawInput
+import viaduct.mapping.graphql.RawList
+import viaduct.mapping.graphql.RawScalar
+import viaduct.mapping.graphql.RawValue
 
 class GJRawValueGenTest : KotestPropertyBase() {
     private inline fun <reified T> mkType(

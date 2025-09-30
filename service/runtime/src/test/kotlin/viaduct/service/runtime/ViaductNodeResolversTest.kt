@@ -16,7 +16,7 @@ import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.runFeatureTest
 import viaduct.engine.api.mocks.toViaductBuilder
-import viaduct.graphql.test.assertData
+import viaduct.graphql.test.assertJson
 import viaduct.service.runtime.noderesolvers.ViaductQueryNodeResolverModuleBootstrapper
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -192,7 +192,7 @@ class ViaductNodeResolversTest {
               """
                 )
 
-                result.assertData("{node: null}")
+                result.getData<Map<String, Any?>>().assertJson("{node: null}")
                 assertEquals(1, result.errors.size)
                 val error = result.errors[0]
                 assertTrue(error.message.contains("Expected GlobalID \"$invalidGlobalId\" to be a Base64-encoded string with the decoded format '<type name>:<internal ID>'"))
@@ -219,7 +219,7 @@ class ViaductNodeResolversTest {
               """
                 )
 
-                result.assertData("{node: null}")
+                result.getData<Map<String, Any?>>().assertJson("{node: null}")
                 assertEquals(1, result.errors.size)
                 val error = result.errors[0]
                 assertTrue(error.message.contains("Expected GlobalId \"$nonexistentGlobalId\" with type name 'People' to match a named object type in the schema"))
@@ -246,7 +246,7 @@ class ViaductNodeResolversTest {
               """
                 )
 
-                result.assertData("{node: null}")
+                result.getData<Map<String, Any?>>().assertJson("{node: null}")
                 assertEquals(1, result.errors.size)
                 val error = result.errors[0]
                 assertTrue(
@@ -277,7 +277,7 @@ class ViaductNodeResolversTest {
               """
                 )
 
-                result.assertData("{node: null}")
+                result.getData<Map<String, Any?>>().assertJson("{node: null}")
                 assertEquals(1, result.errors.size)
                 val error = result.errors[0]
                 assertTrue(

@@ -27,6 +27,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import viaduct.arbitrary.common.KotestPropertyBase
 import viaduct.arbitrary.common.checkInvariants
+import viaduct.mapping.graphql.RawENull
+import viaduct.mapping.graphql.RawEnum
+import viaduct.mapping.graphql.RawINull
+import viaduct.mapping.graphql.RawList
+import viaduct.mapping.graphql.RawObject
+import viaduct.mapping.graphql.RawScalar
+import viaduct.mapping.graphql.RawValue
+import viaduct.mapping.graphql.ValueMapper
 
 class GJRawValueResultGenTest : KotestPropertyBase() {
     private val minimalSchema = mkGJSchema("", includeMinimal = true)

@@ -4,11 +4,14 @@ package viaduct.service.runtime
 
 import graphql.ExecutionResult
 import graphql.schema.idl.RuntimeWiring
+import graphql.schema.idl.SchemaGenerator
+import graphql.schema.idl.SchemaParser
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flag
 import viaduct.service.api.spi.FlagManager
@@ -22,7 +25,7 @@ import viaduct.service.api.spi.FlagManager
 @ExperimentalCoroutinesApi
 class ViaductOSSScopesEndToEndTest {
     private lateinit var subject: StandardViaduct
-    private lateinit var viaductSchemaRegistryBuilder: ViaductSchemaRegistryBuilder
+    private lateinit var schemaRegistryConfiguration: SchemaRegistryConfiguration
 
     val flagManager = object : FlagManager {
         override fun isEnabled(flag: Flag) = true
@@ -37,11 +40,14 @@ class ViaductOSSScopesEndToEndTest {
                 extend type Query @scope(to: ["viaduct-public"]) { field: Int }
             """
 
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl).registerScopedSchema("public", setOf("viaduct-public"))
+            schemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("public", setOf("viaduct-public")))
+            )
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
 
             val query = """
@@ -68,12 +74,13 @@ class ViaductOSSScopesEndToEndTest {
     @Test
     fun `Verify Builder using withFullSchemaFromFiles and registerSchema`() =
         runBlocking {
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromResources()
-                .registerScopedSchema("public", setOf("viaduct-public"))
+            schemaRegistryConfiguration = SchemaRegistryConfiguration.fromResources(
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("public", setOf("viaduct-public")))
+            )
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
 
             val query = """
@@ -102,12 +109,16 @@ class ViaductOSSScopesEndToEndTest {
             extend type Query @scope(to: ["viaduct-public"]) { field: Int }
         """
 
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder()
-                .registerSchemaFromSdl("schema_id", sdl).registerScopedSchema("public", setOf("viaduct-public"))
+            schemaRegistryConfiguration =
+                SchemaRegistryConfiguration.fromSdl(
+                    sdl,
+                    fullSchemaIds = listOf("schema_id"),
+                    scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("public", setOf("viaduct-public")))
+                )
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
 
             val query = """
@@ -165,12 +176,14 @@ class ViaductOSSScopesEndToEndTest {
                  extensionTest: String
             }
             """
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl)
-                .registerScopedSchema("SCHEMA_ID", setOf("SCOPE1"))
+            schemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(
+                sdl,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("SCHEMA_ID", setOf("SCOPE1")))
+            )
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
 
             val query = """
@@ -213,11 +226,11 @@ class ViaductOSSScopesEndToEndTest {
     @Test
     fun `Verify Builder using registerFullSchema`() =
         runBlocking {
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().registerFullSchema("public")
+            schemaRegistryConfiguration = SchemaRegistryConfiguration.fromResources(fullSchemaIds = listOf("public"))
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
 
             val query = """
@@ -245,14 +258,21 @@ class ViaductOSSScopesEndToEndTest {
     fun `Verify Builder using withScopedFuture`() =
         runBlocking {
             val sdl = """
-                extend type Query @scope(to: ["viaduct-public"]) { field: Int }
-            """
-            viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().withFullSchemaFromSdl(sdl)
-                .registerScopedSchema("public", setOf("viaduct-public"))
+        directive @scope(to: [String!]!) repeatable on OBJECT | INPUT_OBJECT | ENUM | INTERFACE | UNION
+
+        schema { query: Foo }
+        type Foo @scope(to: ["viaduct-public"]) { field: Int }
+    """
+            val schema = ViaductSchema(SchemaGenerator().makeExecutableSchema(SchemaParser().parse(sdl), RuntimeWiring.MOCKED_WIRING))
+
+            schemaRegistryConfiguration = SchemaRegistryConfiguration.fromSchema(
+                schema,
+                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("public", setOf("viaduct-public")))
+            )
             subject = StandardViaduct.Builder()
                 .withFlagManager(flagManager)
                 .withNoTenantAPIBootstrapper()
-                .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+                .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
                 .build()
 
             val query = """

@@ -1,6 +1,21 @@
 # Intro
 We've learned a lot of intricacies of Kotlin-to-bytecode translation.  We probably should've started documenting these earlier, but we didn't.  I'm starting a document now under the theory of "better late than never".
 
+# kotlinp
+
+`kotlinp` is a tool for examining JVM class files similar to Java's `javap`.  It provides Kotlin type information that is encoded in JVM annotations and thus is not readily observable using `javap` output.
+
+Unfortunately I haven't yet found `kotlinp` included in any pre-built Kotlin distribution.  Here are instructions I got from JetBrains on building it yourself (courtesy Alexander Udalov):
+
+> We have a tool in the [Kotlin repository](https://github.com/JetBrains/kotlin) that prints all metadata found in the `class/kotlin_module` file, it is located in `libraries/tools/kotlinp`. Unfortunately, it is only an internal tool, it is not a part of any stable Kotlin release yet. To use it, you'll need to clone and compile the Kotlin project. Here are instructions in case you need it:
+> 
+> 1) Configure the project according to ReadMe
+> 2) Run `./gradlew :tools:kotlinp-jvm:shadowJar`
+> 3) Run kotlinp via `java -cp $KOTLIN/libraries/tools/kotlinp/jvm/build/libs/kotlinp-jvm-shadow.jar org.jetbrains.kotlin.kotlinp.jvm.Main` (replace `$KOTLIN` with the path to the project). Use `-verbose` to output a bit more information.
+
+(This worked for me on Sept 2025 off the Kotlin master branch using openjdk version "1.8.0_362".)
+
+
 # Default Parameters
 
 Kotlin does not use method overloading to handle default parameters the way Java does.  Instead, if a function `f` has default parameters, then Kotlin will generate a synthetic function `f$default` that uses a bit vector to determine where defaults are needed. When the compiler compiles a call to `f` where default param-values are needed, the call will be compiled into a call to `f$default`, passing placeholder values where defaults are needed, and using the bit vector to indicate which are placeholder values.

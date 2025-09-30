@@ -6,13 +6,13 @@ import graphql.ExecutionResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
+import viaduct.api.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.spi.Flags
 import viaduct.service.api.spi.mocks.MockFlagManager
+import viaduct.service.runtime.SchemaRegistryConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
-import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
 
 /**
  * Viaduct Modern test application.
@@ -24,36 +24,34 @@ import viaduct.tenant.runtime.bootstrap.ViaductTenantAPIBootstrapper
  *
  * @param scopedSchemaInfo The set of info to used to register scoped schemas. Each info includes a schema ID and a set of scope IDs.
  * @param fullSchemaRegex The full schema regex to use for the test application.
- * @param customSchemaRegistration The custom schema registration function to use for the test application.
+ * @param customSchemaRegistryConfiguration The custom schema registry configuration to use for the test application.
  */
 @ExperimentalCoroutinesApi
 open class ViaductModernTestApplication(
     scopedSchemaInfo: Set<ScopedSchemaInfo>,
     fullSchemaRegex: String? = null,
     private val tenantPackageFinder: TenantPackageFinder,
-    customSchemaRegistration: ((builder: ViaductSchemaRegistryBuilder) -> Unit)? = null
+    customSchemaRegistryConfiguration: SchemaRegistryConfiguration? = null
 ) {
     private val flagManager = MockFlagManager.mk(Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY)
 
     protected fun commonTenantPrefix() = tenantPackageFinder.tenantPackages().reduce { p, tenant -> p.commonPrefixWith(tenant) }
 
-    private val viaductSchemaRegistryBuilder = ViaductSchemaRegistryBuilder().apply {
-        if (customSchemaRegistration != null) {
-            customSchemaRegistration(this)
-        } else {
-            withFullSchemaFromResources(commonTenantPrefix(), fullSchemaRegex)
-            scopedSchemaInfo.forEach { (schemaId, scopesIds) ->
-                registerScopedSchema(schemaId, scopesIds)
-            }
-        }
-    }
+    private val schemaRegistryConfiguration = customSchemaRegistryConfiguration
+        ?: SchemaRegistryConfiguration.fromResources(
+            commonTenantPrefix(),
+            fullSchemaRegex,
+            scopes = scopedSchemaInfo.map { (schemaId, scopesIds) ->
+                SchemaRegistryConfiguration.ScopeConfig(schemaId, scopesIds)
+            }.toSet()
+        )
 
     @Suppress("DEPRECATION")
     protected val standardViaduct = StandardViaduct.Builder()
         .withFlagManager(flagManager)
         .withTenantAPIBootstrapperBuilder(ViaductTenantAPIBootstrapper.Builder().tenantPackageFinder(tenantPackageFinder))
         .withCheckerExecutorFactoryCreator { schema -> TestAppCheckerExecutorFactoryImpl(schema) }
-        .withSchemaRegistryBuilder(viaductSchemaRegistryBuilder)
+        .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
         .build()
 
     /**

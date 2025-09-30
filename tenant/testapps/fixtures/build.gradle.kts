@@ -9,6 +9,7 @@ dependencies {
     api(libs.viaduct.service.wiring)
     api(libs.viaduct.tenant.api)
     api(libs.viaduct.tenant.runtime)
+    api(libs.viaduct.tenant.wiring)
 
     implementation(testFixtures(libs.viaduct.service.api))
     implementation(libs.viaduct.engine.api)

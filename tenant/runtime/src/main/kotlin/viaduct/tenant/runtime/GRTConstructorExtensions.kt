@@ -13,7 +13,7 @@ import viaduct.api.types.CompositeOutput
 import viaduct.engine.api.EngineObjectData
 
 /**
- * Gets the required constructor for a GRT (Generated Runtime Type) class.
+ * Gets the required constructor for a GRT (GraphQL Representational Type) class.
  * The constructor must take exactly two parameters: InternalContext and EngineObjectData.
  */
 fun <T : CompositeOutput> KClass<out T>.getGRTConstructor(): KFunction<T> {
@@ -38,7 +38,7 @@ fun <T : CompositeOutput> KClass<out T>.getGRTConstructor(): KFunction<T> {
  * Wraps an EngineObjectData into a tenant GRT object by calling the object's primary constructor
  * with the provided InternalContext and this EngineObjectData.
  */
-fun <T : CompositeOutput> EngineObjectData.wrap(
+fun <T : CompositeOutput> EngineObjectData.toGRT(
     internalContext: InternalContext,
     type: Type<T>
 ): T = type.kcls.getGRTConstructor().call(internalContext, this)

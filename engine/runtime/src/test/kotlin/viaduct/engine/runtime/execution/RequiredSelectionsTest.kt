@@ -13,7 +13,7 @@ import viaduct.engine.api.mocks.fetchAs
 import viaduct.engine.api.mocks.getAs
 import viaduct.engine.api.mocks.runFeatureTest
 import viaduct.engine.api.mocks.toViaductBuilder
-import viaduct.service.runtime.ViaductSchemaRegistryBuilder
+import viaduct.service.runtime.SchemaRegistryConfiguration
 
 @ExperimentalCoroutinesApi
 class RequiredSelectionsTest {
@@ -289,9 +289,11 @@ class RequiredSelectionsTest {
     @Test
     fun `resolve private field in RSS`() {
         // Need to set up both full schema and scoped schema
-        val fullSchemaSDL = "extend type Query { foo: Int, bar: Int}"
-        val scopedSchemaSDL = "extend type Query { foo: Int }"
-        // val fullSchemaSDL = "extend type Query @scope(to: [\"scoped\"]) { foo: Int } extend type Query @scope(to: [\"bar\"]) { bar: Int}"
+        val fullSchemaSDL = """
+            extend type Query @scope(to: ["*"]) { _: String }
+            extend type Query @scope(to: ["scoped"]) { foo: Int }
+            extend type Query @scope(to: ["private"]) { bar: Int }
+        """
 
         MockTenantModuleBootstrapper(fullSchemaSDL) {
             fieldWithValue("Query" to "bar", 3)
@@ -302,11 +304,11 @@ class RequiredSelectionsTest {
                 }
             }
         }.toViaductBuilder()
-            .withSchemaRegistryBuilder(
-                ViaductSchemaRegistryBuilder()
-                    .withFullSchemaFromSdl(fullSchemaSDL)
-                    .registerFullSchema("")
-                    .registerSchemaFromSdl("scoped", scopedSchemaSDL)
+            .withSchemaRegistryConfiguration(
+                SchemaRegistryConfiguration.fromSdl(
+                    fullSchemaSDL,
+                    scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("scoped", setOf("scoped")))
+                )
             )
             .build()
             .runFeatureTest {

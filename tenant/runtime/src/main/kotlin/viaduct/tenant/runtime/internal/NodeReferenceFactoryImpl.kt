@@ -6,7 +6,7 @@ import viaduct.api.internal.InternalContext
 import viaduct.api.internal.NodeReferenceFactory
 import viaduct.api.types.NodeObject
 import viaduct.engine.api.NodeEngineObjectData
-import viaduct.tenant.runtime.wrap
+import viaduct.tenant.runtime.toGRT
 
 /**
  * The canonical implementation of the `NodeReferenceFactory` interface.
@@ -32,6 +32,6 @@ class NodeReferenceFactoryImpl(
             type,
         )
 
-        return NodeReferenceEngineObjectData(nodeEOD).wrap(internalContext, id.type)
+        return NodeReferenceEngineObjectData(nodeEOD).toGRT(internalContext, id.type)
     }
 }
