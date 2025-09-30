@@ -1,9 +1,11 @@
 package viaduct.gradle
 
 import centralSchemaDirectoryName
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
@@ -40,6 +42,9 @@ class ViaductModulePlugin : Plugin<Project> {
             val moduleExt = extensions.create("viaductModule", ViaductModuleExtension::class.java, objects)
 
             moduleExt.bomVersion.convention(ViaductPluginCommon.BOM.getDefaultVersion())
+
+            pluginManager.withPlugin("java") { enforceNoDirectModuleDeps() }
+            pluginManager.withPlugin("org.jetbrains.kotlin.jvm") { enforceNoDirectModuleDeps() }
 
             pluginManager.withPlugin("com.airbnb.viaduct.application-gradle-plugin") {
                 moduleExt.modulePackageSuffix.convention("")
@@ -187,4 +192,29 @@ class ViaductModulePlugin : Plugin<Project> {
             mainClass.set(RESOLVER_CODEGEN_MAIN_CLASS)
         }
     }
+
+    private fun Project.enforceNoDirectModuleDeps() {
+        configurations.configureEach {
+            withDependencies {
+                filterIsInstance<ProjectDependency>().forEach { pd ->
+                    val target = pd.dependencyProject
+                    if (target.plugins.hasPlugin(ViaductModulePlugin::class.java) &&
+                        this@enforceNoDirectModuleDeps != rootProject &&
+                        target != rootProject
+                    ) {
+                        val from = this@enforceNoDirectModuleDeps.prettyPath()
+                        val to = target.prettyPath()
+                        val build = this@enforceNoDirectModuleDeps.buildFile
+
+                        throw GradleException(
+                            "Module $from must not depend directly on $to; " +
+                                "used in $build, use the central schema for inter-module references."
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
+
+private fun Project.prettyPath(): String = if (path == ":") ": (root)" else path
