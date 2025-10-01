@@ -15,36 +15,26 @@ class GRTConstructorExtensionsTest {
 
     class InvalidObjectWrongParams(val value: String) : CompositeOutput
 
-    class InvalidObjectOneParam(ctx: InternalContext) : CompositeOutput
+    class InvalidObjectOneParam : CompositeOutput
 
-    class InvalidObjectThreeParams(
-        ctx: InternalContext,
-        eod: EngineObjectData,
-        extra: String
-    ) : CompositeOutput
+    class InvalidObjectThreeParams : CompositeOutput
 
     class InvalidArgumentsNoConstructor private constructor() : Arguments
 
     class InvalidArgumentsWrongParams(val value: String) : Arguments
 
-    class InvalidArgumentsTwoParams(
-        ctx: InternalContext,
-        args: Map<String, Any?>
-    ) : Arguments
+    class InvalidArgumentsTwoParams : Arguments
 
-    class InvalidArgumentsFourParams(
-        ctx: InternalContext,
-        args: Map<String, Any?>,
-        inputType: graphql.schema.GraphQLInputObjectType,
-        extra: String
-    ) : Arguments
+    class InvalidArgumentsFourParams : Arguments
 
     // Valid GRT constructors for positive testing
+    @Suppress("UNUSED_PARAMETER")
     class ValidObject(
         ctx: InternalContext,
         eod: EngineObjectData
     ) : CompositeOutput
 
+    @Suppress("UNUSED_PARAMETER")
     class ValidArguments(
         ctx: InternalContext,
         args: Map<String, Any?>,

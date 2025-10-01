@@ -357,6 +357,7 @@ object DefaultSchemaProvider {
         allowExisting: Boolean = false
     ) {
         // Check if Query type extension with node/nodes fields already exists
+        @Suppress("UNCHECKED_CAST")
         val existingQueryDefinitions = (builder.objectTypeExtensions["Query"] ?: emptyList()) +
             (builder.getType("Query").map { listOf(it) }.orElse(emptyList()) as List<ObjectTypeDefinition>)
         val hasEitherNodeField = existingQueryDefinitions.any { ext ->

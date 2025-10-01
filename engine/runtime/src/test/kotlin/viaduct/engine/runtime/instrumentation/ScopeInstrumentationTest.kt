@@ -86,6 +86,7 @@ internal class ScopeInstrumentationTest {
      * in OSS but cause dependency injection failures in Airbnb's build.
      */
     @Test
+    @Suppress("USELESS_IS_CHECK")
     fun `verifies ScopeInstrumentation extends ViaductInstrumentationBase for cross-build compatibility`() {
         val scopeInstrumentation = ScopeInstrumentation()
         assertTrue(

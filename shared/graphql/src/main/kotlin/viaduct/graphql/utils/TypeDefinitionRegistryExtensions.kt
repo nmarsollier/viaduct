@@ -51,6 +51,7 @@ object Predicates {
     @Suppress("UNCHECKED_CAST")
     fun <T> alwaysTrue(): Predicate<T> = AlwaysTrue as Predicate<T>
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> alwaysFalse(): Predicate<T> = AlwaysFalse as Predicate<T>
 
     fun <T> const(value: Boolean): Predicate<T> = Predicate { _ -> value }

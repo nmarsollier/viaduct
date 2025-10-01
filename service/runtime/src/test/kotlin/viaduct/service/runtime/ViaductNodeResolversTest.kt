@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.FieldResolverExecutor
-import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
+import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.engine.api.mocks.runFeatureTest
 import viaduct.engine.api.mocks.toViaductBuilder
 import viaduct.graphql.test.assertJson
@@ -43,7 +43,7 @@ class ViaductNodeResolversTest {
         val MOCK_TENANT_MODULE_BOOTSTRAPPER = MockTenantModuleBootstrapper(SCHEMA) {
             type("User") {
                 nodeUnbatchedExecutor { id, _, _ ->
-                    MockEngineObjectData(
+                    mkEngineObjectData(
                         schema.schema.getObjectType("User"),
                         mapOf("id" to id, "name" to "User-$id")
                     )
@@ -301,7 +301,7 @@ class ViaductNodeResolversTest {
             field("Query" to "user") {
                 resolver {
                     fn { _, _, _, _, _ ->
-                        MockEngineObjectData(
+                        mkEngineObjectData(
                             schema.schema.getObjectType("User"),
                             mapOf("name" to "test-name")
                         )
@@ -331,8 +331,8 @@ class ViaductNodeResolversTest {
 
             val mockSelector = FieldResolverExecutor.Selector(
                 arguments = mapOf("id" to 123), // Non-string id
-                objectValue = MockEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
-                queryValue = MockEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
+                objectValue = mkEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
+                queryValue = mkEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
                 selections = null
             )
 
@@ -350,8 +350,8 @@ class ViaductNodeResolversTest {
 
             val mockSelector = FieldResolverExecutor.Selector(
                 arguments = mapOf("ids" to "123"), // Non-list ids
-                objectValue = MockEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
-                queryValue = MockEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
+                objectValue = mkEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
+                queryValue = mkEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap()),
                 selections = null
             )
 

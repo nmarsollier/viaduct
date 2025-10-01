@@ -169,8 +169,8 @@ class ObjectFeatureAppTest : FeatureAppTestBase() {
     class Query_FooWithArgsResolver : QueryResolvers.FooWithArgs() {
         override suspend fun resolve(ctx: Context): Foo {
             // Handle null arguments with defaults
-            val message = ctx.arguments.message ?: "default message"
-            val count = ctx.arguments.count ?: 0
+            ctx.arguments.message ?: "default message"
+            ctx.arguments.count ?: 0
 
             return Foo.Builder(ctx)
                 .build()

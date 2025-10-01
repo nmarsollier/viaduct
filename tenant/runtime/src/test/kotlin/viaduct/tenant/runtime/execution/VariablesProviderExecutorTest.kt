@@ -21,8 +21,8 @@ import viaduct.api.mocks.MockType
 import viaduct.api.types.Arguments
 import viaduct.api.types.NodeObject
 import viaduct.engine.api.VariablesResolver
-import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
+import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
 class VariablesProviderExecutorTest {
@@ -31,7 +31,7 @@ class VariablesProviderExecutorTest {
         val b: Int = args["b"] as Int
     }
 
-    private val objectData = MockEngineObjectData.wrap(MockSchema.minimal.schema.queryType, emptyMap())
+    private val objectData = mkEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap())
 
     @Test
     fun resolve(): Unit =

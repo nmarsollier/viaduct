@@ -39,7 +39,6 @@ import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
-import viaduct.engine.api.mocks.MockEngineObjectData.Companion.maybeWrap
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.CheckerDispatcherImpl
 import viaduct.engine.runtime.DispatcherRegistry
@@ -219,8 +218,8 @@ fun FieldResolverExecutor.invoke(
 ) = runBlocking(MockNextTickDispatcher()) {
     val selector = FieldResolverExecutor.Selector(
         arguments = arguments,
-        objectValue = MockEngineObjectData(fullSchema.schema.getObjectType(coord.first), objectValue),
-        queryValue = MockEngineObjectData(fullSchema.schema.queryType, queryValue),
+        objectValue = mkEngineObjectData(fullSchema.schema.getObjectType(coord.first), objectValue),
+        queryValue = mkEngineObjectData(fullSchema.schema.queryType, queryValue),
         selections = selections,
     )
     batchResolve(listOf(selector), context)[selector]?.getOrNull()
@@ -235,7 +234,7 @@ fun CheckerExecutor.invoke(
     context: EngineExecutionContext = ContextMocks(fullSchema).engineExecutionContext,
 ) = runBlocking(MockNextTickDispatcher()) {
     val objectType = fullSchema.schema.getObjectType(coord.first)!!
-    val objectMap = objectDataMap.mapValues { (_, it) -> MockEngineObjectData(objectType, it) }
+    val objectMap = objectDataMap.mapValues { (_, it) -> mkEngineObjectData(objectType, it) }
     execute(arguments, objectMap, context)
 }
 
@@ -384,11 +383,13 @@ fun mkEngineObjectData(
         type: GraphQLType,
         value: Any?
     ): Any? =
+        @Suppress("UNCHECKED_CAST")
         when (type) {
             is GraphQLNonNull -> cvt(type.wrappedType as GraphQLOutputType, value)
             is GraphQLList -> (value as List<*>?)?.map {
                 cvt(type.wrappedType as GraphQLOutputType, it)
             }
+
             is GraphQLObjectType -> (value as Map<String, Any?>?)?.let { mkEngineObjectData(type, it) }
             is GraphQLCompositeType -> throw IllegalArgumentException("don't know how to wrap type $type with value $value")
             else -> value
@@ -404,7 +405,7 @@ fun mkEngineObjectData(
         }.build()
 }
 
-@Deprecated("Use mkEngineObjectData insetad (we don't need to fake this class)")
+@Deprecated("Use mkEngineObjectData instead (we don't need to fake this class)")
 data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectType, val data: Map<String, Any?>) : EngineObjectData {
     override suspend fun fetch(selection: String): Any? = data[selection]
 
@@ -532,7 +533,7 @@ object Samples {
         // Add node resolver for TestNode
         type("TestNode") {
             nodeUnbatchedExecutor { id, _, _ ->
-                MockEngineObjectData(
+                mkEngineObjectData(
                     testSchema.schema.getObjectType("TestNode"),
                     mapOf("id" to id)
                 )
@@ -544,7 +545,7 @@ object Samples {
             nodeBatchedExecutor { selectors, _ ->
                 selectors.associateWith { selector ->
                     Result.success(
-                        MockEngineObjectData(
+                        mkEngineObjectData(
                             testSchema.schema.getObjectType("TestBatchNode"),
                             mapOf("id" to selector.id)
                         )

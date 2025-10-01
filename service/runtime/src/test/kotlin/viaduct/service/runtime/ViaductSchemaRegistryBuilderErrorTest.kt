@@ -85,7 +85,7 @@ class ViaductSchemaRegistryBuilderErrorTest {
         val config = SchemaRegistryConfiguration.fromSdl(invalidSchema)
 
         // Should throw SchemaProblem, not IllegalStateException
-        val exception = assertThrows<graphql.schema.idl.errors.SchemaProblem> {
+        assertThrows<SchemaProblem> {
             val factory = ViaductSchemaRegistry.Factory(mockCoroutineInterop)
             factory.createRegistry(config)
         }
@@ -116,6 +116,7 @@ class ViaductSchemaRegistryBuilderErrorTest {
         """.trimIndent()
 
         val config = SchemaRegistryConfiguration.fromSdl(schema, fullSchemaIds = listOf("duplicateId")).apply {
+            @Suppress("DEPRECATION")
             registerSchema("duplicateId", { makeTestSchema() })
         }
 

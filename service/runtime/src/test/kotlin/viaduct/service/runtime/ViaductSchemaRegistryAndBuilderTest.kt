@@ -104,6 +104,7 @@ class ViaductSchemaRegistryAndBuilderTest {
         }
 
         val config = SchemaRegistryConfiguration.fromSdl(fullSchema).apply {
+            @Suppress("DEPRECATION")
             registerSchema("asyncSchema", schemaComputeBlock, lazy = true)
         }
 
@@ -141,6 +142,7 @@ class ViaductSchemaRegistryAndBuilderTest {
         }
 
         val config = SchemaRegistryConfiguration.fromSdl(fullSchema).apply {
+            @Suppress("DEPRECATION")
             registerSchema("asyncSchema", schemaComputeBlock, lazy = false)
         }
 

@@ -82,6 +82,7 @@ fun <T : Arguments> KClass<out T>.getArgumentsGRTConstructor(): KFunction<T> {
  */
 fun <A : Arguments> KClass<A>.makeArgumentsGRTFactory(): Map<String, Any?>.(internalContext: InternalContext) -> A {
     if (this == Arguments.NoArguments::class) {
+        @Suppress("UNCHECKED_CAST")
         return { _: InternalContext -> Arguments.NoArguments as A }
     }
 

@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
+import viaduct.engine.api.mocks.mkEngineObjectData
 
 class EngineDataReaderTest {
     private val schema = MockSchema.mk(
@@ -23,7 +23,7 @@ class EngineDataReaderTest {
         """.trimIndent()
     )
 
-    private fun mkData(map: Map<String, Any?>): EngineObjectData = MockEngineObjectData.wrap(schema.schema.queryType, map)
+    private fun mkData(map: Map<String, Any?>): EngineObjectData = mkEngineObjectData(schema.schema.queryType, map)
 
     @Test
     fun `read -- reading from empty path returns root object`(): Unit =

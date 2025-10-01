@@ -131,10 +131,7 @@ class ViaductExecutionStrategyModule : AbstractModule() {
     @Singleton
     fun providesResolverInstrumentation(
         dispatcherRegistry: DispatcherRegistry, // From child
-        fragmentLoader: FragmentLoader, // From child (this provider)
-        flagManager: FlagManager, // From parent
         coroutineInterop: CoroutineInterop, // From parent
-        config: ViaductBuilderConfiguration // From parent
     ): ResolverInstrumentation {
         return ResolverInstrumentation(
             dispatcherRegistry,

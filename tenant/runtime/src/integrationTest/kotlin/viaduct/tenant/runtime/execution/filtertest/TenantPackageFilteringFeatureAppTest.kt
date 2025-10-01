@@ -59,6 +59,7 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `Tenant package filtering affects resolver availability`() {
         withViaductBuilder {
             withTenantAPIBootstrapperBuilder(
@@ -102,6 +103,7 @@ class TenantPackageFilteringFeatureAppTest : FeatureAppTestBase() {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `Validation errors vs missing resolvers due to tenant filtering`() {
         withSchemaRegistryConfiguration(
             SchemaRegistryConfiguration.fromSdl(

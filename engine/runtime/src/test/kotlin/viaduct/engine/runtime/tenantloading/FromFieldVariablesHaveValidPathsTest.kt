@@ -739,6 +739,7 @@ class FromFieldVariablesHaveValidPathsTest {
                         if (coordinate.second == null) {
                             b.typeCheckerEntry(coordinate.first, objectSelections, varResolvers)
                         } else {
+                            @Suppress("UNCHECKED_CAST")
                             b.fieldResolverEntry(
                                 coordinate as Coordinate,
                                 objectSelections,
@@ -748,6 +749,7 @@ class FromFieldVariablesHaveValidPathsTest {
                     }
 
                     if (querySelections != null) {
+                        @Suppress("UNCHECKED_CAST")
                         b.fieldResolverEntryForType(
                             schema.schema.queryType.name,
                             coordinate as Coordinate,

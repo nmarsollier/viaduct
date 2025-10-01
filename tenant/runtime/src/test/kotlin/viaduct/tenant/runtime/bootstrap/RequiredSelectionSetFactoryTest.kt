@@ -29,8 +29,8 @@ import viaduct.engine.api.FromArgumentVariable
 import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.FromQueryFieldVariable
 import viaduct.engine.api.VariablesResolver
-import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockSchema
+import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.engine.api.resolve
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.api.variableNames
@@ -68,7 +68,7 @@ class RequiredSelectionSetFactoryTest {
         """.trimIndent()
     )
 
-    private val objectData = MockEngineObjectData.wrap(defaultSchema.schema.queryType, emptyMap())
+    private val objectData = mkEngineObjectData(defaultSchema.schema.queryType, emptyMap())
     private val vresolveCtx = VariablesResolver.ResolveCtx(
         objectData,
         emptyMap(),
