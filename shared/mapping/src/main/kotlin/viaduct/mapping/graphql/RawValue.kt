@@ -140,3 +140,8 @@ data class RawScalar(val typename: String, val value: Any?) : RawValue {
         val empty: RawList = RawList(emptyList())
     }
 }
+
+// Pass through values used when tenant have custom convert function on field mappers
+@JvmInline value class RawAny(val value: Any?) : RawValue {
+    override fun toString(): String = value.toString()
+}

@@ -21,6 +21,7 @@ import graphql.schema.GraphQLTypeReference
 import graphql.schema.GraphQLTypeUtil
 import viaduct.arbitrary.graphql.BridgeGJToRaw.ifNotINull
 import viaduct.graphql.schema.ViaductExtendedSchema
+import viaduct.mapping.graphql.RawAny
 import viaduct.mapping.graphql.RawENull
 import viaduct.mapping.graphql.RawEnum
 import viaduct.mapping.graphql.RawINull
@@ -339,6 +340,7 @@ object RawToKotlin : ValueMapper<Any, RawValue, Any?> {
                 }
             is RawINull -> throw IllegalStateException("Unexpected inull")
             is RawObject -> throw UnsupportedOperationException("output objects cannot be mapped to internal values")
+            is RawAny -> v.value
         }
 }
 
