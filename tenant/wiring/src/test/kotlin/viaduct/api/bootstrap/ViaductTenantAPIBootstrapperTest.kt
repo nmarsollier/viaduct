@@ -32,11 +32,11 @@ import viaduct.service.api.spi.TenantCodeInjector
 import viaduct.tenant.runtime.bootstrap.GuiceTenantCodeInjector
 import viaduct.tenant.runtime.bootstrap.TenantPackageFinder
 import viaduct.tenant.runtime.bootstrap.TenantResolverClassFinder
+import viaduct.tenant.runtime.bootstrap.TestTenantPackageFinder
 import viaduct.tenant.runtime.bootstrap.ViaductTenantResolverClassFinder
 import viaduct.tenant.runtime.execution.FieldUnbatchedResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeBatchResolverExecutorImpl
 import viaduct.tenant.runtime.execution.NodeUnbatchedResolverExecutorImpl
-import viaduct.testapps.fixtures.TestTenantPackageFinder
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ViaductTenantAPIBootstrapperTest {

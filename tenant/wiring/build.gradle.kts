@@ -17,5 +17,5 @@ dependencies {
     testFixturesImplementation(libs.viaduct.engine.api)
     testFixturesImplementation(testFixtures(libs.viaduct.tenant.api))
     testImplementation(testFixtures(libs.viaduct.tenant.api))
-    testImplementation(project(":tenant:testapps:fixtures"))
+    testImplementation(testFixtures(libs.viaduct.tenant.runtime))
 }
