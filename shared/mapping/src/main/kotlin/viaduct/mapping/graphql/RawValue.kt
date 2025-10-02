@@ -42,9 +42,7 @@ sealed interface RawValue {
         val LocalTime.scalar: RawScalar get() = RawScalar("Time", this)
         val Byte.scalar: RawScalar get() = RawScalar("Byte", this)
 
-        // TODO: support JSON
         // TODO: support backing data
-        // TODO: support ID
         val String.enum: RawEnum get() = RawEnum(this)
 
         fun enum(valueName: String): RawEnum = RawEnum(valueName)
