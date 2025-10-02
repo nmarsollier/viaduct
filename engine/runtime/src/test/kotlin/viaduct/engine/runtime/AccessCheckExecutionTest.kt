@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.engine.api.mocks.mkSchemaWithWiring
@@ -588,6 +589,46 @@ class AccessCheckExecutionTest {
             val error = result.errors[0]
             assertEquals(listOf("baz"), error.path)
             assertTrue(error.message.contains("this should get thrown"))
+        }
+    }
+
+    @Test
+    fun `type check with rss - access checks skipped`() {
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "baz") {
+                resolver {
+                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                }
+            }
+            field("Baz" to "y") {
+                resolver {
+                    objectSelections("x")
+                    fn { _, obj, _, _, _ -> obj.fetch("x").toString() }
+                }
+                checker {
+                    // Verifies that the access check for y shouldn't be applied
+                    // during fetch, otherwise the error would be "y checker failed"
+                    fn { _, _ -> throw RuntimeException("y checker failed") }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    objectSelections("key", "fragment _ on Baz { y }")
+
+                    fn { _, objectDataMap ->
+                        if (objectDataMap["key"]!!.fetch("y") == "1") {
+                            return@fn Unit
+                        }
+                    }
+                }
+            }
+        }.runFeatureTest {
+            val result = viaduct.runQuery("{ baz { id } }")
+            assertEquals(mapOf("baz" to mapOf("id" to "1")), result.getData())
+            assertEquals(0, result.errors.size)
         }
     }
 
