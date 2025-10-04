@@ -172,6 +172,8 @@ class AccessCheckExecutionTest {
                                 }
                                 return null
                             }
+
+                            override suspend fun fetchOrNull(selection: String) = fetch(selection)
                         }
                     }
                 }

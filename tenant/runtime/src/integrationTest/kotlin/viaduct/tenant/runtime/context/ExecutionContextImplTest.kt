@@ -364,6 +364,8 @@ class ExecutionContextImplTest {
                 return ""
             }
 
+            override suspend fun fetchOrNull(selection: String) = fetch(selection)
+
             override val graphQLObjectType: GraphQLObjectType
                 get() = SelectTestFeatureAppTest.schema.schema.getObjectType(fooType.name)
         }

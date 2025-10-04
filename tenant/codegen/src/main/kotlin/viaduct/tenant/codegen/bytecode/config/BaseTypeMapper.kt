@@ -149,8 +149,9 @@ class ViaductBaseTypeMapper(
     ): KmType {
         val idTypeName = this@ViaductBaseTypeMapper.getGlobalIdType().asKmName // The "GlobalID" in GlobalID<Foo>
         val grtTypeName = field?.grtNameForIdParam() // The "Foo" in GlobalID<Foo>
+        val grtBaseTypeDef = grtTypeName?.let { schema.types[it] }
 
-        if (grtTypeName == null || schema.types[grtTypeName] == null) {
+        if (grtTypeName == null || grtBaseTypeDef == null) {
             return KmType().also {
                 it.classifier = KmClassifier.Class(Km.STRING.toString())
                 it.isNullable = this.baseTypeNullable
@@ -162,17 +163,7 @@ class ViaductBaseTypeMapper(
             }
         }
 
-        // TODO be strict about idOf references (https://app.asana.com/1/150975571430/project/1207604899751448/task/1211505368235519)
-        //   (exception here doesn't get thrown because of null-check in if-statement above -- remove that eventually)
-        val grtBaseTypeDef = schema.types[grtTypeName]
-            ?: throw IllegalStateException(
-                "Bad validation: @idOf most likely not checked" +
-                    " (${field.containingDef.name}.${field.name} @idOf: $grtTypeName)" +
-                    " Schema: ${schema.types.keys.joinToString(",")}"
-            )
-
         val notGraphQLObjectType = (grtBaseTypeDef.kind != ViaductExtendedSchema.TypeDefKind.OBJECT)
-
         val variance = if (isInput && notGraphQLObjectType) {
             KmVariance.OUT
         } else {

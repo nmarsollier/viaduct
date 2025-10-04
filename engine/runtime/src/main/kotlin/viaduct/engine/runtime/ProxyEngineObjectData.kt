@@ -51,6 +51,22 @@ open class ProxyEngineObjectData(
     /**
      * @param selection A field or alias name
      */
+    override suspend fun fetchOrNull(selection: String): Any? {
+        val selections = if (selectionSet == null || !selectionSet.containsSelection(graphQLObjectType.name, selection)) {
+            return null
+        } else {
+            selectionSet
+        }
+        val subselections = maybeSubselections(selection, selections)
+        val key = buildOerKey(selection, selections)
+        val value = objectEngineResult.fetchCheckedValue(key)
+
+        return marshal(value, subselections)
+    }
+
+    /**
+     * @param selection A field or alias name
+     */
     private fun buildOerKey(
         selection: String,
         selections: RawSelectionSet

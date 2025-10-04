@@ -78,6 +78,8 @@ class NodeReferenceFactoryImplTest {
                 return fetcher()
             }
 
+            override suspend fun fetchOrNull(selection: String) = fetch(selection)
+
             override val graphQLObjectType: GraphQLObjectType
                 get() = graphqlObjectType
         }

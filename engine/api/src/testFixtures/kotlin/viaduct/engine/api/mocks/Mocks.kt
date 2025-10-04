@@ -409,6 +409,8 @@ fun mkEngineObjectData(
 data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectType, val data: Map<String, Any?>) : EngineObjectData {
     override suspend fun fetch(selection: String): Any? = data[selection]
 
+    override suspend fun fetchOrNull(selection: String): Any? = data[selection]
+
     companion object {
         /** recursively wraps [data] into a MockEngineObjectData tree */
         fun wrap(

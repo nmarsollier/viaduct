@@ -20,20 +20,16 @@ class NodeEngineObjectDataImpl(
     private lateinit var resolvedEngineObjectData: EngineObjectData
     private val resolving = CompletableDeferred<Unit>()
 
-    /**
-     * Fetch a field from this node reference.
-     * This method suspends until the engine resolves this node reference.
-     * It returns null if there is an exception during engine resolution.
-     */
-    override suspend fun fetch(selection: String): Any? {
-        // Return the ID immediately if the requested field is "id"
+    override suspend fun fetch(selection: String): Any? = idOrWait(selection) ?: resolvedEngineObjectData.fetch(selection)
+
+    override suspend fun fetchOrNull(selection: String): Any? = idOrWait(selection) ?: resolvedEngineObjectData.fetchOrNull(selection)
+
+    private suspend fun idOrWait(selection: String): Any? {
         if (selection == "id") {
             return id
         }
-
-        // Wait for the engine to resolve this node reference
         resolving.await()
-        return resolvedEngineObjectData.fetch(selection)
+        return null
     }
 
     /**

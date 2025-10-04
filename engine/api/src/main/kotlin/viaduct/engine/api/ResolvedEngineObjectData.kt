@@ -5,10 +5,12 @@ import graphql.schema.GraphQLObjectType
 class ResolvedEngineObjectData private constructor(
     override val graphQLObjectType: GraphQLObjectType,
     val data: Map<String, Any?>
-) : EngineObjectData, Map<String, Any?> by data {
+) : EngineObjectData {
     override suspend fun fetch(selection: String): Any? {
         return fetchSync(selection)
     }
+
+    override suspend fun fetchOrNull(selection: String) = data[selection]
 
     /**
      * A non-suspend [fetch] that can be called from other non-suspend functions

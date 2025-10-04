@@ -20,10 +20,14 @@ class ViaductWiringFactory(private val coroutineInterop: CoroutineInterop) : Wir
     override fun getDefaultDataFetcher(environment: FieldWiringEnvironment): DataFetcher<*> {
         return DataFetcher { env ->
             val source = env.getSource<Any?>() ?: return@DataFetcher null
-            // Don't call ResolvedEngineObjectData.fetch to avoid unnecessarily
-            // creating a coroutine
-            if (source is EngineObjectData && source !is ResolvedEngineObjectData) {
-                coroutineInterop.scopedFuture { source.fetch(env.field.name) }
+            if (source is EngineObjectData) {
+                if (source is ResolvedEngineObjectData) {
+                    // Don't call ResolvedEngineObjectData.fetch to avoid unnecessarily
+                    // creating a coroutine
+                    source.data[env.field.name]
+                } else {
+                    coroutineInterop.scopedFuture { source.fetchOrNull(env.field.name) }
+                }
             } else {
                 PropertyDataFetcher.fetching<Any>(env.field.name).get(env)
             }

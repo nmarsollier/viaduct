@@ -15,7 +15,7 @@ class NodeReferenceEngineObjectData(val nodeEngineObjectData: NodeEngineObjectDa
     /**
      * @throws UnsetSelectionException for any [selection] other than id
      */
-    override suspend fun fetch(selection: String): Any {
+    override suspend fun fetch(selection: String): Any? {
         if (selection == "id") return nodeEngineObjectData.id
         throw UnsetSelectionException(
             selection,
@@ -23,4 +23,6 @@ class NodeReferenceEngineObjectData(val nodeEngineObjectData: NodeEngineObjectDa
             "only id can be accessed on an unresolved Node reference"
         )
     }
+
+    override suspend fun fetchOrNull(selection: String): Any? = if (selection == "id") nodeEngineObjectData.id else null
 }
