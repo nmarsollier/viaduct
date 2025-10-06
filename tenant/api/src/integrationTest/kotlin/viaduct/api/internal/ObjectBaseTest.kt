@@ -2,8 +2,6 @@
 
 package viaduct.api.internal
 
-import kotlin.collections.get
-import kotlin.text.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,7 +9,9 @@ import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import viaduct.api.ExceptionsForTesting
 import viaduct.api.ViaductFrameworkException
+import viaduct.api.ViaductTenantException
 import viaduct.api.ViaductTenantUsageException
 import viaduct.api.mocks.MockInternalContext
 import viaduct.api.mocks.executionContext
@@ -22,6 +22,8 @@ import viaduct.api.testschema.O1
 import viaduct.api.testschema.O2
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.EngineObjectDataBuilder
+import viaduct.engine.api.NodeReference
+import viaduct.engine.api.UnsetSelectionException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ObjectBaseTest {
@@ -55,7 +57,7 @@ class ObjectBaseTest {
                     o1.getObjectField()!!.getObjectField()
                 }
             }
-            assertInstanceOf(EngineObjectData::class.java, o1.engineObjectData.fetch("objectField"))
+            assertInstanceOf(EngineObjectData::class.java, (o1.engineObject as EngineObjectData).fetch("objectField"))
         }
 
     @Test
@@ -530,6 +532,61 @@ class ObjectBaseTest {
                 )
             val exception = assertThrows<IllegalArgumentException> { o1.get("backingDataList", String::class) }
             assertTrue(exception.message!!.contains("Expected backing data value to be of type String, got Int"))
+        }
+
+    private abstract inner class NR : NodeReference {
+        override val graphQLObjectType = gqlSchema.schema.getObjectType("O1")
+    }
+
+    @Test
+    fun `test noderef - fetch`(): Unit =
+        runBlocking {
+            val o1 = O1(
+                internalContext,
+                object : NR() {
+                    override val id = "O1:foo"
+                }
+            )
+            assertEquals("O1:foo", o1.getId().toString())
+            assertThrows<ViaductFrameworkException> { o1.get("thisFieldDoesNotExist", String::class) }
+            assertInstanceOf(
+                UnsetSelectionException::class.java,
+                assertThrows<ViaductTenantUsageException> { o1.getStringField() }.cause
+            )
+        }
+
+    fun `test various exceptions`(): Unit =
+        runBlocking {
+            val o11 = O1(
+                internalContext,
+                object : NR() {
+                    override val id get() = ExceptionsForTesting.throwViaductTenantException("foo")
+                }
+            )
+            val e11 = runCatching { o11.getId() }.exceptionOrNull()!!
+            assertInstanceOf(ViaductTenantException::class.java, e11)
+            assertEquals("foo", e11.message)
+
+            val o12 = O1(
+                internalContext,
+                object : NR() {
+                    override val id get() = throw ExceptionsForTesting.throwViaductFrameworkException("foo")
+                }
+            )
+            assertEquals(
+                "foo",
+                assertThrows<ViaductFrameworkException> { o12.getId() }.message
+            )
+
+            val o13 = O1(
+                internalContext,
+                object : NR() {
+                    override val id get() = throw RuntimeException("foo")
+                }
+            )
+            val e13 = runCatching { o13.getId() }.exceptionOrNull()!!
+            assertEquals("EngineObjectDataFetchException", e13::class.simpleName)
+            assertEquals("foo", e13.cause!!.message)
         }
 
     inner class BuggyBuilder : ObjectBase.Builder<O2>(internalContext, gqlSchema.schema.getObjectType("O2")) {
