@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.api.globalid.GlobalIDCodec
-import viaduct.api.internal.NodeReferenceFactory
+import viaduct.api.internal.NodeReferenceGRTFactory
 import viaduct.api.internal.select.SelectionSetFactory
 import viaduct.api.internal.select.SelectionsLoader
 import viaduct.api.mocks.MockGlobalIDCodec
@@ -45,7 +45,7 @@ class FieldExecutionContextImplTest {
         queryLoader: SelectionsLoader<QueryType> = SelectionsLoader.const(queryObject),
         selectionSetFactory: SelectionSetFactory =
             SelectionSetFactoryImpl(mkRawSelectionSetFactory(SelectTestFeatureAppTest.schema)),
-        nodeReferenceFactory: NodeReferenceFactory = mockk<NodeReferenceFactory>()
+        nodeReferenceFactory: NodeReferenceGRTFactory = mockk<NodeReferenceGRTFactory>()
     ) = FieldExecutionContextImpl(
         ResolverExecutionContextImpl(
             MockInternalContext(SelectTestFeatureAppTest.schema, globalIDCodec),

@@ -4,8 +4,8 @@ import java.net.URLDecoder
 import java.util.Base64
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.EngineExecutionContext
-import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.FieldResolverExecutor
+import viaduct.engine.api.NodeReference
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.TenantModuleBootstrapper
@@ -89,7 +89,7 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
         private fun resolveNodeByGlobalId(
             globalId: Any?,
             context: EngineExecutionContext
-        ): EngineObjectData {
+        ): NodeReference {
             require(globalId is String) { "Expected GlobalID \"$globalId\" to be a string. This should never occur." }
             val (typeName, _) = decodeGlobalIdString(globalId)
 
@@ -99,7 +99,7 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
             val implementsNode = graphQLObjectType.interfaces.any { it.name == "Node" }
             require(implementsNode) { "Expected GlobalId \"$globalId\" with type name '$typeName' to match a named object type that extends the Node interface" }
 
-            return context.createNodeEngineObjectData(globalId, graphQLObjectType)
+            return context.createNodeReference(globalId, graphQLObjectType)
         }
 
         /**
