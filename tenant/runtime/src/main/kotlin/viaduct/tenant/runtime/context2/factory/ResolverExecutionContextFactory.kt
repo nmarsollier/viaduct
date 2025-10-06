@@ -81,12 +81,14 @@ class NodeExecutionContextFactory(
     operator fun invoke(
         engineExecutionContext: EngineExecutionContext,
         selections: RawSelectionSet?,
+        requestContext: Any?,
         id: String
     ): NodeExecutionContext<*> {
         val wrappedContext = NodeExecutionContextImpl(
             InternalContextImpl(engineExecutionContext.fullSchema, globalIDCodec, reflectionLoader),
             engineExecutionContext,
             this.toSelectionSet(selections),
+            requestContext,
             globalIDCodec.deserialize<NodeObject>(id)
         )
         return wrap(wrappedContext)
@@ -114,6 +116,7 @@ class RegularFieldExecutionContextFactory(
     operator fun invoke(
         engineExecutionContext: EngineExecutionContext,
         rawSelections: RawSelectionSet?,
+        requestContext: Any?,
         rawArguments: Map<String, Any?>,
         rawObjectValue: EngineObjectData,
         rawQueryValue: EngineObjectData,
@@ -123,6 +126,7 @@ class RegularFieldExecutionContextFactory(
             internalContext,
             engineExecutionContext,
             this.toSelectionSet(rawSelections),
+            rawArguments,
             argumentsType.makeGRT(internalContext, rawArguments),
             objectType.makeGRT(internalContext, rawObjectValue),
             queryType.makeGRT(internalContext, rawQueryValue),
@@ -153,6 +157,7 @@ class MutationFieldExecutionContextFactory<T : Object, Q : Query, A : Arguments,
     operator fun invoke(
         engineExecutionContext: EngineExecutionContext,
         rawSelections: RawSelectionSet?,
+        requestContext: Any?,
         rawArguments: Map<String, Any?>,
         rawObjectValue: EngineObjectData,
         rawQueryValue: EngineObjectData,
@@ -162,6 +167,7 @@ class MutationFieldExecutionContextFactory<T : Object, Q : Query, A : Arguments,
             internalContext,
             engineExecutionContext,
             this.toSelectionSet(rawSelections),
+            requestContext,
             argumentsType.makeGRT(internalContext, rawArguments),
             objectType.makeGRT(internalContext, rawObjectValue),
             queryType.makeGRT(internalContext, rawQueryValue),
@@ -182,6 +188,7 @@ class VariablesProviderContextFactory(
 ) {
     operator fun <A : Arguments> invoke(
         engineExecutionContext: EngineExecutionContext,
+        requestContext: Any?,
         args: A
-    ) = VariablesProviderContextImpl(InternalContextImpl(engineExecutionContext.fullSchema, globalIDCodec, reflectionLoader), args)
+    ) = VariablesProviderContextImpl(InternalContextImpl(engineExecutionContext.fullSchema, globalIDCodec, reflectionLoader), requestContext, args)
 }

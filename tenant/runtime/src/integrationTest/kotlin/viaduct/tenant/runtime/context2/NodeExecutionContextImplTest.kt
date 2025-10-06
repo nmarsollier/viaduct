@@ -36,6 +36,7 @@ class NodeExecutionContextImplTest : ContextTestBase() {
             MockInternalContext(GlobalIdFeatureAppTest.schema, MockGlobalIDCodec()),
             wrapper,
             selectionSet,
+            null, // requestContext
             userId
         )
     }
