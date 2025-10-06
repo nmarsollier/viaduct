@@ -2,7 +2,7 @@ package viaduct.tenant.runtime.context.factory
 
 import viaduct.api.context.ResolverExecutionContext
 import viaduct.api.internal.InternalContext
-import viaduct.api.internal.NodeReferenceFactory
+import viaduct.api.internal.NodeReferenceGRTFactory
 import viaduct.api.internal.select.SelectionSetFactory
 import viaduct.api.internal.select.SelectionsLoader
 import viaduct.api.types.Query
@@ -23,7 +23,7 @@ object ResolverExecutionContextFactory {
     /** create a [Factory<Args, ExecutionContext>] assembled from the provided factories */
     fun create(
         queryLoader: Factory<SelectionsLoaderArgs, SelectionsLoader<Query>> = SelectionsLoaderFactory.forQuery,
-        nodeReferenceFactory: Factory<EngineExecutionContext, NodeReferenceFactory> = NodeReferenceContextFactory.default,
+        nodeReferenceFactory: Factory<EngineExecutionContext, NodeReferenceGRTFactory> = NodeReferenceContextFactory.default,
     ): Factory<ResolverExecutionContextArgs, ResolverExecutionContext> =
         Factory { args ->
             ResolverExecutionContextImpl(
