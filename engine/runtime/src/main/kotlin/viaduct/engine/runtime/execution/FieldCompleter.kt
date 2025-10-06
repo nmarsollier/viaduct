@@ -56,10 +56,22 @@ import viaduct.engine.runtime.execution.FieldExecutionHelpers.executionStepInfoF
  * - Objects trigger recursive completion of their selected fields
  * - Errors during completion preserve partial results where possible
  *
+ * ## Testing
+ *
+ * This component is tested via conformance and integration testing:
+ *
+ * - **Conformance tests** ([ArbitraryConformanceTest], [NullBubblingConformanceTest]) - 13,000+ property-based
+ *   test iterations validating GraphQL spec compliance against the graphql-java reference implementation
+ * - **Feature tests** ([ViaductExecutionStrategyTest], [ExceptionsTest]) - Targeted tests for field merging,
+ *   error handling, and execution strategy integration
+ * - **Engine feature tests** (EngineFeatureTest framework) - Integration tests exercising the complete
+ *   resolution→completion pipeline with resolvers, checkers, and real schemas
+ *
  * @see FieldResolver Pairs with this class to form the complete execution pipeline
  * @see FieldCompletionResult Contains the completed field values and metadata
  * @see ObjectEngineResultImpl Holds the intermediate execution results being completed
  * @see NonNullableFieldValidator Enforces schema non-null constraints
+ * @see Conformer Test fixture for conformance testing
  */
 class FieldCompleter(
     private val dataFetcherExceptionHandler: DataFetcherExceptionHandler
