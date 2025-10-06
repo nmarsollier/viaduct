@@ -16,6 +16,7 @@ sealed class SealedFieldExecutionContextImpl(
     baseData: InternalContext,
     engineExecutionContextWrapper: EngineExecutionContextWrapper,
     private val selections: SelectionSet<CompositeOutput>,
+    override val requestContext: Any?,
     override val arguments: Arguments,
     override val objectValue: Object,
     override val queryValue: Query,
@@ -28,14 +29,16 @@ class FieldExecutionContextImpl(
     baseData: InternalContext,
     engineExecutionContextWrapper: EngineExecutionContextWrapper,
     selections: SelectionSet<CompositeOutput>,
+    requestContext: Any?,
     arguments: Arguments,
     objectValue: Object,
     queryValue: Query,
-) : SealedFieldExecutionContextImpl(baseData, engineExecutionContextWrapper, selections, arguments, objectValue, queryValue) {
+) : SealedFieldExecutionContextImpl(baseData, engineExecutionContextWrapper, selections, requestContext, arguments, objectValue, queryValue) {
     constructor(
         baseData: InternalContext,
         engineExecutionContext: EngineExecutionContext,
         selections: SelectionSet<CompositeOutput>,
+        requestContext: Any?,
         arguments: Arguments,
         objectValue: Object,
         queryValue: Query,
@@ -43,6 +46,7 @@ class FieldExecutionContextImpl(
         baseData,
         EngineExecutionContextWrapperImpl(engineExecutionContext),
         selections,
+        requestContext,
         arguments,
         objectValue,
         queryValue,

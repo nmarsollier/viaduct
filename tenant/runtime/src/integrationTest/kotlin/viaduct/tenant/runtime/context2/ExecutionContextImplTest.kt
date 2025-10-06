@@ -43,6 +43,7 @@ class ExecutionContextImplTest : ContextTestBase() {
             MockInternalContext(GlobalIdFeatureAppTest.schema, globalIDCodec),
             EngineExecutionContextWrapperImpl(ContextMocks(GlobalIdFeatureAppTest.schema).engineExecutionContext),
             selectionSet,
+            null, // requestContext
             args,
             obj,
             query,

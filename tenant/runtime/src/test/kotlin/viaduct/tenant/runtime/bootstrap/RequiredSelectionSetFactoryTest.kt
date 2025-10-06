@@ -73,9 +73,8 @@ class RequiredSelectionSetFactoryTest {
         objectData,
         emptyMap(),
         mockk {
-            every {
-                fullSchema
-            } returns defaultSchema
+            every { fullSchema } returns defaultSchema
+            every { requestContext } returns null
         }
     )
 
