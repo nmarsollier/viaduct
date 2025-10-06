@@ -54,6 +54,7 @@ class NodeExecutionContextImplTest {
     ) = NodeExecutionContextImpl(
         ResolverExecutionContextImpl(
             MockInternalContext(GlobalIdFeatureAppTest.schema, MockGlobalIDCodec()),
+            null,
             queryLoader,
             selectionSetFactory,
             nodeReferenceFactory

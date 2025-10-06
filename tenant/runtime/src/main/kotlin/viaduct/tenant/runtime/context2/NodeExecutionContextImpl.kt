@@ -11,14 +11,16 @@ class NodeExecutionContextImpl(
     baseData: InternalContext,
     engineExecutionContextWrapper: EngineExecutionContextWrapper,
     private val selections: SelectionSet<NodeObject>,
+    override val requestContext: Any?,
     override val id: GlobalID<NodeObject>,
 ) : NodeExecutionContextTmp<NodeObject>, ResolverExecutionContextImpl(baseData, engineExecutionContextWrapper) {
     constructor(
         baseData: InternalContext,
         engineExecutionContext: EngineExecutionContext,
         selections: SelectionSet<NodeObject>,
+        requestContext: Any?,
         id: GlobalID<NodeObject>,
-    ) : this(baseData, EngineExecutionContextWrapperImpl(engineExecutionContext), selections, id)
+    ) : this(baseData, EngineExecutionContextWrapperImpl(engineExecutionContext), selections, requestContext, id)
 
     override fun selections() = selections
 }
