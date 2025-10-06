@@ -9,6 +9,7 @@ interface EngineExecutionContext {
     val fullSchema: ViaductSchema
     val scopedSchema: ViaductSchema
     val activeSchema: ViaductSchema
+    val requestContext: Any?
     val rawSelectionSetFactory: RawSelectionSet.Factory
     val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory
 

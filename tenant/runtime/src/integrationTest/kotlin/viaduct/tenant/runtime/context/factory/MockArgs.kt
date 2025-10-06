@@ -71,6 +71,7 @@ class MockArgs(
         every {
             fullSchema
         } returns contextFactoryTestSchema
+        every { requestContext } returns null
     }
 
     fun getFieldArgs() =

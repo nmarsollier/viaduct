@@ -155,7 +155,8 @@ abstract class FeatureAppTestBase {
     open fun execute(
         query: String,
         variables: Map<String, Any?> = mapOf(),
-        schemaId: String = defaultSchemaId
+        schemaId: String = defaultSchemaId,
+        requestContext: Any? = null,
     ): ExecutionResult {
         return runBlocking {
             tryBuildViaductService()
@@ -163,6 +164,7 @@ abstract class FeatureAppTestBase {
                 schemaId = schemaId,
                 operationText = query,
                 variables = variables,
+                requestContext = requestContext,
             )
             val result = viaductService.executeAsync(executionInput).await()
             result

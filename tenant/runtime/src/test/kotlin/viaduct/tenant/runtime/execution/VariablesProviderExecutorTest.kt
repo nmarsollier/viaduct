@@ -54,6 +54,7 @@ class VariablesProviderExecutorTest {
                         mapOf("a" to 5, "b" to 7),
                         mockk {
                             every { fullSchema } returns MockSchema.minimal
+                            every { requestContext } returns null
                         }
                     )
                 )
@@ -93,6 +94,7 @@ class VariablesProviderExecutorTest {
                         mapOf("a" to 5, "b" to 7),
                         mockk {
                             every { fullSchema } returns MockSchema.minimal
+                            every { requestContext } returns null
                         }
                     )
                 )

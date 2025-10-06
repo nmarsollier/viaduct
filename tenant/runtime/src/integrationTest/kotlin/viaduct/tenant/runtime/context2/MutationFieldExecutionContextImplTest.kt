@@ -26,6 +26,7 @@ class MutationFieldExecutionContextImplTest : ContextTestBase() {
             MockInternalContext(SelectTestFeatureAppTest.schema, MockGlobalIDCodec()),
             wrapper,
             noSelections,
+            null, // requestContext
             Args,
             Obj,
             Q,
