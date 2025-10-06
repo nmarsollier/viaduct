@@ -39,6 +39,7 @@ class FieldExecutionContextImplTest {
         obj: Object = Obj,
         query: QueryType = Q,
         args: Arguments = Args,
+        requestContext: Any? = null,
         globalIDCodec: GlobalIDCodec = MockGlobalIDCodec(),
         selectionSet: SelectionSet<*> = SelectionSet.NoSelections,
         queryLoader: SelectionsLoader<QueryType> = SelectionsLoader.const(queryObject),
@@ -48,6 +49,7 @@ class FieldExecutionContextImplTest {
     ) = FieldExecutionContextImpl(
         ResolverExecutionContextImpl(
             MockInternalContext(SelectTestFeatureAppTest.schema, globalIDCodec),
+            requestContext,
             queryLoader,
             selectionSetFactory,
             nodeReferenceFactory
