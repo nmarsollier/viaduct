@@ -372,7 +372,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
                 checker {
                     fn { _, _ -> throw RuntimeException("field checker failed") }
@@ -401,7 +401,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
                 checker {
                     fn { _, _ -> /* access granted */ }
@@ -430,7 +430,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
                 checker {
                     fn { _, _ -> /* access granted */ }
@@ -456,7 +456,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -482,7 +482,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "nonNullBaz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -508,7 +508,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "node") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -535,7 +535,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "node") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -560,7 +560,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             field("Baz" to "y") {
@@ -599,7 +599,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             field("Baz" to "y") {
@@ -641,9 +641,9 @@ class AccessCheckExecutionTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         listOf(
-                            ctx.createNodeEngineObjectData("1", bazType),
-                            ctx.createNodeEngineObjectData("2", bazType),
-                            ctx.createNodeEngineObjectData("3", bazType),
+                            ctx.createNodeReference("1", bazType),
+                            ctx.createNodeReference("2", bazType),
+                            ctx.createNodeReference("3", bazType),
                         )
                     }
                 }
@@ -696,9 +696,9 @@ class AccessCheckExecutionTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         listOf(
-                            ctx.createNodeEngineObjectData("1", bazType),
-                            ctx.createNodeEngineObjectData("2", bazType),
-                            ctx.createNodeEngineObjectData("3", bazType),
+                            ctx.createNodeReference("1", bazType),
+                            ctx.createNodeReference("2", bazType),
+                            ctx.createNodeReference("3", bazType),
                         )
                     }
                 }
@@ -748,9 +748,9 @@ class AccessCheckExecutionTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         listOf(
-                            ctx.createNodeEngineObjectData("1", bazType),
-                            ctx.createNodeEngineObjectData("2", barType),
-                            ctx.createNodeEngineObjectData("3", barType),
+                            ctx.createNodeReference("1", bazType),
+                            ctx.createNodeReference("2", barType),
+                            ctx.createNodeReference("3", barType),
                         )
                     }
                 }
