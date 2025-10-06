@@ -20,6 +20,7 @@ class MutationFieldExecutionContextFactoryTest {
     private val fieldExecutionContext = FieldExecutionContextImpl(
         ResolverExecutionContextImpl(
             args.internalContext,
+            null,
             args.selectionsLoaderFactory.forQuery(resolverId),
             MockArgs.selectionSetFactory,
             NodeReferenceFactoryImpl(mockk())
