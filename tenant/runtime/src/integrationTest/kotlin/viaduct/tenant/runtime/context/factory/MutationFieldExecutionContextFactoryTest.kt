@@ -7,7 +7,7 @@ import viaduct.api.mocks.MockResolverExecutionContext
 import viaduct.api.select.SelectionSet
 import viaduct.tenant.runtime.context.FieldExecutionContextImpl
 import viaduct.tenant.runtime.context.ResolverExecutionContextImpl
-import viaduct.tenant.runtime.internal.NodeReferenceFactoryImpl
+import viaduct.tenant.runtime.internal.NodeReferenceGRTFactoryImpl
 
 @ExperimentalCoroutinesApi
 class MutationFieldExecutionContextFactoryTest {
@@ -23,7 +23,7 @@ class MutationFieldExecutionContextFactoryTest {
             null,
             args.selectionsLoaderFactory.forQuery(resolverId),
             MockArgs.selectionSetFactory,
-            NodeReferenceFactoryImpl(mockk())
+            NodeReferenceGRTFactoryImpl(mockk())
         ),
         Mutation.Builder(ec).build(),
         Query.Builder(ec).build(),
