@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.api.globalid.GlobalID
-import viaduct.api.internal.NodeReferenceFactory
+import viaduct.api.internal.NodeReferenceGRTFactory
 import viaduct.api.internal.select.SelectionSetFactory
 import viaduct.api.internal.select.SelectionsLoader
 import viaduct.api.mocks.MockGlobalIDCodec
@@ -24,7 +24,7 @@ import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.globalid.GlobalIdFeatureAppTest
 import viaduct.tenant.runtime.globalid.Query
 import viaduct.tenant.runtime.globalid.User
-import viaduct.tenant.runtime.internal.NodeReferenceFactoryImpl
+import viaduct.tenant.runtime.internal.NodeReferenceGRTFactoryImpl
 import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
 import viaduct.tenant.runtime.select.SelectionSetImpl
 
@@ -35,7 +35,7 @@ class NodeExecutionContextImplTest {
 
     private val engineExecutionContext = mockk<EngineExecutionContext> {
         every { fullSchema } returns GlobalIdFeatureAppTest.schema
-        every { createNodeEngineObjectData(any(), any()) } returns mockk {
+        every { createNodeReference(any(), any()) } returns mockk {
             every { graphQLObjectType } returns mockk()
         }
     }
@@ -45,11 +45,11 @@ class NodeExecutionContextImplTest {
         selectionSet: SelectionSet<User> = mockk<SelectionSet<User>>(),
         queryLoader: SelectionsLoader<QueryType> = SelectionsLoader.const(queryObject),
         selectionSetFactory: SelectionSetFactory = SelectionSetFactoryImpl(rawSelectionSetFactory),
-        nodeReferenceFactory: NodeReferenceFactory = NodeReferenceFactoryImpl {
+        nodeReferenceFactory: NodeReferenceGRTFactory = NodeReferenceGRTFactoryImpl {
                 id: String,
                 graphQLObjectType: GraphQLObjectType,
             ->
-            engineExecutionContext.createNodeEngineObjectData(id, graphQLObjectType)
+            engineExecutionContext.createNodeReference(id, graphQLObjectType)
         }
     ) = NodeExecutionContextImpl(
         ResolverExecutionContextImpl(

@@ -35,10 +35,10 @@ interface EngineExecutionContext {
         selections: RawSelectionSet
     ): EngineObjectData = rawSelectionsLoaderFactory.forMutation(resolverId).load(selections)
 
-    fun createNodeEngineObjectData(
+    fun createNodeReference(
         id: String,
         graphQLObjectType: GraphQLObjectType,
-    ): NodeEngineObjectData
+    ): NodeReference
 
     // TODO(https://app.asana.com/1/150975571430/project/1203659453427089/task/1210861903745772):
     //    remove when everything has been shimmed
