@@ -9,7 +9,6 @@ import viaduct.api.types.Mutation
 import viaduct.api.types.NodeObject
 import viaduct.api.types.Query
 import viaduct.engine.api.EngineExecutionContext
-import viaduct.tenant.runtime.internal.NodeReferenceEngineObjectData
 import viaduct.tenant.runtime.select.SelectionSetImpl
 import viaduct.tenant.runtime.toGRT
 
@@ -82,8 +81,8 @@ class EngineExecutionContextWrapperImpl(
         val typeName = globalID.type.name
         val graphqlObjectType = ctx.schema.schema.getObjectType(typeName)
         val id = ctx.globalIDCodec.serialize(globalID)
-        val nodeEngineObjectData = engineExecutionContext.createNodeEngineObjectData(id, graphqlObjectType)
+        val nodeReference = engineExecutionContext.createNodeReference(id, graphqlObjectType)
 
-        return NodeReferenceEngineObjectData(nodeEngineObjectData).toGRT(ctx, globalID.type)
+        return nodeReference.toGRT(ctx, globalID.type)
     }
 }
