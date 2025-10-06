@@ -18,10 +18,11 @@ import viaduct.api.types.Query
  */
 class ResolverExecutionContextImpl(
     internal: InternalContext,
+    requestContext: Any?,
     private val queryLoader: SelectionsLoader<Query>,
     private val selectionSetFactory: SelectionSetFactory,
     private val nodeReferenceFactory: NodeReferenceFactory
-) : ExecutionContext by ExecutionContextImpl(internal), InternalContext by internal, ResolverExecutionContext {
+) : ExecutionContext by ExecutionContextImpl(internal, requestContext), InternalContext by internal, ResolverExecutionContext {
     override suspend fun <T : Query> query(selections: SelectionSet<T>) = queryLoader.load(this, selections)
 
     override fun <T : CompositeOutput> selectionsFor(
