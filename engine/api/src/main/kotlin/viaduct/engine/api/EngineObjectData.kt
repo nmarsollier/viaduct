@@ -1,7 +1,5 @@
 package viaduct.engine.api
 
-import graphql.schema.GraphQLObjectType
-
 /**
  * An untyped representation of resolved GraphQL object values.  These
  * values can be nested.  For list-typed fields, the Kotlin [List]
@@ -41,7 +39,7 @@ import graphql.schema.GraphQLObjectType
  * must _not_ assume that application code is correct and instead must
  * validate conformance.)
  */
-interface EngineObjectData {
+interface EngineObjectData : EngineObject {
     /**
      * Fetch a value that was selected with the provided [selection]
      *
@@ -55,6 +53,4 @@ interface EngineObjectData {
      * reading unset selections.
      */
     suspend fun fetchOrNull(selection: String): Any?
-
-    val graphQLObjectType: GraphQLObjectType
 }
