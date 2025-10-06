@@ -41,6 +41,7 @@ class ResolverExecutionContextFactoryBaseTest {
             nodeFactory(
                 contextMocks.engineExecutionContext,
                 null, // This null selection set should cause validation failure
+                null, // requestContext
                 "test-id"
             )
         }
@@ -66,6 +67,7 @@ class ResolverExecutionContextFactoryBaseTest {
             nodeFactory(
                 ContextMocks(GlobalIdFeatureAppTest.schema).engineExecutionContext,
                 mockRawSelectionSet, // This non-null selection set should cause validation failure
+                null, // requestContext
                 "test-id"
             )
         }
