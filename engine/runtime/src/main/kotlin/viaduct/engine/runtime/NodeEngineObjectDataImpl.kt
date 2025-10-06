@@ -7,6 +7,7 @@ import kotlinx.coroutines.supervisorScope
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.NodeEngineObjectData
+import viaduct.engine.api.NodeReference
 import viaduct.engine.api.NodeResolverDispatcherRegistry
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
@@ -16,7 +17,7 @@ class NodeEngineObjectDataImpl(
     override val graphQLObjectType: GraphQLObjectType,
     private val resolverRegistry: NodeResolverDispatcherRegistry,
     private val checkerRegistry: TypeCheckerDispatcherRegistry
-) : NodeEngineObjectData {
+) : NodeEngineObjectData, NodeReference {
     private lateinit var resolvedEngineObjectData: EngineObjectData
     private val resolving = CompletableDeferred<Unit>()
 

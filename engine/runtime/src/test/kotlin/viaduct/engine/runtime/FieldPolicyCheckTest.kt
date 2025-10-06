@@ -53,7 +53,7 @@ class FieldPolicyCheckTest {
                 resolver {
                     fn { args, _, _, _, ctx ->
                         val id = args.getAs<String>("id")
-                        ctx.createNodeEngineObjectData(id, canAccessPersonType)
+                        ctx.createNodeReference(id, canAccessPersonType)
                     }
                 }
             }
@@ -99,7 +99,7 @@ class FieldPolicyCheckTest {
                 resolver {
                     fn { args, _, _, _, ctx ->
                         val id = args.getAs<String>("id")
-                        ctx.createNodeEngineObjectData(id, canNotAccessPersonType)
+                        ctx.createNodeReference(id, canNotAccessPersonType)
                     }
                 }
             }
@@ -138,7 +138,7 @@ class FieldPolicyCheckTest {
             field("Query" to "canNotAccessType") {
                 resolver {
                     fn { _, _, _, _, ctx ->
-                        ctx.createNodeEngineObjectData("someId", canAccessPersonType)
+                        ctx.createNodeReference("someId", canAccessPersonType)
                     }
                 }
                 checker {
