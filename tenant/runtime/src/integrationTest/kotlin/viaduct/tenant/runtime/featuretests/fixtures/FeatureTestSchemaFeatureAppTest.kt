@@ -36,6 +36,7 @@ union Union = Foo | Bar | Baz
 type Foo implements Interface {
   value: String @resolver
   bar: Bar @resolver
+  valueWithoutResolver: String
 }
 type Bar implements Interface {
   value: String @resolver

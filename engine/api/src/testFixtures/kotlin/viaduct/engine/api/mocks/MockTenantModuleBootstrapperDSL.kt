@@ -213,7 +213,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                         MockFieldUnbatchedResolverExecutor(
                             r.objectSelections?.toRSS(),
                             r.querySelections?.toRSS(),
-                            r.metadata,
+                            r.resolverName,
                             resolverId,
                             r.unbatchedResolveFn!!
                         )
@@ -222,7 +222,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                         MockFieldBatchResolverExecutor(
                             r.objectSelections?.toRSS(),
                             r.querySelections?.toRSS(),
-                            r.metadata,
+                            r.resolverName,
                             resolverId,
                             r.batchResolveFn!!
                         )
@@ -278,7 +278,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
         inner class ResolverScope {
             internal var objectSelections: SelectionsScope? = null
             internal var querySelections: SelectionsScope? = null
-            internal var metadata: Map<String, String> = emptyMap()
+            internal var resolverName: String = "mock-resolver-name"
             internal var unbatchedResolveFn: FieldUnbatchedResolverFn? = null
             internal var batchResolveFn: FieldBatchResolverFn? = null
             internal var resolverId: String = coord.first + "." + coord.second
@@ -309,9 +309,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 querySelections = this@FieldScope.SelectionsScope(queryType.name, querySelectionsText).apply { block() }
             }
 
-            fun metadata(metadata: Map<String, String>) {
-                this.metadata = metadata
-            }
+            fun resolverName(name: String) = apply { resolverName = name }
 
             fun fn(resolveFn: FieldUnbatchedResolverFn) {
                 this.unbatchedResolveFn = resolveFn

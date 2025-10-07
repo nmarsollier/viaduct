@@ -29,9 +29,9 @@ class CompositeLocalContext private constructor(
         return contexts[ctxKlass] as? T?
     }
 
-    fun addOrUpdate(newContext: Any): CompositeLocalContext {
+    fun addOrUpdate(vararg newContext: Any): CompositeLocalContext {
         val newCtxs = contexts.toMutableMap()
-        newCtxs[newContext::class] = newContext
+        newContext.forEach { newCtxs[it::class] = it }
         return withContexts(newCtxs)
     }
 
