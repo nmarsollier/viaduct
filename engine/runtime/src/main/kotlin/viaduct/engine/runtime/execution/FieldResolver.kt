@@ -245,7 +245,7 @@ class FieldResolver(
         ) ?: FieldFetchingInstrumentationContext.NOOP
 
         val dataFetchingEnvironmentProvider =
-            FpKit.intraThreadMemoize { buildDataFetchingEnvironment(parameters, field.mergedField, parentOER) }
+            FpKit.intraThreadMemoize { buildDataFetchingEnvironment(parameters, field, parentOER) }
 
         fieldInstrumentationCtx.onDispatched()
 
@@ -367,9 +367,8 @@ class FieldResolver(
                         val typeCheckerResult = if (oer == null) {
                             Value.nullValue
                         } else {
-                            val mergedField = checkNotNull(field.mergedField)
                             val newParams = updateListItemParameters(parameters, index)
-                            val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, mergedField, parameters.parentEngineResult) }
+                            val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, field, parameters.parentEngineResult) }
                             accessCheckRunner.typeCheck(parameters, itemDfeSupplier, oer, itemFieldResolutionResult, this)
                         }
                         slotSetter.setCheckerValue(typeCheckerResult)
