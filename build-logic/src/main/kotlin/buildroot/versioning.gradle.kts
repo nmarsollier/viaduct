@@ -25,16 +25,141 @@ fun findVersionFile(start: File): File {
 }
 
 val versionFile = findVersionFile(rootDir)
-val baseVersion: String = versionFile.readText().trim().ifEmpty { "0.0.0" }
+val baseVersionRaw: String = versionFile.readText().trim().ifEmpty { "0.0.0" }
+
+// Function to get the latest published version from Gradle Plugin Portal
+fun getLatestVersionFromPortal(pluginId: String): String? {
+    return try {
+        val url = java.net.URL("https://plugins.gradle.org/api/plugins/$pluginId")
+        val connection = url.openConnection() as java.net.HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+        connection.connectTimeout = 10000
+        connection.readTimeout = 10000
+
+        if (connection.responseCode == 200) {
+            val response = connection.inputStream.bufferedReader().use { it.readText() }
+            val versionRegex = """"version"\s*:\s*"([^"]+)"""".toRegex()
+            val matches = versionRegex.findAll(response)
+            matches.map { it.groupValues[1] }
+                .filter { it.matches(Regex("""\d+\.\d+\.\d+""")) } // Only release versions, not snapshots
+                .maxOfOrNull { version ->
+                    val parts = version.split(".")
+                    parts[0].toInt() * 10000 + parts[1].toInt() * 100 + parts[2].toInt()
+                }?.let { maxVersionInt ->
+                    val major = maxVersionInt / 10000
+                    val minor = (maxVersionInt % 10000) / 100
+                    val patch = maxVersionInt % 100
+                    "$major.$minor.$patch"
+                }
+        } else null
+    } catch (e: Exception) {
+        logger.warn("Could not fetch version from portal for $pluginId: ${e.message}")
+        null
+    }
+}
+
+fun parseVersion(version: String): Triple<Int, Int, Int> {
+    val cleanVersion = version.split("-")[0] // Remove suffixes like "-next"
+    val parts = cleanVersion.split(".")
+    return Triple(
+        parts.getOrNull(0)?.toIntOrNull() ?: 0,
+        parts.getOrNull(1)?.toIntOrNull() ?: 0,
+        parts.getOrNull(2)?.toIntOrNull() ?: 0
+    )
+}
+
+val (repoMajor, repoMinor, _) = parseVersion(baseVersionRaw)
 
 val env = providers
+
+// Get latest versions from portal for our plugins
+val modulePluginId = "com.airbnb.viaduct.module-gradle-plugin"
+val appPluginId = "com.airbnb.viaduct.application-gradle-plugin"
+
+val latestModuleVersion = getLatestVersionFromPortal(modulePluginId)
+val latestAppVersion = getLatestVersionFromPortal(appPluginId)
+
+logger.lifecycle("Latest module plugin version: ${latestModuleVersion ?: "none"}")
+logger.lifecycle("Latest application plugin version: ${latestAppVersion ?: "none"}")
+
+// Check if this is a weekly release or major version release
+val isWeeklyRelease = env.environmentVariable("WEEKLY_RELEASE").orElse("false").map { it.toBoolean() }.get()
+val isMajorVersionRelease = env.environmentVariable("MAJOR_VERSION_RELEASE").orElse("false").map { it.toBoolean() }.get()
+val releaseFlag = env.environmentVariable("RELEASE").orElse("false").map { it.toBoolean() }.get()
 val isReleaseTag = env.environmentVariable("GIT_TAG")
     .map { it.matches(Regex("""v\d+\.\d+\.\d+(-[A-Za-z0-9.]+)?""")) }
     .getOrElse(false)
 
-val releaseFlag = env.environmentVariable("RELEASE").orElse("false").map { it.toBoolean() }.get()
-val isSnapshot = !(releaseFlag || isReleaseTag)
-val computedVersionStr = if (isSnapshot) "$baseVersion-SNAPSHOT" else baseVersion
+// Check for patch release in commit message
+// Use environment variable to avoid running git during configuration phase
+val isPatchRelease = try {
+    val buildkiteMessage = env.environmentVariable("BUILDKITE_MESSAGE").orNull
+    val commitMessage = env.environmentVariable("GIT_COMMIT_MESSAGE").orNull
+
+    listOfNotNull(buildkiteMessage, commitMessage)
+        .any { message ->
+            message.contains("[VIADUCT]", ignoreCase = true) &&
+            message.contains("[PATCH]", ignoreCase = true)
+        }
+} catch (e: Exception) {
+    false
+}
+
+fun computeBaseVersion(repoMajor: Int, latestModule: String?, latestApp: String?, isPatch: Boolean, isMajorRelease: Boolean): String {
+
+    // For major version releases, always return the repo major version with .0.0
+    if (isMajorRelease) {
+        return "$repoMajor.0.0"
+    }
+
+    val latestVersions = listOfNotNull(latestModule, latestApp)
+        .map { parseVersion(it) }
+        .filter { (major, _, _) -> major == repoMajor }
+
+    if (latestVersions.isEmpty()) {
+        // No published versions for this major version yet
+        return if (isWeeklyRelease || releaseFlag || isReleaseTag) {
+            // First release for this major version - start with X.0.0
+            "$repoMajor.0.0"
+        } else {
+            // Snapshot before first release - use X.0.0
+            "$repoMajor.0.0"
+        }
+    }
+
+    val (latestMajor, latestMinor, latestPatch) = latestVersions
+        .maxByOrNull { (_, minor, patch) -> minor * 1000 + patch }!!
+
+    return if (isWeeklyRelease || releaseFlag || isReleaseTag) {
+        // This is a release - increment version
+        if (isPatch) {
+            "$latestMajor.$latestMinor.${latestPatch + 1}"
+        } else {
+            "$latestMajor.${latestMinor + 1}.0"
+        }
+    } else {
+        // This is a snapshot - use same version as last release
+        "$latestMajor.$latestMinor.$latestPatch"
+    }
+}
+
+val baseVersion = computeBaseVersion(repoMajor, latestModuleVersion, latestAppVersion, isPatchRelease, isMajorVersionRelease)
+
+logger.lifecycle("Computed base version: $baseVersion (weekly=$isWeeklyRelease, majorRelease=$isMajorVersionRelease, release=$releaseFlag, tag=$isReleaseTag, patch=$isPatchRelease)")
+val isSnapshot = !(releaseFlag || isReleaseTag || isMajorVersionRelease || isPatchRelease)
+
+// Generate unique snapshot versions for plugin publishing
+val computedVersionStr = if (isSnapshot) {
+    val isPluginPublish = env.environmentVariable("VIADUCT_PLUGIN_SNAPSHOT").orElse("false").map { it.toBoolean() }.get()
+    if (isPluginPublish) {
+        val timestamp = java.time.Instant.now().toString().replace(":", "").replace("-", "").substring(0, 15)
+        val gitSha = env.environmentVariable("GIT_COMMIT").orElse("unknown").get().take(7)
+        "$baseVersion-SNAPSHOT-$timestamp-$gitSha"
+    } else {
+        "$baseVersion-SNAPSHOT"
+    }
+} else baseVersion
 
 gradle.allprojects {
     group = "com.airbnb.viaduct"
@@ -51,9 +176,9 @@ abstract class PrintVersionTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        println("versionBase=${versionBase.get()}")
-        println("computedVersion=${computedVersion.get()}")
-        println("isSnapshot=${snapshot.get()}")
+        logger.lifecycle("versionBase=${versionBase.get()}")
+        logger.lifecycle("computedVersion=${computedVersion.get()}")
+        logger.lifecycle("isSnapshot=${snapshot.get()}")
     }
 }
 
@@ -64,7 +189,7 @@ abstract class BumpVersionTask : DefaultTask() {
     @get:OutputFile abstract val versionFile: RegularFileProperty
     @TaskAction fun run() {
         versionFile.get().asFile.writeText(newVersion.get() + "\n")
-        println("Wrote VERSION=${newVersion.get()} -> ${versionFile.get().asFile}")
+        logger.lifecycle("Wrote VERSION=${newVersion.get()} -> ${versionFile.get().asFile}")
     }
 }
 
@@ -72,11 +197,11 @@ abstract class BumpVersionTask : DefaultTask() {
 abstract class SyncDemoAppVersionsTask : DefaultTask() {
     @get:InputDirectory abstract val repoRoot: DirectoryProperty
     @get:Input abstract val demoappDirs: ListProperty<String>
-    @get:InputFile abstract val versionFile: RegularFileProperty
+    @get:Input abstract val computedVersion: Property<String>
     @get:OutputFiles abstract val outputFiles: ConfigurableFileCollection
 
     @TaskAction fun run() {
-        val v = versionFile.get().asFile.readText().trim()
+        val v = computedVersion.get()
         val root = repoRoot.get().asFile
 
         demoappDirs.get().forEach { rel ->
@@ -87,7 +212,7 @@ abstract class SyncDemoAppVersionsTask : DefaultTask() {
             val ordered = props.entries.map { it.key.toString() to it.value.toString() }.sortedBy { it.first }
             f.parentFile.mkdirs()
             f.writeText(ordered.joinToString(System.lineSeparator()) { (k, x) -> "$k=$x" } + System.lineSeparator())
-            println("Updated ${f.relativeTo(root)} -> $v")
+            logger.lifecycle("Updated ${f.relativeTo(root)} -> $v")
         }
     }
 }
@@ -111,7 +236,7 @@ if (gradle.parent == null) {
     tasks.register<SyncDemoAppVersionsTask>("syncDemoAppVersions") {
         repoRoot.set(layout.projectDirectory)
         demoappDirs.set(listOf("demoapps/cli-starter", "demoapps/starwars", "demoapps/spring-starter"))
-        versionFile.set(layout.projectDirectory.file("VERSION"))
+        computedVersion.set(computedVersionStr)
         // declare outputs
         outputFiles.setFrom(demoappDirs.get().map { layout.projectDirectory.file("$it/gradle.properties") })
     }
@@ -121,5 +246,25 @@ if (gradle.parent == null) {
             providers.provider { throw GradleException("Pass -PnewVersion=X.Y.Z") }
         ))
         versionFile.set(layout.projectDirectory.file("VERSION"))
+    }
+
+    tasks.register("weeklyRelease") {
+        group = "publishing"
+        description = "Publish a weekly release of Viaduct Gradle plugins"
+
+        doLast {
+            logger.lifecycle("=== WEEKLY RELEASE ===")
+            logger.lifecycle("This will publish a new minor version release to Gradle Plugin Portal")
+
+            // Set environment for weekly release
+            System.setProperty("WEEKLY_RELEASE", "true")
+
+            exec {
+                commandLine("./gradlew", "gradle-plugins:publishPlugins", "--no-daemon")
+                environment("WEEKLY_RELEASE", "true")
+            }
+
+            logger.lifecycle("Weekly release completed!")
+        }
     }
 }
