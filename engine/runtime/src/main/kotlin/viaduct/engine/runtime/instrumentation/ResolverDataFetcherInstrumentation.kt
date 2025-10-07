@@ -15,7 +15,7 @@ import viaduct.graphql.utils.asNamedElement
 /**
  * Instrumentation that executes @Resolver classes for Viaduct Modern
  */
-class ResolverInstrumentation(
+class ResolverDataFetcherInstrumentation(
     private val dispatcherRegistry: FieldResolverDispatcherRegistry, // Modern resolvers
     private val checkerRegistry: FieldCheckerDispatcherRegistry,
     private val coroutineInterop: CoroutineInterop = DefaultCoroutineInterop
