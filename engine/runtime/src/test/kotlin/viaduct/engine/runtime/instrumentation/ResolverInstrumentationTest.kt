@@ -21,14 +21,14 @@ internal class ResolverInstrumentationTest {
     private val mockDispathcerRegistry: FieldResolverDispatcherRegistry = mockk()
     private val mockCheckerRegistry: FieldCheckerDispatcherRegistry = mockk()
     private val mockSchema: GraphQLSchema = mockk()
-    private lateinit var testClass: ResolverInstrumentation
+    private lateinit var testClass: ResolverDataFetcherInstrumentation
     private val typeName = "typeName"
     private val fieldName = "fieldName"
 
     @BeforeEach
     fun setupMocks() {
         clearMocks(mockDispathcerRegistry, mockCheckerRegistry, mockSchema)
-        testClass = ResolverInstrumentation(
+        testClass = ResolverDataFetcherInstrumentation(
             dispatcherRegistry = mockDispathcerRegistry,
             checkerRegistry = mockCheckerRegistry,
         )

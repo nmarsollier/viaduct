@@ -20,7 +20,7 @@ import viaduct.engine.runtime.execution.AccessCheckRunner
 import viaduct.engine.runtime.execution.ExecutionParameters
 import viaduct.engine.runtime.execution.ViaductExecutionStrategy
 import viaduct.engine.runtime.execution.WrappedCoroutineExecutionStrategy
-import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
+import viaduct.engine.runtime.instrumentation.ResolverDataFetcherInstrumentation
 import viaduct.engine.runtime.instrumentation.ScopeInstrumentation
 import viaduct.engine.runtime.instrumentation.TaggedMetricInstrumentation
 import viaduct.service.api.spi.FlagManager
@@ -132,8 +132,8 @@ class ViaductExecutionStrategyModule : AbstractModule() {
     fun providesResolverInstrumentation(
         dispatcherRegistry: DispatcherRegistry, // From child
         coroutineInterop: CoroutineInterop, // From parent
-    ): ResolverInstrumentation {
-        return ResolverInstrumentation(
+    ): ResolverDataFetcherInstrumentation {
+        return ResolverDataFetcherInstrumentation(
             dispatcherRegistry,
             dispatcherRegistry,
             coroutineInterop
@@ -143,7 +143,7 @@ class ViaductExecutionStrategyModule : AbstractModule() {
     @Provides
     @Singleton
     fun providesInstrumentation(
-        resolverInstrumentation: ResolverInstrumentation, // From child
+        resolverDataFetcherInstrumentation: ResolverDataFetcherInstrumentation, // From child
         scopeInstrumentation: ScopeInstrumentation, // From child
         config: ViaductBuilderConfiguration // From parent
     ): Instrumentation {
@@ -152,7 +152,7 @@ class ViaductExecutionStrategyModule : AbstractModule() {
         }
         val defaultInstrumentations = listOfNotNull(
             scopeInstrumentation.asStandardInstrumentation,
-            resolverInstrumentation,
+            resolverDataFetcherInstrumentation,
             taggedMetricInstrumentation?.asStandardInstrumentation
         )
         return if (config.chainInstrumentationWithDefaults) {
