@@ -53,4 +53,30 @@ interface EngineObjectData : EngineObject {
      * reading unset selections.
      */
     suspend fun fetchOrNull(selection: String): Any?
+
+    /**
+     * Returns the list of selections available for this object.
+     */
+    suspend fun fetchSelections(): Iterable<String>
+
+    /**
+     * A synchronous version of [EngineObjectData] that provides non-suspending
+     * access to field values. This is useful when working with already-resolved
+     * data that doesn't require asynchronous fetching.
+     */
+    interface Sync : EngineObjectData {
+        /**
+         * Get a value that was selected with the provided [selection]
+         *
+         * @param selection a field or alias name
+         * @throws UnsetSelectionException if the selection is unset
+         */
+        fun get(selection: String): Any?
+
+        /**
+         * Similar to [get] but returns null (rather than throws) when
+         * reading unset selections.
+         */
+        fun getOrNull(selection: String): Any?
+    }
 }
