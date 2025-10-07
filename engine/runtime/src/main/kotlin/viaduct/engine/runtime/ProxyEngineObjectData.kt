@@ -64,6 +64,17 @@ open class ProxyEngineObjectData(
         return marshal(value, subselections)
     }
 
+    override suspend fun fetchSelections(): Iterable<String> {
+        return if (selectionSet == null) {
+            emptyList()
+        } else {
+            selectionSet
+                .selectionSetForType(graphQLObjectType.name)
+                .selections()
+                .map { it.selectionName }
+        }
+    }
+
     /**
      * @param selection A field or alias name
      */
