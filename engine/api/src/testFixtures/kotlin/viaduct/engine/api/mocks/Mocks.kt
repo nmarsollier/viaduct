@@ -34,6 +34,7 @@ import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.ResolvedEngineObjectData
+import viaduct.engine.api.ResolverMetadata
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.VariablesResolver
@@ -170,11 +171,12 @@ class MockFieldResolverDispatcherRegistry(vararg bindings: Pair<Coordinate, Fiel
 open class MockFieldUnbatchedResolverExecutor(
     override val objectSelectionSet: RequiredSelectionSet? = null,
     override val querySelectionSet: RequiredSelectionSet? = null,
-    override val metadata: Map<String, String> = emptyMap(),
+    val resolverName: String = "mock-field-unbatched-resolver",
     override val resolverId: String,
-    open val unbatchedResolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null },
+    open val unbatchedResolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null }
 ) : FieldResolverExecutor {
     override val isBatching: Boolean = false
+    override val metadata = ResolverMetadata.forMock(resolverName)
 
     override suspend fun batchResolve(
         selectors: List<FieldResolverExecutor.Selector>,
@@ -194,11 +196,12 @@ open class MockFieldUnbatchedResolverExecutor(
 open class MockFieldBatchResolverExecutor(
     override val objectSelectionSet: RequiredSelectionSet? = null,
     override val querySelectionSet: RequiredSelectionSet? = null,
-    override val metadata: Map<String, String> = emptyMap(),
+    val resolverName: String = "mock-field-batch-resolver",
     override val resolverId: String,
     open val batchResolveFn: FieldBatchResolverFn = { _, _ -> throw NotImplementedError() }
 ) : FieldResolverExecutor {
     override val isBatching: Boolean = true
+    override val metadata = ResolverMetadata.forMock(resolverName)
 
     override suspend fun batchResolve(
         selectors: List<FieldResolverExecutor.Selector>,
