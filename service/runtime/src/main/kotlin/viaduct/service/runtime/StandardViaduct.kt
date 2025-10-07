@@ -30,7 +30,7 @@ import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextFactory
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.execution.TenantNameResolver
-import viaduct.engine.runtime.instrumentation.ResolverInstrumentation
+import viaduct.engine.runtime.instrumentation.ResolverDataFetcherInstrumentation
 import viaduct.engine.runtime.tenantloading.DispatcherRegistryFactory
 import viaduct.engine.runtime.tenantloading.RequiredSelectionsAreInvalid
 import viaduct.service.api.ExecutionInput
@@ -56,7 +56,7 @@ class StandardViaduct
         dispatcherRegistry: DispatcherRegistry,
         private val coroutineInterop: CoroutineInterop = DefaultCoroutineInterop,
         fragmentLoader: FragmentLoader,
-        resolverInstrumentation: ResolverInstrumentation,
+        resolverDataFetcherInstrumentation: ResolverDataFetcherInstrumentation,
         flagManager: FlagManager,
         private val standardViaductFactory: Factory
     ) : Viaduct {
@@ -65,7 +65,7 @@ class StandardViaduct
                 viaductSchemaRegistry.getFullSchema(),
                 dispatcherRegistry,
                 fragmentLoader,
-                resolverInstrumentation,
+                resolverDataFetcherInstrumentation,
                 flagManager
             )
 
