@@ -25,6 +25,11 @@ class NodeEngineObjectDataImpl(
 
     override suspend fun fetchOrNull(selection: String): Any? = idOrWait(selection) ?: resolvedEngineObjectData.fetchOrNull(selection)
 
+    override suspend fun fetchSelections(): Iterable<String> {
+        resolving.await()
+        return resolvedEngineObjectData.fetchSelections()
+    }
+
     private suspend fun idOrWait(selection: String): Any? {
         if (selection == "id") {
             return id
