@@ -6,6 +6,7 @@ import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.api.ResolverMetadata
 
 /**
  * Initialized via DispathcerRegistry and resolves a single node for a node type whose
@@ -25,6 +26,8 @@ class FieldResolverDispatcherImpl(
     override val querySelectionSet: RequiredSelectionSet? = resolver.querySelectionSet
 
     override val hasRequiredSelectionSets: Boolean = resolver.hasRequiredSelectionSets()
+
+    override val resolverMetadata: ResolverMetadata = resolver.metadata
 
     override suspend fun resolve(
         arguments: Map<String, Any?>,

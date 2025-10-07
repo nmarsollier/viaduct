@@ -14,7 +14,7 @@ interface FieldResolverExecutor {
     val resolverId: String
 
     /** Tenant-digestible metadata associated with this particular resolver */
-    val metadata: Map<String, String>
+    val metadata: ResolverMetadata
 
     /**
      * The input for a single node in the batch
