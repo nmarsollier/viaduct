@@ -77,3 +77,63 @@ Pushes to `main` are not allowed. All changes must come through pull requests. R
 # Community
 
 If you have questions about the contribution process or want to discuss specific issues, please start a [discussion](https://github.com/airbnb/viaduct/discussions) on GitHub.
+
+# Building Locally
+
+## Plugins
+
+To build and publish all Viaduct artifacts to your local Maven repository:
+
+```bash
+./gradlew publishToMavenLocal -x :tools:publishToMavenLocal
+```
+
+This will publish all Viaduct libraries and Gradle plugins to your local Maven repository. You can then use these artifacts in your own projects by adding `mavenLocal()` to your repositories list. The version of the artifacts will be `0.0.0-SNAPSHOT`.
+
+## Tests
+
+Run tests with:
+
+```bash
+./gradlew check
+```
+
+### Demo Apps
+
+To build and test demo apps:
+
+```bash
+./gradlew :cli-starter:build :cli-starter:test :spring-starter:build :spring-starter:test :starwars:build :starwars:test
+```
+
+# Release Process
+
+Releases are listed [here](https://github.com/airbnb/viaduct/releases).
+
+## Who is responsible for a release?
+
+Releases can only be performed by Airbnb staff as the process uses internal Airbnb infrastructure. If you are an external contributor and would like to help with a release, please reach out to the core team via a GitHub discussion.
+
+## Versioning
+
+Viaduct adheres to [Semantic Versioning](https://semver.org/).
+
+## Cadence
+
+Until we release Viaduct 1.0, we are releasing on the following schedule:
+* Publishing gradle plugin weekly on Monday at 10AM UTC as a new minor version.
+* Publishing gradle plugin snapshots after each build using the time and the commit hash.
+* Publishing patches when [PATCH] and [VIADUCT] are in the title of the pull request.
+
+## Release Artifacts
+
+Release artifacts are published to the Gradle Plugin Portal and Maven Central. Releases are performed by internal Airbnb infrastructure. See [gradle-plugin-major-release.yml](_infra/ci/jobs/gradle-plugin-major-release.yml), [gradle-plugin-snapshot-release.yml](_infra/ci/jobs/gradle-plugin-snapshot-publish.yml), and [gradle-plugin-weekly-release.yml](_infra/ci/jobs/gradle-plugin-weekly-release.yml) for current process.
+
+### Maven Central
+
+Runtime libraries are published to Maven Central. Artifacts are grouped under the [`com.airbnb.viaduct`](https://central.sonatype.com/namespace/com.airbnb.viaduct) group ID. The [Viaduct BOM](https://search.maven.org/artifact/com.airbnb.viaduct/bom) is the recommended way to manage versions of Viaduct dependencies.
+
+### Gradle Plugin Portal
+
+* [application-gradle-plugin](https://plugins.gradle.org/plugin/com.airbnb.viaduct.application-gradle-plugin)
+* [module-gradle-plugin](https://plugins.gradle.org/plugin/com.airbnb.viaduct.module-gradle-plugin)
