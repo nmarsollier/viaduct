@@ -28,7 +28,6 @@ includeBuild("gradle-plugins") {
 
 // demo apps
 includeBuild("demoapps/cli-starter")
-includeBuild("demoapps/ktor-starter")
 includeBuild("demoapps/starwars")
 includeBuild("demoapps/spring-starter")
 
