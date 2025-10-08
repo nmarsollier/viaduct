@@ -12,5 +12,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(":modules:starwars")
-include(":modules:starships")
+include(":modules:filmography")
+include(":modules:universe")
