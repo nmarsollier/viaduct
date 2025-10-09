@@ -11,6 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.engine.api.FieldCheckerDispatcherRegistry
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.RequiredSelectionSetRegistry
+import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ChainedInstrumentation
@@ -107,6 +108,7 @@ class ViaductExecutionStrategyModule : AbstractModule() {
         fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry, // From child (DispatcherRegistry)
         typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry, // From child (DispatcherRegistry)
         flagManager: FlagManager, // From parent
+        temporaryBypassAccessCheck: TemporaryBypassAccessCheck // From parent
     ): ViaductExecutionStrategy.Factory {
         return ViaductExecutionStrategy.Factory.Impl(
             dataFetcherExceptionHandler,
@@ -118,6 +120,7 @@ class ViaductExecutionStrategyModule : AbstractModule() {
             ),
             AccessCheckRunner(coroutineInterop),
             coroutineInterop,
+            temporaryBypassAccessCheck
         )
     }
 
