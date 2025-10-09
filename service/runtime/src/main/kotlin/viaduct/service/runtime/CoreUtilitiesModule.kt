@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
 import graphql.execution.DataFetcherExceptionHandler
+import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.fragment.ExecutableFragmentParser
 import viaduct.engine.api.fragment.ViaductExecutableFragmentParser
@@ -21,7 +22,8 @@ class CoreUtilitiesModule(
     private val coroutineInterop: CoroutineInterop,
     private val dataFetcherExceptionHandler: DataFetcherExceptionHandler?,
     private val resolverErrorReporter: ResolverErrorReporter,
-    private val resolverErrorBuilder: ResolverErrorBuilder
+    private val resolverErrorBuilder: ResolverErrorBuilder,
+    private val temporaryBypassAccessCheck: TemporaryBypassAccessCheck
 ) : AbstractModule() {
     override fun configure() {
         bind(ExecutableFragmentParser::class.java)
@@ -48,5 +50,11 @@ class CoreUtilitiesModule(
             resolverErrorReporter,
             resolverErrorBuilder
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideTemporaryBypassChecker(): TemporaryBypassAccessCheck {
+        return temporaryBypassAccessCheck
     }
 }
