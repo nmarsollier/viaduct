@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineObjectData
-import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.engine.api.mocks.mkSchemaWithWiring
@@ -617,7 +616,7 @@ class AccessCheckExecutionTest {
             }
             type("Baz") {
                 nodeUnbatchedExecutor { id, _, _ ->
-                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                    mkEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
                 }
                 checker {
                     objectSelections("key", "fragment _ on Baz { y }")
