@@ -14,7 +14,7 @@ open class ChainedModernGJInstrumentation(
     ): InstrumentationContext<Map<String, Any?>>? =
         ChainedInstrumentationContext(
             gjInstrumentations.map { instr ->
-                instr.beginFetchObject(parameters, state)
+                instr.beginFetchObject(parameters, getState(instr, state))
             }
         )
 
@@ -24,7 +24,7 @@ open class ChainedModernGJInstrumentation(
     ): InstrumentationContext<Any>? =
         ChainedInstrumentationContext(
             gjInstrumentations.map { instr ->
-                instr.beginCompleteObject(parameters, state)
+                instr.beginCompleteObject(parameters, getState(instr, state))
             }
         )
 
@@ -35,7 +35,7 @@ open class ChainedModernGJInstrumentation(
     ): CheckerDispatcher {
         var instrumentedChecker = checkerDispatcher
         for (instr in gjInstrumentations) {
-            instrumentedChecker = instr.instrumentAccessCheck(instrumentedChecker, parameters, state)
+            instrumentedChecker = instr.instrumentAccessCheck(instrumentedChecker, parameters, getState(instr, state))
         }
 
         return instrumentedChecker
