@@ -25,17 +25,17 @@ commands:
           name: "Restore Gradle Dependencies (Partial Caching)"
           keys:
             # Primary: Exact match on lock files and gradle version
-            - v6-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "build.gradle.kts" }}
+            - v7-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "build.gradle.kts" }}
             # Secondary: Match on lock files only (partial restore)
-            - v6-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-
+            - v7-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-
             # Tertiary: Match on gradle version only (basic restore)
-            - v6-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-
+            - v7-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-
             # Fallback: Any gradle cache for this architecture
-            - v6-gradle-deps-{{ arch }}-
+            - v7-gradle-deps-{{ arch }}-
       - << parameters.steps >>
       - save_cache:
           name: "Save Gradle Dependencies Cache"
-          key: v6-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "build.gradle.kts" }}
+          key: v7-gradle-deps-{{ arch }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "gradle/libs.versions.toml" }}-{{ checksum "build.gradle.kts" }}
           paths:
             - ~/.gradle/caches
             - ~/.gradle/wrapper
