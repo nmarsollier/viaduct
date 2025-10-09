@@ -408,47 +408,6 @@ fun mkEngineObjectData(
         }.build()
 }
 
-@Deprecated("Use mkEngineObjectData instead (we don't need to fake this class)")
-data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectType, val data: Map<String, Any?>) : EngineObjectData {
-    override suspend fun fetch(selection: String): Any? = data[selection]
-
-    override suspend fun fetchOrNull(selection: String): Any? = data[selection]
-
-    override suspend fun fetchSelections(): Iterable<String> = data.keys
-
-    companion object {
-        /** recursively wraps [data] into a MockEngineObjectData tree */
-        fun wrap(
-            graphQLObjectType: GraphQLObjectType,
-            data: Map<String, Any?>
-        ): MockEngineObjectData = maybeWrap(graphQLObjectType, data) as MockEngineObjectData
-
-        private fun maybeWrap(
-            type: GraphQLOutputType,
-            value: Any?
-        ): Any? =
-            if (value == null) {
-                null
-            } else {
-                @Suppress("UNCHECKED_CAST")
-                when (type) {
-                    is GraphQLNonNull -> maybeWrap(type.wrappedType as GraphQLOutputType, value)
-                    is GraphQLList -> (value as List<*>).map { maybeWrap(type.wrappedType as GraphQLOutputType, it) }
-                    is GraphQLObjectType ->
-                        MockEngineObjectData(
-                            type,
-                            (value as Map<String, Any?>).mapValues { (fname, value) ->
-                                maybeWrap(type.getFieldDefinition(fname).type, value)
-                            }
-                        )
-
-                    is GraphQLCompositeType -> throw IllegalArgumentException("don't know how to wrap type $type with value $value")
-                    else -> value
-                }
-            }
-    }
-}
-
 class MockCheckerExecutorFactory(
     val checkerExecutors: Map<Coordinate, CheckerExecutor>? = null,
     val typeCheckerExecutors: Map<String, CheckerExecutor>? = null
