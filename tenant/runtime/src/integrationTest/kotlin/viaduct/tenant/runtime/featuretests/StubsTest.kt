@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import viaduct.api.ViaductTenantUsageException
 import viaduct.api.mocks.MockInternalContext
 import viaduct.engine.api.mocks.MockSchema
+import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.tenant.runtime.featuretests.fixtures.ArgumentsStub
 import viaduct.tenant.runtime.featuretests.fixtures.ObjectStub
 
@@ -20,17 +22,16 @@ class ObjectStubTest {
         MockSchema.mk(sdl).let { schema ->
             ObjectStub(
                 MockInternalContext(schema),
-                @Suppress("DEPRECATION")
-                viaduct.engine.api.mocks.MockEngineObjectData(schema.schema.getObjectType(type), values.toMap())
+                mkEngineObjectData(schema.schema.getObjectType(type), values.toMap())
             )
         }
 
     @Test
     fun `get`(): Unit =
         kotlinx.coroutines.runBlocking {
-            // missing
+            // missing - should throw exception with mkEngineObjectData
             mk("extend type Query { x: Int }").apply {
-                assertNull(get<Int?>("x"))
+                assertThrows<ViaductTenantUsageException> { get<Int?>("x") }
             }
 
             // explicit null
@@ -44,8 +45,8 @@ class ObjectStubTest {
             }
 
             // aliased scalar
-            mk("extend type Query { x: Int }", "myx" to 1).apply {
-                assertEquals(1, get<Int>("x", "myx"))
+            mk("extend type Query { x: Int }", "x" to 1).apply {
+                assertEquals(1, get<Int>("x", "x"))
             }
 
             // list
