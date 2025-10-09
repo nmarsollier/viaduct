@@ -18,6 +18,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.asDeferred
 import viaduct.engine.api.CheckerResult
+import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.runtime.Cell
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.FieldResolutionResult
@@ -74,7 +75,8 @@ import viaduct.engine.runtime.execution.FieldExecutionHelpers.executionStepInfoF
  * @see Conformer Test fixture for conformance testing
  */
 class FieldCompleter(
-    private val dataFetcherExceptionHandler: DataFetcherExceptionHandler
+    private val dataFetcherExceptionHandler: DataFetcherExceptionHandler,
+    private val temporaryBypassAccessCheck: TemporaryBypassAccessCheck,
 ) {
     /**
      * Completes the selection set by completing each field.
@@ -125,11 +127,13 @@ class FieldCompleter(
             val fieldKey = buildOERKeyForField(newParams, field)
             val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(newParams, field, parentOER) }
 
+            val bypassChecker = temporaryBypassAccessCheck.shouldBypassCheck(field.mergedField.singleField, parameters.bypassChecksDuringCompletion)
+
             // Obtain a result for this field
             val combinedValue = combineValues(
                 parentOER.getValue(fieldKey, RAW_VALUE_SLOT),
                 parentOER.getValue(fieldKey, ACCESS_CHECK_SLOT),
-                bypassChecker = parameters.bypassChecksDuringCompletion
+                bypassChecker
             )
 
             val handledFetch = combinedValue.recover { throwable ->
@@ -373,8 +377,9 @@ class FieldCompleter(
         val cells = checkNotNull(result as? Iterable<Cell>) {
             "Expected data to be an Iterable<Cell>, was ${result.javaClass}."
         }
+        val bypassCheck = temporaryBypassAccessCheck.shouldBypassCheck(field.mergedField.singleField, parameters.bypassChecksDuringCompletion)
         val listValues = cells.map {
-            combineValues(it.getValue(RAW_VALUE_SLOT), it.getValue(ACCESS_CHECK_SLOT), parameters.bypassChecksDuringCompletion)
+            combineValues(it.getValue(RAW_VALUE_SLOT), it.getValue(ACCESS_CHECK_SLOT), bypassCheck)
         }
         val instrumentationParams = InstrumentationFieldCompleteParameters(
             parameters.executionContext,
