@@ -172,7 +172,14 @@ class AccessCheckRunner(
             val rssMap = instrumentedDispatcher.requiredSelectionSets
             val proxyEODMap = rssMap.mapValues { (_, rss) ->
                 val selectionSet = rss?.let {
-                    localExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, emptyMap())
+                    val variables = resolveVariables(
+                        it.variablesResolvers,
+                        arguments,
+                        objectEngineResult,
+                        parameters.queryEngineResult,
+                        localExecutionContext
+                    )
+                    localExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, variables)
                 }
                 CheckerProxyEngineObjectData(
                     objectEngineResult,

@@ -59,7 +59,8 @@ class DispatcherRegistryTest {
                     requiredSelectionSets = mapOf(
                         "checker_0" to RequiredSelectionSet(
                             SelectionsParser.parse("TestType", "dField"),
-                            emptyList()
+                            emptyList(),
+                            forChecker = true
                         ),
                         "checker_1" to null
                     )
@@ -71,7 +72,8 @@ class DispatcherRegistryTest {
                     requiredSelectionSets = mapOf(
                         "key" to RequiredSelectionSet(
                             SelectionsParser.parse("TestNode", "id"),
-                            emptyList()
+                            emptyList(),
+                            forChecker = true
                         )
                     )
                 )
