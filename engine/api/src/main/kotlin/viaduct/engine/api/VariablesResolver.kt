@@ -65,6 +65,7 @@ interface VariablesResolver {
             private val objectSelections: ParsedSelections?,
             private val querySelections: ParsedSelections?,
             private val variables: List<SelectionSetVariable>,
+            private val forChecker: Boolean,
             private val attribution: ExecutionAttribution?,
         ) {
             private val variablesByName = variables.groupBy { it.name }
@@ -153,8 +154,9 @@ interface VariablesResolver {
                 val requiredSelectionSet = RequiredSelectionSet(
                     view,
                     nestedVariablesResolvers,
+                    forChecker,
                     // concatenate the attribution to indicate the full chain of attributions
-                    attribution?.toTagString()?.let { ExecutionAttribution.fromVariablesResolver(it) }
+                    attribution?.toTagString()?.let { ExecutionAttribution.fromVariablesResolver(it) },
                 )
                 return FromFieldVariablesResolver(v.name, path, requiredSelectionSet)
             }
@@ -173,8 +175,9 @@ interface VariablesResolver {
             objectSelections: ParsedSelections?,
             querySelections: ParsedSelections?,
             variables: List<SelectionSetVariable>,
-            attribution: ExecutionAttribution? = null
-        ): List<VariablesResolver> = Builder(objectSelections, querySelections, variables, attribution).buildAll()
+            forChecker: Boolean,
+            attribution: ExecutionAttribution? = null,
+        ): List<VariablesResolver> = Builder(objectSelections, querySelections, variables, forChecker, attribution).buildAll()
     }
 }
 

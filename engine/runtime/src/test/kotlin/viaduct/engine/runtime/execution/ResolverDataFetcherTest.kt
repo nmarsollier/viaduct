@@ -160,35 +160,15 @@ class ResolverDataFetcherTest {
         }
 
     @Test
-    fun `test resolving with existing object selection set -- modern disabled`(): Unit =
-        runBlocking(TestCoroutineDispatcher()) {
-            withThreadLocalCoroutineContext {
-                Fixture(
-                    expectedResult = "test fetched result",
-                    requiredSelectionSet = RequiredSelectionSet(
-                        SelectionsParser.parse("TestType", "testField"),
-                        emptyList()
-                    ),
-                    flagManager = allDisabledFlags,
-                ).apply {
-                    val receivedResult = resolverDataFetcher.get(dataFetchingEnvironment).join()
-                    assertEquals(expectedResult, receivedResult)
-
-                    // verify that localContext has dataFetchingEnvironment copied
-                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
-                }
-            }
-        }
-
-    @Test
-    fun `test resolving with existing object selection set -- modern enabled`(): Unit =
+    fun `test resolving with existing object selection set`(): Unit =
         runBlocking(TestCoroutineDispatcher()) {
             withThreadLocalCoroutineContext {
                 Fixture(
                     expectedResult = "test fetched result",
                     requiredSelectionSet = RequiredSelectionSet(
                         SelectionsParser.parse("TestType", "TestField"),
-                        emptyList()
+                        emptyList(),
+                        forChecker = false
                     ),
                     flagManager = allEnabledFlags
                 ).apply {
@@ -200,26 +180,6 @@ class ResolverDataFetcherTest {
                 }
             }
         }
-
-    @Test
-    fun `test resolving with existing object selection set -- modern enabled but not for mod fields`() {
-        runBlocking(TestCoroutineDispatcher()) {
-            withThreadLocalCoroutineContext {
-                Fixture(
-                    expectedResult = "test fetched result",
-                    requiredSelectionSet = RequiredSelectionSet(
-                        SelectionsParser.parse("TestType", "TestField"),
-                        emptyList()
-                    ),
-                    flagManager = allDisabledFlags
-                ).apply {
-                    val receivedResult = resolverDataFetcher.get(dataFetchingEnvironment).join()
-                    assertEquals(expectedResult, receivedResult)
-                    assertEquals(dataFetchingEnvironment, executor.lastReceivedLocalContext?.dataFetchingEnvironment)
-                }
-            }
-        }
-    }
 
     @Test
     fun `test resolving required selections with FromArgument variables -- all flag configurations`(): Unit =
@@ -235,10 +195,12 @@ class ResolverDataFetcherTest {
                                     VariablesResolver.fromSelectionSetVariables(
                                         parsedSelections,
                                         querySelections = ParsedSelections.empty("Query"),
+                                        forChecker = false,
                                         variables = listOf(
                                             FromArgumentVariable("myid", "id")
                                         )
                                     ),
+                                    forChecker = false
                                 )
                             },
                         flagManager = flags
@@ -455,7 +417,8 @@ class ResolverDataFetcherTest {
                         requiredSelectionSets = mapOf(
                             "key" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "himejiId"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             )
                         ),
                         executeFn = { _, _ -> }
@@ -479,11 +442,13 @@ class ResolverDataFetcherTest {
                         requiredSelectionSets = mapOf(
                             "checker_0" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "himejiId"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             ),
                             "checker_1" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "testField"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             )
                         ),
                         executeFn = { _, _ -> }
@@ -503,14 +468,16 @@ class ResolverDataFetcherTest {
                     expectedResult = "test fetched result",
                     requiredSelectionSet = RequiredSelectionSet(
                         SelectionsParser.parse("TestType", "TestField"),
-                        emptyList()
+                        emptyList(),
+                        forChecker = false
                     ),
                     flagManager = allDisabledFlags,
                     checkerExecutor = MockCheckerExecutor(
                         requiredSelectionSets = mapOf(
                             "key" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "himejiId"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             )
                         ),
                         executeFn = { _, _ -> }
@@ -542,14 +509,16 @@ class ResolverDataFetcherTest {
                     expectedResult = "test fetched result",
                     requiredSelectionSet = RequiredSelectionSet(
                         SelectionsParser.parse("TestType", "TestField"),
-                        emptyList()
+                        emptyList(),
+                        forChecker = false
                     ),
                     flagManager = allDisabledFlags,
                     checkerExecutor = MockCheckerExecutor(
                         requiredSelectionSets = mapOf(
                             "key" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", checkerDocString),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             )
                         ),
                         executeFn = { _, _ -> }
@@ -591,7 +560,8 @@ class ResolverDataFetcherTest {
                         requiredSelectionSets = mapOf(
                             "key" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "himejiId"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             )
                         ),
                         executeFn = { _, _ -> }
@@ -615,11 +585,13 @@ class ResolverDataFetcherTest {
                         requiredSelectionSets = mapOf(
                             "checker_0" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "himejiId"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             ),
                             "checker_1" to RequiredSelectionSet(
                                 SelectionsParser.parse("TestType", "testField"),
-                                emptyList()
+                                emptyList(),
+                                forChecker = true
                             )
                         ),
                         executeFn = { _, _ -> }
