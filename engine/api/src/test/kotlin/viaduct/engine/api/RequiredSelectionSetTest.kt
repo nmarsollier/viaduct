@@ -11,7 +11,8 @@ class RequiredSelectionSetTest {
         assertDoesNotThrow {
             RequiredSelectionSet(
                 SelectionsParser.parse("Query", "x"),
-                emptyList()
+                emptyList(),
+                forChecker = false
             )
         }
     }
@@ -23,7 +24,8 @@ class RequiredSelectionSetTest {
                 SelectionsParser.parse("Query", "x(y:\$var)"),
                 listOf(
                     VariablesResolver.const(mapOf("var" to 1))
-                )
+                ),
+                forChecker = false
             )
         }
     }
@@ -33,7 +35,8 @@ class RequiredSelectionSetTest {
         assertThrows<UnboundVariablesException> {
             RequiredSelectionSet(
                 SelectionsParser.parse("Query", "x(y:\$var)"),
-                emptyList()
+                emptyList(),
+                forChecker = false
             )
         }
     }

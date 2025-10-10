@@ -198,7 +198,8 @@ class QueryPlanTest {
             ParsedSelections.empty("Query"),
             listOf(
                 FromObjectFieldVariable("vara", "z")
-            )
+            ),
+            forChecker = false,
         )
         val reg = MockRequiredSelectionSetRegistry.builder()
             .fieldResolverEntry("Query" to "x", "y(a:\$vara)", varResolvers)
@@ -509,7 +510,8 @@ class QueryPlanTest {
             ParsedSelections.empty("Query"),
             listOf(
                 FromObjectFieldVariable("vara", "z")
-            )
+            ),
+            forChecker = true,
         )
         val reg = MockRequiredSelectionSetRegistry.builder()
             .fieldCheckerEntry(
