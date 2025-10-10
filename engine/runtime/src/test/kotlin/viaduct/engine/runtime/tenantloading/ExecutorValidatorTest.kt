@@ -19,7 +19,7 @@ class ExecutorValidatorTest {
     private val moduleBootstrap = MockTenantModuleBootstrapper(
         fieldResolverExecutors = listOf(
             "Foo" to "field" to MockFieldUnbatchedResolverExecutor(
-                RequiredSelectionSet(SelectionsParser.parse("Foo", "y"), emptyList()),
+                RequiredSelectionSet(SelectionsParser.parse("Foo", "y"), emptyList(), false),
                 resolverId = "Foo.field",
             )
         ),
@@ -83,7 +83,7 @@ class ExecutorValidatorTest {
             MockCheckerExecutorFactory(
                 mapOf(
                     "Foo" to "field" to MockCheckerExecutor(
-                        mapOf("rss" to RequiredSelectionSet(SelectionsParser.parse("Foo", "x"), emptyList()))
+                        mapOf("rss" to RequiredSelectionSet(SelectionsParser.parse("Foo", "x"), emptyList(), true))
                     )
                 )
             )
@@ -100,7 +100,7 @@ class ExecutorValidatorTest {
                 null,
                 mapOf(
                     "Foo" to MockCheckerExecutor(
-                        mapOf("rss" to RequiredSelectionSet(SelectionsParser.parse("Foo", "x"), emptyList()))
+                        mapOf("rss" to RequiredSelectionSet(SelectionsParser.parse("Foo", "x"), emptyList(), true))
                     )
                 )
             )

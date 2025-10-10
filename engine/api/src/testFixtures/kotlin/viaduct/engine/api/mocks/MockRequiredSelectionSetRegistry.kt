@@ -58,7 +58,7 @@ class MockRequiredSelectionSetRegistry(
         entries
             .filterIsInstance<FieldResolverEntry>()
             .filter { it.coord == (typeName to fieldName) }
-            .map { mkRSS(it.selectionsType, it.selectionsString, it.variablesResolvers) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variablesResolvers, forChecker = false) }
 
     override fun getFieldCheckerRequiredSelectionSets(
         typeName: String,
@@ -68,7 +68,7 @@ class MockRequiredSelectionSetRegistry(
         entries
             .filterIsInstance<FieldCheckerEntry>()
             .filter { it.coord == (typeName to fieldName) }
-            .map { mkRSS(it.selectionsType, it.selectionsString, it.variablesResolvers) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variablesResolvers, forChecker = true) }
 
     fun getRequiredSelectionSetsForField(
         typeName: String,
@@ -84,7 +84,7 @@ class MockRequiredSelectionSetRegistry(
         entries
             .filterIsInstance<TypeCheckerEntry>()
             .filter { it.typeName == typeName }
-            .map { mkRSS(it.selectionsType, it.selectionsString, it.variablesResolvers) }
+            .map { mkRSS(it.selectionsType, it.selectionsString, it.variablesResolvers, forChecker = true) }
 
     companion object {
         val empty: MockRequiredSelectionSetRegistry = MockRequiredSelectionSetRegistry()

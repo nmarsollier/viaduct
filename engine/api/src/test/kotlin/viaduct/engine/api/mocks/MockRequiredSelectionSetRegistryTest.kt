@@ -31,7 +31,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = false
                 )
             ),
             reg.getRequiredSelectionSetsForField("Foo", "f1")
@@ -41,7 +42,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x y"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = false
                 )
             ),
             reg.getRequiredSelectionSetsForField("Foo", "f2")
@@ -50,7 +52,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Bar", "x"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = false
                 )
             ),
             reg.getRequiredSelectionSetsForField("Bar", "b1")
@@ -59,29 +62,24 @@ class MockRequiredSelectionSetRegistryTest {
 
     @Test
     fun `fieldResolverEntry -- with variables`() {
+        val variableResolver = VariablesResolver.fromSelectionSetVariables(
+            SelectionsParser.parse("Foo", "b"),
+            ParsedSelections.empty("Query"),
+            listOf(FromObjectFieldVariable("a", "b")),
+            forChecker = false
+        )
         val reg = MockRequiredSelectionSetRegistry.builder()
             .fieldResolverEntry(
                 "Foo" to "f2",
                 "x(arg:\$a), b",
-                (
-                    VariablesResolver.fromSelectionSetVariables(
-                        SelectionsParser.parse("Foo", "b"),
-                        ParsedSelections.empty("Query"),
-                        listOf(FromObjectFieldVariable("a", "b"))
-                    )
-                )
+                variableResolver
             )
             .build()
 
         val rssWithVariable = RequiredSelectionSet(
             SelectionsParser.parse("Foo", "x(arg:\$a), b"),
-            VariablesResolver.fromSelectionSetVariables(
-                SelectionsParser.parse("Foo", "b"),
-                ParsedSelections.empty("Query"),
-                listOf(
-                    FromObjectFieldVariable("a", "b")
-                )
-            ),
+            variableResolver,
+            forChecker = false
         )
         assertEquals(
             listOf(
@@ -101,7 +99,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Bar", "x"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true
                 )
             ),
             reg.getRequiredSelectionSetsForType("Bar")
@@ -110,15 +109,17 @@ class MockRequiredSelectionSetRegistryTest {
 
     @Test
     fun `typeCheckerEntry -- with variables`() {
+        val variableResolver = VariablesResolver.fromSelectionSetVariables(
+            SelectionsParser.parse("Foo", "b"),
+            ParsedSelections.empty("Query"),
+            listOf(FromObjectFieldVariable("a", "b")),
+            forChecker = true
+        )
         val reg = MockRequiredSelectionSetRegistry.builder()
             .typeCheckerEntry(
                 "Foo",
                 "x(arg:\$a), b",
-                VariablesResolver.fromSelectionSetVariables(
-                    SelectionsParser.parse("Foo", "b"),
-                    ParsedSelections.empty("Query"),
-                    listOf(FromObjectFieldVariable("a", "b"))
-                )
+                variableResolver
             )
             .build()
 
@@ -126,11 +127,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x(arg:\$a), b"),
-                    VariablesResolver.fromSelectionSetVariables(
-                        SelectionsParser.parse("Foo", "b"),
-                        ParsedSelections.empty("Query"),
-                        listOf(FromObjectFieldVariable("a", "b"))
-                    ),
+                    variableResolver,
+                    forChecker = true
                 )
             ),
             reg.getRequiredSelectionSetsForType("Foo")
@@ -172,7 +170,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = false
                 )
             ),
             result.getRequiredSelectionSetsForField("Foo", "a")
@@ -181,15 +180,18 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "y"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true
                 ),
                 RequiredSelectionSet(
-                    SelectionsParser.parse("Foo", "y"),
-                    emptyList()
+                    SelectionsParser.parse("Query", "y"),
+                    emptyList(),
+                    forChecker = false
                 ),
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "y2"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = false
                 )
             )
         )
@@ -197,7 +199,8 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "z"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true
                 )
             ),
             result.getRequiredSelectionSetsForField("Foo", "c")
@@ -206,11 +209,13 @@ class MockRequiredSelectionSetRegistryTest {
             listOf(
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "x"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true
                 ),
                 RequiredSelectionSet(
                     SelectionsParser.parse("Foo", "z"),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true
                 )
             )
         )

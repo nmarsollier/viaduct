@@ -528,8 +528,9 @@ class RequiredSelectionsAreAcyclicTest {
                             SelectionsParser.parse("Query", "data"),
                             listOf(
                                 FromQueryFieldVariable("varx", "data")
-                            )
-                        )
+                            ),
+                            forChecker = false,
+                        ),
                     )
                     .build()
             )
@@ -552,7 +553,8 @@ class RequiredSelectionsAreAcyclicTest {
                             ParsedSelections.empty("Query"),
                             listOf(
                                 FromObjectFieldVariable("varx", "data")
-                            )
+                            ),
+                            forChecker = false,
                         )
                     )
                     .build()
@@ -575,7 +577,8 @@ class RequiredSelectionsAreAcyclicTest {
                         ParsedSelections.empty("Query"),
                         listOf(
                             FromObjectFieldVariable("varx", "b")
-                        )
+                        ),
+                        forChecker = false,
                     )
                 )
                 .fieldResolverEntry(
@@ -586,7 +589,8 @@ class RequiredSelectionsAreAcyclicTest {
                         ParsedSelections.empty("Query"),
                         listOf(
                             FromObjectFieldVariable("varx", "a")
-                        )
+                        ),
+                        forChecker = false,
                     )
                 )
                 .build()
@@ -609,7 +613,8 @@ class RequiredSelectionsAreAcyclicTest {
                         SelectionsParser.parse("Query", "b(x:1)"),
                         listOf(
                             FromQueryFieldVariable("varx", "b")
-                        )
+                        ),
+                        forChecker = false,
                     )
                 )
                 .fieldResolverEntryForType(
@@ -621,7 +626,8 @@ class RequiredSelectionsAreAcyclicTest {
                         SelectionsParser.parse("Query", "a(x:2)"),
                         listOf(
                             FromQueryFieldVariable("vary", "a")
-                        )
+                        ),
+                        forChecker = false,
                     )
                 )
                 .build()
@@ -645,7 +651,8 @@ class RequiredSelectionsAreAcyclicTest {
                         SelectionsParser.parse("Query", "queryField(x:1)"),
                         listOf(
                             FromQueryFieldVariable("varx", "queryField")
-                        )
+                        ),
+                        forChecker = false
                     )
                 ).fieldResolverEntryForType(
                     "Query",
@@ -656,7 +663,8 @@ class RequiredSelectionsAreAcyclicTest {
                         ParsedSelections.empty("Query"),
                         listOf(
                             FromObjectFieldVariable("vary", "b")
-                        )
+                        ),
+                        forChecker = false
                     )
                 ).fieldResolverEntry(
                     "Subject" to "b",
@@ -666,7 +674,8 @@ class RequiredSelectionsAreAcyclicTest {
                         ParsedSelections.empty("Query"),
                         listOf(
                             FromObjectFieldVariable("varz", "a")
-                        )
+                        ),
+                        forChecker = false
                     )
                 )
                 .build()
@@ -713,7 +722,8 @@ class RequiredSelectionsAreAcyclicTest {
                         null,
                         listOf(
                             FromObjectFieldVariable("varx", "a")
-                        )
+                        ),
+                        forChecker = false
                     )
                 )
                 .build()
