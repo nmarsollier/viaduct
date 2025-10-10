@@ -7,8 +7,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.mocks.MockSchema
@@ -110,7 +112,8 @@ class VariablesResolverTest {
             VariablesResolver.fromSelectionSetVariables(
                 ParsedSelections.empty("Query"),
                 ParsedSelections.empty("Query"),
-                emptyList()
+                emptyList(),
+                forChecker = false,
             )
         )
     }
@@ -124,7 +127,8 @@ class VariablesResolverTest {
                 ParsedSelections.empty("Query"),
                 listOf(
                     FromArgumentVariable("a", "x.y")
-                )
+                ),
+                forChecker = false,
             ),
             mapOf("x" to mapOf("y" to 1))
         )
@@ -142,7 +146,8 @@ class VariablesResolverTest {
                 listOf(
                     FromArgumentVariable("a", "x.y"),
                     FromArgumentVariable("b", "z")
-                )
+                ),
+                forChecker = false,
             ),
             mapOf(
                 "x" to mapOf("y" to 1),
@@ -164,7 +169,8 @@ class VariablesResolverTest {
                 listOf(
                     FromObjectFieldVariable("a", "a"),
                     FromObjectFieldVariable("b", "b")
-                )
+                ),
+                forChecker = false,
             )
         )
     }
@@ -177,7 +183,8 @@ class VariablesResolverTest {
                 ParsedSelections.empty("Query"),
                 listOf(
                     FromObjectFieldVariable("a", ""),
-                )
+                ),
+                forChecker = false,
             )
         }
     }
@@ -190,7 +197,8 @@ class VariablesResolverTest {
                 ParsedSelections.empty("Query"),
                 listOf(
                     FromObjectFieldVariable("a", "a"),
-                )
+                ),
+                forChecker = false,
             )
         }
     }
@@ -209,7 +217,8 @@ class VariablesResolverTest {
                 listOf(
                     FromQueryFieldVariable("a", "a"),
                     FromQueryFieldVariable("b", "b")
-                )
+                ),
+                forChecker = false,
             )
         )
     }
@@ -222,7 +231,8 @@ class VariablesResolverTest {
                 ParsedSelections.empty("Query"),
                 listOf(
                     FromQueryFieldVariable("a", ""),
-                )
+                ),
+                forChecker = false,
             )
         }
     }
@@ -235,7 +245,8 @@ class VariablesResolverTest {
                 null,
                 listOf(
                     FromQueryFieldVariable("a", "a"),
-                )
+                ),
+                forChecker = false,
             )
         }
     }
@@ -255,9 +266,38 @@ class VariablesResolverTest {
                 listOf(
                     FromObjectFieldVariable("objVar", "a"),
                     FromQueryFieldVariable("queryVar", "b")
-                )
+                ),
+                forChecker = false,
             )
         )
+    }
+
+    @Test
+    fun `fromSelectionSetVariables -- passes forChecker on to the RSS`() {
+        val resolverSelections = SelectionsParser.parse("Query", "a")
+
+        val resolversForChecker = VariablesResolver.fromSelectionSetVariables(
+            resolverSelections,
+            ParsedSelections.empty("Query"),
+            listOf(FromObjectFieldVariable("a", "a")),
+            forChecker = true,
+        )
+
+        assertEquals(1, resolversForChecker.size)
+        val rssForChecker = resolversForChecker[0].requiredSelectionSet
+        assertTrue(rssForChecker!!.forChecker)
+
+        // Test with forChecker = false
+        val resolversNotForChecker = VariablesResolver.fromSelectionSetVariables(
+            resolverSelections,
+            ParsedSelections.empty("Query"),
+            listOf(FromObjectFieldVariable("a", "a")),
+            forChecker = false,
+        )
+
+        assertEquals(1, resolversNotForChecker.size)
+        val rssNotForChecker = resolversNotForChecker[0].requiredSelectionSet
+        assertFalse(rssNotForChecker!!.forChecker)
     }
 
     @Test

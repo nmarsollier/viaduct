@@ -730,7 +730,8 @@ class FromFieldVariablesHaveValidPathsTest {
             val varResolvers = VariablesResolver.fromSelectionSetVariables(
                 parsedObjectSelections,
                 parsedQuerySelections,
-                objVars + queryVars
+                objVars + queryVars,
+                forChecker = false
             )
 
             return MockRequiredSelectionSetRegistry.builder()

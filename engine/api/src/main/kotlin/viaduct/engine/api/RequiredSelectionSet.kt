@@ -5,10 +5,13 @@ import viaduct.graphql.utils.collectVariableReferences
 
 /**
  * Represents a set of selections that are required.
+ *
+ * @param forChecker True if this is a RSS for a checker or checker variable resolver
  */
 data class RequiredSelectionSet(
     val selections: ParsedSelections,
     val variablesResolvers: List<VariablesResolver>,
+    val forChecker: Boolean,
     val attribution: ExecutionAttribution? = ExecutionAttribution.DEFAULT,
 ) {
     init {
