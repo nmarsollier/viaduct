@@ -1,6 +1,5 @@
 package com.example.viadapp.injector
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -12,10 +11,9 @@ import viaduct.service.BasicViaductFactory
 import viaduct.service.TenantRegistrationInfo
 
 @Configuration
-class ViaductConfiguration {
-    @Autowired
-    lateinit var codeInjector: SpringTenantCodeInjector
-
+class ViaductConfiguration(
+    private val codeInjector: SpringTenantCodeInjector
+) {
     @Bean
     fun viaductService() =
         BasicViaductFactory.create(
