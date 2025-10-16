@@ -12,8 +12,9 @@ import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import viaduct.engine.Engine
+import viaduct.engine.EngineFactory
 import viaduct.engine.SchemaFactory
+import viaduct.engine.api.Engine
 import viaduct.engine.api.ViaductSchema
 import viaduct.service.api.SchemaId
 
@@ -56,9 +57,9 @@ class EngineRegistryTest {
             assertNotNull(schema.schema.getType("Query"), "Query type should be retrievable")
         }
 
-        fun createEngineFactory(): Engine.Factory {
-            return mockk<Engine.Factory> {
-                every { create(any(), any()) } answers {
+        fun createEngineFactory(): EngineFactory {
+            return mockk<EngineFactory> {
+                every { create(any(), any(), any()) } answers {
                     createEngine(firstArg())
                 }
             }
