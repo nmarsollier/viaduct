@@ -4,6 +4,7 @@ import graphql.execution.instrumentation.Instrumentation
 import graphql.execution.instrumentation.SimplePerformantInstrumentation
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import viaduct.engine.api.Engine
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.ViaductSchema
@@ -23,28 +24,27 @@ class ContextMocks(
     myFragmentLoader: FragmentLoader? = null,
     myResolverInstrumentation: Instrumentation? = null,
     myFlagManager: FlagManager? = null,
+    myEngine: Engine? = null,
     myEngineExecutionContextFactory: EngineExecutionContextFactory? = null,
     private val myEngineExecutionContext: EngineExecutionContext? = null,
     myBaseLocalContext: CompositeLocalContext? = null,
-    myScopedSchema: ViaductSchema? = myFullSchema
+    myScopedSchema: ViaductSchema? = myFullSchema,
+    private val myRequestContext: Any? = null,
 ) {
     val fullSchema: ViaductSchema = myFullSchema ?: mockk<ViaductSchema>()
     val scopedSchema: ViaductSchema = myScopedSchema ?: mockk<ViaductSchema>()
-    val viaductSchema: ViaductSchema = if (myFullSchema != null) {
-        myFullSchema
-    } else {
-        fullSchema
-    }
+    val viaductSchema: ViaductSchema = myFullSchema ?: fullSchema
 
     val dispatcherRegistry: DispatcherRegistry = myDispatcherRegistry ?: DispatcherRegistry.Empty
     val fragmentLoader: FragmentLoader = myFragmentLoader ?: ViaductFragmentLoader(ViaductExecutableFragmentParser())
     val resolverInstrumentation: Instrumentation = myResolverInstrumentation ?: SimplePerformantInstrumentation()
     val flagManager: FlagManager = myFlagManager ?: MockFlagManager.Enabled
+    val engine: Engine = myEngine ?: mockk(relaxed = true)
 
     val engineExecutionContext: EngineExecutionContext get() =
         when {
             myEngineExecutionContext != null -> myEngineExecutionContext
-            else -> engineExecutionContextFactory.create(scopedSchema)
+            else -> engineExecutionContextFactory.create(scopedSchema, myRequestContext)
         }
 
     val engineExecutionContextImpl: EngineExecutionContextImpl get() =
@@ -57,6 +57,7 @@ class ContextMocks(
             fragmentLoader,
             resolverInstrumentation,
             flagManager,
+            engine,
         )
 
     val localContext: CompositeLocalContext by lazy {

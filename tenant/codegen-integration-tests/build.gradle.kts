@@ -14,7 +14,7 @@ viaductClassDiff {
 }
 
 viaductIntegrationCoverage {
-    baseProject(":codegen:tenant:tenant-codegen")
+    baseProject(":core:tenant:tenant-codegen")
 }
 
 sourceSets {
@@ -37,6 +37,7 @@ kotlin {
 
 dependencies {
     // Depend on the codegen module from the codegen layer
+    testImplementation(libs.viaduct.engine.api)
     testImplementation(libs.viaduct.tenant.api)
     testImplementation(libs.viaduct.tenant.codegen)
     testImplementation(libs.viaduct.shared.codegen)
@@ -48,11 +49,3 @@ dependencies {
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.javassist)
 }
-
-// afterEvaluate {
-//     // Dependencies for classdiff test tasks
-//     tasks.named("explodeCodeSourceTest") {
-//         dependsOn(tasks.named("generateSchemaDiffSchemaSchemaObjects"))
-//         dependsOn(tasks.named("generateSchemaDiffSchemaKotlinGrts"))
-//     }
-// }

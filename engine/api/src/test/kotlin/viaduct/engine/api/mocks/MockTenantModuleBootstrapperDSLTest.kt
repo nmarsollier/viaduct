@@ -49,7 +49,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val module = MockTenantModuleBootstrapper(SCHEMA_SDL) {
             field(coord) {
                 valueFromContext { ctx ->
-                    ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("Test"))
+                    ctx.createNodeReference("123", schema.schema.getObjectType("Test"))
                 }
             }
         }
@@ -167,7 +167,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val module = MockTenantModuleBootstrapper(Samples.testSchema) {
             field("TestType" to "aField") {
                 resolver {
-                    metadata(mapOf("key1" to "value1", "key2" to "value2"))
+                    resolverName("metadata-resolver-name")
                     fn { _, _, _, _, _ -> "metadata-result" }
                 }
             }
@@ -176,7 +176,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
         val executor = resolvers[0].second
-        assertEquals(mapOf("key1" to "value1", "key2" to "value2"), executor.metadata)
+        assertEquals("mock:metadata-resolver-name", executor.metadata.toTagString())
 
         // Execute the resolver and verify it works
         val (ctx, reg) = module.contextMocks.run { Pair(engineExecutionContext, dispatcherRegistry) }
@@ -202,7 +202,7 @@ class MockTenantModuleBootstrapperDSLTest {
                     objectSelections("fragment _ on TestType { aField bIntField }") {
                         variables("testVar") { ctx -> mapOf("testVar" to ctx.arguments["input"]) }
                     }
-                    metadata(mapOf("category" to "test"))
+                    resolverName("test-resolver")
                     fn { _, _, _, _, _ -> "complex-result" }
                 }
             }
@@ -211,7 +211,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val resolvers = module.fieldResolverExecutors(Samples.testSchema).toList()
         assertEquals(1, resolvers.size)
         val executor = resolvers[0].second
-        assertEquals(mapOf("category" to "test"), executor.metadata)
+        assertEquals("mock:test-resolver", executor.metadata.toTagString())
         assertNotNull(executor.objectSelectionSet)
 
         // Execute the resolver and verify it works
@@ -427,7 +427,7 @@ class MockTenantModuleBootstrapperDSLTest {
                     objectSelections("fragment _ on TestType { aField bIntField }") {
                         variables("param") { ctx -> mapOf("param" to ctx.arguments["input"]) }
                     }
-                    metadata(mapOf("type" to "complex"))
+                    resolverName("complex-resolver")
                     fn { _, _, _, _, _ -> "complex-result" }
                 }
                 checker {

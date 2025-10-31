@@ -9,10 +9,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import viaduct.api.VariablesProvider
-import viaduct.api.globalid.GlobalIDCodec
+import viaduct.api.context.VariablesProviderContext
 import viaduct.api.internal.InputLikeBase
 import viaduct.api.internal.InternalContext
-import viaduct.api.internal.ReflectionLoader
 import viaduct.api.mocks.MockGlobalID
 import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.MockInternalContext
@@ -20,9 +19,13 @@ import viaduct.api.mocks.MockReflectionLoader
 import viaduct.api.mocks.MockType
 import viaduct.api.types.Arguments
 import viaduct.api.types.NodeObject
+import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.mocks.MockSchema
 import viaduct.engine.api.mocks.mkEngineObjectData
+import viaduct.tenant.runtime.context.VariablesProviderContextImpl
+import viaduct.tenant.runtime.context.factory.VariablesProviderContextFactory
+import viaduct.tenant.runtime.internal.InternalContextImpl
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
 class VariablesProviderExecutorTest {
@@ -32,19 +35,41 @@ class VariablesProviderExecutorTest {
     }
 
     private val objectData = mkEngineObjectData(MockSchema.minimal.schema.queryType, emptyMap())
+    private val reflectionLoader = MockReflectionLoader()
+    private val globalIDCodec = MockGlobalIDCodec()
 
+    private inner class TestVariablesProviderContextFactory : VariablesProviderContextFactory {
+        override fun createVariablesProviderContext(
+            engineExecutionContext: EngineExecutionContext,
+            requestContext: Any?,
+            rawArguments: Map<String, Any?>
+        ): VariablesProviderContext<Arguments> {
+            val ic = InternalContextImpl(engineExecutionContext.fullSchema, globalIDCodec, reflectionLoader)
+            return VariablesProviderContextImpl(ic, requestContext, MockArgs(rawArguments))
+        }
+    }
+
+    /**
+     * Tests that VariablesProviderExecutor correctly:
+     * - Invokes the tenant-defined VariablesProvider
+     * - Passes through arguments to the provider (raw map -> MockArgs)
+     * - Returns the provider's computed values
+     *
+     * Does NOT test:
+     * - Context creation (delegated to argumentsFactory)
+     * - Value unwrapping (provider returns simple ints that need no unwrapping)
+     */
     @Test
     fun resolve(): Unit =
         runBlocking {
             val adapter = VariablesProviderExecutor(
-                mockk<GlobalIDCodec>(),
-                mockk<ReflectionLoader>(),
                 variablesProvider = VariablesProviderInfo(setOf("foo", "bar")) {
                     VariablesProvider<MockArgs> { context ->
-                        mapOf("foo" to context.args.a * 2, "bar" to context.args.b * 3)
+                        mapOf("foo" to context.arguments.a * 2, "bar" to context.arguments.b * 3)
                     }
-                }
-            ) { args -> MockArgs(args.arguments) }
+                },
+                variablesProviderContextFactory = TestVariablesProviderContextFactory()
+            )
 
             assertEquals(
                 mapOf("foo" to 10, "bar" to 21),
@@ -54,12 +79,22 @@ class VariablesProviderExecutorTest {
                         mapOf("a" to 5, "b" to 7),
                         mockk {
                             every { fullSchema } returns MockSchema.minimal
+                            every { requestContext } returns null
                         }
                     )
                 )
             )
         }
 
+    /**
+     * Tests that VariablesProviderExecutor correctly unwraps special return value types:
+     * - InputLikeBase -> unwrapped to its inputData map
+     * - GlobalID -> serialized to string format via globalIDCodec
+     *
+     * Does NOT test:
+     * - Context creation (delegated to argumentsFactory)
+     * - The VariablesProvider logic itself (just returns static test values)
+     */
     @Test
     fun resolveUnwrapping(): Unit =
         runBlocking {
@@ -67,8 +102,6 @@ class VariablesProviderExecutorTest {
                 override val inputData: Map<String, Any?>
                     get() = mapOf("a" to 10, "b" to 14)
             }
-            val globalIDCodec = MockGlobalIDCodec()
-            val reflectionLoader = MockReflectionLoader()
             val mockInput = MockInputType(
                 MockInternalContext(MockSchema.minimal, globalIDCodec, reflectionLoader),
                 GraphQLInputObjectType.newInputObject().name("MockInputType").build()
@@ -76,14 +109,13 @@ class VariablesProviderExecutorTest {
             val mockGlobalID = MockGlobalID(MockType("User", NodeObject::class), "1234")
 
             val adapter = VariablesProviderExecutor(
-                globalIDCodec,
-                reflectionLoader,
                 variablesProvider = VariablesProviderInfo(setOf("foo", "bar")) {
                     VariablesProvider<MockArgs> { _ ->
                         mapOf("foo" to mockInput, "bar" to mockGlobalID)
                     }
-                }
-            ) { args -> MockArgs(args.arguments) }
+                },
+                variablesProviderContextFactory = TestVariablesProviderContextFactory()
+            )
 
             assertEquals(
                 mapOf("foo" to mapOf("a" to 10, "b" to 14), "bar" to "User:1234"),
@@ -93,6 +125,7 @@ class VariablesProviderExecutorTest {
                         mapOf("a" to 5, "b" to 7),
                         mockk {
                             every { fullSchema } returns MockSchema.minimal
+                            every { requestContext } returns null
                         }
                     )
                 )

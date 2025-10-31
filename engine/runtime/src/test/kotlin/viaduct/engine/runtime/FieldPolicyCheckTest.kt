@@ -53,7 +53,7 @@ class FieldPolicyCheckTest {
                 resolver {
                     fn { args, _, _, _, ctx ->
                         val id = args.getAs<String>("id")
-                        ctx.createNodeEngineObjectData(id, canAccessPersonType)
+                        ctx.createNodeReference(id, canAccessPersonType)
                     }
                 }
             }
@@ -77,7 +77,7 @@ class FieldPolicyCheckTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("query { canAccessTypeByReference(id: \"${internalId}\") { id name ssn } }")
+            runQuery("query { canAccessTypeByReference(id: \"${internalId}\") { id name ssn } }")
                 .assertEquals {
                     "data" to {
                         "canAccessTypeByReference" to {
@@ -99,7 +99,7 @@ class FieldPolicyCheckTest {
                 resolver {
                     fn { args, _, _, _, ctx ->
                         val id = args.getAs<String>("id")
-                        ctx.createNodeEngineObjectData(id, canNotAccessPersonType)
+                        ctx.createNodeReference(id, canNotAccessPersonType)
                     }
                 }
             }
@@ -120,7 +120,7 @@ class FieldPolicyCheckTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("query { canNotAccessTypeByReference(id: \"person1\") { id name ssn } }")
+            val result = runQuery("query { canNotAccessTypeByReference(id: \"person1\") { id name ssn } }")
             assertNull(result.getData())
             assertEquals(1, result.errors.size)
             result.errors.first().let { err ->
@@ -138,7 +138,7 @@ class FieldPolicyCheckTest {
             field("Query" to "canNotAccessType") {
                 resolver {
                     fn { _, _, _, _, ctx ->
-                        ctx.createNodeEngineObjectData("someId", canAccessPersonType)
+                        ctx.createNodeReference("someId", canAccessPersonType)
                     }
                 }
                 checker {
@@ -165,7 +165,7 @@ class FieldPolicyCheckTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("query { canNotAccessType { name ssn } }")
+            val result = runQuery("query { canNotAccessType { name ssn } }")
             assertNull(result.getData())
             assertEquals(1, result.errors.size)
             result.errors.first().let { err ->
@@ -196,7 +196,7 @@ class FieldPolicyCheckTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("query { canAccessField }")
+            runQuery("query { canAccessField }")
                 .assertEquals {
                     "data" to { "canAccessField" to "can see field" }
                 }
@@ -217,7 +217,7 @@ class FieldPolicyCheckTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("query { canNotAccessField }")
+            val result = runQuery("query { canNotAccessField }")
             assertEquals(mapOf("canNotAccessField" to null), result.toSpecification()["data"])
             assertEquals(1, result.errors.size)
             val error = result.errors[0]

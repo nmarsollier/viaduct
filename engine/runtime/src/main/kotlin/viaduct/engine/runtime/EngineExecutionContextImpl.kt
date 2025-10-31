@@ -1,9 +1,11 @@
 package viaduct.engine.runtime
 
 import graphql.execution.instrumentation.Instrumentation
+import graphql.language.FragmentDefinition
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLObjectType
 import java.util.concurrent.ConcurrentHashMap
+import viaduct.engine.api.Engine
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.FragmentLoader
@@ -31,6 +33,7 @@ class EngineExecutionContextFactory(
     fragmentLoader: FragmentLoader,
     private val resolverInstrumentation: Instrumentation,
     private val flagManager: FlagManager,
+    private val engine: Engine,
 ) {
     // Constructing this is expensive, so do it just once per schema-version
     private val rawSelectionSetFactory: RawSelectionSet.Factory = RawSelectionSetFactoryImpl(fullSchema)
@@ -39,10 +42,14 @@ class EngineExecutionContextFactory(
     private val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory =
         RawSelectionsLoaderImpl.Factory(fragmentLoader, fullSchema)
 
-    fun create(scopedSchema: ViaductSchema): EngineExecutionContext {
+    fun create(
+        scopedSchema: ViaductSchema,
+        requestContext: Any?
+    ): EngineExecutionContext {
         return EngineExecutionContextImpl(
             fullSchema,
             scopedSchema,
+            requestContext,
             rawSelectionSetFactory,
             rawSelectionsLoaderFactory,
             dispatcherRegistry,
@@ -50,6 +57,7 @@ class EngineExecutionContextFactory(
             ConcurrentHashMap<String, FieldDataLoader>(),
             ConcurrentHashMap<String, NodeDataLoader>(),
             flagManager.isEnabled(Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY),
+            engine,
         )
     }
 }
@@ -57,6 +65,7 @@ class EngineExecutionContextFactory(
 class EngineExecutionContextImpl(
     override val fullSchema: ViaductSchema,
     override val scopedSchema: ViaductSchema,
+    override val requestContext: Any?,
     override val rawSelectionSetFactory: RawSelectionSet.Factory,
     override val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory,
     val dispatcherRegistry: DispatcherRegistry,
@@ -64,10 +73,23 @@ class EngineExecutionContextImpl(
     private val fieldDataLoaders: ConcurrentHashMap<String, FieldDataLoader>,
     private val nodeDataLoaders: ConcurrentHashMap<String, NodeDataLoader>,
     val executeAccessChecksInModstrat: Boolean,
+    override val engine: Engine,
     val dataFetchingEnvironment: DataFetchingEnvironment? = null,
     override val activeSchema: ViaductSchema = fullSchema,
+    override val fieldScope: EngineExecutionContext.FieldExecutionScope = FieldExecutionScopeImpl(),
 ) : EngineExecutionContext {
-    override fun createNodeEngineObjectData(
+    /**
+     * Implementation of [EngineExecutionContext.FieldExecutionScope] that holds field-scoped
+     * execution state.
+     *
+     * This is an immutable data class that gets replaced as we traverse into child plans during execution.
+     */
+    data class FieldExecutionScopeImpl(
+        override val fragments: Map<String, FragmentDefinition> = emptyMap(),
+        override val variables: Map<String, Any?> = emptyMap(),
+    ) : EngineExecutionContext.FieldExecutionScope
+
+    override fun createNodeReference(
         id: String,
         graphQLObjectType: GraphQLObjectType
     ) = NodeEngineObjectDataImpl(id, graphQLObjectType, dispatcherRegistry, dispatcherRegistry)
@@ -113,9 +135,11 @@ class EngineExecutionContextImpl(
         dataFetchingEnvironment: DataFetchingEnvironment? = this.dataFetchingEnvironment,
         executeAccessCheckInModstrat: Boolean = this.executeAccessChecksInModstrat,
         activeSchema: ViaductSchema = this.activeSchema,
+        fieldScope: EngineExecutionContext.FieldExecutionScope = this.fieldScope,
     ) = EngineExecutionContextImpl(
         fullSchema = this.fullSchema,
         scopedSchema = this.scopedSchema,
+        requestContext = this.requestContext,
         activeSchema = activeSchema,
         rawSelectionSetFactory = this.rawSelectionSetFactory,
         rawSelectionsLoaderFactory = rawSelectionsLoaderFactory,
@@ -124,6 +148,8 @@ class EngineExecutionContextImpl(
         fieldDataLoaders = this.fieldDataLoaders,
         nodeDataLoaders = this.nodeDataLoaders,
         executeAccessChecksInModstrat = executeAccessCheckInModstrat,
+        engine = this.engine,
         dataFetchingEnvironment = dataFetchingEnvironment,
+        fieldScope = fieldScope,
     )
 }

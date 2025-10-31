@@ -5,16 +5,31 @@ import viaduct.engine.api.Coordinate
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RequiredSelectionSetRegistry
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.validation.Validator
+import viaduct.engine.runtime.validation.Validator.Companion.flatten
 
 /** A concrete implementation of a [Validator] for [DispatcherRegistry] */
 class ExecutorValidator(
-    val nodeResolverValidator: Validator<NodeResolverExecutorValidationCtx>,
-    val fieldResolverExecutorValidator: Validator<FieldResolverExecutorValidationCtx>,
-    val requiredSelectionsValidator: Validator<RequiredSelectionsValidationCtx>,
-    val fieldCheckerExecutorValidator: Validator<FieldCheckerExecutorValidationCtx>
+    private val nodeResolverValidator: Validator<NodeResolverExecutorValidationCtx>,
+    private val fieldResolverExecutorValidator: Validator<FieldResolverExecutorValidationCtx>,
+    private val requiredSelectionsValidator: Validator<RequiredSelectionsValidationCtx>,
+    private val checkerExecutorValidator: Validator<CheckerExecutorValidationCtx>,
 ) : Validator<ExecutorValidatorContext> {
+    // defaults from schema
+    constructor(schema: ViaductSchema) : this(
+        nodeResolverValidator = Validator.Unvalidated,
+        fieldResolverExecutorValidator = ResolverSelectionSetsAreProperlyTyped(schema),
+        requiredSelectionsValidator = listOf(
+            RequiredSelectionsAreSchematicallyValid(schema),
+            RequiredSelectionsAreAcyclic(schema),
+            FromArgumentVariablesHaveValidPaths(schema),
+            FromFieldVariablesHaveValidPaths(schema)
+        ).flatten(),
+        checkerExecutorValidator = CheckerSelectionSetsAreProperlyTyped(schema),
+    )
+
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun validate(ctx: ExecutorValidatorContext) {
         ctx.nodeResolverExecutors.forEach { (typeName, executor) ->
@@ -25,8 +40,8 @@ class ExecutorValidator(
 
         val rssValidatedCoords = mutableSetOf<Coordinate>()
         ctx.fieldCheckerExecutors.forEach { (coord, executor) ->
-            fieldCheckerExecutorValidator.validate(
-                FieldCheckerExecutorValidationCtx(coord, executor)
+            checkerExecutorValidator.validate(
+                CheckerExecutorValidationCtx(coord.first, executor)
             )
             if (executor.requiredSelectionSets.any { it.value != null } &&
                 rssValidatedCoords.add(coord)
@@ -42,6 +57,9 @@ class ExecutorValidator(
         }
 
         ctx.typeCheckerExecutors.forEach { (typeName, executor) ->
+            checkerExecutorValidator.validate(
+                CheckerExecutorValidationCtx(typeName, executor)
+            )
             if (executor.requiredSelectionSets.any { it.value != null }) {
                 requiredSelectionsValidator.validate(
                     RequiredSelectionsValidationCtx(
@@ -96,8 +114,8 @@ data class RequiredSelectionsValidationCtx(
     val requiredSelectionSetRegistry: RequiredSelectionSetRegistry
 )
 
-data class FieldCheckerExecutorValidationCtx(
-    val coord: Coordinate,
+data class CheckerExecutorValidationCtx(
+    val typeName: String,
     val executor: CheckerExecutor
 )
 

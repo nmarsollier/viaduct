@@ -67,6 +67,7 @@ private class ObjectClassGenV2(
             .addSupertype(cfg.OBJECT_GRT.asKmName.asType())
             .addPrimaryConstructor()
             .addFieldGetters()
+            .addToBuilderFun()
     }
 
     private fun CustomClassBuilder.addPrimaryConstructor(): CustomClassBuilder {
@@ -78,8 +79,8 @@ private class ObjectClassGenV2(
                     KmValueParameter("context").also {
                         it.type = cfg.INTERNAL_CONTEXT.asKmName.asType()
                     },
-                    KmValueParameter("engineObjectData").also {
-                        it.type = cfg.ENGINE_OBJECT_DATA.asKmName.asType()
+                    KmValueParameter("engineObject").also {
+                        it.type = cfg.ENGINE_OBJECT.asKmName.asType()
                     },
                 )
             )
@@ -91,7 +92,7 @@ private class ObjectClassGenV2(
             body = buildString {
                 append("{\n")
                 append(checkNotNullParameterExpression(cfg.INTERNAL_CONTEXT.asKmName.asType(), 1, "context"))
-                append(checkNotNullParameterExpression(cfg.ENGINE_OBJECT_DATA.asKmName.asType(), 2, "engineObjectData"))
+                append(checkNotNullParameterExpression(cfg.ENGINE_OBJECT.asKmName.asType(), 2, "engineObject"))
                 append("}")
             }
         )
@@ -162,5 +163,28 @@ private class ObjectClassGenV2(
                 append("}")
             }
         )
+    }
+
+    private fun CustomClassBuilder.addToBuilderFun(): CustomClassBuilder {
+        val builderName = this.kmName.append(".Builder")
+        val kmFun = KmFunction("toBuilder").also {
+            it.visibility = Visibility.PUBLIC
+            it.modality = Modality.FINAL
+            it.returnType = builderName.asType()
+        }
+
+        this.addFunction(
+            kmFun,
+            body = buildString {
+                append("{\n")
+                append("return new ${builderName.asJavaName}(\n")
+                append("    this.getContext(),\n")
+                append("    this.getEngineObject().getGraphQLObjectType(),\n")
+                append("    this.toBuilderEOD()\n")
+                append(");\n")
+                append("}")
+            }
+        )
+        return this
     }
 }

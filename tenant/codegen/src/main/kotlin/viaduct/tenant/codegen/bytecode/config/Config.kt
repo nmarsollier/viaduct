@@ -153,8 +153,12 @@ object cfg {
         JavaBinaryName("viaduct.api.internal.ObjectBase")
     val OBJECT_BASE_BUILDER =
         JavaBinaryName("viaduct.api.internal.ObjectBase\$Builder")
+    val ENGINE_OBJECT =
+        JavaBinaryName("viaduct.engine.api.EngineObject")
     val ENGINE_OBJECT_DATA =
         JavaBinaryName("viaduct.engine.api.EngineObjectData")
+    val GRAPHQL_OBJECT_TYPE =
+        JavaBinaryName("graphql.schema.GraphQLObjectType")
     val EXECUTION_CONTEXT =
         JavaBinaryName("viaduct.api.context.ExecutionContext")
     val INTERNAL_CONTEXT =

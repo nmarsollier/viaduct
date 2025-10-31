@@ -6,14 +6,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.EngineObjectData
-import viaduct.engine.api.GraphQLBuildError
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.fetchAs
 import viaduct.engine.api.mocks.getAs
 import viaduct.engine.api.mocks.mkEngineObjectData
 import viaduct.engine.api.mocks.runFeatureTest
-import viaduct.engine.api.mocks.toViaductBuilder
-import viaduct.service.runtime.SchemaRegistryConfiguration
+import viaduct.engine.runtime.tenantloading.RequiredSelectionsAreInvalid
+import viaduct.graphql.scopes.ScopedSchemaBuilder
 
 @ExperimentalCoroutinesApi
 class RequiredSelectionsTest {
@@ -28,7 +28,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": "RAB"}}""")
         }
 
@@ -49,7 +49,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 30}}""")
         }
 
@@ -64,7 +64,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 6}}""")
         }
 
@@ -87,7 +87,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{string1}")
+            runQuery("{string1}")
                 .assertJson("""{"data": {"string1": "A:B"}}""")
         }
 
@@ -106,7 +106,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 30}}""")
         }
 
@@ -125,7 +125,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 30}}""")
         }
 
@@ -146,7 +146,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 60}}""")
         }
 
@@ -161,7 +161,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 6}}""")
         }
 
@@ -176,7 +176,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 6}}""")
         }
 
@@ -191,7 +191,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 6}}""")
         }
 
@@ -217,7 +217,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo bar}")
+            runQuery("{foo bar}")
                 .assertJson("""{"data": {"foo": 10, "bar": 15}}""")
                 .also { assertEquals(1, bazCount.get()) }
         }
@@ -237,7 +237,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo}")
+            runQuery("{foo}")
                 .assertJson("""{"data": {"foo": 15}}""")
         }
 
@@ -280,7 +280,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{foo bar}")
+            runQuery("{foo bar}")
                 .assertJson("""{"data": {"foo": 6, "bar": 3}}""")
                 .also { assertEquals(2, barCount.get()) }
         }
@@ -295,7 +295,7 @@ class RequiredSelectionsTest {
             extend type Query @scope(to: ["private"]) { bar: Int }
         """
 
-        MockTenantModuleBootstrapper(fullSchemaSDL) {
+        val bootstrapper = MockTenantModuleBootstrapper(fullSchemaSDL) {
             fieldWithValue("Query" to "bar", 3)
             field("Query" to "foo") {
                 resolver {
@@ -303,18 +303,20 @@ class RequiredSelectionsTest {
                     fn { _, obj, _, _, _ -> obj.fetchAs<Int>("bar") + 1 }
                 }
             }
-        }.toViaductBuilder()
-            .withSchemaRegistryConfiguration(
-                SchemaRegistryConfiguration.fromSdl(
-                    fullSchemaSDL,
-                    scopes = setOf(SchemaRegistryConfiguration.ScopeConfig("scoped", setOf("scoped")))
-                )
-            )
-            .build()
-            .runFeatureTest {
-                viaduct.runQuery("scoped", "{foo}")
-                    .assertJson("{data: {foo: 4}}")
-            }
+        }
+
+        val privateSchema = ViaductSchema(
+            ScopedSchemaBuilder(
+                inputSchema = bootstrapper.fullSchema.schema,
+                additionalVisitorConstructors = emptyList(),
+                validScopes = sortedSetOf("scoped", "private")
+            ).applyScopes(setOf("scoped")).filtered
+        )
+
+        bootstrapper.runFeatureTest(schema = privateSchema) {
+            runQuery("{foo}")
+                .assertJson("{data: {foo: 4}}")
+        }
     }
 
     @Test
@@ -331,7 +333,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{userGreeting}")
+            runQuery("{userGreeting}")
                 .assertJson("""{"data": {"userGreeting": "Hello, Alice!"}}""")
         }
 
@@ -351,7 +353,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{summary}")
+            runQuery("{summary}")
                 .assertJson("""{"data": {"summary": "Bob has 42 items"}}""")
         }
 
@@ -376,7 +378,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{userMessage}")
+            runQuery("{userMessage}")
                 .assertJson("""{"data": {"userMessage": "Message for: User-123"}}""")
         }
 
@@ -396,7 +398,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{profile}")
+            runQuery("{profile}")
                 .assertJson("""{"data": {"profile": "Name: Charlie, Email: charlie@example.com"}}""")
         }
 
@@ -417,7 +419,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{baz { y }}")
+            runQuery("{baz { y }}")
                 .assertJson("{data: {baz: {y: \"Premium item with value 100\"}}}")
         }
 
@@ -442,7 +444,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{finalValue}")
+            runQuery("{finalValue}")
                 .assertJson("""{"data": {"finalValue": 20}}""")
         }
 
@@ -478,7 +480,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{combined}")
+            runQuery("{combined}")
                 .assertJson("""{"data": {"combined": "David - Advanced mode"}}""")
                 .also {
                     assertEquals(1, userCount.get(), "currentUser should be resolved only once")
@@ -503,7 +505,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{result}")
+            runQuery("{result}")
                 .assertJson("""{"data": {"result": "Running in production"}}""")
         }
 
@@ -521,7 +523,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{result}")
+            runQuery("{result}")
                 .assertJson("""{"data": {"result": "No value provided"}}""")
         }
 
@@ -539,7 +541,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("mutation { string1 }")
+            runQuery("mutation { string1 }")
                 .assertJson("{data: {string1: \"Mutated from: InitialValue\"}}")
         }
 
@@ -560,7 +562,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{baz { y }}")
+            runQuery("{baz { y }}")
                 .assertJson("{data: {baz: {y: \"Baz sees bar value: BarValue\"}}}")
         }
 
@@ -580,7 +582,7 @@ class RequiredSelectionsTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{status}")
+            runQuery("{status}")
                 .assertJson("""{"data": {"status": "System offline"}}""")
         }
 
@@ -616,21 +618,16 @@ class RequiredSelectionsTest {
 
     @Test
     fun `queryValueFragment referencing non-existent field should fail at build time`() {
-        assertThrows<GraphQLBuildError> {
-            try {
-                MockTenantModuleBootstrapper("extend type Query { existingField: String, result: String }") {
-                    fieldWithValue("Query" to "existingField", "value")
-                    field("Query" to "result") {
-                        resolver {
-                            querySelections("nonExistentField") // Field doesn't exist in schema
-                            fn { _, _, _, _, _ -> "should not execute" }
-                        }
+        assertThrows<RequiredSelectionsAreInvalid> {
+            MockTenantModuleBootstrapper("extend type Query { existingField: String, result: String }") {
+                fieldWithValue("Query" to "existingField", "value")
+                field("Query" to "result") {
+                    resolver {
+                        querySelections("nonExistentField") // Field doesn't exist in schema
+                        fn { _, _, _, _, _ -> "should not execute" }
                     }
-                }.runFeatureTest { }
-            } catch (e: GraphQLBuildError) {
-                // unwrap the provision exception...
-                throw e.cause?.cause ?: e
-            }
+                }
+            }.runFeatureTest { }
         }
     }
 
@@ -680,21 +677,16 @@ class RequiredSelectionsTest {
 
     @Test
     fun `queryValueFragment with wrong type condition should fail at build time`() {
-        assertThrows<GraphQLBuildError> {
-            try {
-                MockTenantModuleBootstrapper("extend type Query { field: String, result: String } extend type Mutation { dummy: String }") {
-                    fieldWithValue("Query" to "field", "value")
-                    field("Query" to "result") {
-                        resolver {
-                            querySelections("... on Mutation { field }") // Wrong type - should be Query
-                            fn { _, _, _, _, _ -> "should not execute" }
-                        }
+        assertThrows<RequiredSelectionsAreInvalid> {
+            MockTenantModuleBootstrapper("extend type Query { field: String, result: String } extend type Mutation { dummy: String }") {
+                fieldWithValue("Query" to "field", "value")
+                field("Query" to "result") {
+                    resolver {
+                        querySelections("... on Mutation { field }") // Wrong type - should be Query
+                        fn { _, _, _, _, _ -> "should not execute" }
                     }
-                }.runFeatureTest { }
-            } catch (e: GraphQLBuildError) {
-                // unwrap the provision exception...
-                throw e.cause?.cause ?: e
-            }
+                }
+            }.runFeatureTest { }
         }
     }
 }

@@ -20,12 +20,17 @@ import graphql.schema.GraphQLTypeUtil
 import java.util.concurrent.Executors
 import kotlin.jvm.optionals.getOrNull
 import kotlinx.coroutines.future.await
+import viaduct.engine.api.Coordinate
 import viaduct.engine.api.ExecutionAttribution
+import viaduct.engine.api.FieldResolverDispatcherRegistry
+import viaduct.engine.api.QueryPlanExecutionCondition
+import viaduct.engine.api.QueryPlanExecutionCondition.Companion.ALWAYS_EXECUTE
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
+import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.execution.QueryPlan.Field
 import viaduct.graphql.utils.collectVariableReferences
 
@@ -44,6 +49,7 @@ data class QueryPlan(
     val parentType: GraphQLOutputType,
     val childPlans: List<QueryPlan>,
     val attribution: ExecutionAttribution? = ExecutionAttribution.DEFAULT,
+    val executionCondition: QueryPlanExecutionCondition,
 ) {
     /**
      * Configuration for building a QueryPlan.
@@ -54,7 +60,9 @@ data class QueryPlan(
         val query: String,
         val schema: ViaductSchema,
         val registry: RequiredSelectionSetRegistry,
-        val executeAccessChecksInModstrat: Boolean
+        val executeAccessChecksInModstrat: Boolean,
+        val fieldResolverDispatcherRegistry: FieldResolverDispatcherRegistry = DispatcherRegistry.Empty,
+        val executionCondition: QueryPlanExecutionCondition = ALWAYS_EXECUTE
     )
 
     /**
@@ -79,6 +87,7 @@ data class QueryPlan(
         val mergedField: MergedField,
         val childPlans: List<QueryPlan>,
         val fieldTypeChildPlans: Map<GraphQLObjectType, List<QueryPlan>>,
+        val collectedFieldMetadata: FieldMetadata? = FieldMetadata.empty,
     ) : Selection {
         override val constraints: Constraints get() = Constraints.Unconstrained
         val sourceLocation: SourceLocation get() = mergedField.singleField.sourceLocation
@@ -101,6 +110,7 @@ data class QueryPlan(
         val selectionSet: SelectionSet?,
         val childPlans: List<QueryPlan>,
         val fieldTypeChildPlans: Map<GraphQLObjectType, List<QueryPlan>>,
+        val metadata: FieldMetadata? = FieldMetadata.empty,
     ) : Selection {
         override fun toString(): String = AstPrinter.printAst(field)
     }
@@ -115,7 +125,7 @@ data class QueryPlan(
         override val constraints: Constraints
     ) : Selection
 
-    data class FragmentDefinition(val selectionSet: SelectionSet)
+    data class FragmentDefinition(val selectionSet: SelectionSet, val gjDef: GJFragmentDefinition)
 
     data class Fragments(val map: Map<String, FragmentDefinition>) : Map<String, FragmentDefinition> by map {
         operator fun plus(other: Fragments): Fragments = copy(map + other.map)
@@ -134,6 +144,18 @@ data class QueryPlan(
 
         companion object {
             val empty: SelectionSet = SelectionSet(emptyList())
+        }
+    }
+
+    /**
+     * Metadata of the field.
+     * @property resolverCoordinate This is the field coordinate points the resolver which resolves the current field
+     */
+    data class FieldMetadata(
+        val resolverCoordinate: Coordinate?
+    ) {
+        companion object {
+            val empty: FieldMetadata = FieldMetadata(null)
         }
     }
 
@@ -259,7 +281,7 @@ data class QueryPlan(
         ): QueryPlan {
             fun build(): QueryPlan =
                 QueryPlanBuilder(parameters, fragmentsByName, emptyList())
-                    .build(selectionSet, parentType, attribution, inCheckerContext)
+                    .build(selectionSet, parentType, attribution, inCheckerContext, parameters.executionCondition)
 
             return if (useCache) {
                 val cacheKey = QueryPlanCacheKey(parameters.query, documentKey, parameters.schema.hashCode(), parameters.executeAccessChecksInModstrat, inCheckerContext)
@@ -297,6 +319,7 @@ private class QueryPlanBuilder(
         val parentType: GraphQLCompositeType,
         val constraints: Constraints,
         val childPlans: List<QueryPlan>,
+        val resolverCoordinate: Coordinate? = null,
         val inCheckerContext: Boolean
     )
 
@@ -309,16 +332,18 @@ private class QueryPlanBuilder(
         selectionSet: GJSelectionSet,
         parentType: GraphQLCompositeType,
         attribution: ExecutionAttribution?,
-        inCheckerContext: Boolean
+        inCheckerContext: Boolean,
+        executionCondition: QueryPlanExecutionCondition
     ): QueryPlan {
-        return createQueryPlan(selectionSet, parentType, attribution, inCheckerContext)
+        return createQueryPlan(selectionSet, parentType, attribution, inCheckerContext, executionCondition)
     }
 
     private fun createQueryPlan(
         selectionSet: GJSelectionSet,
         parentType: GraphQLCompositeType,
         attribution: ExecutionAttribution?,
-        inCheckerContext: Boolean
+        inCheckerContext: Boolean,
+        executionCondition: QueryPlanExecutionCondition
     ): QueryPlan {
         check(!built) { "Builder cannot be reused" }
         built = true
@@ -340,7 +365,8 @@ private class QueryPlanBuilder(
             variablesResolvers = variablesResolvers,
             parentType = parentType,
             childPlans = state.childPlans,
-            attribution = attribution
+            attribution = attribution,
+            executionCondition = executionCondition
         )
     }
 
@@ -412,7 +438,8 @@ private class QueryPlanBuilder(
                     rss.selections.selections,
                     targetType,
                     attribution = rss.attribution,
-                    inCheckerContext = inCheckerContext
+                    inCheckerContext = inCheckerContext,
+                    executionCondition = rss.executionCondition
                 )
         }
     }
@@ -435,7 +462,8 @@ private class QueryPlanBuilder(
                         rss.selections.selections,
                         parentType = parameters.schema.schema.getTypeAs(rss.selections.typeName),
                         attribution = rss.attribution,
-                        inCheckerContext = state.inCheckerContext
+                        inCheckerContext = state.inCheckerContext,
+                        executionCondition = rss.executionCondition
                     )
             }
         }
@@ -446,8 +474,8 @@ private class QueryPlanBuilder(
         state: State
     ): State =
         with(state) {
-            val coord = (state.parentType.name to sel.name).gj
-            val fieldDef = parameters.schema.schema.getFieldDefinition(coord)
+            val coord = (state.parentType.name to sel.name)
+            val fieldDef = parameters.schema.schema.getFieldDefinition(coord.gj)
             val fieldType = GraphQLTypeUtil.unwrapAll(fieldDef.type) as GraphQLNamedOutputType
 
             val possibleParentTypes = parameters.schema.rels.possibleObjectTypes(parentType)
@@ -465,6 +493,12 @@ private class QueryPlanBuilder(
                 return state
             }
 
+            val resolverCoordinate = if (parameters.fieldResolverDispatcherRegistry.getFieldResolverDispatcher(parentType.name, sel.name) != null) {
+                coord
+            } else {
+                state.resolverCoordinate
+            }
+
             val subSelectionState = sel.selectionSet?.let { ss ->
                 fieldType as GraphQLCompositeType
                 val possibleFieldTypes = parameters.schema.rels.possibleObjectTypes(fieldType)
@@ -478,6 +512,7 @@ private class QueryPlanBuilder(
                         selectionSet = QueryPlan.SelectionSet.empty,
                         parentType = fieldType,
                         constraints = subSelectionConstraints,
+                        resolverCoordinate = resolverCoordinate
                     )
                 )
             }
@@ -488,7 +523,10 @@ private class QueryPlanBuilder(
                 field = sel,
                 selectionSet = subSelectionState?.selectionSet,
                 childPlans = fieldChildPlans,
-                fieldTypeChildPlans = fieldTypeChildPlans
+                fieldTypeChildPlans = fieldTypeChildPlans,
+                metadata = QueryPlan.FieldMetadata(
+                    resolverCoordinate = resolverCoordinate
+                )
             )
 
             state.copy(
@@ -538,7 +576,7 @@ private class QueryPlanBuilder(
             val gjdef = checkNotNull(fragmentsByName[name]) { "Missing fragment definition: $name" }
             val fragType = parameters.schema.schema.getTypeAs<GraphQLCompositeType>(gjdef.typeCondition.name)
 
-            if (name !in fragments) {
+            val fragChildPlans = if (name !in fragments) {
                 val fragState = buildState(
                     gjdef.selectionSet,
                     State(
@@ -549,7 +587,10 @@ private class QueryPlanBuilder(
                         inCheckerContext = state.inCheckerContext
                     )
                 )
-                fragments[name] = QueryPlan.FragmentDefinition(fragState.selectionSet)
+                fragments[name] = QueryPlan.FragmentDefinition(fragState.selectionSet, gjdef)
+                fragState.childPlans
+            } else {
+                emptyList()
             }
 
             val newConstraints = constraints
@@ -564,6 +605,7 @@ private class QueryPlanBuilder(
 
             copy(
                 selectionSet = selectionSet + QueryPlan.FragmentSpread(name, newConstraints),
+                childPlans = childPlans + fragChildPlans
             )
         }
 

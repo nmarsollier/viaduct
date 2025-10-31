@@ -26,6 +26,7 @@ import kotlinx.coroutines.future.asDeferred
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.LazyEngineObjectData
 import viaduct.engine.api.ObjectEngineResult
+import viaduct.engine.api.engineExecutionContext
 import viaduct.engine.runtime.Cell
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FetchedValueWithExtensions
@@ -110,7 +111,13 @@ class FieldResolver(
                     val newParams = parameters.forField(objectType, field)
                     field.responseKey to resolveField(newParams, field)
                 }
-            resolveObjectCtx.onCompleted(results, null)
+
+            // Wait for all values to be completed.
+            // Errors will be folded into the result map
+            Value.waitAll(results.values)
+                .thenApply { _, t ->
+                    resolveObjectCtx.onCompleted(results, t)
+                }
         } catch (e: Exception) {
             resolveObjectCtx.onCompleted(null, e)
             throw e
@@ -145,24 +152,24 @@ class FieldResolver(
         try {
             val fields = collectFields(objectType, parameters).selections
             val initial: Value<Unit> = Value.fromValue(Unit)
+            val results = mutableMapOf<String, Value<FieldResolutionResult>>()
 
-            // iterate over each field to build a chained Deferred
+            // iterate over each field to build a chained execution
             // Each field will kick off only after the previous one completes
-            val result = fields.fold(initial) { acc, field ->
+            fields.fold(initial) { acc, field ->
                 field as QueryPlan.CollectedField
                 acc.flatMap { _ ->
                     val fieldParameters = parameters.forField(objectType, field)
-                    resolveField(fieldParameters, field)
-                        .thenApply { _, _ ->
-                            // ignore any errors thrown by the field resolver so that the chained deferred
-                            // composition can continue
-                            // these field errors will be surfaced during field completion
-                            Unit
-                        }
+                    val value = resolveField(fieldParameters, field)
+                    results.put(field.responseKey, value)
+                    // ignore any errors thrown by the field resolver so that the chained execution can continue
+                    // these field errors will be surfaced during field completion
+                    value.thenApply { _, _ ->
+                        Unit
+                    }
                 }
-            }
-            result.thenApply { _, throwable ->
-                resolveObjectCtx.onCompleted(null, throwable)
+            }.thenApply { _, t ->
+                resolveObjectCtx.onCompleted(results, t)
             }
         } catch (e: Exception) {
             resolveObjectCtx.onCompleted(null, e)
@@ -194,24 +201,25 @@ class FieldResolver(
         parameters: ExecutionParameters,
         plan: QueryPlan
     ) {
-        plan.childPlans.forEach { launchQueryPlan(parameters, it) }
+        if (!plan.executionCondition.shouldExecute()) {
+            return
+        }
 
-        val field = checkNotNull(parameters.field)
-        val def = parameters.executionStepInfo.fieldDefinition
+        plan.childPlans.forEach { launchQueryPlan(parameters, it) }
 
         // Produce the object data and field arguments for the current field and make them available to child
         // plan VariablesResolver.
         val engineExecCtx =
             parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
 
-        val arguments = FieldExecutionHelpers.getArgumentValues(
-            parameters,
-            def.arguments,
-            field.mergedField.arguments,
-        ).get()
-
         parameters.launchOnRootScope {
-            val variables = resolveVariables(plan.variablesResolvers, arguments, parameters.parentEngineResult, parameters.queryEngineResult, engineExecCtx)
+            val variables = resolveVariables(
+                plan.variablesResolvers,
+                parameters.executionStepInfo.arguments,
+                parameters.parentEngineResult,
+                parameters.queryEngineResult,
+                engineExecCtx
+            )
             val planParameters = parameters.forChildPlan(plan, CoercedVariables(variables))
             fetchObject(plan.parentType as GraphQLObjectType, planParameters)
         }
@@ -245,7 +253,7 @@ class FieldResolver(
         ) ?: FieldFetchingInstrumentationContext.NOOP
 
         val dataFetchingEnvironmentProvider =
-            FpKit.intraThreadMemoize { buildDataFetchingEnvironment(parameters, field.mergedField, parentOER) }
+            FpKit.intraThreadMemoize { buildDataFetchingEnvironment(parameters, field, parentOER) }
 
         fieldInstrumentationCtx.onDispatched()
 
@@ -367,9 +375,8 @@ class FieldResolver(
                         val typeCheckerResult = if (oer == null) {
                             Value.nullValue
                         } else {
-                            val mergedField = checkNotNull(field.mergedField)
                             val newParams = updateListItemParameters(parameters, index)
-                            val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, mergedField, parameters.parentEngineResult) }
+                            val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, field, parameters.parentEngineResult) }
                             accessCheckRunner.typeCheck(parameters, itemDfeSupplier, oer, itemFieldResolutionResult, this)
                         }
                         slotSetter.setCheckerValue(typeCheckerResult)
@@ -444,7 +451,7 @@ class FieldResolver(
                             ?: throw IllegalStateException(
                                 "Attempting to resolve LazyEngineObjectData but no selection set found"
                             )
-                        val engineExecutionContext = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+                        val engineExecutionContext = dataFetchingEnvironment.engineExecutionContext as EngineExecutionContextImpl
                         val localExecutionContext = engineExecutionContext.copy(
                             dataFetchingEnvironment = dataFetchingEnvironment,
                         )

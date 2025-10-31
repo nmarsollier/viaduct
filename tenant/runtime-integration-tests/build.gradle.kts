@@ -34,10 +34,14 @@ dependencies {
     testImplementation(testFixtures(libs.viaduct.service.api))
     testImplementation(testFixtures(libs.viaduct.shared.graphql))
     testImplementation(testFixtures(libs.viaduct.tenant.api))
+
     testImplementation(libs.viaduct.engine.runtime)
+    testImplementation(libs.viaduct.engine.wiring)
     testImplementation(libs.viaduct.tenant.runtime)
+    testImplementation(libs.viaduct.tenant.wiring)
     testImplementation(libs.viaduct.service.runtime)
     testImplementation(libs.viaduct.shared.arbitrary)
+    testImplementation(libs.guice)
     testImplementation(libs.io.mockk.dsl)
     testImplementation(libs.io.mockk.jvm)
     testImplementation(libs.jackson.core)
@@ -48,5 +52,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.strikt.core)
     testImplementation(libs.micrometer.core)
+    testImplementation(libs.slf4j.api)
     testImplementation(testFixtures(libs.viaduct.tenant.runtime))
 }

@@ -26,12 +26,11 @@ import viaduct.engine.api.checkDisjoint
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.graphql.utils.collectVariableReferences
 import viaduct.service.api.spi.TenantCodeInjector
-import viaduct.tenant.runtime.context.factory.ArgumentsArgs
-import viaduct.tenant.runtime.context.factory.Factory
+import viaduct.tenant.runtime.context.factory.VariablesProviderContextFactory
 import viaduct.tenant.runtime.execution.VariablesProviderExecutor
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
-/** methods for constructing a [RequiredSelectionSet] */
+/** methods for constructing a [RequiredSelectionSet] for a resolver */
 class RequiredSelectionSetFactory(
     private val globalIDCodec: GlobalIDCodec,
     private val reflectionLoader: ReflectionLoader,
@@ -45,7 +44,7 @@ class RequiredSelectionSetFactory(
         schema: ViaductSchema,
         injector: TenantCodeInjector,
         resolverCls: KClass<out ResolverBase<*>>,
-        argumentsFactory: Factory<ArgumentsArgs, Arguments>,
+        variablesProviderContextFactory: VariablesProviderContextFactory,
         annotation: Resolver,
         resolverForType: String,
     ): RequiredSelectionSets {
@@ -69,7 +68,7 @@ class RequiredSelectionSetFactory(
             variablesProvider = resolverCls.variablesProvider(injector),
             objectSelections = objectSelections,
             querySelections = querySelections,
-            argumentsFactory = argumentsFactory,
+            variablesProviderContextFactory = variablesProviderContextFactory,
             variables = annotation.selectionSetVariables,
             attribution = ExecutionAttribution.fromResolver(resolverCls.qualifiedName!!)
         )
@@ -84,7 +83,7 @@ class RequiredSelectionSetFactory(
         variablesProvider: VariablesProviderInfo?,
         objectSelections: ParsedSelections?,
         querySelections: ParsedSelections?,
-        argumentsFactory: Factory<ArgumentsArgs, Arguments>,
+        variablesProviderContextFactory: VariablesProviderContextFactory,
         variables: List<SelectionSetVariable>,
         attribution: ExecutionAttribution? = null,
     ): RequiredSelectionSets {
@@ -107,7 +106,7 @@ class RequiredSelectionSetFactory(
         }
 
         val allVariableResolvers = listOf(
-            mkVariablesProviderVariablesResolvers(variablesProvider, argumentsFactory),
+            mkVariablesProviderVariablesResolvers(variablesProvider, variablesProviderContextFactory),
             mkFromAnnotationVariablesResolvers(
                 objectSelections,
                 querySelections,
@@ -123,13 +122,15 @@ class RequiredSelectionSetFactory(
                 RequiredSelectionSet(
                     it,
                     allVariableResolvers,
-                    attribution
+                    forChecker = false,
+                    attribution,
                 )
             },
             querySelections = querySelections?.let {
                 RequiredSelectionSet(
                     it,
                     allVariableResolvers,
+                    forChecker = false,
                     attribution
                 )
             }
@@ -138,12 +139,12 @@ class RequiredSelectionSetFactory(
 
     private fun mkVariablesProviderVariablesResolvers(
         variablesProvider: VariablesProviderInfo?,
-        argumentsFactory: Factory<ArgumentsArgs, Arguments>,
+        variablesProviderContextFactory: VariablesProviderContextFactory,
     ): List<VariablesResolver> =
         listOfNotNull(
             variablesProvider
                 ?.let {
-                    VariablesProviderExecutor(globalIDCodec, reflectionLoader, it, argumentsFactory)
+                    VariablesProviderExecutor(it, variablesProviderContextFactory)
                 }
         )
 
@@ -157,6 +158,7 @@ class RequiredSelectionSetFactory(
             resolverSelections,
             querySelections,
             vars,
+            forChecker = false,
             attribution
         )
 }

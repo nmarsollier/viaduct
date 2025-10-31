@@ -8,17 +8,12 @@ import viaduct.api.ViaductFrameworkException
 import viaduct.api.ViaductTenantResolverException
 import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.NodeResolverBase
-import viaduct.api.internal.ObjectBase
 import viaduct.api.internal.ReflectionLoader
 import viaduct.api.wrapResolveException
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.NodeResolverExecutor
-import viaduct.tenant.runtime.context.factory.NodeArgs
 import viaduct.tenant.runtime.context.factory.NodeExecutionContextFactory
-import viaduct.tenant.runtime.internal.InternalContextImpl
-import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
-import viaduct.tenant.runtime.select.SelectionsLoaderImpl
 
 class NodeBatchResolverExecutorImpl(
     val resolver: Provider<out NodeResolverBase<*>>,
@@ -35,17 +30,7 @@ class NodeBatchResolverExecutorImpl(
         context: EngineExecutionContext
     ): Map<NodeResolverExecutor.Selector, Result<EngineObjectData>> {
         val contexts = selectors.map { key ->
-            factory.make(
-                NodeArgs(
-                    InternalContextImpl(context.fullSchema, globalIDCodec, reflectionLoader),
-                    selections = key.selections,
-                    globalID = key.id,
-                    selectionsLoaderFactory = SelectionsLoaderImpl.Factory(context.rawSelectionsLoaderFactory),
-                    selectionSetFactory = SelectionSetFactoryImpl(context.rawSelectionSetFactory),
-                    resolverId = typeName,
-                    engineExecutionContext = context,
-                )
-            )
+            factory(context, key.selections, context.requestContext, key.id)
         }
         val resolver = resolver.get()
         val results = wrapResolveException(typeName) {
@@ -72,8 +57,7 @@ class NodeBatchResolverExecutorImpl(
 
         try {
             val result = fieldValue.get()
-            result as? ObjectBase ?: throw IllegalStateException("Unexpected node resolver result that is not ObjectBase: $result")
-            return Result.success(result.unwrap())
+            return Result.success(NodeUnbatchedResolverExecutorImpl.unwrapNodeResolverResult(result))
         } catch (e: Exception) {
             if (e is ViaductFrameworkException) return Result.failure(e)
             return Result.failure(ViaductTenantResolverException(e, typeName))

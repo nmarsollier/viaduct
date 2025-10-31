@@ -21,10 +21,8 @@ import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.MockInternalContext
 import viaduct.api.mocks.MockType
 import viaduct.api.types.NodeObject
-import viaduct.engine.api.EngineExecutionContext
-import viaduct.engine.api.NodeEngineObjectData
+import viaduct.engine.api.NodeReference
 import viaduct.engine.api.NodeResolverDispatcherRegistry
-import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
@@ -42,7 +40,7 @@ class NodeReferenceFactoryImplTest {
             every { nodeCheckerRegistryProvider.get() } returns mockk()
             val schema = GlobalIdFeatureAppTest.schema
             val globalId = GlobalIDImpl(User.Reflection, "123")
-            val factory = NodeReferenceFactoryImpl { _: String, objectType: GraphQLObjectType ->
+            val factory = NodeReferenceGRTFactoryImpl { _: String, objectType: GraphQLObjectType ->
                 mockk {
                     every { graphQLObjectType } returns objectType
                 }
@@ -51,34 +49,19 @@ class NodeReferenceFactoryImplTest {
             val reflectionLoader = ReflectionLoaderImpl { TODO("unused") }
             val globalIDCodec = GlobalIDCodecImpl(reflectionLoader)
             val result = factory.nodeFor(globalId, InternalContextImpl(schema, globalIDCodec, reflectionLoader))
-            expectThat(result.engineObjectData).isA<NodeReferenceEngineObjectData>()
+            expectThat(result.engineObject).isA<NodeReference>()
         }
 
     private fun createMockInternalContext(globalIDCodec: GlobalIDCodec = MockGlobalIDCodec()): InternalContext = MockInternalContext(GlobalIdFeatureAppTest.schema, globalIDCodec)
 
-    private fun createDefaultNodeEngineObjectData(
+    private fun createDefaultNodeReference(
         globalIDImpl: GlobalIDImpl<out NodeObject>,
-        resolver: () -> Unit = {},
-        fetcher: () -> Any? = { "user" },
         graphqlObjectType: GraphQLObjectType = GlobalIdFeatureAppTest.schema.schema.getObjectType(globalIDImpl.type.name),
         globalIDCodec: GlobalIDCodec = MockGlobalIDCodec(),
-    ): NodeEngineObjectData {
-        return object : NodeEngineObjectData {
+    ): NodeReference {
+        return object : NodeReference {
             override val id: String
                 get() = globalIDCodec.serialize(globalIDImpl)
-
-            override suspend fun resolveData(
-                selections: RawSelectionSet,
-                context: EngineExecutionContext
-            ) {
-                resolver()
-            }
-
-            override suspend fun fetch(selection: String): Any? {
-                return fetcher()
-            }
-
-            override suspend fun fetchOrNull(selection: String) = fetch(selection)
 
             override val graphQLObjectType: GraphQLObjectType
                 get() = graphqlObjectType
@@ -89,12 +72,12 @@ class NodeReferenceFactoryImplTest {
     fun `nodeFor - valid User type with proper constructor succeeds`() {
         val globalId = GlobalIDImpl(User.Reflection, "123")
 
-        val nodeEngineObjectData = createDefaultNodeEngineObjectData(globalId)
-        val nodeEngineObjectDataFactory: (String, GraphQLObjectType) -> NodeEngineObjectData = { _, _ ->
+        val nodeEngineObjectData = createDefaultNodeReference(globalId)
+        val nodeReferenceFactory: (String, GraphQLObjectType) -> NodeReference = { _, _ ->
             nodeEngineObjectData
         }
 
-        val factory = NodeReferenceFactoryImpl(nodeEngineObjectDataFactory)
+        val factory = NodeReferenceGRTFactoryImpl(nodeReferenceFactory)
         val internalContext = createMockInternalContext()
 
         val result = factory.nodeFor(globalId, internalContext)
@@ -108,15 +91,15 @@ class NodeReferenceFactoryImplTest {
         val invalidNameUserType = MockType("TypeThatDoesNotExist", User::class)
         val globalId = GlobalIDImpl(invalidNameUserType, "123")
 
-        val defaultNodeEngineObjectData = createDefaultNodeEngineObjectData(
+        createDefaultNodeReference(
             globalId,
             graphqlObjectType = GraphQLObjectType.newObject().name("FakeObject").build()
         )
-        val nodeEngineObjectDataFactory: (String, GraphQLObjectType) -> NodeEngineObjectData = { _, _ ->
-            defaultNodeEngineObjectData
+        val nodeReferenceFactory: (String, GraphQLObjectType) -> NodeReference = { _, _ ->
+            createDefaultNodeReference(globalId, graphqlObjectType = GraphQLObjectType.newObject().name("FakeObject").build())
         }
 
-        val factory = NodeReferenceFactoryImpl(nodeEngineObjectDataFactory)
+        val factory = NodeReferenceGRTFactoryImpl(nodeReferenceFactory)
         val internalContext = createMockInternalContext()
 
         assertThrows<Exception> {
@@ -128,12 +111,11 @@ class NodeReferenceFactoryImplTest {
     fun `nodeFor - type is invalid, throws exception for constructor not found`() {
         val userNameInvalidType = MockType("User", NodeObject::class)
         val globalId = GlobalIDImpl(userNameInvalidType, "123")
-        val mockNodeEngineObjectData = createDefaultNodeEngineObjectData(globalId)
-        val nodeEngineObjectDataFactory: (String, GraphQLObjectType) -> NodeEngineObjectData = { _, _ ->
-            mockNodeEngineObjectData
+        val nodeReferenceFactory: (String, GraphQLObjectType) -> NodeReference = { _, _ ->
+            createDefaultNodeReference(globalId)
         }
 
-        val factory = NodeReferenceFactoryImpl(nodeEngineObjectDataFactory)
+        val factory = NodeReferenceGRTFactoryImpl(nodeReferenceFactory)
         val internalContext = createMockInternalContext()
 
         assertThrows<Exception> {
@@ -145,11 +127,11 @@ class NodeReferenceFactoryImplTest {
     fun `nodeFor - user returned from function can get the id `() {
         val internalId = "123"
         val globalId = GlobalIDImpl(User.Reflection, internalId)
-        val nodeEngineObjectDataFactory: (String, GraphQLObjectType) -> NodeEngineObjectData = { _, _ ->
-            createDefaultNodeEngineObjectData(globalId)
+        val nodeReferenceFactory: (String, GraphQLObjectType) -> NodeReference = { _, _ ->
+            createDefaultNodeReference(globalId)
         }
 
-        val factory = NodeReferenceFactoryImpl(nodeEngineObjectDataFactory)
+        val factory = NodeReferenceGRTFactoryImpl(nodeReferenceFactory)
         val internalContext = createMockInternalContext()
 
         val user = factory.nodeFor(globalId, internalContext)

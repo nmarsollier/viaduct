@@ -6,12 +6,9 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import kotlin.reflect.KClass
 import viaduct.api.context.ExecutionContext
-import viaduct.api.context.ResolverExecutionContext
 import viaduct.api.globalid.GlobalID
 import viaduct.api.globalid.GlobalIDCodec
-import viaduct.api.internal.InternalContext
 import viaduct.api.internal.ReflectionLoader
-import viaduct.api.internal.select.SelectionSetFactory
 import viaduct.api.internal.select.SelectionsLoader
 import viaduct.api.reflect.Type
 import viaduct.api.select.SelectionSet
@@ -21,30 +18,8 @@ import viaduct.api.types.Mutation
 import viaduct.api.types.NodeCompositeOutput
 import viaduct.api.types.NodeObject
 import viaduct.api.types.Query
-import viaduct.engine.api.ViaductSchema
-import viaduct.engine.api.mocks.MockSchema
 import viaduct.graphql.schema.ViaductExtendedSchema
 import viaduct.graphql.schema.graphqljava.GJSchema
-
-/**
- * Re-project this InternalContext back to an [ExecutionContext].
- * If this InternalContext was originally extracted from an ExecutionContext,
- * then the original ExecutionContext will be returned. Otherwise, a minimal
- * ExecutionContext will be returned.
- */
-val InternalContext.executionContext: ExecutionContext
-    get() =
-        this as? ExecutionContext ?: MockExecutionContext(this)
-
-/**
- * Re-project this InternalContext back to an [ResolverExecutionContext].
- * If this InternalContext was originally extracted from an ExecutionContext,
- * then the original ExecutionContext will be returned. Otherwise, a minimal
- * ExecutionContext will be returned.
- */
-val InternalContext.resolverExecutionContext: ResolverExecutionContext
-    get() =
-        this as? ResolverExecutionContext ?: MockResolverExecutionContext(this)
 
 fun mkSchema(sdl: String): GraphQLSchema {
     val tdr = SchemaParser().parse(sdl)
@@ -57,57 +32,17 @@ fun mockReflectionLoader(packageName: String) =
         override fun reflectionFor(name: String): Type<*> {
             return Class.forName("$packageName.$name\$Reflection").kotlin.objectInstance as Type<*>
         }
+
+        override fun getGRTKClassFor(name: String): KClass<*> {
+            return Class.forName("$packageName.$name").kotlin
+        }
     }
 
 val GraphQLSchema.viaduct: ViaductExtendedSchema
     get() =
         GJSchema.fromSchema(this)
 
-class MockInternalContext(
-    override val schema: ViaductSchema,
-    override val globalIDCodec: GlobalIDCodec = MockGlobalIDCodec(),
-    override val reflectionLoader: ReflectionLoader = mockReflectionLoader("viaduct.api.grts")
-) : InternalContext {
-    companion object {
-        fun mk(
-            schema: ViaductSchema,
-            grtPackage: String = "viaduct.api.grts"
-        ): MockInternalContext = MockInternalContext(schema, MockGlobalIDCodec(), mockReflectionLoader(grtPackage))
-    }
-}
-
-open class MockExecutionContext(internalContext: InternalContext) : ExecutionContext, InternalContext by internalContext {
-    override fun <T : NodeObject> globalIDFor(
-        type: Type<T>,
-        internalID: String
-    ) = throw UnsupportedOperationException()
-
-    companion object {
-        fun mk(schema: ViaductSchema = MockSchema.minimal): MockResolverExecutionContext = MockResolverExecutionContext(MockInternalContext.mk(schema))
-    }
-}
-
-class MockResolverExecutionContext(internalContext: InternalContext) : MockExecutionContext(internalContext), ResolverExecutionContext {
-    override fun <T : CompositeOutput> selectionsFor(
-        type: Type<T>,
-        selections: String,
-        variables: Map<String, Any?>
-    ): SelectionSet<T> = throw UnsupportedOperationException()
-
-    override suspend fun <T : Query> query(selections: SelectionSet<T>): T = throw UnsupportedOperationException()
-
-    override fun <T : NodeObject> nodeFor(id: GlobalID<T>): T = throw UnsupportedOperationException()
-
-    override fun <T : NodeObject> globalIDStringFor(
-        type: Type<T>,
-        internalID: String
-    ): String = throw UnsupportedOperationException()
-
-    companion object {
-        fun mk(schema: ViaductSchema = MockSchema.minimal): MockResolverExecutionContext = MockResolverExecutionContext(MockInternalContext.mk(schema))
-    }
-}
-
+// TODO: remove (https://app.asana.com/1/150975571430/task/1211628405683375?focus=true)
 @Suppress("UNCHECKED_CAST")
 class MockGlobalIDCodec : GlobalIDCodec {
     override fun <T : NodeCompositeOutput> serialize(id: GlobalID<T>): String = "${id.type.name}:${id.internalID}"
@@ -121,6 +56,7 @@ class MockGlobalIDCodec : GlobalIDCodec {
         }
 }
 
+// TODO: remove (https://app.asana.com/1/150975571430/task/1211628405683375?focus=true)
 class MockGlobalID<T : NodeObject>(
     override val type: Type<T>,
     override val internalID: String
@@ -156,14 +92,9 @@ data class MockSelectionsLoader<T : CompositeOutput>(val t: T) : SelectionsLoade
 }
 
 class MockReflectionLoader(vararg val types: Type<*>) : ReflectionLoader {
-    override fun reflectionFor(name: String): Type<*> = types.first { it.name == name }
-}
+    override fun reflectionFor(name: String): Type<*> = types.firstOrNull { it.name == name } ?: throw NoSuchElementException("$name not in { ${types.joinToString(",")} }")
 
-@Suppress("UNCHECKED_CAST")
-class MockSelectionSetFactory(val selectionSet: SelectionSet<*> = SelectionSet.NoSelections) : SelectionSetFactory {
-    override fun <T : CompositeOutput> selectionsOn(
-        type: Type<T>,
-        selections: String,
-        variables: Map<String, Any?>
-    ): SelectionSet<T> = selectionSet as SelectionSet<T>
+    override fun getGRTKClassFor(name: String): KClass<*> {
+        return reflectionFor(name).kcls
+    }
 }

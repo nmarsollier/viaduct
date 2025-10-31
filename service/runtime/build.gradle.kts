@@ -8,10 +8,16 @@ viaductPublishing {
 }
 
 dependencies {
-    api(libs.viaduct.engine.runtime)
-    api(libs.viaduct.service.api)
-    api(libs.graphql.java)
-    api(libs.guice)
+    api(libs.micrometer.core)
+
+    implementation(libs.viaduct.service.api)
+    implementation(libs.graphql.java)
+    implementation(libs.guice)
+
+
+    implementation(libs.viaduct.engine.api)
+    implementation(libs.viaduct.engine.runtime)
+    implementation(libs.viaduct.engine.wiring)
 
     implementation(libs.viaduct.shared.graphql)
     implementation(libs.viaduct.shared.utils)
@@ -20,7 +26,6 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.kotlinx.coroutines.core.jvm)
     implementation(libs.kotlinx.coroutines.jdk8)
-    implementation(libs.micrometer.core)
 
     testImplementation(testFixtures(libs.viaduct.engine.api))
     testImplementation(testFixtures(libs.viaduct.shared.graphql))

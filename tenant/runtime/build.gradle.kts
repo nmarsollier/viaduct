@@ -11,12 +11,13 @@ viaductPublishing {
 }
 
 dependencies {
-    api(libs.graphql.java)
-    api(libs.guice)
-    api(libs.javax.inject)
-    api(libs.viaduct.engine.api)
-    api(libs.viaduct.service.api)
-    api(libs.viaduct.tenant.api)
+    implementation(libs.graphql.java)
+    implementation(libs.guice)
+    implementation(libs.javax.inject)
+    implementation(libs.viaduct.tenant.api)
+
+    implementation(libs.viaduct.engine.api)
+    implementation(libs.viaduct.service.api)
 
     implementation(libs.viaduct.shared.graphql)
     implementation(libs.viaduct.shared.utils)

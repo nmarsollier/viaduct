@@ -154,12 +154,20 @@ object ListValueSize : ConfigKey<IntRange>(0..3, IntRangeValidator(0..Int.MAX_VA
 
 /**
  * The approximate maximum depth of attempted value generation. When generating
- * values past this depth, the value generator will return null when possible.
+ * values past this depth, the value generator will return null or empty values
+ * when possible.
  */
 object MaxValueDepth : ConfigKey<Int>(3, IntValidator(0..Int.MAX_VALUE))
 
 /** The range of lengths of generated GraphQL string values */
 object StringValueSize : ConfigKey<IntRange>(0..3, IntRangeValidator(0..Int.MAX_VALUE))
+
+/**
+ * The likelihood that when generating a concrete value for an abstract type, that
+ * the generator will pick a type that is selected in the selection set rather than
+ * any possible implementing type.
+ */
+object SelectedTypeBias : ConfigKey<Double>(.9, WeightValidator)
 
 /**
  * Use the provided mappings for generating scalar values,

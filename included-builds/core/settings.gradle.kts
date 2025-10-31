@@ -14,12 +14,19 @@ plugins {
 // Include core modules
 includeNamed(":engine:api", "../..")
 includeNamed(":engine:runtime", "../..")
+includeNamed(":engine:wiring", "../..")
 includeNamed(":service", "../..")
 includeNamed(":service:api", "../..")
 includeNamed(":service:runtime", "../..")
 includeNamed(":service:wiring", "../..")
 includeNamed(":tenant:api", "../..")
+includeNamed(":tenant:codegen", "../..")
 includeNamed(":tenant:runtime", "../..")
+includeNamed(":tenant:wiring", "../..")
+
+// Include Java API modules
+includeNamed(":x:javaapi:api", "../..")
+includeNamed(":x:javaapi:runtime", "../..")
 
 // Include all shared modules
 includeNamed(":shared:arbitrary", "../..")

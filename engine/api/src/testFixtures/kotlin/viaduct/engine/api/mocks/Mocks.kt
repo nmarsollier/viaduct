@@ -19,6 +19,8 @@ import graphql.schema.idl.SchemaParser
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import viaduct.dataloader.mocks.MockNextTickDispatcher
+import viaduct.engine.ViaductSchemaLoadException
+import viaduct.engine.ViaductWiringFactory
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.CheckerResult
@@ -26,6 +28,7 @@ import viaduct.engine.api.CheckerResultContext
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.FieldResolverExecutor
@@ -34,6 +37,7 @@ import viaduct.engine.api.ParsedSelections
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.ResolvedEngineObjectData
+import viaduct.engine.api.ResolverMetadata
 import viaduct.engine.api.TenantAPIBootstrapper
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.VariablesResolver
@@ -49,12 +53,10 @@ import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.engine.runtime.select.RawSelectionSetImpl
 import viaduct.graphql.utils.DefaultSchemaProvider
-import viaduct.service.runtime.ViaductSchemaLoadException
-import viaduct.service.runtime.ViaductWiringFactory
 
 typealias CheckerFn = suspend (arguments: Map<String, Any?>, objectDataMap: Map<String, EngineObjectData>) -> Unit
 typealias NodeBatchResolverFn = suspend (selectors: List<NodeResolverExecutor.Selector>, context: EngineExecutionContext) -> Map<NodeResolverExecutor.Selector, Result<EngineObjectData>>
-typealias NodeUnbatchedResolverFn = (id: String, selections: RawSelectionSet?, context: EngineExecutionContext) -> EngineObjectData
+typealias NodeUnbatchedResolverFn = suspend (id: String, selections: RawSelectionSet?, context: EngineExecutionContext) -> EngineObjectData
 typealias FieldUnbatchedResolverFn = suspend (
     arguments: Map<String, Any?>,
     objectValue: EngineObjectData,
@@ -90,10 +92,16 @@ fun mkRawSelectionSetFactory(viaductSchema: ViaductSchema) = RawSelectionSetFact
 fun mkRSS(
     typeName: String,
     selectionString: String,
-    variableProviders: List<VariablesResolver> = emptyList()
-) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders)
+    variableProviders: List<VariablesResolver> = emptyList(),
+    forChecker: Boolean = false,
+    attribution: ExecutionAttribution = ExecutionAttribution.DEFAULT
+) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders, forChecker, attribution)
 
-class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolverFn) : VariablesResolver {
+class MockVariablesResolver(
+    vararg names: String,
+    override val requiredSelectionSet: RequiredSelectionSet? = null,
+    val resolveFn: VariablesResolverFn,
+) : VariablesResolver {
     override val variableNames: Set<String> = names.toSet()
 
     override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = resolveFn(ctx)
@@ -170,11 +178,12 @@ class MockFieldResolverDispatcherRegistry(vararg bindings: Pair<Coordinate, Fiel
 open class MockFieldUnbatchedResolverExecutor(
     override val objectSelectionSet: RequiredSelectionSet? = null,
     override val querySelectionSet: RequiredSelectionSet? = null,
-    override val metadata: Map<String, String> = emptyMap(),
+    val resolverName: String = "mock-field-unbatched-resolver",
     override val resolverId: String,
-    open val unbatchedResolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null },
+    open val unbatchedResolveFn: FieldUnbatchedResolverFn = { _, _, _, _, _ -> null }
 ) : FieldResolverExecutor {
     override val isBatching: Boolean = false
+    override val metadata = ResolverMetadata.forMock(resolverName)
 
     override suspend fun batchResolve(
         selectors: List<FieldResolverExecutor.Selector>,
@@ -194,11 +203,12 @@ open class MockFieldUnbatchedResolverExecutor(
 open class MockFieldBatchResolverExecutor(
     override val objectSelectionSet: RequiredSelectionSet? = null,
     override val querySelectionSet: RequiredSelectionSet? = null,
-    override val metadata: Map<String, String> = emptyMap(),
+    val resolverName: String = "mock-field-batch-resolver",
     override val resolverId: String,
     open val batchResolveFn: FieldBatchResolverFn = { _, _ -> throw NotImplementedError() }
 ) : FieldResolverExecutor {
     override val isBatching: Boolean = true
+    override val metadata = ResolverMetadata.forMock(resolverName)
 
     override suspend fun batchResolve(
         selectors: List<FieldResolverExecutor.Selector>,
@@ -305,7 +315,7 @@ class MockTenantAPIBootstrapper(
 }
 
 class MockTenantModuleBootstrapper(
-    val schema: ViaductSchema,
+    val fullSchema: ViaductSchema,
     val fieldResolverExecutors: Iterable<Pair<Coordinate, FieldResolverExecutor>> = emptyList(),
     val nodeResolverExecutors: Iterable<Pair<String, NodeResolverExecutor>> = emptyList(),
     val checkerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
@@ -315,7 +325,7 @@ class MockTenantModuleBootstrapper(
 
     override fun nodeResolverExecutors(schema: ViaductSchema): Iterable<Pair<String, NodeResolverExecutor>> = nodeResolverExecutors
 
-    fun resolverAt(coord: Coordinate) = fieldResolverExecutors(schema).first { it.first == coord }.second
+    fun resolverAt(coord: Coordinate) = fieldResolverExecutors(fullSchema).first { it.first == coord }.second
 
     fun checkerAt(coord: Coordinate) = checkerExecutors[coord]
 
@@ -347,14 +357,14 @@ class MockTenantModuleBootstrapper(
         queryValue: Map<String, Any?> = emptyMap(),
         selections: RawSelectionSet? = null,
         context: EngineExecutionContext = contextMocks.engineExecutionContext,
-    ) = resolverAt(coord).invoke(schema, coord, arguments, objectValue, queryValue, selections, context)
+    ) = resolverAt(coord).invoke(fullSchema, coord, arguments, objectValue, queryValue, selections, context)
 
     fun checkField(
         coord: Coordinate,
         arguments: Map<String, Any?> = emptyMap(),
         objectDataMap: Map<String, Map<String, Any?>> = emptyMap(),
         context: EngineExecutionContext = contextMocks.engineExecutionContext,
-    ) = checkerAt(coord)!!.invoke(schema, coord, arguments, objectDataMap, context)
+    ) = checkerAt(coord)!!.invoke(fullSchema, coord, arguments, objectDataMap, context)
 
     fun toDispatcherRegistry(
         checkerExecutors: Map<Coordinate, CheckerExecutor>? = null,
@@ -369,7 +379,7 @@ class MockTenantModuleBootstrapper(
 
     val contextMocks by lazy {
         ContextMocks(
-            myFullSchema = schema,
+            myFullSchema = fullSchema,
             myDispatcherRegistry = this.toDispatcherRegistry(),
         )
     }
@@ -405,57 +415,22 @@ fun mkEngineObjectData(
         }.build()
 }
 
-@Deprecated("Use mkEngineObjectData instead (we don't need to fake this class)")
-data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectType, val data: Map<String, Any?>) : EngineObjectData {
-    override suspend fun fetch(selection: String): Any? = data[selection]
-
-    override suspend fun fetchOrNull(selection: String): Any? = data[selection]
-
-    companion object {
-        /** recursively wraps [data] into a MockEngineObjectData tree */
-        fun wrap(
-            graphQLObjectType: GraphQLObjectType,
-            data: Map<String, Any?>
-        ): MockEngineObjectData = maybeWrap(graphQLObjectType, data) as MockEngineObjectData
-
-        private fun maybeWrap(
-            type: GraphQLOutputType,
-            value: Any?
-        ): Any? =
-            if (value == null) {
-                null
-            } else {
-                @Suppress("UNCHECKED_CAST")
-                when (type) {
-                    is GraphQLNonNull -> maybeWrap(type.wrappedType as GraphQLOutputType, value)
-                    is GraphQLList -> (value as List<*>).map { maybeWrap(type.wrappedType as GraphQLOutputType, it) }
-                    is GraphQLObjectType ->
-                        MockEngineObjectData(
-                            type,
-                            (value as Map<String, Any?>).mapValues { (fname, value) ->
-                                maybeWrap(type.getFieldDefinition(fname).type, value)
-                            }
-                        )
-
-                    is GraphQLCompositeType -> throw IllegalArgumentException("don't know how to wrap type $type with value $value")
-                    else -> value
-                }
-            }
-    }
-}
-
 class MockCheckerExecutorFactory(
     val checkerExecutors: Map<Coordinate, CheckerExecutor>? = null,
     val typeCheckerExecutors: Map<String, CheckerExecutor>? = null
 ) : CheckerExecutorFactory {
     override fun checkerExecutorForField(
+        schema: ViaductSchema,
         typeName: String,
         fieldName: String
     ): CheckerExecutor? {
         return checkerExecutors?.get(Pair(typeName, fieldName))
     }
 
-    override fun checkerExecutorForType(typeName: String): CheckerExecutor? {
+    override fun checkerExecutorForType(
+        schema: ViaductSchema,
+        typeName: String
+    ): CheckerExecutor? {
         return typeCheckerExecutors?.get(typeName)
     }
 }

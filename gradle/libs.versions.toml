@@ -3,6 +3,7 @@
 project = "INCLUDED"
 
 # Libraries
+assertj = "3.24.2"
 antlr-st4 = "4.2"
 bytebuddy = "1.14.12"
 caffeine = "2.9.1"
@@ -41,26 +42,29 @@ dokka = "2.0.0"
 gradle-maven-publish = "0.34.0"
 develocity = "3.19.2"
 foojay-resolver-convention = "1.0.0"
+spotbugs = "6.0.26"
+idea-gradle-plugin = "1.3"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlintPlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPluginVersion" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 jacoco = { id = "jacoco", version.ref = "jacoco" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 gradle-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "gradle-maven-publish" }
 develocity = { id = "com.gradle.develocity", version.ref = "develocity" }
 foojay-resolver-convention = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver-convention" }
+spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs" }
 
 [libraries]
 # Project
 viaduct-engine-api = { module = "com.airbnb.viaduct:engine-api", version.ref = "project" }
 viaduct-engine-runtime = { module = "com.airbnb.viaduct:engine-runtime", version.ref = "project" }
+viaduct-engine-wiring = { module = "com.airbnb.viaduct:engine-wiring", version.ref = "project" }
 viaduct-tenant-api = { module = "com.airbnb.viaduct:tenant-api", version.ref = "project" }
 viaduct-tenant-runtime = { module = "com.airbnb.viaduct:tenant-runtime", version.ref = "project" }
 viaduct-tenant-codegen = { module = "com.airbnb.viaduct:tenant-codegen", version.ref = "project" }
-viaduct-tenant-wiring = { module = "com.airbnb.viaduct:wiring", version.ref = "project" }
+viaduct-tenant-wiring = { module = "com.airbnb.viaduct:tenant-wiring", version.ref = "project" }
 
 viaduct-service-api = { module = "com.airbnb.viaduct:service-api", version.ref = "project" }
 viaduct-service-runtime = { module = "com.airbnb.viaduct:service-runtime", version.ref = "project" }
@@ -73,9 +77,9 @@ viaduct-shared-deferred = { module = "com.airbnb.viaduct:shared-deferred", versi
 viaduct-shared-graphql = { module = "com.airbnb.viaduct:shared-graphql", version.ref = "project" }
 viaduct-shared-invariants = { module = "com.airbnb.viaduct:shared-invariants", version.ref = "project" }
 viaduct-shared-logging = { module = "com.airbnb.viaduct:shared-logging", version.ref = "project" }
+viaduct-shared-mapping = { module = "com.airbnb.viaduct:shared-mapping", version.ref = "project" }
 viaduct-shared-utils = { module = "com.airbnb.viaduct:shared-utils", version.ref = "project" }
 viaduct-shared-viaductschema = { module = "com.airbnb.viaduct:shared-viaductschema", version.ref = "project" }
-viaduct-shared-mapping = { module = "com.airbnb.viaduct:shared-mapping", version.ref = "project" }
 
 viaduct-snipped-errors = { module = "com.airbnb.viaduct:snipped-errors", version.ref = "project" }
 
@@ -108,8 +112,10 @@ reflections = { module = "org.reflections:reflections", version.ref = "reflectio
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+idea-gradle-plugin = { module = "org.jetbrains.gradle.plugin.idea-ext:org.jetbrains.gradle.plugin.idea-ext.gradle.plugin", version.ref = "idea-gradle-plugin" }
 
 # Testing
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 guava-testlib = { module = "com.google.guava:guava-testlib", version.ref = "guava" }
 io-mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk-jvm" }

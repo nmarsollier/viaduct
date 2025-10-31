@@ -18,6 +18,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.asDeferred
 import viaduct.engine.api.CheckerResult
+import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.runtime.Cell
 import viaduct.engine.runtime.CompositeLocalContext
 import viaduct.engine.runtime.FieldResolutionResult
@@ -56,13 +57,26 @@ import viaduct.engine.runtime.execution.FieldExecutionHelpers.executionStepInfoF
  * - Objects trigger recursive completion of their selected fields
  * - Errors during completion preserve partial results where possible
  *
+ * ## Testing
+ *
+ * This component is tested via conformance and integration testing:
+ *
+ * - **Conformance tests** ([ArbitraryConformanceTest], [NullBubblingConformanceTest]) - 13,000+ property-based
+ *   test iterations validating GraphQL spec compliance against the graphql-java reference implementation
+ * - **Feature tests** ([ViaductExecutionStrategyTest], [ExceptionsTest]) - Targeted tests for field merging,
+ *   error handling, and execution strategy integration
+ * - **Engine feature tests** (EngineFeatureTest framework) - Integration tests exercising the complete
+ *   resolution→completion pipeline with resolvers, checkers, and real schemas
+ *
  * @see FieldResolver Pairs with this class to form the complete execution pipeline
  * @see FieldCompletionResult Contains the completed field values and metadata
  * @see ObjectEngineResultImpl Holds the intermediate execution results being completed
  * @see NonNullableFieldValidator Enforces schema non-null constraints
+ * @see Conformer Test fixture for conformance testing
  */
 class FieldCompleter(
-    private val dataFetcherExceptionHandler: DataFetcherExceptionHandler
+    private val dataFetcherExceptionHandler: DataFetcherExceptionHandler,
+    private val temporaryBypassAccessCheck: TemporaryBypassAccessCheck,
 ) {
     /**
      * Completes the selection set by completing each field.
@@ -81,8 +95,8 @@ class FieldCompleter(
                 ctxCompleteObject.onDispatched()
                 if (throwable != null) {
                     ctxCompleteObject.onCompleted(null, throwable)
-                    val mergedField = checkNotNull(parameters.field?.mergedField)
-                    val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(parameters, mergedField, parentOER) }
+                    val field = checkNotNull(parameters.field)
+                    val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(parameters, field, parentOER) }
                     handleFetchingException(dataFetchingEnvironmentProvider, throwable)
                         .flatMap {
                             val err = FieldCompletionException(throwable, it.errors)
@@ -111,13 +125,15 @@ class FieldCompleter(
 
             val newParams = parameters.forField(parentOER.graphQLObjectType, field)
             val fieldKey = buildOERKeyForField(newParams, field)
-            val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(newParams, field.mergedField, parentOER) }
+            val dataFetchingEnvironmentProvider = { buildDataFetchingEnvironment(newParams, field, parentOER) }
+
+            val bypassChecker = temporaryBypassAccessCheck.shouldBypassCheck(field.mergedField.singleField, parameters.bypassChecksDuringCompletion)
 
             // Obtain a result for this field
             val combinedValue = combineValues(
                 parentOER.getValue(fieldKey, RAW_VALUE_SLOT),
                 parentOER.getValue(fieldKey, ACCESS_CHECK_SLOT),
-                bypassChecker = parameters.bypassChecksDuringCompletion
+                bypassChecker
             )
 
             val handledFetch = combinedValue.recover { throwable ->
@@ -361,8 +377,9 @@ class FieldCompleter(
         val cells = checkNotNull(result as? Iterable<Cell>) {
             "Expected data to be an Iterable<Cell>, was ${result.javaClass}."
         }
+        val bypassCheck = temporaryBypassAccessCheck.shouldBypassCheck(field.mergedField.singleField, parameters.bypassChecksDuringCompletion)
         val listValues = cells.map {
-            combineValues(it.getValue(RAW_VALUE_SLOT), it.getValue(ACCESS_CHECK_SLOT), parameters.bypassChecksDuringCompletion)
+            combineValues(it.getValue(RAW_VALUE_SLOT), it.getValue(ACCESS_CHECK_SLOT), bypassCheck)
         }
         val instrumentationParams = InstrumentationFieldCompleteParameters(
             parameters.executionContext,
@@ -456,16 +473,57 @@ class FieldCompleter(
         enumType: GraphQLEnumType,
         result: Any?
     ): Value<FieldCompletionResult> {
-        val serialized = try {
-            enumType.serialize(
-                result,
-                parameters.executionContext.graphQLContext,
-                parameters.executionContext.locale
-            ) as String
-        } catch (e: Exception) {
-            val err = FieldCompletionException(e, parameters)
-            parameters.errorAccumulator += err.graphQLErrors
-            return Value.fromThrowable(err)
+        // Handle enum serialization with schema version skew tolerance
+        // During hotswap/MTD, the runtime schema may have enum values that don't exist
+        // in compiled tenant code. We validate against the runtime GraphQL schema
+        // but avoid deserializing into Java enum types that may not have the value.
+        val serialized = when (result) {
+            null -> null
+            is String -> {
+                // String value - validate against runtime GraphQL schema
+                if (enumType.getValue(result) != null) {
+                    // Valid in runtime schema - use as-is without Java enum conversion
+                    // This allows version skew: runtime schema may have values unknown to compiled code
+                    result
+                } else {
+                    // Invalid in runtime schema - this is a real error
+                    val err = FieldCompletionException(
+                        IllegalArgumentException("Invalid enum value '$result' for type '${enumType.name}'"),
+                        parameters
+                    )
+                    parameters.errorAccumulator += err.graphQLErrors
+                    return Value.fromThrowable(err)
+                }
+            }
+            is Enum<*> -> {
+                // Java enum instance - extract name and validate
+                val enumName = result.name
+                if (enumType.getValue(enumName) != null) {
+                    enumName
+                } else {
+                    // Enum instance doesn't exist in runtime schema
+                    val err = FieldCompletionException(
+                        IllegalArgumentException("Enum value '$enumName' not found in schema type '${enumType.name}'"),
+                        parameters
+                    )
+                    parameters.errorAccumulator += err.graphQLErrors
+                    return Value.fromThrowable(err)
+                }
+            }
+            else -> {
+                // Unexpected type - try GraphQL Java's serialize as fallback
+                try {
+                    enumType.serialize(
+                        result,
+                        parameters.executionContext.graphQLContext,
+                        parameters.executionContext.locale
+                    ) as String
+                } catch (e: Exception) {
+                    val err = FieldCompletionException(e, parameters)
+                    parameters.errorAccumulator += err.graphQLErrors
+                    return Value.fromThrowable(err)
+                }
+            }
         }
 
         return Value.fromValue(

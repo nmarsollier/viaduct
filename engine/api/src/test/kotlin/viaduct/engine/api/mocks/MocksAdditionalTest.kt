@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.Coordinate
+import viaduct.engine.api.ResolverMetadata
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
 
@@ -21,7 +22,7 @@ class MocksAdditionalTest {
 
         assertFalse(executor.isBatching)
         assertEquals(selectionSet, executor.objectSelectionSet)
-        assertEquals(emptyMap<String, String>(), executor.metadata)
+        assertEquals(ResolverMetadata.forMock("mock-field-unbatched-resolver"), executor.metadata)
         assertEquals(resolverId, executor.resolverId)
     }
 
@@ -31,7 +32,7 @@ class MocksAdditionalTest {
         val executor = MockFieldBatchResolverExecutor(resolverId = resolverId)
 
         assertTrue(executor.isBatching)
-        assertEquals(emptyMap<String, String>(), executor.metadata)
+        assertEquals(ResolverMetadata.forMock("mock-field-batch-resolver"), executor.metadata)
         assertEquals(resolverId, executor.resolverId)
     }
 
@@ -40,7 +41,7 @@ class MocksAdditionalTest {
         val nullResolver = MockFieldUnbatchedResolverExecutor.Null
         assertNotNull(nullResolver)
         assertNull(nullResolver.objectSelectionSet)
-        assertEquals(emptyMap<String, String>(), nullResolver.metadata)
+        assertEquals(ResolverMetadata.forMock("mock-field-unbatched-resolver"), nullResolver.metadata)
     }
 
     @Test
@@ -67,17 +68,18 @@ class MocksAdditionalTest {
     fun `MockCheckerExecutorFactory functionality`() {
         val fieldChecker = MockCheckerExecutor()
         val typeChecker = MockCheckerExecutor()
+        val mockSchema = MockSchema.mk("type TestType { testField: String } type TestNode implements Node { id: ID! }")
 
         val factory = MockCheckerExecutorFactory(
             mapOf(Pair("TestType", "testField") to fieldChecker),
             mapOf("TestNode" to typeChecker)
         )
 
-        assertSame(fieldChecker, factory.checkerExecutorForField("TestType", "testField"))
-        assertNull(factory.checkerExecutorForField("TestType", "nonExistent"))
+        assertSame(fieldChecker, factory.checkerExecutorForField(mockSchema, "TestType", "testField"))
+        assertNull(factory.checkerExecutorForField(mockSchema, "TestType", "nonExistent"))
 
-        assertSame(typeChecker, factory.checkerExecutorForType("TestNode"))
-        assertNull(factory.checkerExecutorForType("NonExistent"))
+        assertSame(typeChecker, factory.checkerExecutorForType(mockSchema, "TestNode"))
+        assertNull(factory.checkerExecutorForType(mockSchema, "NonExistent"))
     }
 
     @Test
@@ -291,7 +293,7 @@ class MocksAdditionalTest {
         val mockData = mkEngineObjectData(objectType, data)
 
         assertEquals(objectType, mockData.graphQLObjectType)
-        assertEquals(data, mockData.data)
+        data.forEach { (key, value) -> assertEquals(value, mockData.get(key)) }
     }
 
     @Test
@@ -318,8 +320,9 @@ class MocksAdditionalTest {
 
     @Test
     fun `MockCheckerExecutorFactory with null inputs`() {
+        val mockSchema = MockSchema.mk("type AnyType { anyField: String }")
         val factory = MockCheckerExecutorFactory()
-        assertNull(factory.checkerExecutorForField("AnyType", "anyField"))
-        assertNull(factory.checkerExecutorForType("AnyType"))
+        assertNull(factory.checkerExecutorForField(mockSchema, "AnyType", "anyField"))
+        assertNull(factory.checkerExecutorForType(mockSchema, "AnyType"))
     }
 }

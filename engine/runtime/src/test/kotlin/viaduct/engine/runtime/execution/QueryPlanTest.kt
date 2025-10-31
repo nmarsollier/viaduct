@@ -7,8 +7,10 @@ import graphql.language.Argument
 import graphql.language.AstPrinter
 import graphql.language.Directive as GJDirective
 import graphql.language.Field as GJField
+import graphql.language.FragmentDefinition as GJFragmentDefinition
 import graphql.language.Node
 import graphql.language.SelectionSet as GJSelectionSet
+import graphql.language.TypeName as GJTypeName
 import graphql.language.VariableReference
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLOutputType
@@ -27,6 +29,8 @@ import viaduct.arbitrary.graphql.asSchema
 import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.FromObjectFieldVariable
 import viaduct.engine.api.ParsedSelections
+import viaduct.engine.api.QueryPlanExecutionCondition
+import viaduct.engine.api.QueryPlanExecutionCondition.Companion.ALWAYS_EXECUTE
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
@@ -154,7 +158,16 @@ class QueryPlanTest {
                                 "F" to FragmentDefinition(
                                     SelectionSet(
                                         mkField("x", typeConstraint(query))
-                                    )
+                                    ),
+                                    GJFragmentDefinition.newFragmentDefinition()
+                                        .name("F")
+                                        .typeCondition(GJTypeName("Query"))
+                                        .selectionSet(
+                                            GJSelectionSet(
+                                                listOf(GJField("x"))
+                                            )
+                                        )
+                                        .build()
                                 )
                             )
                         ),
@@ -198,7 +211,8 @@ class QueryPlanTest {
             ParsedSelections.empty("Query"),
             listOf(
                 FromObjectFieldVariable("vara", "z")
-            )
+            ),
+            forChecker = false,
         )
         val reg = MockRequiredSelectionSetRegistry.builder()
             .fieldResolverEntry("Query" to "x", "y(a:\$vara)", varResolvers)
@@ -239,6 +253,123 @@ class QueryPlanTest {
                     )
                 )
             }
+        }
+    }
+
+    @Test
+    fun `QueryPlanBuilder -- builds child plans for variables with required selection sets for fragment spread`() {
+        val varResolvers = VariablesResolver.fromSelectionSetVariables(
+            SelectionsParser.parse("Query", "z"),
+            ParsedSelections.empty("Query"),
+            listOf(
+                FromObjectFieldVariable("vara", "z")
+            ),
+            forChecker = true,
+        )
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .fieldCheckerEntry(
+                "Query" to "x",
+                // checker rss as fragment spread with variable
+                "fragment Main on Query { ...T }  fragment T on Query { y(a:\$vara) }",
+                varResolvers
+            ).build()
+        Fixture("type Query { x:Int, y(a:Int):Int, z:Int }", reg) {
+            val plan = buildPlan("{x}")
+            // Ideally we would do a deep equality check here, however it dramatically slows down the tests.
+            // Leaving this here as a reminder to revisit if we can optimize the deep equality checks.
+            // expectThat(plan) {
+            //     checkEquals(
+            //         mkQueryPlan(
+            //             SelectionSet(
+            //                 mkField(
+            //                     "x",
+            //                     typeConstraint(query),
+            //                     childPlans = listOf(
+            //                         mkQueryPlan(
+            //                             SelectionSet(
+            //                                 FragmentSpread("T", Constraints(emptyList(), possibleTypes = setOf(query))),
+            //                             ),
+            //                             fragments = Fragments(
+            //                                 mapOf(
+            //                                     "T" to FragmentDefinition(
+            //                                         SelectionSet(
+            //                                             mkField(
+            //                                                 "y",
+            //                                                 typeConstraint(query),
+            //                                                 GJField(
+            //                                                     "y",
+            //                                                     listOf(
+            //                                                         Argument("a", VariableReference("vara"))
+            //                                                     )
+            //                                                 )
+            //                                             )
+            //                                         ),
+            //                                         GJFragmentDefinition.newFragmentDefinition()
+            //                                             .name("T")
+            //                                             .typeCondition(GJTypeName("Query"))
+            //                                             .selectionSet(
+            //                                                 GJSelectionSet(
+            //                                                     listOf(GJField(
+            //                                                         "y",
+            //                                                         listOf(
+            //                                                             Argument("a", VariableReference("vara"))
+            //                                                         )
+            //                                                     ))
+            //                                                 )
+            //                                             )
+            //                                             .build()
+            //                                     )
+            //                                 )
+            //                             ),
+            //                             variablesResolvers = varResolvers,
+            //                             parentType = query,
+            //                             childPlans = listOf(
+            //                                 mkQueryPlan(
+            //                                     SelectionSet(
+            //                                         mkField("z", typeConstraint(query))
+            //                                     ),
+            //                                     parentType = query
+            //                                 )
+            //                             )
+            //                         )
+            //                     )
+            //                 )
+            //             ),
+            //             parentType = query
+            //         )
+            //     )
+            // }
+
+            // Instead, verify the basic structure without deep comparison
+            expectThat(plan.selectionSet.selections).hasSize(1)
+            val fieldX = plan.selectionSet.selections[0] as Field
+            expectThat(fieldX.resultKey).isEqualTo("x")
+
+            // Check that field x has one child plan (the checker RSS)
+            expectThat(fieldX.childPlans).hasSize(1)
+            val checkerPlan = fieldX.childPlans[0]
+
+            // Verify the checker plan has a fragment spread to T
+            expectThat(checkerPlan.selectionSet.selections).hasSize(1)
+            val fragSpread = checkerPlan.selectionSet.selections[0] as FragmentSpread
+            expectThat(fragSpread.name).isEqualTo("T")
+
+            // Verify fragment T is defined in the checker plan
+            expectThat(checkerPlan.fragments.map).hasSize(1)
+            expectThat(checkerPlan.fragments.map["T"]).isNotNull()
+            val fragT = checkerPlan.fragments.map["T"]!!
+
+            // Verify fragment T contains field y
+            expectThat(fragT.selectionSet.selections).hasSize(1)
+            val fieldY = fragT.selectionSet.selections[0] as Field
+            expectThat(fieldY.resultKey).isEqualTo("y")
+
+            // Verify the checker plan has child plans for variable resolution (field z)
+            expectThat(checkerPlan.childPlans).hasSize(1)
+            val varPlan = checkerPlan.childPlans[0]
+            expectThat(varPlan.selectionSet.selections).hasSize(1)
+            val fieldZ = varPlan.selectionSet.selections[0] as Field
+            expectThat(fieldZ.resultKey).isEqualTo("z")
         }
     }
 
@@ -509,7 +640,8 @@ class QueryPlanTest {
             ParsedSelections.empty("Query"),
             listOf(
                 FromObjectFieldVariable("vara", "z")
-            )
+            ),
+            forChecker = true,
         )
         val reg = MockRequiredSelectionSetRegistry.builder()
             .fieldCheckerEntry(
@@ -571,6 +703,58 @@ class QueryPlanTest {
                     )
                 )
             }
+        }
+    }
+
+    @Test
+    fun `QueryPlan can be built with custom ExecutionCondition`() {
+        Fixture("type Query { x:Int }") {
+            val customCondition = QueryPlanExecutionCondition { false }
+            val plan = runExecutionTest {
+                val params = mkQPParameters("{x}", ViaductSchema(schema), requiredSelectionSetRegistry)
+                    .copy(executionCondition = customCondition)
+                QueryPlan.build(params, "{x}".asDocument, inCheckerContext = false)
+            }
+
+            // Verify the ExecutionCondition is stored in the plan
+            expectThat(plan.executionCondition).isEqualTo(customCondition)
+            expectThat(plan.executionCondition.shouldExecute()).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun `Child QueryPlans inherit ExecutionCondition from RSS, not parameters`() {
+        // Build registry with child RSS that creates child plans
+        val reg = MockRequiredSelectionSetRegistry.builder()
+            .fieldResolverEntry("Query" to "x", "y")
+            .build()
+
+        Fixture("type Query { x:Int, y:Int }", reg) {
+            val customCondition = QueryPlanExecutionCondition { false }
+            val plan = runExecutionTest {
+                val params = mkQPParameters("{x}", ViaductSchema(schema), reg)
+                    .copy(executionCondition = customCondition)
+                QueryPlan.build(params, "{x}".asDocument, inCheckerContext = false)
+            }
+
+            // Verify the root plan has the custom ExecutionCondition from parameters
+            expectThat(plan.executionCondition).isEqualTo(customCondition)
+
+            // Verify child plans have ALWAYS_EXECUTE (the default from RSS), not the custom condition from parameters
+            val field = plan.selectionSet.selections.first() as QueryPlan.Field
+            val childPlan = field.childPlans.first()
+            expectThat(childPlan.executionCondition).isEqualTo(ALWAYS_EXECUTE)
+            expectThat(childPlan.executionCondition.shouldExecute()).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun `QueryPlan defaults to ALWAYS_EXECUTE when not specified`() {
+        Fixture("type Query { x:Int }") {
+            val plan = buildPlan("{x}")
+
+            expectThat(plan.executionCondition).isEqualTo(ALWAYS_EXECUTE)
+            expectThat(plan.executionCondition.shouldExecute()).isEqualTo(true)
         }
     }
 
@@ -733,7 +917,8 @@ private fun mkQueryPlan(
     variablesResolvers,
     parentType,
     childPlans,
-    attribution
+    attribution,
+    executionCondition = ALWAYS_EXECUTE
 )
 
 internal fun mkQPParameters(

@@ -1,7 +1,5 @@
 package viaduct.tenant.codegen.kotlingen.bytecode
 
-// See README.md for the patterns that guided this file
-
 import getEscapedFieldName
 import viaduct.codegen.km.getterName
 import viaduct.codegen.km.kotlinTypeString
@@ -16,7 +14,7 @@ import viaduct.tenant.codegen.bytecode.config.kmType
 fun KotlinGRTFilesBuilder.objectKotlinGen(typeDef: ViaductExtendedSchema.Object) = STContents(objectSTGroup, ObjectModelImpl(typeDef, pkg, reflectedTypeGen(typeDef), baseTypeMapper))
 
 private interface ObjectModel {
-    /** Packege into which code will be generated. */
+    /** Package into which code will be generated. */
     val pkg: String
 
     /** Name of the class to be generated. */
@@ -73,22 +71,34 @@ private val objectSTGroup =
     import viaduct.api.context.ExecutionContext
     import viaduct.api.internal.InternalContext
     import viaduct.api.internal.ObjectBase
+    import viaduct.engine.api.EngineObject
     import viaduct.engine.api.EngineObjectData
 
-    class <mdl.className>(context: InternalContext, engineObjectData: EngineObjectData)
-        : ObjectBase(context, engineObjectData), <mdl.superTypes>
+    class <mdl.className>(context: InternalContext, engineObject: EngineObject)
+        : ObjectBase(context, engineObject), <mdl.superTypes>
     {
         <mdl.fields: { f |
           <f.overrideKeywords> suspend fun <f.getterName>(alias: String?): <f.kotlinType> = TODO()
           <f.overrideKeywords> suspend fun <f.getterName>(): <f.kotlinType> = TODO()
         }; separator="\n">
 
-        class Builder(context: ExecutionContext)
-            : ObjectBase.Builder\<<mdl.className>\>(
-                context as InternalContext,
-                TODO() as graphql.schema.GraphQLObjectType
-            )
-        {
+        fun toBuilder(): Builder =
+            Builder(context, engineObject.graphQLObjectType, toBuilderEOD())
+
+        class Builder : ObjectBase.Builder\<<mdl.className>\> {
+            constructor(context: ExecutionContext)
+                : super(
+                    context as InternalContext,
+                    TODO() as graphql.schema.GraphQLObjectType,
+                    null
+                )
+
+            internal constructor(
+                context: InternalContext,
+                graphQLObjectType: graphql.schema.GraphQLObjectType,
+                baseEngineObjectData: EngineObjectData
+            ) : super(context, graphQLObjectType, baseEngineObjectData)
+
             <mdl.fields: { f |
               fun <f.escapedName>(value: <f.kotlinType>): Builder = TODO()
             }; separator="\n">

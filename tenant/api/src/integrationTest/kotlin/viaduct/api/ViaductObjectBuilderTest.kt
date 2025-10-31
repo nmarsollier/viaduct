@@ -133,7 +133,7 @@ class ViaductObjectBuilderTest {
                 O1::class
             )
             val e = assertThrows<IllegalArgumentException> { o1Builder.put("enumField", 10) }
-            assertEquals("No enum constant ${E1::class.qualifiedName}.10", e.message)
+            assertEquals("Invalid enum value '10' for type ${E1::class.simpleName} for field enumField", e.message)
         }
 
     @Test

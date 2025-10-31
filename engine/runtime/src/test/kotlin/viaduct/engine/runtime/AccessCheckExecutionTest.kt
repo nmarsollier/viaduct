@@ -5,15 +5,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineObjectData
-import viaduct.engine.api.mocks.MockEngineObjectData
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.mkEngineObjectData
+import viaduct.engine.api.mocks.mkRSS
 import viaduct.engine.api.mocks.mkSchemaWithWiring
 import viaduct.engine.api.mocks.runFeatureTest
-import viaduct.engine.api.mocks.toViaductBuilder
 
 @ExperimentalCoroutinesApi
 class AccessCheckExecutionTest {
@@ -26,6 +24,7 @@ class AccessCheckExecutionTest {
                 baz: Baz
                 bazList: [Baz]
                 nonNullBaz: Baz!
+                plusOne(value: Int): Int
             }
 
             extend type Mutation {
@@ -52,7 +51,6 @@ class AccessCheckExecutionTest {
         private val booType = schema.schema.getObjectType("Boo")
         private val bazType = schema.schema.getObjectType("Baz")
         private val barType = schema.schema.getObjectType("Bar")
-        private val queryType = schema.schema.getObjectType("Query")
     }
 
     @Test
@@ -60,7 +58,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             fieldWithValue("Query" to "boo", mkEngineObjectData(booType, mapOf("value" to 5)))
         }.runFeatureTest {
-            viaduct.runQuery("{ boo { value } }")
+            runQuery("{ boo { value } }")
                 .assertJson("{data: {boo: {value: 5}}}")
         }
     }
@@ -83,14 +81,12 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{ boo { value } }")
+            runQuery("{ boo { value } }")
                 .assertJson("{data: {boo: {value: 5}}}")
         }
 
         assertTrue(asyncFieldCheckerRan)
-        assumeTrue(syncFieldCheckerRan, "Sync field checkers not yet implemented")
-        // TODO: uncomment after registering all checkers and remove above assumeTrue assertion
-        // assertTrue(syncFieldCheckerRan)
+        assertTrue(syncFieldCheckerRan)
     }
 
     @Test
@@ -103,7 +99,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ boo { value } }")
+            val result = runQuery("{ boo { value } }")
             assertEquals(mapOf("boo" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -112,28 +108,24 @@ class AccessCheckExecutionTest {
         }
     }
 
-    // TODO: uncomment after registering all checkers
-    // @Test
-    // fun `sync field successful, checker throws`() {
-    //     builder()
-    //         .resolver(
-    //             "Query" to "boo",
-    //             { ctx: UntypedFieldContext -> Boo.Builder(ctx).value(5).build() },
-    //         )
-    //         .fieldChecker(
-    //             "Boo" to "value",
-    //             executeFn = { args, pobj -> throw RuntimeException("permission denied") }
-    //         )
-    //         .build()
-    //         .execute("{ boo { value } }")
-    //         .apply { errors ->
-    //             assertEquals(1, errors.size)
-    //             errors[0].let { error ->
-    //                 assertEquals(listOf("boo", "value"), error.path)
-    //                 assertTrue(error.message.contains("permission denied"))
-    //             }
-    //         }.getData<Map<String, Any?>>().assertJson("{boo: {value: null}}")
-    // }
+    @Test
+    fun `sync field successful, checker throws`() {
+        MockTenantModuleBootstrapper(SDL) {
+            fieldWithValue("Query" to "boo", mkEngineObjectData(booType, mapOf("value" to 5)))
+            field("Boo" to "value") {
+                checker {
+                    fn { _, _ -> throw RuntimeException("permission denied") }
+                }
+            }
+        }.runFeatureTest {
+            val result = runQuery("{ boo { value } }")
+            assertEquals(mapOf("boo" to mapOf("value" to null)), result.getData())
+            assertEquals(1, result.errors.size)
+            val error = result.errors[0]
+            assertEquals(listOf("boo", "value"), error.path)
+            assertTrue(error.message.contains("permission denied"))
+        }
+    }
 
     @Test
     fun `async field throws, checker throws`() {
@@ -147,7 +139,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ boo { value } }")
+            val result = runQuery("{ boo { value } }")
             assertEquals(mapOf("boo" to null), result.getData())
             // resolver error takes priority
             assertEquals(1, result.errors.size)
@@ -174,6 +166,8 @@ class AccessCheckExecutionTest {
                             }
 
                             override suspend fun fetchOrNull(selection: String) = fetch(selection)
+
+                            override suspend fun fetchSelections() = listOf("value")
                         }
                     }
                 }
@@ -184,7 +178,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ boo { value } }")
+            val result = runQuery("{ boo { value } }")
             assertEquals(mapOf("boo" to mapOf("value" to null)), result.getData())
             // datafetcher error takes priority
             assertEquals(1, result.errors.size)
@@ -213,7 +207,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            viaduct.runQuery("{ string1 }")
+            runQuery("{ string1 }")
                 .assertJson("{data: {string1: \"1st & 2nd\"}}")
         }
     }
@@ -237,7 +231,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ string1 }")
+            val result = runQuery("{ string1 }")
             assertEquals(mapOf("string1" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -267,7 +261,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ string1 }")
+            val result = runQuery("{ string1 }")
             assertEquals(mapOf("string1" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -298,7 +292,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ string1 }")
+            val result = runQuery("{ string1 }")
             assertEquals(mapOf("string1" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -310,27 +304,43 @@ class AccessCheckExecutionTest {
     @Test
     fun `checker with rss - access checks skipped`() {
         MockTenantModuleBootstrapper(schema) {
-            fieldWithValue("Query" to "string1", "foo")
-            fieldWithValue("Query" to "string2", "bar")
             field("Query" to "string1") {
+                value("foo")
                 checker {
-                    objectSelections("key", "fragment _ on Query { string2 }")
+                    objectSelections("key", "fragment _ on Query { plusOne(value: \$var) }") {
+                        variables("var", rss = mkRSS("Query", "string2", forChecker = true)) { ctx ->
+                            val string2 = ctx.objectData.fetch("string2") as String
+                            mapOf("var" to string2.toInt())
+                        }
+                    }
                     fn { _, objectDataMap ->
-                        if (objectDataMap["key"]?.fetch("string2") == "bar") {
-                            // Verifies that the access check for string2 shouldn't be applied
-                            // during fetch, otherwise the error would be "string2 checker failed"
+                        if (objectDataMap["key"]?.fetch("plusOne") == 5) {
+                            // Getting here verifies the checkers were not executed
                             throw RuntimeException("this should get thrown")
                         }
                     }
                 }
             }
             field("Query" to "string2") {
+                value("4")
                 checker {
-                    fn { _, _ -> throw RuntimeException("string2 checker failed") }
+                    // [Regression test] This shouldn't execute since it's in a checker variable resolver RSS
+                    fn { _, _ -> throw RuntimeException("Query.string2 checker failed") }
+                }
+            }
+            field("Query" to "plusOne") {
+                resolver {
+                    fn { arguments, _, _, _, _ ->
+                        (arguments["value"] as Int) + 1
+                    }
+                }
+                checker {
+                    // This shouldn't execute since it's in a checker RSS
+                    fn { _, _ -> throw RuntimeException("Query.plusOne checker failed") }
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ string1 }")
+            val result = runQuery("{ string1 }")
             assertEquals(mapOf("string1" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -356,7 +366,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("mutation { string1 }")
+            val result = runQuery("mutation { string1 }")
             assertEquals(mapOf("string1" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -372,7 +382,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
                 checker {
                     fn { _, _ -> throw RuntimeException("field checker failed") }
@@ -387,7 +397,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ baz { id } }")
+            val result = runQuery("{ baz { id } }")
             assertEquals(mapOf("baz" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -397,30 +407,27 @@ class AccessCheckExecutionTest {
     }
 
     @Test
-    fun `field check succeeds, type check fails`() {
+    fun `field check succeeds type check fails`() {
         MockTenantModuleBootstrapper(schema) {
-            field("Query" to "baz") {
+            field("Query" to "boo") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, _ -> mkEngineObjectData(booType, mapOf("value" to 2)) }
                 }
                 checker {
                     fn { _, _ -> /* access granted */ }
                 }
             }
-            type("Baz") {
-                nodeUnbatchedExecutor { id, _, _ ->
-                    mkEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
-                }
+            type("Boo") {
                 checker {
                     fn { _, _ -> throw RuntimeException("type checker failed") }
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ baz { id } }")
-            assertEquals(mapOf("baz" to null), result.getData())
+            val result = runQuery("{ boo { value } }")
+            assertEquals(mapOf("boo" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
-            assertEquals(listOf("baz"), error.path)
+            assertEquals(listOf("boo"), error.path)
             assertTrue(error.message.contains("type checker failed"))
         }
     }
@@ -430,7 +437,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
                 checker {
                     fn { _, _ -> /* access granted */ }
@@ -445,7 +452,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ baz { id } }")
+            val result = runQuery("{ baz { id } }")
             assertEquals(mapOf("baz" to mapOf("id" to "1")), result.getData())
             assertEquals(0, result.errors.size)
         }
@@ -456,7 +463,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -468,7 +475,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ baz { id } }")
+            val result = runQuery("{ baz { id } }")
             assertEquals(mapOf("baz" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -482,7 +489,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "nonNullBaz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -494,7 +501,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ nonNullBaz { id } }")
+            val result = runQuery("{ nonNullBaz { id } }")
             assertNull(result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -508,7 +515,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "node") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -519,15 +526,14 @@ class AccessCheckExecutionTest {
                     fn { _, _ -> throw RuntimeException("type checker failed") }
                 }
             }
-        }.toViaductBuilder().withoutDefaultQueryNodeResolvers().build() // Disabling built in resolvers for test
-            .runFeatureTest {
-                val result = viaduct.runQuery("{ node(id: \"a\") { id } }")
-                assertEquals(mapOf("node" to null), result.getData())
-                assertEquals(1, result.errors.size)
-                val error = result.errors[0]
-                assertEquals(listOf("node"), error.path)
-                assertTrue(error.message.contains("type checker failed"))
-            }
+        }.runFeatureTest(withoutDefaultQueryNodeResolvers = true) { // Disabling built in resolvers for test
+            val result = runQuery("{ node(id: \"a\") { id } }")
+            assertEquals(mapOf("node" to null), result.getData())
+            assertEquals(1, result.errors.size)
+            val error = result.errors[0]
+            assertEquals(listOf("node"), error.path)
+            assertTrue(error.message.contains("type checker failed"))
+        }
     }
 
     @Test
@@ -535,7 +541,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "node") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             type("Baz") {
@@ -546,13 +552,12 @@ class AccessCheckExecutionTest {
                     fn { _, _ -> /* access granted */ }
                 }
             }
-        }.toViaductBuilder().withoutDefaultQueryNodeResolvers().build() // Disabling built in resolvers for test
-            .runFeatureTest {
-                val result = viaduct.runQuery("{ node(id: \"a\") { id ... on Baz { x y } } }")
-                val expectedData = mapOf("node" to mapOf("id" to "1", "x" to 1, "y" to "1"))
-                assertEquals(expectedData, result.getData())
-                assertEquals(0, result.errors.size)
-            }
+        }.runFeatureTest(withoutDefaultQueryNodeResolvers = true) { // Disabling built in resolvers for test
+            val result = runQuery("{ node(id: \"a\") { id ... on Baz { x y } } }")
+            val expectedData = mapOf("node" to mapOf("id" to "1", "x" to 1, "y" to "1"))
+            assertEquals(expectedData, result.getData())
+            assertEquals(0, result.errors.size)
+        }
     }
 
     @Test
@@ -560,7 +565,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             field("Baz" to "y") {
@@ -585,7 +590,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ baz { id } }")
+            val result = runQuery("{ baz { id } }")
             assertEquals(mapOf("baz" to null), result.getData())
             assertEquals(1, result.errors.size)
             val error = result.errors[0]
@@ -599,7 +604,7 @@ class AccessCheckExecutionTest {
         MockTenantModuleBootstrapper(schema) {
             field("Query" to "baz") {
                 resolver {
-                    fn { _, _, _, _, ctx -> ctx.createNodeEngineObjectData("1", bazType) }
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
                 }
             }
             field("Baz" to "y") {
@@ -615,7 +620,7 @@ class AccessCheckExecutionTest {
             }
             type("Baz") {
                 nodeUnbatchedExecutor { id, _, _ ->
-                    MockEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                    mkEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
                 }
                 checker {
                     objectSelections("key", "fragment _ on Baz { y }")
@@ -628,7 +633,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ baz { id } }")
+            val result = runQuery("{ baz { id } }")
             assertEquals(mapOf("baz" to mapOf("id" to "1")), result.getData())
             assertEquals(0, result.errors.size)
         }
@@ -641,9 +646,9 @@ class AccessCheckExecutionTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         listOf(
-                            ctx.createNodeEngineObjectData("1", bazType),
-                            ctx.createNodeEngineObjectData("2", bazType),
-                            ctx.createNodeEngineObjectData("3", bazType),
+                            ctx.createNodeReference("1", bazType),
+                            ctx.createNodeReference("2", bazType),
+                            ctx.createNodeReference("3", bazType),
                         )
                     }
                 }
@@ -673,7 +678,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ bazList { id } }")
+            val result = runQuery("{ bazList { id } }")
             val expectedData = mapOf(
                 "bazList" to listOf(
                     mapOf("id" to "1"),
@@ -696,9 +701,9 @@ class AccessCheckExecutionTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         listOf(
-                            ctx.createNodeEngineObjectData("1", bazType),
-                            ctx.createNodeEngineObjectData("2", bazType),
-                            ctx.createNodeEngineObjectData("3", bazType),
+                            ctx.createNodeReference("1", bazType),
+                            ctx.createNodeReference("2", bazType),
+                            ctx.createNodeReference("3", bazType),
                         )
                     }
                 }
@@ -728,7 +733,7 @@ class AccessCheckExecutionTest {
                 }
             }
         }.runFeatureTest {
-            val result = viaduct.runQuery("{ bazList { id } }")
+            val result = runQuery("{ bazList { id } }")
             val expectedData = mapOf(
                 "bazList" to listOf(
                     mapOf("id" to "1"),
@@ -748,9 +753,9 @@ class AccessCheckExecutionTest {
                 resolver {
                     fn { _, _, _, _, ctx ->
                         listOf(
-                            ctx.createNodeEngineObjectData("1", bazType),
-                            ctx.createNodeEngineObjectData("2", barType),
-                            ctx.createNodeEngineObjectData("3", barType),
+                            ctx.createNodeReference("1", bazType),
+                            ctx.createNodeReference("2", barType),
+                            ctx.createNodeReference("3", barType),
                         )
                     }
                 }
@@ -794,21 +799,20 @@ class AccessCheckExecutionTest {
                     }
                 }
             }
-        }.toViaductBuilder().withoutDefaultQueryNodeResolvers().build() // Disabling built in resolvers for test
-            .runFeatureTest {
-                val result = viaduct.runQuery("{ nodes(ids: [\"1\", \"2\", \"3\"]) { id } }")
-                val expectedData = mapOf(
-                    "nodes" to listOf(
-                        mapOf("id" to "1"),
-                        null,
-                        mapOf("id" to "3")
-                    )
+        }.runFeatureTest(withoutDefaultQueryNodeResolvers = true) { // Disabling built in resolvers for test
+            val result = runQuery("{ nodes(ids: [\"1\", \"2\", \"3\"]) { id } }")
+            val expectedData = mapOf(
+                "nodes" to listOf(
+                    mapOf("id" to "1"),
+                    null,
+                    mapOf("id" to "3")
                 )
-                assertEquals(expectedData, result.getData())
-                assertEquals(1, result.errors.size)
-                val error = result.errors[0]
-                assertEquals(listOf("nodes", 1), error.path)
-                assertTrue(error.message.contains("permission denied for bar with internal ID 2"))
-            }
+            )
+            assertEquals(expectedData, result.getData())
+            assertEquals(1, result.errors.size)
+            val error = result.errors[0]
+            assertEquals(listOf("nodes", 1), error.path)
+            assertTrue(error.message.contains("permission denied for bar with internal ID 2"))
+        }
     }
 }

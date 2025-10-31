@@ -4,6 +4,10 @@ import java.io.File
 import java.net.URLClassLoader
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.jetbrains.gradle.ext.settings
+import org.jetbrains.gradle.ext.taskTriggers
 
 object ViaductPluginCommon {
     val VIADUCT_KIND: Attribute<String> =
@@ -28,15 +32,7 @@ object ViaductPluginCommon {
             this::class.java.getResourceAsStream("/plugin-version.txt")
                 ?.bufferedReader()?.use { it.readText().trim() }
 
-        val ALL_ARTIFACTS = setOf(
-            "engine-api",
-            "engine-runtime",
-            "service-api",
-            "service-runtime",
-            "service-wiring",
-            "tenant-api",
-            "tenant-runtime",
-            "tenant-codegen",
+        val SHARED_IMPLEMENTATION_ARTIFACTS = setOf(
             "shared-arbitrary",
             "shared-dataloader",
             "shared-utils",
@@ -49,9 +45,30 @@ object ViaductPluginCommon {
             "snipped-errors"
         )
 
-        val DEFAULT_APPLICATION_ARTIFACTS = ALL_ARTIFACTS
+        val ALL_APPLICATION_IMPLEMENTATION_ARTIFACTS = setOf(
+            "tenant-api",
+            "service-api",
+            "service-wiring",
+        )
 
-        val DEFAULT_MODULE_ARTIFACTS = ALL_ARTIFACTS
+        val ALL_TENANT_IMPLEMENTATION_ARTIFACTS = setOf(
+            "tenant-api",
+            "tenant-runtime", // needs to be here for generated code
+        )
+
+        val ALL_TEST_ARTIFACTS = setOf(
+            "engine-api",
+            "engine-runtime",
+            "engine-wiring",
+        )
+
+        val DEFAULT_APPLICATION_ARTIFACTS = SHARED_IMPLEMENTATION_ARTIFACTS + ALL_APPLICATION_IMPLEMENTATION_ARTIFACTS
+
+        val DEFAULT_APPLICATION_TEST_ARTIFACTS = ALL_TEST_ARTIFACTS
+
+        val DEFAULT_MODULE_ARTIFACTS = SHARED_IMPLEMENTATION_ARTIFACTS + ALL_TENANT_IMPLEMENTATION_ARTIFACTS
+
+        val DEFAULT_MODULE_TEST_ARTIFACTS = ALL_TEST_ARTIFACTS
 
         val DEFAULT_TEST_FIXTURES = setOf(
             "tenant-runtime"
@@ -107,12 +124,31 @@ object ViaductPluginCommon {
         }
     }
 
+    fun Project.addViaductTestDependencies(artifacts: Set<String>) {
+        artifacts.forEach { artifact ->
+            dependencies.add("testImplementation", "${BOM.GROUP_ID}:$artifact")
+        }
+    }
+
     fun Project.addViaductTestFixtures(artifacts: Set<String>) {
         artifacts.forEach { artifact ->
             dependencies.add(
                 "testImplementation",
                 dependencies.testFixtures("${BOM.GROUP_ID}:$artifact")
             )
+        }
+    }
+
+    fun Project.configureIdeaIntegration(generateGRTsTask: TaskProvider<*>) {
+        pluginManager.apply("org.jetbrains.gradle.plugin.idea-ext")
+
+        pluginManager.withPlugin("org.jetbrains.gradle.plugin.idea-ext") {
+            val ideaExtension = extensions.findByType(IdeaModel::class.java)
+            ideaExtension?.project?.settings {
+                taskTriggers {
+                    beforeSync(generateGRTsTask)
+                }
+            }
         }
     }
 }

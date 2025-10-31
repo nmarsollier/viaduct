@@ -4,59 +4,81 @@ import graphql.execution.instrumentation.Instrumentation
 import io.micrometer.core.instrument.MeterRegistry
 import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.slf4j.LoggerFactory
 import viaduct.api.FieldValue
-import viaduct.api.bootstrap.ViaductTenantAPIBootstrapper
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.context.NodeExecutionContext
-import viaduct.api.internal.ObjectBase
+import viaduct.api.internal.ReflectionLoader
 import viaduct.api.reflect.Type
 import viaduct.api.types.Arguments
 import viaduct.api.types.CompositeOutput
 import viaduct.api.types.NodeObject
 import viaduct.api.types.Object
 import viaduct.api.types.Query
+import viaduct.engine.SchemaFactory
 import viaduct.engine.api.CheckerExecutor
 import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.SelectionSetVariable
+import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.service.api.spi.Flags
+import viaduct.service.api.spi.ResolverErrorReporter
 import viaduct.service.api.spi.mocks.MockFlagManager
-import viaduct.service.runtime.SchemaRegistryConfiguration
+import viaduct.service.runtime.SchemaConfiguration
 import viaduct.service.runtime.StandardViaduct
-import viaduct.tenant.runtime.context.factory.ArgumentsArgs
-import viaduct.tenant.runtime.context.factory.ArgumentsFactory
-import viaduct.tenant.runtime.context.factory.Factory
-import viaduct.tenant.runtime.context.factory.FieldExecutionContextMetaFactory
-import viaduct.tenant.runtime.context.factory.NodeExecutionContextMetaFactory
-import viaduct.tenant.runtime.context.factory.ObjectFactory
-import viaduct.tenant.runtime.context.factory.SelectionSetFactory as SelectionSetContextFactory
+import viaduct.tenant.runtime.context.factory.NodeExecutionContextFactory
+import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
+import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
 /**
  * Configuration for [FeatureTest].
- * Provides resolvers, schema, and a test Guice module for a test Viaduct Modern engine.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ *    FeatureTestBuilder(<schema>)
+ *      // configure a resolver class for a schema field
+ *      .resolver(Query::class, FooField::class, FooFieldResolver::class)
+ *      // or configure a resolver function that uses GRTs
+ *      .resolver("Query" to "bar") { Bar.newBuilder(it).value(2).build() }
+ *      // or configure a simple resolver function that does not read or write GRTs
+ *      .resolver("Query" to "baz") { mapOf("value" to 2) }
+ *      .build()
+ * ```
+ *
+ * Creates a [FeatureTest] whose embedded [StandardViaduct] instance is configured with
+ * the given schema and resolvers.  This instance log data-fetching exceptions using
+ * SLF4J at info level to make their full stack trace available for debugging tests.
  */
 @ExperimentalCoroutinesApi
 @Suppress("ktlint:standard:indent")
-class FeatureTestBuilder {
-    companion object {
-        internal const val SCHEMA_ID = "scopedSchema"
+class FeatureTestBuilder(
+    private val sdl: String,
+    private val useFakeGRTs: Boolean = false,
+    private val instrumentation: Instrumentation? = null,
+    private val meterRegistry: MeterRegistry? = null
+) {
+    private val reflectionLoaderForFeatureTestBootstrapper: ReflectionLoader = run {
+        if (useFakeGRTs) {
+            FakeReflectionLoader(SchemaFactory().fromSdl(sdl))
+        } else {
+            ReflectionLoaderImpl { name -> Class.forName("viaduct.tenant.runtime.featuretests.fixtures.$name").kotlin }
+        }
     }
 
-    lateinit var sdl: String
-    private var scopedSchemaSdl: String? = null
-    private var grtPackage: String? = null
+    private val globalIDCodec = GlobalIDCodecImpl(reflectionLoaderForFeatureTestBootstrapper)
+
+    // These are all mutated by the resolver-setting functions below
     private val packageToResolverBases = mutableMapOf<String, Set<Class<*>>>()
     private val resolverStubs = mutableMapOf<Coordinate, FieldUnbatchedResolverStub<*>>()
     private val nodeUnbatchedResolverStubs = mutableMapOf<String, NodeUnbatchedResolverStub>()
     private val nodeBatchResolverStubs = mutableMapOf<String, NodeBatchResolverStub>()
     private val fieldCheckerStubs = mutableMapOf<Coordinate, CheckerExecutorStub>()
     private val typeCheckerStubs = mutableMapOf<String, CheckerExecutorStub>()
-    private var instrumentation: Instrumentation? = null
-    private var meterRegistry: MeterRegistry? = null
 
     /**
      * Configure a resolver that binds the provided [resolveFn] to the provided schema [coordinate].
@@ -93,6 +115,7 @@ class FeatureTestBuilder {
             resolverName
         )
 
+    @Suppress("UNUSED", "UNUSED_PARAMETER", "UNUSED_VARIABLE")
     fun <
         Ctx : FieldExecutionContext<T, Q, A, O>,
         T : Object,
@@ -112,43 +135,15 @@ class FeatureTestBuilder {
         variablesProvider: VariablesProviderInfo? = null,
         resolverName: String? = null
     ): FeatureTestBuilder {
-        val objFactory =
-            ObjectFactory.forClass(
-                objCls
-                    .takeIf { it.supertypes.any { it.classifier == ObjectBase::class } }
-                    ?: ObjectStub::class
-            )
-
-        val queryFactory =
-            ObjectFactory.forClass(
-                queryCls
-                    .takeIf { it.supertypes.any { it.classifier == Query::class } }
-                    ?: QueryStub::class
-            )
-
-        val argsFactory = ArgumentsFactory.ifClass(argumentsCls)
-            ?: Factory { args: ArgumentsArgs -> ArgumentsStub(args.arguments) }
-
-        val ctxFactory = FieldExecutionContextMetaFactory.create(
-            objFactory,
-            queryFactory,
-            argsFactory,
-            SelectionSetContextFactory.forClass(outputCls)
-        )
-
         val objectSelections = objectValueFragment?.let { SelectionsParser.parse(coordinate.first, it) }
         val querySelections = queryValueFragment?.let {
-            checkNotNull(this.sdl) {
-                "Cannot set queryValueFragment before setting sdl"
-            }
             SelectionsParser.parse("Query", it)
         }
         resolverStubs[coordinate] =
             FieldUnbatchedResolverStub<Ctx>(
                 objectSelections = objectSelections,
                 querySelections = querySelections,
-                resolverFactory = ctxFactory,
-                argumentsFactory = argsFactory,
+                coord = coordinate,
                 variables = variables,
                 resolveFn = { ctx ->
                     @Suppress("UNCHECKED_CAST")
@@ -173,7 +168,7 @@ class FeatureTestBuilder {
         resolverName: String? = null,
         resolveFn: suspend (ctx: UntypedFieldContext) -> Any?,
     ): FeatureTestBuilder =
-        resolver<UntypedFieldContext, ObjectStub, QueryStub, ArgumentsStub, CompositeStub>(
+        resolver<UntypedFieldContext, viaduct.api.types.Object, viaduct.api.types.Query, viaduct.api.types.Arguments, CompositeOutput>(
             coordinate = coordinate,
             resolveFn = resolveFn,
             resolverName = resolverName
@@ -191,7 +186,7 @@ class FeatureTestBuilder {
         resolverName: String? = null,
         resolveFn: suspend (ctx: UntypedMutationFieldContext) -> Any?,
     ): FeatureTestBuilder =
-        resolver<UntypedMutationFieldContext, ObjectStub, QueryStub, ArgumentsStub, CompositeStub>(
+        resolver<UntypedMutationFieldContext, viaduct.api.types.Object, viaduct.api.types.Query, viaduct.api.types.Arguments, CompositeOutput>(
             coordinate = coordinate,
             resolveFn = resolveFn,
             resolverName = resolverName
@@ -220,9 +215,15 @@ class FeatureTestBuilder {
         typeName: String,
         resolveFn: suspend (ctx: Ctx) -> NodeObject
     ): FeatureTestBuilder {
+        @Suppress("UNCHECKED_CAST")
+        val resultType = reflectionLoaderForFeatureTestBootstrapper.reflectionFor(typeName) as Type<NodeObject>
+
         val resolver = NodeUnbatchedResolverStub(
-            NodeExecutionContextMetaFactory.create(
-                selections = SelectionSetContextFactory.forTypeName(typeName)
+            NodeExecutionContextFactory(
+                NodeExecutionContextFactory.FakeResolverBase::class.java,
+                globalIDCodec,
+                reflectionLoaderForFeatureTestBootstrapper,
+                resultType,
             )
         ) { ctx ->
             @Suppress("UNCHECKED_CAST")
@@ -249,9 +250,14 @@ class FeatureTestBuilder {
         typeName: String,
         batchResolveFn: suspend (ctxs: List<Ctx>) -> List<FieldValue<NodeObject>>
     ): FeatureTestBuilder {
+        val resultType = reflectionLoaderForFeatureTestBootstrapper.reflectionFor(typeName) as Type<NodeObject>
+
         val resolver = NodeBatchResolverStub(
-            NodeExecutionContextMetaFactory.create(
-                selections = SelectionSetContextFactory.forTypeName(typeName)
+            NodeExecutionContextFactory(
+                NodeExecutionContextFactory.FakeResolverBase::class.java,
+                globalIDCodec,
+                reflectionLoaderForFeatureTestBootstrapper,
+                resultType,
             )
         ) { ctxs ->
             batchResolveFn(ctxs as List<Ctx>)
@@ -305,7 +311,8 @@ class FeatureTestBuilder {
                 checkerKey,
                 RequiredSelectionSet(
                     SelectionsParser.parse(typeName, selectionsString),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true,
                 )
             )
         }.toMap()
@@ -329,76 +336,23 @@ class FeatureTestBuilder {
         return this
     }
 
-    /**
-     * Registers the full schema for the test Viaduct Modern engine.
-     */
-    fun sdl(schema: String): FeatureTestBuilder {
-        sdl = schema
-        return this
-    }
-
-    /**
-     * Registers the scoped schema for the test Viaduct Modern engine.
-     */
-    fun scopedSchemaSdl(schema: String): FeatureTestBuilder {
-        scopedSchemaSdl = schema
-        return this
-    }
-
-    /** set the grtPackage to the provided value */
-    fun grtPackage(grtPackage: String): FeatureTestBuilder =
-        this.also {
-            this.grtPackage = grtPackage
-        }
-
-    /** set the grtPackage to a value derived from the provided KClass */
-    fun grtPackage(cls: KClass<*>): FeatureTestBuilder =
-        this.also {
-            cls.qualifiedName?.also {
-                grtPackage(it.split(".").dropLast(1).joinToString("."))
-            }
-        }
-
-    /** set the grtPackage to a value derived from the provided Type */
-    fun grtPackage(type: Type<*>): FeatureTestBuilder = grtPackage(type.kcls)
-
-    /** chain the instrumentation with the default instrumentations */
-    fun instrumentation(instrumentation: Instrumentation): FeatureTestBuilder =
-        this.also {
-            this.instrumentation = instrumentation
-        }
-
-    fun meterRegistry(meterRegistry: MeterRegistry) =
-        this.also {
-            this.meterRegistry = meterRegistry
-        }
-
     fun build(): FeatureTest {
-        val tenantPackageFinder = TestTenantPackageFinder(packageToResolverBases)
+        TestTenantPackageFinder(packageToResolverBases)
 
         val featureTestTenantAPIBootstrapperBuilder = FeatureTestTenantAPIBootstrapperBuilder(
             resolverStubs,
             nodeUnbatchedResolverStubs,
             nodeBatchResolverStubs,
+            reflectionLoaderForFeatureTestBootstrapper,
+            globalIDCodec,
+        )
+
+        val builders = listOf(featureTestTenantAPIBootstrapperBuilder)
+        val schemaConfiguration = SchemaConfiguration.fromSdl(
+            sdl = sdl
         )
 
         @Suppress("DEPRECATION")
-        val viaductTenantAPIBootstrapperBuilder = ViaductTenantAPIBootstrapper.Builder().tenantPackageFinder(tenantPackageFinder)
-        val builders = listOf(viaductTenantAPIBootstrapperBuilder, featureTestTenantAPIBootstrapperBuilder)
-        val schemaRegistryConfiguration = if (scopedSchemaSdl != null) {
-            // Register scoped schema when scopedSchemaSdl is provided
-            SchemaRegistryConfiguration.fromSdl(
-                sdl = sdl,
-                scopes = setOf(SchemaRegistryConfiguration.ScopeConfig(SCHEMA_ID, emptySet()))
-            )
-        } else {
-            // Register full schema when no scoped SDL
-            SchemaRegistryConfiguration.fromSdl(
-                sdl = sdl,
-                fullSchemaIds = listOf(SCHEMA_ID)
-            )
-        }
-
         val standardViaduct = StandardViaduct.Builder()
             .withTenantAPIBootstrapperBuilders(builders)
             .withFlagManager(
@@ -406,15 +360,20 @@ class FeatureTestBuilder {
                     Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY
                 )
             )
-            .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
+            .allowSubscriptions(true)
+            .withSchemaConfiguration(schemaConfiguration)
             .withCheckerExecutorFactory(
                 object : CheckerExecutorFactory {
                     override fun checkerExecutorForField(
+                        schema: ViaductSchema,
                         typeName: String,
                         fieldName: String
                     ): CheckerExecutor? = fieldCheckerStubs[typeName to fieldName]
 
-                    override fun checkerExecutorForType(typeName: String): CheckerExecutor? = typeCheckerStubs[typeName]
+                    override fun checkerExecutorForType(
+                        schema: ViaductSchema,
+                        typeName: String
+                    ): CheckerExecutor? = typeCheckerStubs[typeName]
                 }
             )
 
@@ -430,6 +389,18 @@ class FeatureTestBuilder {
             standardViaduct.withMeterRegistry(it)
         }
 
+        // Log data-fetcher exceptions for diagnostic purposes
+        standardViaduct.withResolverErrorReporter(
+            ResolverErrorReporter { exception, _, _, errorMessage, metadata ->
+                logger.info("Resolver error: $errorMessage", exception)
+                logger.info("Error metadata: $metadata")
+            }
+        )
+
         return FeatureTest(standardViaduct.build())
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(FeatureTestBuilder::class.java)
     }
 }

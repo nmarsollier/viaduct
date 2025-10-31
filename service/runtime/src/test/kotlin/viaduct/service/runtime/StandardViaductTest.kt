@@ -12,17 +12,21 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import viaduct.engine.api.FragmentLoader
+import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.runtime.execution.TenantNameResolver
 import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.service.api.ExecutionInput
+import viaduct.service.api.SchemaId
 import viaduct.service.api.spi.FlagManager
 
 class StandardViaductTest {
@@ -51,13 +55,13 @@ class StandardViaductTest {
                 }
             """
 
-        val schemaRegistryConfiguration = SchemaRegistryConfiguration.fromSdl(sdl, fullSchemaIds = listOf(SCHEMA_ID))
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
 
         subject = StandardViaduct.Builder()
             .withFlagManager(flagManager)
             .withNoTenantAPIBootstrapper()
             .withDataFetcherExceptionHandler(dataFetcherExceptionHandler)
-            .withSchemaRegistryConfiguration(schemaRegistryConfiguration)
+            .withSchemaConfiguration(schemaConfiguration)
             .build()
     }
 
@@ -124,15 +128,16 @@ class StandardViaductTest {
             """.trimIndent()
         )
 
-        val config = SchemaRegistryConfiguration.fromSchema(
+        val schemaId = SchemaId.Scoped(SCHEMA_ID, setOf("scope1"))
+        val config = SchemaConfiguration.fromSchema(
             fullSchema,
-            scopes = setOf(SchemaRegistryConfiguration.ScopeConfig(SCHEMA_ID, setOf("scope1")))
+            scopes = setOf(schemaId.toScopeConfig())
         )
-        val viaductBuilder = StandardViaduct.Builder().withSchemaRegistryConfiguration(config)
+        val viaductBuilder = StandardViaduct.Builder().withSchemaConfiguration(config)
 
         val stdViaduct = viaductBuilder.build()
-        val queryType = stdViaduct.getSchema(SCHEMA_ID)?.schema?.typeMap?.get("Query") as GraphQLObjectType?
-        val queryFields = queryType?.fieldDefinitions?.map { it.name }
+        val queryType = stdViaduct.getSchema(schemaId).schema.typeMap["Query"] as GraphQLObjectType
+        val queryFields = queryType.fieldDefinitions?.map { it.name }
 
         assertEquals(listOf("field1", "node", "nodes"), queryFields)
     }
@@ -141,39 +146,86 @@ class StandardViaductTest {
     fun `executeAsync returns error for missing schema`() {
         val query = "{ test }"
         val context = mapOf("userId" to "user123")
-        val executionInput = ExecutionInput.create(schemaId = "missing_schema_id", operationText = query, requestContext = context)
+        val executionInput = ExecutionInput.create(operationText = query, requestContext = context)
 
         createSimpleStandardViaduct()
 
         runBlocking {
-            val result = subject.executeAsync(executionInput).join()
+            val result = subject.executeAsync(executionInput, SchemaId.None).join()
             val errors = result.errors
             assertEquals(1, errors.size)
-            assertEquals("Schema not found for schemaId=missing_schema_id", errors.first().message)
+            assertEquals("Schema not found for schemaId=SchemaId(id='NONE')", errors.first().message)
             assertNull(result.getData())
         }
     }
 
     @Test
-    fun `test newForSchema creates new instance with different schema registry`() {
-        createSimpleStandardViaduct()
-        // Create a new schema configuration
-        val sdl =
-            """
+    fun `build should throw GraphQLBuildError when schema contains Subscription extension in OSS mode`() {
+        val sdl = """
             extend type Query {
-                newTest: String
+                user: String
             }
-            """
 
-        val newSchemaRegistryConfig = SchemaRegistryConfiguration.fromSdl(sdl, fullSchemaIds = listOf("new_schema"))
+            extend type Subscription {
+                userUpdated: String
+            }
+        """.trimIndent()
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
 
-        val newViaduct = subject.newForSchema(newSchemaRegistryConfig)
+        val exception = assertThrows<GraphQLBuildError> {
+            StandardViaduct.Builder()
+                .withNoTenantAPIBootstrapper()
+                .withSchemaConfiguration(schemaConfiguration)
+                .build()
+        }
 
-        // Verify that we got a new instance with different schema registry
-        assertNotNull(newViaduct)
-        assertNotNull(newViaduct.viaductSchemaRegistry)
-        // The schema registries should be different instances
-        assertTrue(newViaduct.viaductSchemaRegistry != subject.viaductSchemaRegistry)
+        assertEquals("Viaduct does not currently support subscriptions.", exception.message)
+    }
+
+    @Test
+    fun `build should allow Subscription when airbnbModeEnabled is true`() {
+        val sdl = """
+            extend type Query {
+                user: String
+            }
+
+            extend type Subscription {
+                userUpdated: String
+            }
+        """.trimIndent()
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
+        val fragmentLoader = mockk<FragmentLoader>(relaxed = true)
+
+        assertDoesNotThrow {
+            StandardViaduct.Builder()
+                .enableAirbnbBypassDoNotUse(
+                    fragmentLoader = fragmentLoader,
+                    tenantNameResolver = TenantNameResolver()
+                )
+                .withSchemaConfiguration(schemaConfiguration)
+                .build()
+        }
+    }
+
+    @Test
+    fun `build should succeed when schema has no Subscriptions in OSS mode`() {
+        val sdl = """
+            extend type Query {
+                user: String
+            }
+
+            extend type Mutation {
+                updateUser: String
+            }
+        """.trimIndent()
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
+
+        assertDoesNotThrow {
+            StandardViaduct.Builder()
+                .withNoTenantAPIBootstrapper()
+                .withSchemaConfiguration(schemaConfiguration)
+                .build()
+        }
     }
 }
 

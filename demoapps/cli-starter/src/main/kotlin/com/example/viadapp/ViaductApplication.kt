@@ -1,39 +1,32 @@
 @file:Suppress("ForbiddenImport")
+// tag::application-kt[51] Setup of the main application to create and execute viaduct.
 
 package com.example.viadapp
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import viaduct.engine.runtime.execution.withThreadLocalCoroutineContext
 import viaduct.service.BasicViaductFactory
-import viaduct.service.SchemaRegistrationInfo
-import viaduct.service.SchemaScopeInfo
 import viaduct.service.TenantRegistrationInfo
 import viaduct.service.api.ExecutionInput
-
-const val SCHEMA_ID = "publicSchema"
 
 fun main(argv: Array<String>) {
     val rootLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as Logger
     rootLogger.level = Level.ERROR
 
     // Create a Viaduct engine using the BasicViaductFactory
+    // tag::building-viaduct[5] Building viaduct from BasicViaductFactory
     val viaduct = BasicViaductFactory.create(
-        schemaRegistrationInfo = SchemaRegistrationInfo(
-            scopes = listOf(SchemaScopeInfo(SCHEMA_ID))
-        ),
         tenantRegistrationInfo = TenantRegistrationInfo(
             tenantPackagePrefix = "com.example.viadapp"
         )
     )
 
     // Create an execution input
+    // tag::create-execution-input[12] Creating an execution input
     val executionInput = ExecutionInput.create(
-        schemaId = SCHEMA_ID,
         operationText = (
             argv.getOrNull(0)
                 ?: """
@@ -46,14 +39,9 @@ fun main(argv: Array<String>) {
     )
 
     // Run the query
+    // tag::viaduct-execute-operation[3] Execute a query through Viaduct.
     val result = runBlocking {
-        // Note to reviewers: in the future the next two scope functions
-        // will go away
-        coroutineScope {
-            withThreadLocalCoroutineContext {
-                viaduct.execute(executionInput)
-            }
-        }
+        viaduct.execute(executionInput)
     }
 
     // [toSpecification] converts to JSON as described in the GraphQL

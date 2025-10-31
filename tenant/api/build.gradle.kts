@@ -14,9 +14,11 @@ viaductPublishing {
 }
 
 dependencies {
-    api(libs.graphql.java)
-    api(libs.javax.inject)
-    api(libs.viaduct.engine.api)
+    implementation(libs.graphql.java)
+    implementation(libs.javax.inject)
+    implementation(libs.viaduct.engine.api)
+
+    implementation(libs.guava)
 
     implementation(libs.viaduct.shared.utils)
     implementation(libs.viaduct.shared.viaductschema)
@@ -27,6 +29,7 @@ dependencies {
     testFixturesApi(libs.viaduct.shared.viaductschema)
 
     testFixturesImplementation(testFixtures(libs.viaduct.engine.api))
+    testFixturesImplementation(libs.viaduct.tenant.runtime)
 
     testImplementation(testFixtures(libs.viaduct.engine.api))
     testImplementation(libs.viaduct.tenant.runtime)

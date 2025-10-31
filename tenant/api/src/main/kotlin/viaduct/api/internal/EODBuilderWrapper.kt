@@ -11,6 +11,7 @@ import graphql.schema.GraphQLTypeUtil
 import viaduct.api.ViaductFrameworkException
 import viaduct.api.globalid.GlobalID
 import viaduct.api.globalid.GlobalIDCodec
+import viaduct.engine.api.EngineObject
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.EngineObjectDataBuilder
 
@@ -80,10 +81,11 @@ internal class EODBuilderWrapper(
     }
 
     private fun unwrapEnum(value: Any): String {
-        if (value !is Enum<*>) {
-            throw IllegalArgumentException("Got non-enum value $value for enum type")
+        return when (value) {
+            is Enum<*> -> value.name
+            is String -> value // Allow strings for schema version skew tolerance
+            else -> throw IllegalArgumentException("Got non-enum value $value for enum type (expected Enum or String)")
         }
-        return value.name
     }
 
     private fun unwrapGlobalID(value: Any): String = globalIDCodec.serialize(value as GlobalID<*>)
@@ -101,10 +103,10 @@ internal class EODBuilderWrapper(
         }
     }
 
-    private fun unwrapObject(value: Any): EngineObjectData {
+    private fun unwrapObject(value: Any): EngineObject {
         return when (value) {
             is ObjectBase -> {
-                value.engineObjectData
+                value.engineObject
             }
 
             is EngineObjectData -> {

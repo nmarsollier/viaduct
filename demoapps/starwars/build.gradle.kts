@@ -1,15 +1,28 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
-    alias(libs.plugins.kotlinSpring)
-    alias(libs.plugins.springBoot)
-    alias(libs.plugins.dependencyManagement)
+    alias(libs.plugins.kotlinKapt)
+    alias(libs.plugins.micronautApplication)
     alias(libs.plugins.viaduct.application)
     jacoco
 }
 
 viaductApplication {
     grtPackageName.set("viaduct.api.grts")
-    modulePackagePrefix.set("viaduct.demoapp")
+    modulePackagePrefix.set("com.example.starwars")
+}
+
+micronaut {
+    runtime("netty")
+    testRuntime("junit")
+    processing {
+        incremental(true)
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force(libs.guice)
+    }
 }
 
 dependencies {
@@ -17,25 +30,36 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.reactor)
     implementation(libs.reactor.core)
-    implementation(libs.spring.boot.starter.graphql)
-    implementation(libs.spring.boot.starter.web)
+    implementation(libs.micronaut.graphql)
+    implementation(libs.micronaut.http.server.netty)
+    implementation(libs.micronaut.jackson.databind)
+    implementation(libs.micronaut.inject)
 
-    runtimeOnly(project(":modules:starwars"))
-    runtimeOnly(project(":modules:starships"))
+    kapt(libs.micronaut.inject.java)
+    kapt(libs.micronaut.inject.kotlin)
 
-    testImplementation(libs.spring.boot.starter.test) {
-        exclude(module = "junit")
-    }
+    runtimeOnly(libs.logback.classic)
+
+    runtimeOnly(project(":modules:filmography"))
+    runtimeOnly(project(":modules:universe"))
+
+    testImplementation(libs.micronaut.test.kotest5)
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.assertj.core)
 
     testRuntimeOnly(libs.junit.platform.launcher)
 
-    testImplementation(libs.io.mockk.jvm)
-    testImplementation(project(":modules:starwars"))
-    testImplementation(project(":modules:starships"))
+    testImplementation(project(":modules:filmography"))
+    testImplementation(project(":modules:universe"))
     testImplementation(libs.kotest.runner.junit)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.assertions.json)
+    testImplementation(libs.viaduct.engine.wiring)
+    testImplementation(libs.micronaut.http.client)
+}
+
+application {
+    mainClass = "com.example.starwars.service.ApplicationKt"
 }
 
 tasks.withType<Test> {
@@ -47,3 +71,4 @@ tasks.withType<JavaExec> {
         "--add-opens", "java.base/java.lang=ALL-UNNAMED"
     )
 }
+

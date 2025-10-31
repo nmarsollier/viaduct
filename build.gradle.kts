@@ -1,5 +1,4 @@
 plugins {
-    id("buildroot.dependency-analysis")
     id("buildroot.orchestration")
     id("buildroot.versioning")
     jacoco
@@ -9,7 +8,7 @@ plugins {
 
 orchestration {
     participatingIncludedBuilds.set(
-        listOf("core", "codegen", "gradle-plugins")
+        listOf("core", "gradle-plugins")
     )
 }
 
@@ -44,7 +43,7 @@ dependencies {
 reporting {
     reports {
         val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
-            testSuiteName = "test"
+            testType = TestSuiteType.UNIT_TEST
         }
     }
 }

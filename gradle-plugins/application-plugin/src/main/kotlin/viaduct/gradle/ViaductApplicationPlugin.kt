@@ -13,8 +13,10 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.register
 import viaduct.gradle.ViaductPluginCommon.addViaductDependencies
+import viaduct.gradle.ViaductPluginCommon.addViaductTestDependencies
 import viaduct.gradle.ViaductPluginCommon.addViaductTestFixtures
 import viaduct.gradle.ViaductPluginCommon.applyViaductBOM
+import viaduct.gradle.ViaductPluginCommon.configureIdeaIntegration
 import viaduct.gradle.task.AssembleCentralSchemaTask
 import viaduct.gradle.task.GenerateGRTClassFilesTask
 
@@ -30,19 +32,20 @@ class ViaductApplicationPlugin : Plugin<Project> {
             // Set default BOM version to plugin version
             appExt.bomVersion.convention(ViaductPluginCommon.BOM.getDefaultVersion())
 
-            plugins.withId("java") {
-                if (appExt.applyBOM.get()) {
-                    applyViaductBOM(appExt.bomVersion.get())
-                    addViaductDependencies(appExt.viaductDependencies.get())
-                    addViaductTestFixtures(appExt.viaductTestFixtures.get())
-                }
-            }
-
             val assembleCentralSchemaTask = setupAssembleCentralSchemaTask()
             setupOutgoingConfigurationForCentralSchema(assembleCentralSchemaTask)
 
             val generateGRTsTask = setupGenerateGRTsTask(appExt, assembleCentralSchemaTask)
 
+            plugins.withId("java") {
+                if (appExt.applyBOM.get()) {
+                    applyViaductBOM(appExt.bomVersion.get())
+                    addViaductDependencies(appExt.viaductDependencies.get())
+                    addViaductTestDependencies(appExt.viaductTestDependencies.get())
+                    addViaductTestFixtures(appExt.viaductTestFixtures.get())
+                }
+            }
+            configureIdeaIntegration(generateGRTsTask)
             setupConsumableConfigurationForGRT(generateGRTsTask.flatMap { it.archiveFile })
 
             this.dependencies.add("api", files(generateGRTsTask.flatMap { it.archiveFile }))
@@ -58,6 +61,16 @@ class ViaductApplicationPlugin : Plugin<Project> {
 
         val assembleCentralSchemaTask = tasks.register<AssembleCentralSchemaTask>("assembleViaductCentralSchema") {
             schemaPartitions.setFrom(allPartitions.incoming.artifactView {}.files)
+
+            val baseSchemaDir = project.file("src/main/viaduct/schemabase")
+            if (baseSchemaDir.exists()) {
+                baseSchemaFiles.setFrom(
+                    project.fileTree(baseSchemaDir) {
+                        include("**/*.graphqls")
+                    }
+                )
+            }
+
             outputDirectory.set(centralSchemaDirectory())
         }
 

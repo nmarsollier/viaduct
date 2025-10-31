@@ -1,11 +1,9 @@
 import viaduct.gradle.internal.includeNamed
 
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
     includeBuild("build-logic")
     includeBuild("build-test-plugins")
+    includeBuild("gradle-plugins")
 }
 
 plugins {
@@ -17,7 +15,6 @@ rootProject.name = "viaduct"
 
 includeBuild(".")
 includeBuild("included-builds/core")
-includeBuild("included-builds/codegen")
 includeBuild("gradle-plugins") {
     dependencySubstitution {
         substitute(module("com.airbnb.viaduct:gradle-plugins-common")).using(project(":common"))
@@ -28,6 +25,7 @@ includeBuild("gradle-plugins") {
 
 // demo apps
 includeBuild("demoapps/cli-starter")
+includeBuild("demoapps/ktor-starter")
 includeBuild("demoapps/starwars")
 includeBuild("demoapps/spring-starter")
 
@@ -36,8 +34,6 @@ include(":tenant:codegen-integration-tests")
 include(":tenant:api-integration-tests")
 include(":tenant:runtime-integration-tests")
 include(":tenant:tutorials")
-include(":tenant:wiring")
-
 
 // misc
 include(":docs")

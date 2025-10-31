@@ -1,66 +1,45 @@
-@file:Suppress("ForbiddenImport")
-
 package viaduct.tenant.runtime.context
 
-import graphql.schema.GraphQLObjectType
-import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.api.globalid.GlobalID
-import viaduct.api.internal.NodeReferenceFactory
-import viaduct.api.internal.select.SelectionSetFactory
-import viaduct.api.internal.select.SelectionsLoader
 import viaduct.api.mocks.MockGlobalIDCodec
 import viaduct.api.mocks.MockInternalContext
 import viaduct.api.select.SelectionSet
-import viaduct.api.types.Query as QueryType
-import viaduct.engine.api.EngineExecutionContext
-import viaduct.engine.api.mocks.mkRawSelectionSetFactory
+import viaduct.api.types.NodeObject
 import viaduct.engine.api.mocks.variables
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.globalid.GlobalIdFeatureAppTest
 import viaduct.tenant.runtime.globalid.Query
 import viaduct.tenant.runtime.globalid.User
-import viaduct.tenant.runtime.internal.NodeReferenceFactoryImpl
-import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
 import viaduct.tenant.runtime.select.SelectionSetImpl
 
-class NodeExecutionContextImplTest {
-    private val userId = GlobalIDImpl(User.Reflection, "123")
+@ExperimentalCoroutinesApi
+class NodeExecutionContextImplTest : ContextTestBase() {
     private val queryObject = mockk<Query>()
-    private val rawSelectionSetFactory = mkRawSelectionSetFactory(GlobalIdFeatureAppTest.schema)
-
-    private val engineExecutionContext = mockk<EngineExecutionContext> {
-        every { fullSchema } returns GlobalIdFeatureAppTest.schema
-        every { createNodeEngineObjectData(any(), any()) } returns mockk {
-            every { graphQLObjectType } returns mockk()
-        }
-    }
+    private val userId: GlobalID<NodeObject> = GlobalIDImpl(User.Reflection, "123")
 
     private fun mk(
-        userId: GlobalID<User> = this.userId,
-        selectionSet: SelectionSet<User> = mockk<SelectionSet<User>>(),
-        queryLoader: SelectionsLoader<QueryType> = SelectionsLoader.const(queryObject),
-        selectionSetFactory: SelectionSetFactory = SelectionSetFactoryImpl(rawSelectionSetFactory),
-        nodeReferenceFactory: NodeReferenceFactory = NodeReferenceFactoryImpl {
-                id: String,
-                graphQLObjectType: GraphQLObjectType,
-            ->
-            engineExecutionContext.createNodeEngineObjectData(id, graphQLObjectType)
-        }
-    ) = NodeExecutionContextImpl(
-        ResolverExecutionContextImpl(
+        userId: GlobalID<NodeObject> = this.userId,
+        selectionSet: SelectionSet<NodeObject> = mockk<SelectionSet<NodeObject>>()
+    ): NodeExecutionContextImpl {
+        val wrapper = createMockingWrapper(
+            schema = GlobalIdFeatureAppTest.schema,
+            queryMock = queryObject
+        )
+
+        return NodeExecutionContextImpl(
             MockInternalContext(GlobalIdFeatureAppTest.schema, MockGlobalIDCodec()),
-            queryLoader,
-            selectionSetFactory,
-            nodeReferenceFactory
-        ),
-        userId,
-        selectionSet
-    )
+            wrapper,
+            selectionSet,
+            null, // requestContext
+            userId
+        )
+    }
 
     @Test
     fun properties() {
@@ -78,8 +57,8 @@ class NodeExecutionContextImplTest {
     }
 
     @Test
-    fun query(): Unit =
-        runBlocking {
+    fun query() =
+        runBlockingTest {
             val ctx = mk()
             ctx.selectionsFor(Query.Reflection, "__typename").also {
                 assertTrue(it.contains(Query.Reflection.Fields.__typename))
@@ -93,6 +72,8 @@ class NodeExecutionContextImplTest {
     @Test
     fun nodeFor() {
         val ctx = mk()
+        // Just verify the method can be called without throwing - actual node resolution
+        // would require more complex setup of engine execution context mocking
         ctx.nodeFor(userId)
     }
 }

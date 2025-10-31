@@ -14,13 +14,8 @@ import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.FieldResolverExecutor.Selector
 import viaduct.engine.api.RequiredSelectionSet
-import viaduct.tenant.runtime.context.factory.FieldArgs
+import viaduct.engine.api.ResolverMetadata
 import viaduct.tenant.runtime.context.factory.FieldExecutionContextFactory
-import viaduct.tenant.runtime.internal.InternalContextImpl
-import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
-import viaduct.tenant.runtime.select.SelectionsLoaderImpl
-
-// TODO: import viaduct.tenant.runtime.context2.FieldExecutionContextImpl
 
 /**
  * Executes a tenant-written field resolver's batchResolve function.
@@ -37,10 +32,9 @@ class FieldBatchResolverExecutorImpl(
     private val globalIDCodec: GlobalIDCodec,
     private val reflectionLoader: ReflectionLoader,
     private val resolverContextFactory: FieldExecutionContextFactory,
+    private val resolverName: String,
 ) : FieldResolverExecutor {
-    override val metadata: Map<String, String> = mapOf(
-        "flavor" to "modern",
-    )
+    override val metadata = ResolverMetadata.forModern(resolverName)
 
     override val isBatching = true
 
@@ -49,30 +43,13 @@ class FieldBatchResolverExecutorImpl(
         context: EngineExecutionContext
     ): Map<Selector, Result<Any?>> {
         val contexts = selectors.map { key ->
-/*
-            FieldExecutionContextImpl<*,*,*,*>(
-                schema = context.fullSchema,
-                globalIDCodec = globalIDCodec,
-                reflectionLoader = reflectionLoader,
-                arguments = key.arguments,
-                objectValue = key.objectValue,
-                queryValue = key.queryValue,
-                selections = key.selections,
+            resolverContextFactory(
                 engineExecutionContext = context,
-            )
-*/
-            resolverContextFactory.make(
-                FieldArgs(
-                    internalContext = InternalContextImpl(context.fullSchema, globalIDCodec, reflectionLoader),
-                    arguments = key.arguments,
-                    objectValue = key.objectValue,
-                    queryValue = key.queryValue,
-                    resolverId = resolverId,
-                    selectionSetFactory = SelectionSetFactoryImpl(context.rawSelectionSetFactory),
-                    selections = key.selections,
-                    selectionsLoaderFactory = SelectionsLoaderImpl.Factory(context.rawSelectionsLoaderFactory),
-                    engineExecutionContext = context,
-                )
+                requestContext = context.requestContext, // TODO - get rid of this argument
+                rawSelections = key.selections,
+                rawArguments = key.arguments,
+                rawObjectValue = key.objectValue,
+                rawQueryValue = key.queryValue,
             )
         }
         val resolver = resolver.get()
@@ -99,7 +76,7 @@ class FieldBatchResolverExecutorImpl(
         }
 
         try {
-            return Result.success(FieldUnbatchedResolverExecutorImpl.unwrap(fieldValue.get(), globalIDCodec))
+            return Result.success(FieldUnbatchedResolverExecutorImpl.unwrapFieldResolverResult(fieldValue.get(), globalIDCodec))
         } catch (e: Exception) {
             if (e is ViaductFrameworkException) return Result.failure(e)
             return Result.failure(ViaductTenantResolverException(e, resolverId))

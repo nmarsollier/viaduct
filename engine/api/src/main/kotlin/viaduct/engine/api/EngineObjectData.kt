@@ -1,7 +1,5 @@
 package viaduct.engine.api
 
-import graphql.schema.GraphQLObjectType
-
 /**
  * An untyped representation of resolved GraphQL object values.  These
  * values can be nested.  For list-typed fields, the Kotlin [List]
@@ -41,7 +39,7 @@ import graphql.schema.GraphQLObjectType
  * must _not_ assume that application code is correct and instead must
  * validate conformance.)
  */
-interface EngineObjectData {
+interface EngineObjectData : EngineObject {
     /**
      * Fetch a value that was selected with the provided [selection]
      *
@@ -56,5 +54,29 @@ interface EngineObjectData {
      */
     suspend fun fetchOrNull(selection: String): Any?
 
-    val graphQLObjectType: GraphQLObjectType
+    /**
+     * Returns the list of selections available for this object.
+     */
+    suspend fun fetchSelections(): Iterable<String>
+
+    /**
+     * A synchronous version of [EngineObjectData] that provides non-suspending
+     * access to field values. This is useful when working with already-resolved
+     * data that doesn't require asynchronous fetching.
+     */
+    interface Sync : EngineObjectData {
+        /**
+         * Get a value that was selected with the provided [selection]
+         *
+         * @param selection a field or alias name
+         * @throws UnsetSelectionException if the selection is unset
+         */
+        fun get(selection: String): Any?
+
+        /**
+         * Similar to [get] but returns null (rather than throws) when
+         * reading unset selections.
+         */
+        fun getOrNull(selection: String): Any?
+    }
 }
