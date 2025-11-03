@@ -54,6 +54,7 @@ class FeatureTestTenantModuleBootstrapper(
                 globalIDCodec = globalIDCodec,
                 reflectionLoader = reflectionLoader,
                 resolverContextFactory = stub.resolverFactory,
+                resolverName = stub.resolverName ?: "test-field-unbatched-resolver"
             )
         }.toList()
 
