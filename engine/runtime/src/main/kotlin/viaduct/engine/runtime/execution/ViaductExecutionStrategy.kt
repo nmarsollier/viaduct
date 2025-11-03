@@ -14,6 +14,7 @@ import graphql.schema.GraphQLObjectType
 import java.util.concurrent.CompletableFuture
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
+import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.execution.CompletionErrors.FieldCompletionException
@@ -56,7 +57,8 @@ class ViaductExecutionStrategy internal constructor(
     private val executionParametersFactory: ExecutionParameters.Factory,
     private val accessCheckRunner: AccessCheckRunner,
     private val isSerial: Boolean,
-    private val coroutineInterop: CoroutineInterop = DefaultCoroutineInterop
+    private val coroutineInterop: CoroutineInterop = DefaultCoroutineInterop,
+    private val temporaryBypassAccessCheck: TemporaryBypassAccessCheck = TemporaryBypassAccessCheck.Default,
 ) : ExecutionStrategy(dataFetcherExceptionHandler) {
     /**
      * Factory interface for creating instances of [ViaductExecutionStrategy].
@@ -78,7 +80,8 @@ class ViaductExecutionStrategy internal constructor(
             private val dataFetcherExceptionHandler: DataFetcherExceptionHandler,
             private val executionParametersFactory: ExecutionParameters.Factory,
             private val accessCheckRunner: AccessCheckRunner,
-            private val coroutineInterop: CoroutineInterop
+            private val coroutineInterop: CoroutineInterop,
+            private val temporaryBypassAccessCheck: TemporaryBypassAccessCheck,
         ) : Factory {
             override fun create(isSerial: Boolean): ViaductExecutionStrategy =
                 ViaductExecutionStrategy(
@@ -86,7 +89,8 @@ class ViaductExecutionStrategy internal constructor(
                     executionParametersFactory,
                     accessCheckRunner,
                     isSerial,
-                    coroutineInterop
+                    coroutineInterop,
+                    temporaryBypassAccessCheck
                 )
         }
     }
@@ -158,7 +162,7 @@ class ViaductExecutionStrategy internal constructor(
         }
     }
 
-    private val fieldCompleter = FieldCompleter(dataFetcherExceptionHandler)
+    private val fieldCompleter = FieldCompleter(dataFetcherExceptionHandler, temporaryBypassAccessCheck)
     private val fieldResolver = FieldResolver(accessCheckRunner)
 
     /**
