@@ -107,7 +107,7 @@ class GRTConstructorExtensionsTest {
 
         // Test that the wrapped object can be used normally
         // This tests that the constructor was called correctly and the object is functional
-        assertEquals(mockEngineObjectData, user.engineObjectData, "EngineObjectData should be preserved")
+        assertEquals(mockEngineObjectData, user.engineObject, "EngineObjectData should be preserved")
     }
 
     /**
@@ -116,7 +116,7 @@ class GRTConstructorExtensionsTest {
      * - Constructor is not null
      * - Constructor has exactly 2 parameters
      * - Return type matches expected class
-     * - Parameters have correct types (InternalContext and EngineObjectData)
+     * - Parameters have correct types (InternalContext and EngineObject)
      */
     private fun <T : Any> assertValidGRTConstructor(
         constructor: KFunction<T>?,
@@ -135,9 +135,9 @@ class GRTConstructorExtensionsTest {
             "First parameter should be InternalContext"
         )
         assertEquals(
-            "EngineObjectData",
+            "EngineObject",
             parameterTypes[1],
-            "Second parameter should be EngineObjectData"
+            "Second parameter should be EngineObject"
         )
     }
 }
