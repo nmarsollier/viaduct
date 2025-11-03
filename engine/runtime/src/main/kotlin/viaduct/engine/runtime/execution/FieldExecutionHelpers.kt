@@ -25,6 +25,7 @@ import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.gj
 import viaduct.engine.api.observability.ExecutionObservabilityContext
+import viaduct.engine.runtime.CheckerProxyEngineObjectData
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
@@ -244,7 +245,11 @@ object FieldExecutionHelpers {
                     }
                     currentEngineData
                 }
-                ProxyEngineObjectData(engineResult, "missing from variable RSS", vss)
+                if (vrss.forChecker) {
+                    CheckerProxyEngineObjectData(engineResult, "missing from variable RSS", vss)
+                } else {
+                    ProxyEngineObjectData(engineResult, "missing from variable RSS", vss)
+                }
             } ?: ProxyEngineObjectData(currentEngineData, "missing from variable RSS", null)
 
             val resolved = vr.resolve(VariablesResolver.ResolveCtx(variablesData, arguments, engineExecutionContext))

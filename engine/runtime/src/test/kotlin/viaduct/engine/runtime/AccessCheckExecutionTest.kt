@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.mocks.MockTenantModuleBootstrapper
 import viaduct.engine.api.mocks.mkEngineObjectData
+import viaduct.engine.api.mocks.mkRSS
 import viaduct.engine.api.mocks.mkSchemaWithWiring
 import viaduct.engine.api.mocks.runFeatureTest
 import viaduct.engine.api.mocks.toViaductBuilder
@@ -25,6 +26,7 @@ class AccessCheckExecutionTest {
                 baz: Baz
                 bazList: [Baz]
                 nonNullBaz: Baz!
+                plusOne(value: Int): Int
             }
 
             extend type Mutation {
@@ -311,23 +313,39 @@ class AccessCheckExecutionTest {
     @Test
     fun `checker with rss - access checks skipped`() {
         MockTenantModuleBootstrapper(schema) {
-            fieldWithValue("Query" to "string1", "foo")
-            fieldWithValue("Query" to "string2", "bar")
             field("Query" to "string1") {
+                value("foo")
                 checker {
-                    objectSelections("key", "fragment _ on Query { string2 }")
+                    objectSelections("key", "fragment _ on Query { plusOne(value: \$var) }") {
+                        variables("var", rss = mkRSS("Query", "string2", forChecker = true)) { ctx ->
+                            val string2 = ctx.objectData.fetch("string2") as String
+                            mapOf("var" to string2.toInt())
+                        }
+                    }
                     fn { _, objectDataMap ->
-                        if (objectDataMap["key"]?.fetch("string2") == "bar") {
-                            // Verifies that the access check for string2 shouldn't be applied
-                            // during fetch, otherwise the error would be "string2 checker failed"
+                        if (objectDataMap["key"]?.fetch("plusOne") == 5) {
+                            // Getting here verifies the checkers were not executed
                             throw RuntimeException("this should get thrown")
                         }
                     }
                 }
             }
             field("Query" to "string2") {
+                value("4")
                 checker {
-                    fn { _, _ -> throw RuntimeException("string2 checker failed") }
+                    // [Regression test] This shouldn't execute since it's in a checker variable resolver RSS
+                    fn { _, _ -> throw RuntimeException("Query.string2 checker failed") }
+                }
+            }
+            field("Query" to "plusOne") {
+                resolver {
+                    fn { arguments, _, _, _, _ ->
+                        (arguments["value"] as Int) + 1
+                    }
+                }
+                checker {
+                    // This shouldn't execute since it's in a checker RSS
+                    fn { _, _ -> throw RuntimeException("Query.plusOne checker failed") }
                 }
             }
         }.runFeatureTest {

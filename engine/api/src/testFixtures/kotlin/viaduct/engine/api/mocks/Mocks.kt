@@ -26,6 +26,7 @@ import viaduct.engine.api.CheckerResultContext
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.FieldResolverExecutor
@@ -91,10 +92,16 @@ fun mkRawSelectionSetFactory(viaductSchema: ViaductSchema) = RawSelectionSetFact
 fun mkRSS(
     typeName: String,
     selectionString: String,
-    variableProviders: List<VariablesResolver> = emptyList()
-) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders)
+    variableProviders: List<VariablesResolver> = emptyList(),
+    forChecker: Boolean = false,
+    attribution: ExecutionAttribution = ExecutionAttribution.DEFAULT
+) = RequiredSelectionSet(SelectionsParser.parse(typeName, selectionString), variableProviders, forChecker, attribution)
 
-class MockVariablesResolver(vararg names: String, val resolveFn: VariablesResolverFn) : VariablesResolver {
+class MockVariablesResolver(
+    vararg names: String,
+    override val requiredSelectionSet: RequiredSelectionSet? = null,
+    val resolveFn: VariablesResolverFn,
+) : VariablesResolver {
     override val variableNames: Set<String> = names.toSet()
 
     override suspend fun resolve(ctx: VariablesResolver.ResolveCtx): Map<String, Any?> = resolveFn(ctx)
