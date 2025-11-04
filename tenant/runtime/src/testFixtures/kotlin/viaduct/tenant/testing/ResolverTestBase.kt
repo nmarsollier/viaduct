@@ -18,7 +18,7 @@ import viaduct.api.context.VariablesProviderContext
 import viaduct.api.globalid.GlobalID
 import viaduct.api.globalid.GlobalIDCodec
 import viaduct.api.internal.InternalContext
-import viaduct.api.internal.NodeReferenceFactory
+import viaduct.api.internal.NodeReferenceGRTFactory
 import viaduct.api.internal.NodeResolverBase
 import viaduct.api.internal.ObjectBase
 import viaduct.api.internal.ObjectBaseTestHelpers
@@ -48,7 +48,7 @@ import viaduct.tenant.runtime.context.NodeExecutionContextImpl
 import viaduct.tenant.runtime.context.ResolverExecutionContextImpl
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.internal.InternalContextImpl
-import viaduct.tenant.runtime.internal.NodeReferenceFactoryImpl
+import viaduct.tenant.runtime.internal.NodeReferenceGRTFactoryImpl
 import viaduct.tenant.runtime.internal.ReflectionLoaderImpl
 import viaduct.tenant.runtime.select.SelectionSetFactoryImpl
 import viaduct.tenant.runtime.select.SelectionSetImpl
@@ -339,8 +339,8 @@ interface ResolverTestBase {
 
     fun mkInternalContext(): InternalContext = InternalContextImpl(getSchema(), mkGlobalIDCodec(), mkReflectionLoader())
 
-    fun mkNodeReferenceFactory(): NodeReferenceFactory {
-        return NodeReferenceFactoryImpl {
+    fun mkNodeReferenceFactory(): NodeReferenceGRTFactory {
+        return NodeReferenceGRTFactoryImpl {
                 id: String,
                 graphQLObjectType: GraphQLObjectType,
             ->

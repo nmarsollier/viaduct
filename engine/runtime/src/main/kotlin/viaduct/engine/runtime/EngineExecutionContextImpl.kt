@@ -72,7 +72,7 @@ class EngineExecutionContextImpl(
     val dataFetchingEnvironment: DataFetchingEnvironment? = null,
     override val activeSchema: ViaductSchema = fullSchema,
 ) : EngineExecutionContext {
-    override fun createNodeEngineObjectData(
+    override fun createNodeReference(
         id: String,
         graphQLObjectType: GraphQLObjectType
     ) = NodeEngineObjectDataImpl(id, graphQLObjectType, dispatcherRegistry, dispatcherRegistry)

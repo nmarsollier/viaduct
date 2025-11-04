@@ -10,11 +10,11 @@ import viaduct.api.internal.InternalContext
 import viaduct.api.reflect.Type
 import viaduct.api.types.Arguments
 import viaduct.api.types.CompositeOutput
-import viaduct.engine.api.EngineObjectData
+import viaduct.engine.api.EngineObject
 
 /**
  * Gets the required constructor for a GRT (GraphQL Representational Type) class.
- * The constructor must take exactly two parameters: InternalContext and EngineObjectData.
+ * The constructor must take exactly two parameters: InternalContext and EngineObject.
  */
 fun <T : CompositeOutput> KClass<out T>.getGRTConstructor(): KFunction<T> {
     val constructor = primaryConstructor
@@ -26,7 +26,7 @@ fun <T : CompositeOutput> KClass<out T>.getGRTConstructor(): KFunction<T> {
     val classifiers = params.mapNotNull { it.type.classifier as? KClass<*> }
     if (classifiers.size != 2 ||
         !classifiers[0].isSubclassOf(InternalContext::class) ||
-        !classifiers[1].isSubclassOf(EngineObjectData::class)
+        !classifiers[1].isSubclassOf(EngineObject::class)
     ) {
         throw IllegalArgumentException("Primary constructor for type ${this.simpleName} is not found.")
     }
@@ -35,10 +35,10 @@ fun <T : CompositeOutput> KClass<out T>.getGRTConstructor(): KFunction<T> {
 }
 
 /**
- * Wraps an EngineObjectData into a tenant GRT object by calling the object's primary constructor
- * with the provided InternalContext and this EngineObjectData.
+ * Wraps an EngineObject into a tenant GRT object by calling the object's primary constructor
+ * with the provided InternalContext and this EngineObject.
  */
-fun <T : CompositeOutput> EngineObjectData.toGRT(
+fun <T : CompositeOutput> EngineObject.toGRT(
     internalContext: InternalContext,
     type: Type<T>
 ): T = type.kcls.getGRTConstructor().call(internalContext, this)
