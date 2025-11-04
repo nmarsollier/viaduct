@@ -49,7 +49,7 @@ class MockTenantModuleBootstrapperDSLTest {
         val module = MockTenantModuleBootstrapper(SCHEMA_SDL) {
             field(coord) {
                 valueFromContext { ctx ->
-                    ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("Test"))
+                    ctx.createNodeReference("123", schema.schema.getObjectType("Test"))
                 }
             }
         }
