@@ -5,7 +5,6 @@ import graphql.execution.ExecutionContext
 import graphql.execution.ExecutionStepInfo
 import graphql.execution.ExecutionStepInfoFactory
 import graphql.execution.ExecutionStrategyParameters
-import graphql.execution.MergedField
 import graphql.execution.NormalizedVariables
 import graphql.execution.ValuesResolver
 import graphql.execution.directives.QueryDirectivesImpl
@@ -25,6 +24,7 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.gj
+import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
@@ -77,9 +77,12 @@ object FieldExecutionHelpers {
 
     fun buildDataFetchingEnvironment(
         parameters: ExecutionParameters,
-        field: MergedField,
+        field: QueryPlan.CollectedField,
         parentOER: ObjectEngineResultImpl,
     ): DataFetchingEnvironment {
+        val mergedField = checkNotNull(field.mergedField) {
+            "FieldExecutionHelpers.buildDataFetchingEnvironment requires a merged field"
+        }
         val fieldDef = parameters.executionStepInfo.fieldDefinition
         val execStepInfo = { parameters.executionStepInfo }
         val argumentValuesSupplier = { execStepInfo().arguments }
@@ -94,13 +97,16 @@ object FieldExecutionHelpers {
             normalizedFieldSupplier,
         )
         val queryDirectives = QueryDirectivesImpl(
-            field,
+            mergedField,
             parameters.graphQLSchema,
             parameters.coercedVariables,
             normalizedVariableValuesSupplier,
             parameters.executionContext.graphQLContext,
             parameters.executionContext.locale
         )
+        val fieldResolverMetadata = field.collectedFieldMetadata?.resolverCoordinate?.let {
+            parameters.constants.fieldResolverDispatcherRegistry.getFieldResolverDispatcher(it.first, it.second)?.resolverMetadata
+        }
         val localContext = parameters.localContext.let { ctx ->
             // update the context with either a new EngineResultLocalContext or update the existing one
             ctx.get<EngineResultLocalContext>().let { extant ->
@@ -114,6 +120,9 @@ object FieldExecutionHelpers {
                         rootEngineResult = parameters.rootEngineResult,
                         executionStrategyParams = parameters.gjParameters,
                         executionContext = parameters.executionContext,
+                    ),
+                    ExecutionObservabilityContext(
+                        resolverMetadata = fieldResolverMetadata
                     )
                 )
             }
@@ -123,7 +132,7 @@ object FieldExecutionHelpers {
             .localContext(localContext)
             .arguments(argumentValuesSupplier)
             .fieldDefinition(fieldDef)
-            .mergedField(field)
+            .mergedField(mergedField)
             .fieldType(fieldDef.type)
             .executionStepInfo(execStepInfo)
             .parentType(parentOER.graphQLObjectType)

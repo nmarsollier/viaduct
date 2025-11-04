@@ -19,6 +19,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.FieldCheckerDispatcherRegistry
+import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
@@ -378,7 +379,8 @@ data class ExecutionParameters(
                             executionContext.executionInput.query,
                             engineExecutionContext.activeSchema,
                             requiredSelectionSetRegistry,
-                            engineExecutionContext.executeAccessChecksInModstrat
+                            engineExecutionContext.executeAccessChecksInModstrat,
+                            fieldResolverDispatcherRegistry = engineExecutionContext.dispatcherRegistry
                         ),
                         executionContext.document,
                         executionContext.executionInput.operationName
@@ -408,6 +410,7 @@ data class ExecutionParameters(
                     rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory,
                     fieldCheckerDispatcherRegistry = fieldCheckerDispatcherRegistry,
                     typeCheckerDispatcherRegistry = typeCheckerDispatcherRegistry,
+                    fieldResolverDispatcherRegistry = engineExecutionContext.dispatcherRegistry
                 )
 
                 // Create and return root ExecutionParameters
@@ -446,6 +449,7 @@ data class ExecutionParameters(
      * @property rawSelectionSetFactory Factory for creating raw selection sets
      * @property fieldCheckerDispatcherRegistry Registry for field-level access checks
      * @property typeCheckerDispatcherRegistry Registry for type-level access checks
+     * @property fieldResolverDispatcherRegistry Registry for field resolver dispatchers
      */
     data class Constants(
         val executionContext: ExecutionContext,
@@ -457,6 +461,7 @@ data class ExecutionParameters(
         val rawSelectionSetFactory: RawSelectionSet.Factory,
         val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
         val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
+        val fieldResolverDispatcherRegistry: FieldResolverDispatcherRegistry,
     ) {
         /**
          * Launches a coroutine on the root execution scope.

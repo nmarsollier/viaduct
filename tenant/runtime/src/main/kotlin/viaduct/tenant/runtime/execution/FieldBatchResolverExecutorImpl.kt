@@ -14,6 +14,7 @@ import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.FieldResolverExecutor.Selector
 import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.api.ResolverMetadata
 import viaduct.tenant.runtime.context.factory.FieldArgs
 import viaduct.tenant.runtime.context.factory.FieldExecutionContextFactory
 import viaduct.tenant.runtime.internal.InternalContextImpl
@@ -37,10 +38,9 @@ class FieldBatchResolverExecutorImpl(
     private val globalIDCodec: GlobalIDCodec,
     private val reflectionLoader: ReflectionLoader,
     private val resolverContextFactory: FieldExecutionContextFactory,
+    private val resolverName: String,
 ) : FieldResolverExecutor {
-    override val metadata: Map<String, String> = mapOf(
-        "flavor" to "modern",
-    )
+    override val metadata = ResolverMetadata.forModern(resolverName)
 
     override val isBatching = true
 

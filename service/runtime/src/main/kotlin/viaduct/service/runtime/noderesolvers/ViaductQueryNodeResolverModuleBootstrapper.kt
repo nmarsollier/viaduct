@@ -8,6 +8,7 @@ import viaduct.engine.api.FieldResolverExecutor
 import viaduct.engine.api.NodeReference
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RequiredSelectionSet
+import viaduct.engine.api.ResolverMetadata
 import viaduct.engine.api.TenantModuleBootstrapper
 import viaduct.engine.api.ViaductSchema
 
@@ -35,7 +36,7 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
             override val objectSelectionSet: RequiredSelectionSet? = null
             override val querySelectionSet: RequiredSelectionSet? = null
             override val resolverId: String = "Query.node"
-            override val metadata: Map<String, String> = emptyMap()
+            override val metadata: ResolverMetadata = ResolverMetadata.forModern("query-node-resolver")
             override val isBatching: Boolean = false
 
             override suspend fun batchResolve(
@@ -60,7 +61,7 @@ class ViaductQueryNodeResolverModuleBootstrapper : TenantModuleBootstrapper {
             override val objectSelectionSet: RequiredSelectionSet? = null
             override val querySelectionSet: RequiredSelectionSet? = null
             override val resolverId: String = "Query.nodes"
-            override val metadata: Map<String, String> = emptyMap()
+            override val metadata: ResolverMetadata = ResolverMetadata.forModern("query-nodes-resolver")
             override val isBatching: Boolean = false
 
             override suspend fun batchResolve(

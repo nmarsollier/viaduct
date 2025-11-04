@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.Coordinate
+import viaduct.engine.api.ResolverMetadata
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
 
@@ -21,7 +22,7 @@ class MocksAdditionalTest {
 
         assertFalse(executor.isBatching)
         assertEquals(selectionSet, executor.objectSelectionSet)
-        assertEquals(emptyMap<String, String>(), executor.metadata)
+        assertEquals(ResolverMetadata.forMock("mock-field-unbatched-resolver"), executor.metadata)
         assertEquals(resolverId, executor.resolverId)
     }
 
@@ -31,7 +32,7 @@ class MocksAdditionalTest {
         val executor = MockFieldBatchResolverExecutor(resolverId = resolverId)
 
         assertTrue(executor.isBatching)
-        assertEquals(emptyMap<String, String>(), executor.metadata)
+        assertEquals(ResolverMetadata.forMock("mock-field-batch-resolver"), executor.metadata)
         assertEquals(resolverId, executor.resolverId)
     }
 
@@ -40,7 +41,7 @@ class MocksAdditionalTest {
         val nullResolver = MockFieldUnbatchedResolverExecutor.Null
         assertNotNull(nullResolver)
         assertNull(nullResolver.objectSelectionSet)
-        assertEquals(emptyMap<String, String>(), nullResolver.metadata)
+        assertEquals(ResolverMetadata.forMock("mock-field-unbatched-resolver"), nullResolver.metadata)
     }
 
     @Test
