@@ -19,15 +19,17 @@ class MutationFieldExecutionContextImpl(
     baseData: InternalContext,
     engineExecutionContextWrapper: EngineExecutionContextWrapper,
     selections: SelectionSet<CompositeOutput>,
+    requestContext: Any?,
     arguments: Arguments,
     objectValue: Object,
     queryValue: Query,
 ) : MutationFieldExecutionContextTmp<Object, Query, Arguments, CompositeOutput>,
-    SealedFieldExecutionContextImpl(baseData, engineExecutionContextWrapper, selections, arguments, objectValue, queryValue) {
+    SealedFieldExecutionContextImpl(baseData, engineExecutionContextWrapper, selections, requestContext, arguments, objectValue, queryValue) {
     constructor(
         baseData: InternalContext,
         engineExecutionContext: EngineExecutionContext,
         selections: SelectionSet<CompositeOutput>,
+        requestContext: Any?,
         arguments: Arguments,
         objectValue: Object,
         queryValue: Query,
@@ -35,6 +37,7 @@ class MutationFieldExecutionContextImpl(
         baseData,
         EngineExecutionContextWrapperImpl(engineExecutionContext),
         selections,
+        requestContext,
         arguments,
         objectValue,
         queryValue,
