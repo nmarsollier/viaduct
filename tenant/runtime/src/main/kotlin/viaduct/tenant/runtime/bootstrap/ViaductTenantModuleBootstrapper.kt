@@ -223,6 +223,7 @@ class ViaductTenantModuleBootstrapper(
                     globalIDCodec = globalIDCodec,
                     reflectionLoader = reflectionLoader,
                     resolverContextFactory = resolverContextFactory,
+                    resolverName = resolverKClass.qualifiedName!!
                 )
                 result.put(resolverId, resolverExecutor)?.let { extant ->
                     throw RuntimeException(
@@ -247,6 +248,7 @@ class ViaductTenantModuleBootstrapper(
                     globalIDCodec = globalIDCodec,
                     reflectionLoader = reflectionLoader,
                     resolverContextFactory = resolverContextFactory,
+                    resolverName = resolverKClass.qualifiedName!!,
                 )
                 result.put(resolverId, resolverExecutor)?.let { extant ->
                     throw RuntimeException(

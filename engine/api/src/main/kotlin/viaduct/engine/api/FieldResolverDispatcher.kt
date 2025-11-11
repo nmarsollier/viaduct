@@ -12,6 +12,9 @@ interface FieldResolverDispatcher {
 
     val hasRequiredSelectionSets: Boolean
 
+    /** The metadata associated with this resolver **/
+    val resolverMetadata: ResolverMetadata
+
     suspend fun resolve(
         arguments: Map<String, Any?>,
         objectValue: EngineObjectData,
