@@ -253,7 +253,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
         }
 
         @TenantModuleBootstrapperDsl
-        inner class SelectionsScope(private val typeName: String, val objectSelectionsText: String) {
+        inner class SelectionsScope(private val typeName: String, val objectSelectionsText: String, val forChecker: Boolean) {
             private var variableProviders: MutableList<VariablesResolver> = mutableListOf()
 
             // DSL marker hides these -- reintroduce them
@@ -266,12 +266,13 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
 
             fun variables(
                 vararg names: String,
+                rss: RequiredSelectionSet? = null,
                 resolveFn: VariablesResolverFn
             ) {
-                variableProviders.add(MockVariablesResolver(*names, resolveFn = resolveFn))
+                variableProviders.add(MockVariablesResolver(*names, requiredSelectionSet = rss, resolveFn = resolveFn))
             }
 
-            internal fun toRSS() = mkRSS(typeName, objectSelectionsText, variableProviders)
+            internal fun toRSS() = mkRSS(typeName, objectSelectionsText, variableProviders, forChecker = forChecker)
         }
 
         @TenantModuleBootstrapperDsl
@@ -297,7 +298,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 objectSelectionsText: String,
                 block: SelectionsScope.() -> Unit,
             ) {
-                objectSelections = this@FieldScope.SelectionsScope(coord.first, objectSelectionsText).apply { block() }
+                objectSelections = this@FieldScope.SelectionsScope(coord.first, objectSelectionsText, forChecker = false).apply { block() }
             }
 
             fun querySelections(querySelectionsText: String) = querySelections(querySelectionsText, { })
@@ -306,7 +307,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 querySelectionsText: String,
                 block: SelectionsScope.() -> Unit,
             ) {
-                querySelections = this@FieldScope.SelectionsScope(queryType.name, querySelectionsText).apply { block() }
+                querySelections = this@FieldScope.SelectionsScope(queryType.name, querySelectionsText, forChecker = false).apply { block() }
             }
 
             fun resolverName(name: String) = apply { resolverName = name }
@@ -337,7 +338,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
 
             fun objectSelections(
                 selectionsName: String,
-                objectSelectionsText: String
+                objectSelectionsText: String,
             ) = objectSelections(selectionsName, objectSelectionsText, { })
 
             fun objectSelections(
@@ -345,7 +346,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 objectSelectionsText: String,
                 block: SelectionsScope.() -> Unit,
             ) = requiredSelectionSets.putIfMissingOrFail(selectionsName) {
-                this@FieldScope.SelectionsScope(coord.first, objectSelectionsText).apply { block() }.toRSS()
+                this@FieldScope.SelectionsScope(coord.first, objectSelectionsText, forChecker = true).apply { block() }.toRSS()
             }
 
             fun fn(executeFn: CheckerFn) {
@@ -378,7 +379,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
             }
 
         @TenantModuleBootstrapperDsl
-        inner class SelectionsScope(val objectSelectionsText: String) {
+        inner class SelectionsScope(val objectSelectionsText: String, val forChecker: Boolean) {
             private var variableProviders: MutableList<VariablesResolver> = mutableListOf()
 
             // DSL marker hides these -- reintroduce them
@@ -395,7 +396,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 variableProviders.add(MockVariablesResolver(*names, resolveFn = resolveFn))
             }
 
-            internal fun toRSS() = mkRSS(typeName, objectSelectionsText, variableProviders)
+            internal fun toRSS() = mkRSS(typeName, objectSelectionsText, variableProviders, forChecker)
         }
 
         @TenantModuleBootstrapperDsl
@@ -420,7 +421,7 @@ class MockTenantModuleBootstrapperDSL<F : Any>(
                 objectSelectionsText: String,
                 block: SelectionsScope.() -> Unit,
             ) = requiredSelectionSets.putIfMissingOrFail(selectionsName) {
-                this@TypeScope.SelectionsScope(objectSelectionsText).apply { block() }.toRSS()
+                this@TypeScope.SelectionsScope(objectSelectionsText, forChecker = true).apply { block() }.toRSS()
             }
 
             fun fn(executeFn: CheckerFn) {

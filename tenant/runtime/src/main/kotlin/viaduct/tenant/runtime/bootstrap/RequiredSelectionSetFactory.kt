@@ -31,7 +31,7 @@ import viaduct.tenant.runtime.context.factory.Factory
 import viaduct.tenant.runtime.execution.VariablesProviderExecutor
 import viaduct.tenant.runtime.internal.VariablesProviderInfo
 
-/** methods for constructing a [RequiredSelectionSet] */
+/** methods for constructing a [RequiredSelectionSet] for a resolver */
 class RequiredSelectionSetFactory(
     private val globalIDCodec: GlobalIDCodec,
     private val reflectionLoader: ReflectionLoader,
@@ -123,13 +123,15 @@ class RequiredSelectionSetFactory(
                 RequiredSelectionSet(
                     it,
                     allVariableResolvers,
-                    attribution
+                    forChecker = false,
+                    attribution,
                 )
             },
             querySelections = querySelections?.let {
                 RequiredSelectionSet(
                     it,
                     allVariableResolvers,
+                    forChecker = false,
                     attribution
                 )
             }
@@ -157,6 +159,7 @@ class RequiredSelectionSetFactory(
             resolverSelections,
             querySelections,
             vars,
+            forChecker = false,
             attribution
         )
 }

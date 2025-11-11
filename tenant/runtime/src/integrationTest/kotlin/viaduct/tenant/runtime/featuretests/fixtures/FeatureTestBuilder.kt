@@ -305,7 +305,8 @@ class FeatureTestBuilder {
                 checkerKey,
                 RequiredSelectionSet(
                     SelectionsParser.parse(typeName, selectionsString),
-                    emptyList()
+                    emptyList(),
+                    forChecker = true,
                 )
             )
         }.toMap()
