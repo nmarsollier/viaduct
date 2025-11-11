@@ -22,6 +22,7 @@ import viaduct.engine.api.CheckerExecutorFactory
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.GraphQLBuildError
+import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.api.TenantAPIBootstrapper.Companion.flatten
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
@@ -58,7 +59,7 @@ class StandardViaduct
         fragmentLoader: FragmentLoader,
         resolverDataFetcherInstrumentation: ResolverDataFetcherInstrumentation,
         flagManager: FlagManager,
-        private val standardViaductFactory: Factory
+        private val standardViaductFactory: Factory,
     ) : Viaduct {
         private val engineExecutionContextFactory =
             EngineExecutionContextFactory(
@@ -110,6 +111,7 @@ class StandardViaduct
             private var flagManager: FlagManager? = null
             private var checkerExecutorFactory: CheckerExecutorFactory? = null
             private var checkerExecutorFactoryCreator: ((ViaductSchema) -> CheckerExecutorFactory)? = null
+            private var temporaryBypassAccessCheck: TemporaryBypassAccessCheck = TemporaryBypassAccessCheck.Default
             private var dataFetcherExceptionHandler: DataFetcherExceptionHandler? = null
             private var resolverErrorReporter: ResolverErrorReporter? = null
             private var resolverErrorBuilder: ResolverErrorBuilder? = null
@@ -174,6 +176,11 @@ class StandardViaduct
             fun withCheckerExecutorFactoryCreator(factoryCreator: (ViaductSchema) -> CheckerExecutorFactory): Builder =
                 apply {
                     this.checkerExecutorFactoryCreator = factoryCreator
+                }
+
+            fun withTemporaryBypassChecker(temporaryBypassAccessCheck: TemporaryBypassAccessCheck): Builder =
+                apply {
+                    this.temporaryBypassAccessCheck = temporaryBypassAccessCheck
                 }
 
             fun withSchemaRegistryConfiguration(schemaRegistryConfiguration: SchemaRegistryConfiguration): Builder =
@@ -264,7 +271,8 @@ class StandardViaduct
                         scopedFuture,
                         dataFetcherExceptionHandler,
                         resolverErrorReporter ?: ResolverErrorReporter.NoOpResolverErrorReporter,
-                        resolverErrorBuilder ?: ResolverErrorBuilder.NoOpResolverErrorBuilder
+                        resolverErrorBuilder ?: ResolverErrorBuilder.NoOpResolverErrorBuilder,
+                        temporaryBypassAccessCheck,
                     ),
                     ViaductBuilderConfigurationModule(builderConfiguration)
                 )
