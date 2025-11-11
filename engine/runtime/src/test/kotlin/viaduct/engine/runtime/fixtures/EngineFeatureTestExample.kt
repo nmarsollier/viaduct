@@ -144,7 +144,7 @@ class EngineFeatureTestExample {
             field("Query" to "node") {
                 resolver {
                     fn { _, _, _, _, ctx ->
-                        ctx.createNodeEngineObjectData("123", schema.schema.getObjectType("TestNode"))
+                        ctx.createNodeReference("123", schema.schema.getObjectType("TestNode"))
                     }
                 }
             }
