@@ -42,6 +42,7 @@ class FieldExecutionContextImplTest : ContextTestBase() {
             MockInternalContext(SelectTestFeatureAppTest.schema, globalIDCodec),
             wrapper,
             selectionSet,
+            null, // requestContext
             args,
             obj,
             query,

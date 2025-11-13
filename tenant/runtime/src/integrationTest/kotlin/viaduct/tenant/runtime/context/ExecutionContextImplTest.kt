@@ -65,6 +65,7 @@ class ExecutionContextImplTest {
     ) = FieldExecutionContextImpl(
         ResolverExecutionContextImpl(
             MockInternalContext(SelectTestFeatureAppTest.schema, globalIDCodec),
+            null, // requestContext
             queryLoader,
             selectionSetFactory,
             nodeReferenceFactory

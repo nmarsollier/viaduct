@@ -28,9 +28,10 @@ object ResolverExecutionContextFactory {
         Factory { args ->
             ResolverExecutionContextImpl(
                 args.internalContext,
+                args.engineExecutionContext.requestContext,
                 queryLoader(SelectionsLoaderArgs(resolverId = args.resolverId, selectionsLoaderFactory = args.selectionsLoaderFactory)),
                 args.selectionSetFactory,
-                nodeReferenceFactory(args.engineExecutionContext)
+                nodeReferenceFactory(args.engineExecutionContext),
             )
         }
 
