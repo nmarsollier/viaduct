@@ -1,5 +1,8 @@
+@file:Suppress("ForbiddenImport")
+
 package viaduct.engine.api.mocks
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -120,7 +123,7 @@ class MkEngineObjectDataTest {
         val data = mapOf<String, Any?>("int" to 1)
         val result = mkEngineObjectData(type("Test"), data)
         assertThrows<UnsetSelectionException> {
-            result.fetchSync("foo")
+            result.get("foo")
         }
     }
 
@@ -129,7 +132,7 @@ class MkEngineObjectDataTest {
         val data = mapOf<String, Any?>("nested" to emptyMap<String, Any?>())
         val result = mkEngineObjectData(type("Test"), data)
         assertThrows<UnsetSelectionException> {
-            (result.fetchSync("nested") as ResolvedEngineObjectData).fetchSync("unsetField")
+            (result.get("nested") as ResolvedEngineObjectData).get("unsetField")
         }
     }
 
@@ -139,7 +142,7 @@ class MkEngineObjectDataTest {
         val data = mapOf<String, Any?>("nested" to nestedData)
         val result = mkEngineObjectData(type("Test"), data)
         assertThrows<UnsetSelectionException> {
-            ((result.fetchSync("nested") as ResolvedEngineObjectData).fetchSync("leaf") as ResolvedEngineObjectData).fetchSync("nonExistentField")
+            ((result.get("nested") as ResolvedEngineObjectData).get("leaf") as ResolvedEngineObjectData).get("nonExistentField")
         }
     }
 
@@ -163,9 +166,9 @@ class MkEngineObjectDataTest {
             is Map<*, *> -> {
                 assertInstanceOf(ResolvedEngineObjectData::class.java, actual)
                 actual as ResolvedEngineObjectData
-                val selectionsThatAreSet = actual.data.keys
-                assertEquals(expected.keys, selectionsThatAreSet)
-                expected.forEach { (key, value) -> test(value, actual.fetchSync(key as String)) }
+                val actualKeys = runBlocking { actual.fetchSelections().toSet() }
+                assertEquals(expected.keys, actualKeys)
+                expected.forEach { (key, value) -> test(value, actual.get(key as String)) }
             }
             else -> assertEquals(expected, actual)
         }

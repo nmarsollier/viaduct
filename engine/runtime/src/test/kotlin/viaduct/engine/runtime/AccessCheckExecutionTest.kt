@@ -174,6 +174,8 @@ class AccessCheckExecutionTest {
                             }
 
                             override suspend fun fetchOrNull(selection: String) = fetch(selection)
+
+                            override suspend fun fetchSelections() = listOf("value")
                         }
                     }
                 }

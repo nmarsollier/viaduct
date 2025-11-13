@@ -411,6 +411,8 @@ data class MockEngineObjectData(override val graphQLObjectType: GraphQLObjectTyp
 
     override suspend fun fetchOrNull(selection: String): Any? = data[selection]
 
+    override suspend fun fetchSelections(): Iterable<String> = data.keys
+
     companion object {
         /** recursively wraps [data] into a MockEngineObjectData tree */
         fun wrap(

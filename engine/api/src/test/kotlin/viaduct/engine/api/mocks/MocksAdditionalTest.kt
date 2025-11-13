@@ -291,7 +291,7 @@ class MocksAdditionalTest {
         val mockData = mkEngineObjectData(objectType, data)
 
         assertEquals(objectType, mockData.graphQLObjectType)
-        assertEquals(data, mockData.data)
+        data.forEach { (key, value) -> assertEquals(value, mockData.get(key)) }
     }
 
     @Test
