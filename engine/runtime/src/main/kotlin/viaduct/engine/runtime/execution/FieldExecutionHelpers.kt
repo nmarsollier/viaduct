@@ -1,5 +1,7 @@
 package viaduct.engine.runtime.execution
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import graphql.GraphQLContext
 import graphql.collect.ImmutableMapWithNullValues
 import graphql.execution.CoercedVariables
@@ -24,6 +26,7 @@ import graphql.schema.GraphQLArgument
 import graphql.schema.GraphQLCodeRegistry
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLObjectType
+import graphql.schema.GraphQLSchema
 import graphql.util.FpKit
 import java.util.Locale
 import java.util.function.Supplier
@@ -41,7 +44,6 @@ import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
 import viaduct.engine.runtime.findLocalContextForType
-import viaduct.graphql.utils.asNamedElement
 import viaduct.graphql.utils.collectVariableDefinitions
 
 object FieldExecutionHelpers {
@@ -260,11 +262,7 @@ object FieldExecutionHelpers {
         locale: Locale,
     ): CoercedVariables =
         resolveVariables(
-            plan.astSelectionSet.collectVariableDefinitions(
-                engineExecutionContext.fullSchema.schema,
-                plan.parentType.asNamedElement().name,
-                plan.fragments.mapValues { it.value.gjDef }
-            ),
+            plan.variableDefinitions,
             plan.variablesResolvers,
             arguments,
             currentEngineData,
@@ -287,11 +285,7 @@ object FieldExecutionHelpers {
         locale: Locale,
     ): CoercedVariables =
         resolveVariables(
-            rss.selections.selections.collectVariableDefinitions(
-                engineExecutionContext.fullSchema.schema,
-                rss.selections.typeName,
-                rss.selections.fragmentMap
-            ),
+            rssVariableDefinitions(rss, engineExecutionContext.fullSchema.schema),
             rss.variablesResolvers,
             arguments,
             currentEngineData,
@@ -321,11 +315,7 @@ object FieldExecutionHelpers {
                 // VariablesResolvers may have required selection sets which have their own variables resolvers.
                 // Recursively resolve them
                 val innerVariables = resolveVariables(
-                    vrss.selections.selections.collectVariableDefinitions(
-                        engineExecutionContext.fullSchema.schema,
-                        vrss.selections.typeName,
-                        vrss.selections.fragmentMap
-                    ),
+                    rssVariableDefinitions(vrss, engineExecutionContext.fullSchema.schema),
                     vrss.variablesResolvers,
                     arguments,
                     currentEngineData,
@@ -365,4 +355,31 @@ object FieldExecutionHelpers {
                 locale
             )
         }
+
+    /**
+     * Cache for variable definitions computed from RequiredSelectionSets. Uses weak keys for reference equality
+     * and automatic cleanup when new RequiredSelectionSets are created, e.g. during hotswap.
+     */
+    private val rssVariableDefinitionsCache: Cache<RequiredSelectionSet, List<VariableDefinition>> =
+        Caffeine.newBuilder()
+            .weakKeys()
+            .build()
+
+    /**
+     * Get or compute variable definitions for a RequiredSelectionSet instance
+     */
+    private fun rssVariableDefinitions(
+        rss: RequiredSelectionSet,
+        schema: GraphQLSchema
+    ): List<VariableDefinition> {
+        return checkNotNull(
+            rssVariableDefinitionsCache.get(rss) {
+                rss.selections.selections.collectVariableDefinitions(
+                    schema,
+                    rss.selections.typeName,
+                    rss.selections.fragmentMap
+                )
+            }
+        ) { "Unexpected null value from rssVariableDefinitions" }
+    }
 }

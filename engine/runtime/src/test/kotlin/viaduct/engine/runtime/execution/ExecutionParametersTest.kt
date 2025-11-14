@@ -455,7 +455,8 @@ class ExecutionParametersTest {
             childPlans = emptyList(),
             astSelectionSet = astSelectionSet,
             attribution = attribution,
-            executionCondition = QueryPlanExecutionCondition.ALWAYS_EXECUTE
+            executionCondition = QueryPlanExecutionCondition.ALWAYS_EXECUTE,
+            variableDefinitions = emptyList()
         )
 
     private fun executionStepInfoForField(
