@@ -1,7 +1,6 @@
 package viaduct.engine.runtime.execution
 
 import graphql.TrivialDataFetcher
-import graphql.execution.CoercedVariables
 import graphql.execution.DataFetcherResult
 import graphql.execution.FetchedValue
 import graphql.execution.ResolveType
@@ -40,7 +39,6 @@ import viaduct.engine.runtime.execution.FieldExecutionHelpers.buildDataFetchingE
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.buildOERKeyForField
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.collectFields
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.executionStepInfoFactory
-import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveVariables
 import viaduct.engine.runtime.findLocalContextForType
 import viaduct.logging.ifDebug
 import viaduct.utils.slf4j.logger
@@ -213,14 +211,16 @@ class FieldResolver(
             parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
 
         parameters.launchOnRootScope {
-            val variables = resolveVariables(
-                plan.variablesResolvers,
+            val variables = FieldExecutionHelpers.resolveQueryPlanVariables(
+                plan,
                 parameters.executionStepInfo.arguments,
                 parameters.parentEngineResult,
                 parameters.queryEngineResult,
-                engineExecCtx
+                engineExecCtx,
+                parameters.executionContext.graphQLContext,
+                parameters.executionContext.locale
             )
-            val planParameters = parameters.forChildPlan(plan, CoercedVariables(variables))
+            val planParameters = parameters.forChildPlan(plan, variables)
             fetchObject(plan.parentType as GraphQLObjectType, planParameters)
         }
     }

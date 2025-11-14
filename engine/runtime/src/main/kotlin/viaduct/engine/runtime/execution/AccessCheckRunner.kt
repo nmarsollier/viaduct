@@ -1,6 +1,5 @@
 package viaduct.engine.runtime.execution
 
-import graphql.execution.CoercedVariables
 import graphql.execution.instrumentation.parameters.InstrumentationExecutionStrategyParameters
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLCompositeType
@@ -17,7 +16,8 @@ import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.Value
-import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveVariables
+import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveQueryPlanVariables
+import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveRSSVariables
 import viaduct.engine.runtime.findLocalContextForType
 
 /**
@@ -76,16 +76,18 @@ class AccessCheckRunner(
         if (fieldTypeChildPlans.isNotEmpty()) {
             fieldTypeChildPlans.forEach { childPlan ->
                 parameters.launchOnRootScope {
-                    val variables = resolveVariables(
-                        childPlan.variablesResolvers,
+                    val variables = resolveQueryPlanVariables(
+                        childPlan,
                         parameters.executionStepInfo.arguments,
                         parameters.parentEngineResult,
                         parameters.queryEngineResult,
-                        engineExecutionContext
+                        engineExecutionContext,
+                        parameters.executionContext.graphQLContext,
+                        parameters.executionContext.locale
                     )
                     val planParameters = parameters.forFieldTypeChildPlan(
                         childPlan,
-                        CoercedVariables(variables),
+                        variables,
                         fieldResolutionResult.originalSource,
                         fieldResolutionResult.engineResult,
                     )
@@ -171,14 +173,16 @@ class AccessCheckRunner(
             val rssMap = instrumentedDispatcher.requiredSelectionSets
             val proxyEODMap = rssMap.mapValues { (_, rss) ->
                 val selectionSet = rss?.let {
-                    val variables = resolveVariables(
-                        it.variablesResolvers,
+                    val variables = resolveRSSVariables(
+                        rss,
                         arguments,
                         objectEngineResult,
                         parameters.queryEngineResult,
-                        localExecutionContext
+                        localExecutionContext,
+                        parameters.executionContext.graphQLContext,
+                        parameters.executionContext.locale,
                     )
-                    localExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, variables)
+                    localExecutionContext.rawSelectionSetFactory.rawSelectionSet(it.selections, variables.toMap())
                 }
                 val oerToWrap = if (rss != null && rss.selections.typeName == parameters.graphQLSchema.queryType.name) {
                     parameters.queryEngineResult

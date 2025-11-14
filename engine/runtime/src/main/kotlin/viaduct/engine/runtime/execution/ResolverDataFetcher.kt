@@ -16,7 +16,7 @@ import viaduct.engine.runtime.CheckerProxyEngineObjectData
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ProxyEngineObjectData
-import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveVariables
+import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveRSSVariables
 import viaduct.engine.runtime.findLocalContextForType
 
 class ResolverDataFetcher(
@@ -117,14 +117,16 @@ class ResolverDataFetcher(
     ): EngineObjectData {
         val selectionSetFactory = localExecutionContext.rawSelectionSetFactory
         val objectSelectionSet = fieldResolverDispatcher.objectSelectionSet?.let { rss ->
-            val variables = resolveVariables(
-                variablesResolvers = rss.variablesResolvers,
+            val variables = resolveRSSVariables(
+                rss = rss,
                 arguments = environment.arguments,
                 currentEngineData = engineResults.parentResult,
                 queryEngineData = engineResults.queryResult,
-                engineExecutionContext = localExecutionContext
+                engineExecutionContext = localExecutionContext,
+                environment.graphQlContext,
+                environment.locale
             )
-            selectionSetFactory.rawSelectionSet(rss.selections, variables)
+            selectionSetFactory.rawSelectionSet(rss.selections, variables.toMap())
         }
         val fieldResolverDispatcherEOD = ProxyEngineObjectData(
             engineResults.parentResult,
@@ -133,14 +135,16 @@ class ResolverDataFetcher(
         )
 
         val querySelectionSet = fieldResolverDispatcher.querySelectionSet?.let { rss ->
-            val variables = resolveVariables(
-                variablesResolvers = rss.variablesResolvers,
+            val variables = resolveRSSVariables(
+                rss = rss,
                 arguments = environment.arguments,
                 currentEngineData = engineResults.queryResult,
                 queryEngineData = engineResults.queryResult,
-                engineExecutionContext = localExecutionContext
+                engineExecutionContext = localExecutionContext,
+                environment.graphQlContext,
+                environment.locale
             )
-            selectionSetFactory.rawSelectionSet(rss.selections, variables)
+            selectionSetFactory.rawSelectionSet(rss.selections, variables.toMap())
         }
 
         val queryProxyEOD = ProxyEngineObjectData(

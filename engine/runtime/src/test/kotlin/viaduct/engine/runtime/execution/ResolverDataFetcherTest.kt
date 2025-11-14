@@ -3,12 +3,16 @@
 package viaduct.engine.runtime.execution
 
 import com.airbnb.viaduct.errors.ViaductPermissionDeniedException
+import graphql.GraphQLContext
 import graphql.execution.ExecutionStepInfo
+import graphql.execution.values.InputInterceptor
+import graphql.execution.values.legacycoercing.LegacyCoercingInputInterceptor
 import graphql.language.OperationDefinition
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLObjectType
 import io.mockk.every
 import io.mockk.mockk
+import java.util.Locale
 import java.util.concurrent.CompletionException
 import kotlin.test.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -140,6 +144,10 @@ class ResolverDataFetcherTest {
             every { dataFetchingEnvironment.getSource<Any>() } returns mockk()
             every { dataFetchingEnvironment.operationDefinition } returns operationDefinition
             every { operationDefinition.operation } returns OperationDefinition.Operation.QUERY
+            every { dataFetchingEnvironment.graphQlContext } returns GraphQLContext.newContext()
+                .of(InputInterceptor::class.java, LegacyCoercingInputInterceptor.migratesValues())
+                .build()
+            every { dataFetchingEnvironment.locale } returns Locale.US
         }
     }
 
@@ -168,7 +176,7 @@ class ResolverDataFetcherTest {
                 Fixture(
                     expectedResult = "test fetched result",
                     requiredSelectionSet = RequiredSelectionSet(
-                        SelectionsParser.parse("TestType", "TestField"),
+                        SelectionsParser.parse("TestType", "testField"),
                         emptyList(),
                         forChecker = false
                     ),
@@ -469,7 +477,7 @@ class ResolverDataFetcherTest {
                 Fixture(
                     expectedResult = "test fetched result",
                     requiredSelectionSet = RequiredSelectionSet(
-                        SelectionsParser.parse("TestType", "TestField"),
+                        SelectionsParser.parse("TestType", "testField"),
                         emptyList(),
                         forChecker = false
                     ),
@@ -510,7 +518,7 @@ class ResolverDataFetcherTest {
                 Fixture(
                     expectedResult = "test fetched result",
                     requiredSelectionSet = RequiredSelectionSet(
-                        SelectionsParser.parse("TestType", "TestField"),
+                        SelectionsParser.parse("TestType", "testField"),
                         emptyList(),
                         forChecker = false
                     ),

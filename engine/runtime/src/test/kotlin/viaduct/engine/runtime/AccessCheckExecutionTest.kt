@@ -1,5 +1,6 @@
 package viaduct.engine.runtime
 
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertContains
 import kotlin.test.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -876,6 +877,73 @@ class AccessCheckExecutionTest {
             val error = result.errors[0]
             assertEquals(listOf("baz"), error.path)
             assertContains(error.message, "type checker accessed query field")
+        }
+    }
+
+    @Test
+    fun `checker EOD variables are coerced`() {
+        // Regression test for coercing variables
+        val plusManyValue = AtomicReference<Any?>()
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "string1") {
+                value("foo")
+                checker {
+                    objectSelections("key", "fragment _ on Query { plusMany(value: \$var) }") {
+                        variables("var") { mapOf("var" to 3) }
+                    }
+                    fn { _, objectDataMap ->
+                        plusManyValue.set(objectDataMap["key"]?.fetch("plusMany"))
+                    }
+                }
+            }
+            field("Query" to "plusMany") {
+                resolver {
+                    fn { arguments, _, _, _, _ ->
+                        (arguments["value"] as List<Int>).sum() + 1
+                    }
+                }
+            }
+        }.runFeatureTest {
+            val result = runQuery("{ string1 }")
+            assertEquals(mapOf("string1" to "foo"), result.getData())
+            assertEquals(4, plusManyValue.get())
+        }
+    }
+
+    @Test
+    fun `type checker child plan variables are coerced`() {
+        // Regression test for coercing variables in type checker child plans
+        val plusManyValue = AtomicReference<Any?>()
+        MockTenantModuleBootstrapper(schema) {
+            field("Query" to "baz") {
+                resolver {
+                    fn { _, _, _, _, ctx -> ctx.createNodeReference("1", bazType) }
+                }
+            }
+            type("Baz") {
+                nodeUnbatchedExecutor { id, _, _ ->
+                    mkEngineObjectData(bazType, mapOf("id" to id, "x" to id.toInt(), "y" to id))
+                }
+                checker {
+                    querySelections("key", "fragment _ on Query { plusMany(value: \$var) }") {
+                        variables("var") { mapOf("var" to 6) }
+                    }
+                    fn { _, objectDataMap ->
+                        plusManyValue.set(objectDataMap["key"]?.fetch("plusMany"))
+                    }
+                }
+            }
+            field("Query" to "plusMany") {
+                resolver {
+                    fn { arguments, _, _, _, _ ->
+                        (arguments["value"] as List<Int>).sum() + 1
+                    }
+                }
+            }
+        }.runFeatureTest {
+            val result = runQuery("{ baz { id } }")
+            assertEquals(mapOf("baz" to mapOf("id" to "1")), result.getData())
+            assertEquals(7, plusManyValue.get())
         }
     }
 }
