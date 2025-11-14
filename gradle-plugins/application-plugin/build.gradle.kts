@@ -33,7 +33,7 @@ tasks.jar {
 }
 
 gradlePlugin {
-    website = "https://airbnb.io/viaduct"
+    website = "https://viaduct.airbnb.tech"
     vcsUrl = "https://github.com/airbnb/viaduct"
 
     plugins {

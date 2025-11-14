@@ -1,8 +1,0 @@
-$dokka.format:html-v1
-$dokka.linkExtension:html
-
-module:service-api
-viaduct.service.api
-viaduct.service.api.spi
-module:service-wiring
-viaduct.service

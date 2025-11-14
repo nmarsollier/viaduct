@@ -40,7 +40,7 @@ publishing {
             pom {
                 name.set("Viaduct Tools")
                 description.set("A GraphQL-based microservice alternative.")
-                url.set("https://airbnb.io/viaduct/")
+                url.set("https://viaduct.airbnb.tech/")
                 licenses {
                     license {
                         name.set("Apache License, Version 2.0")
