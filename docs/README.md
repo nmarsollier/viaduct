@@ -1,6 +1,6 @@
-# airbnb.io/viaduct
+# viaduct.airbnb.tech
 
-This readme documents how to develop and deploy airbnb.io/viaduct.
+This readme documents how to develop and deploy viaduct.airbnb.tech.
 
 ## Stack
 
@@ -117,22 +117,18 @@ Then open `http://localhost:1313` in your browser. If another process is bound t
 
 ### Deployment
 
-Until we have CI for our site, deployment is manual.
+This site is deployed via AWS S3 and Cloudfront from a CI job internal
+to Airbnb. Manual deploy steps:
 
 ```bash
 cd $VIADUCT_REPO
+cd docs
+hugo build --gc --minify --cleanDestinationDir
+cd ../
 ./gradlew :core:tenant:tenant-api:dokkaGenerate
 ./gradlew :core:service:dokkaGenerate
 cd docs
-hugo build
-VIADUCT_SITE_BUILD=`mktemp -d`
-cp -r public/* $VIADUCT_SITE_BUILD
-git checkout gh-pages
-rm -rf * # Be careful with this command!
-mv $VIADUCT_SITE_BUILD/* .
-touch .nojekyll
-git commit -am 'Publish new site version'
-git push origin gh-pages
+aws s3 sync public/ s3://viaduct-airbnb-tech
 ```
 
 ## Dokka
