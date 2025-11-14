@@ -8,11 +8,7 @@ import graphql.execution.DataFetcherExceptionHandlerParameters
 import graphql.execution.DataFetcherExceptionHandlerResult
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLNamedType
-import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionException
-import java.util.concurrent.ExecutionException
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import viaduct.api.ViaductFrameworkException
 import viaduct.api.ViaductTenantException
@@ -54,12 +50,10 @@ class ViaductDataFetcherExceptionHandler(val errorReporter: ResolverErrorReporte
     private fun processException(params: DataFetcherExceptionHandlerParameters): List<GraphQLError> {
         // For metadata: unwrap ONLY concurrency wrappers, preserving the top-most Viaduct exception
         // (whether FieldFetchingException, ViaductTenantResolverException, etc.)
-        val exceptionForMetadata = unwrapException(params.exception, ::isConcurrencyWrapper)
+        val exceptionForMetadata = UnwrapExceptionUtil.unwrapException(params.exception, UnwrapExceptionUtil::isConcurrencyWrapper)
 
         // For errors: unwrap ALL wrappers (concurrency + Viaduct) to get the actual underlying error
-        val unwrappedException = unwrapException(params.exception) { e ->
-            isConcurrencyWrapper(e) || isViaductWrapper(e)
-        }
+        val unwrappedException = UnwrapExceptionUtil.unwrapExceptionForError(params.exception)
 
         val env = params.dataFetchingEnvironment
         val operationName: String? = env.operationDefinition.name
@@ -149,27 +143,4 @@ class ViaductDataFetcherExceptionHandler(val errorReporter: ResolverErrorReporte
             .map { it.resolver }
             .toList()
     }
-
-    /**
-     * Unwraps exceptions based on a predicate, handling arbitrary nesting.
-     * Continues unwrapping while the predicate returns true.
-     */
-    private fun unwrapException(
-        exception: Throwable,
-        shouldUnwrap: (Throwable) -> Boolean
-    ): Throwable {
-        var cause = exception
-        while (shouldUnwrap(cause)) {
-            cause = cause.cause ?: break
-        }
-        return cause
-    }
-
-    private fun isConcurrencyWrapper(e: Throwable) =
-        e is CompletionException ||
-            e is CancellationException ||
-            e is ExecutionException ||
-            e is InvocationTargetException
-
-    private fun isViaductWrapper(e: Throwable) = e is ViaductTenantResolverException || e is FieldFetchingException
 }
