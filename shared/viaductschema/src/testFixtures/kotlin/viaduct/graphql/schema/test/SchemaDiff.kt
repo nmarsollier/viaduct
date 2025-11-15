@@ -1,6 +1,9 @@
 package viaduct.graphql.schema.test
 
+import graphql.language.ArrayValue
+import graphql.language.IntValue
 import graphql.language.Node
+import graphql.language.StringValue
 import java.lang.IllegalArgumentException
 import viaduct.graphql.schema.ViaductSchema
 import viaduct.invariants.InvariantChecker
@@ -122,7 +125,7 @@ class SchemaDiff(
                     checker.isEqualTo(exp.type, act.type, "ARG_TYPE_AGREE")
                     checker.isEqualTo(exp.containingDef.name, act.containingDef.name, "CONTAINING_TYPE_NAMES_AGREE")
                     if (checker.isEqualTo(exp.hasDefault, act.hasDefault, "HAS_DEFAULTS_AGREE") && exp.hasDefault) {
-                        checker.isTrue(areNodesEqual(exp.defaultValue, act.defaultValue), "DEFAULT_VALUES_AGREE")
+                        checker.isTrue(areNodesEqual(exp.defaultValue, act.defaultValue, exp.type), "DEFAULT_VALUES_AGREE")
                     }
                     if (checker.isEqualTo(exp.hasEffectiveDefault, act.hasEffectiveDefault, "HAS_DEFAULTS_AGREE") &&
                         exp.hasEffectiveDefault
@@ -130,7 +133,8 @@ class SchemaDiff(
                         checker.isTrue(
                             areNodesEqual(
                                 exp.effectiveDefaultValue,
-                                act.effectiveDefaultValue
+                                act.effectiveDefaultValue,
+                                exp.type
                             ),
                             "DEFAULT_VALUES_AGREE"
                         )
@@ -239,12 +243,51 @@ class SchemaDiff(
         }
     }
 
-    private fun areNodesEqual(
+    fun areNodesEqual(
         expectedNode: Any?,
-        actualNode: Any?
+        actualNode: Any?,
+        type: ViaductSchema.TypeExpr? = null
     ): Boolean {
-        if (expectedNode != null && actualNode != null && (expectedNode as Node<*>).isEqualTo(actualNode as Node<*>)) return true
-        return actualNode == null && expectedNode == null
+        // Handle null cases
+        if (expectedNode == null && actualNode == null) return true
+        if (expectedNode == null || actualNode == null) return false
+
+        // For lists, recursively compare elements
+        if (type != null && expectedNode is ArrayValue && actualNode is ArrayValue) {
+            if (expectedNode.values.size != actualNode.values.size) return false
+            val elementType = type.unwrapList()
+            return expectedNode.values.zip(actualNode.values).all { (exp, act) ->
+                areNodesEqual(exp, act, elementType)
+            }
+        }
+
+        // For integral scalar types (Byte, Short, Long), compare values semantically
+        // since they can be represented as either IntValue or StringValue in GraphQL literals
+        if (type != null && !type.isList) {
+            val baseType = type.baseTypeDef
+            if (baseType is ViaductSchema.Scalar && baseType.name in setOf("Byte", "Short", "Long")) {
+                val expectedIntegral = extractIntegralValue(expectedNode)
+                val actualIntegral = extractIntegralValue(actualNode)
+                return expectedIntegral == actualIntegral
+            }
+        }
+
+        // Default comparison using Node.isEqualTo
+        return (expectedNode as Node<*>).isEqualTo(actualNode as Node<*>)
+    }
+
+    private fun extractIntegralValue(node: Any?): Any? {
+        return when (node) {
+            is IntValue -> {
+                try {
+                    node.value.toLong()
+                } catch (e: ArithmeticException) {
+                    throw IllegalArgumentException("Integral value out of Long range: ${node.value}", e)
+                }
+            }
+            is StringValue -> node.value?.toLongOrNull()
+            else -> node
+        }
     }
 
     private fun hasSameKind(
