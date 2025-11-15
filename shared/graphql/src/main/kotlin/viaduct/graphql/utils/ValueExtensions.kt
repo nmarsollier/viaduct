@@ -132,12 +132,7 @@ fun AbstractNode<*>.collectVariableUsages(
 
 /**
  * Create one VariableDefinition for each variable name in the node. If a variable is used in multiple
- * locations, this requires that all locations are structurally the same, and takes the combined
- * strictest nullability requirements of these locations.
- *
- * Note that the GraphQL spec is more relaxed than this function. For example, if a variable appears in
- * a location of type `String` and `[String]`, theoretically this variable definition's type could be `String`,
- * but this is currently unsupported and it will throw since they're structurally different.
+ * locations, this attempts to combine them via [combineInputTypes], which throws if they're structurally incompatible.
  *
  * @param typeName The name of the root type, useful for situations where the root type isn't present in the AbstractNode,
  *        e.g. if it's just a SelectionSet.
@@ -150,7 +145,7 @@ fun AbstractNode<*>.collectVariableDefinitions(
 ): List<VariableDefinition> {
     return collectAllVariableUsages(schema, typeName, fragmentDefinitions)
         .map { (varName, usages) ->
-            val combinedType = usages.map { it.type }.reduce { acc, type -> combineNullabilityRequirements(acc, type) }
+            val combinedType = usages.map { it.type }.reduce { acc, type -> combineInputTypes(acc, type) }
             VariableDefinition.newVariableDefinition()
                 .name(varName)
                 .type(combinedType.toASTType())
@@ -159,15 +154,19 @@ fun AbstractNode<*>.collectVariableDefinitions(
 }
 
 /**
- * Compares two GraphQLInputTypes and returns the combined nullability requirements, prioritizing non-nullability.
+ * Compares two GraphQLInputTypes and combines them if possible. This includes prioritizing non-nullability
+ * over nullability, and non-list over list types. Non-list types are prioritized because they can be coerced
+ * into single-item lists, see https://spec.graphql.org/draft/#sec-List.Input-Coercion
+ *
  * Note that this does not take default values into consideration, something we may want to revisit
  * if we allow unset variables for required selection sets.
  *
  * Examples:
- * - combineNullabilityRequirements(String, String!) = String!
- * - combineNullabilityRequirements([String!], [String]!) = [String!]!
+ * - combineInputTypes(String, String!) = String!
+ * - combineInputTypes([String!], [String]!) = [String!]!
+ * - combineInputTypes([String!], String) = String!
  */
-internal fun combineNullabilityRequirements(
+internal fun combineInputTypes(
     type1: GraphQLInputType,
     type2: GraphQLInputType
 ): GraphQLInputType {
@@ -178,7 +177,15 @@ internal fun combineNullabilityRequirements(
         type1Unwrapped is GraphQLList && type2Unwrapped is GraphQLList -> {
             val elem1 = type1Unwrapped.wrappedType as GraphQLInputType
             val elem2 = type2Unwrapped.wrappedType as GraphQLInputType
-            GraphQLList.list(combineNullabilityRequirements(elem1, elem2))
+            GraphQLList.list(combineInputTypes(elem1, elem2))
+        }
+        type1Unwrapped is GraphQLList -> {
+            val elem1 = type1Unwrapped.wrappedType as GraphQLInputType
+            return combineInputTypes(elem1, type2)
+        }
+        type2Unwrapped is GraphQLList -> {
+            val elem2 = type2Unwrapped.wrappedType as GraphQLInputType
+            return combineInputTypes(type1, elem2)
         }
         type1Unwrapped == type2Unwrapped -> type1Unwrapped
         else -> throw IllegalStateException("$type1 and $type2 are structurally incompatible")

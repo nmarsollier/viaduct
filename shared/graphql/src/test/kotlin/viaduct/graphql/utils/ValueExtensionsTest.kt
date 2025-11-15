@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import viaduct.graphql.scopes.visitors.toSchema
 
-class ValueExtTest {
+class ValueExtensionsTest {
     @Test
     fun `rawValue -- StringValue`() {
         assertEquals("string_value", StringValue.newStringValue("string_value").build().rawValue())
@@ -671,7 +671,7 @@ class ValueExtTest {
                 f1(a: String): String
                 f2(a: [Int!]): String
                 f3(a: String): String
-                f4(a: String!): String
+                f4(a: [String!]): String
             }
             """.trimIndent()
         )
@@ -693,7 +693,7 @@ class ValueExtTest {
 
     @Test
     fun `combineNullabilityRequirements -- simple case`() {
-        val result = combineNullabilityRequirements(Scalars.GraphQLString, GraphQLNonNull.nonNull(Scalars.GraphQLString))
+        val result = combineInputTypes(Scalars.GraphQLString, GraphQLNonNull.nonNull(Scalars.GraphQLString))
         assertEquals("String!", GraphQLTypeUtil.simplePrint(result))
     }
 
@@ -701,7 +701,7 @@ class ValueExtTest {
     fun `combineNullabilityRequirements -- list with nullable vs non-null elements`() {
         val type1 = GraphQLList.list(Scalars.GraphQLString)
         val type2 = GraphQLList.list(GraphQLNonNull.nonNull(Scalars.GraphQLString))
-        val result = combineNullabilityRequirements(type1, type2)
+        val result = combineInputTypes(type1, type2)
         assertEquals("[String!]", GraphQLTypeUtil.simplePrint(result))
     }
 
@@ -709,7 +709,7 @@ class ValueExtTest {
     fun `combineNullabilityRequirements -- nullable vs non-null list`() {
         val type1 = GraphQLList.list(Scalars.GraphQLString)
         val type2 = GraphQLNonNull.nonNull(GraphQLList.list(Scalars.GraphQLString))
-        val result = combineNullabilityRequirements(type1, type2)
+        val result = combineInputTypes(type1, type2)
         assertEquals("[String]!", GraphQLTypeUtil.simplePrint(result))
     }
 
@@ -717,8 +717,39 @@ class ValueExtTest {
     fun `combineNullabilityRequirements -- nested lists`() {
         val type1 = GraphQLList.list(GraphQLNonNull.nonNull(GraphQLList.list(Scalars.GraphQLString))) // [[String]!]
         val type2 = GraphQLNonNull.nonNull(GraphQLList.list(GraphQLList.list(GraphQLNonNull.nonNull(Scalars.GraphQLString)))) // [[String!]]!
-        val result = combineNullabilityRequirements(type1, type2)
+        val result = combineInputTypes(type1, type2)
         assertEquals("[[String!]!]!", GraphQLTypeUtil.simplePrint(result))
+    }
+
+    @Test
+    fun `combineNullabilityRequirements -- list with nullable scalar`() {
+        val type1 = GraphQLList.list(GraphQLNonNull.nonNull(Scalars.GraphQLString)) // [String!]
+        val type2 = Scalars.GraphQLString // String
+        val result = combineInputTypes(type1, type2)
+        assertEquals("String!", GraphQLTypeUtil.simplePrint(result))
+    }
+
+    @Test
+    fun `combineNullabilityRequirements -- list with non-nullable scalar`() {
+        val type1 = GraphQLNonNull.nonNull(Scalars.GraphQLString) // String!
+        val type2 = GraphQLList.list(Scalars.GraphQLString) // [String]
+        val result = combineInputTypes(type1, type2)
+        assertEquals("String!", GraphQLTypeUtil.simplePrint(result))
+    }
+
+    @Test
+    fun `combineNullabilityRequirements -- nested list with scalar`() {
+        val type1 = GraphQLList.list(GraphQLList.list(Scalars.GraphQLString)) // [[String]]
+        val type2 = GraphQLNonNull.nonNull(Scalars.GraphQLString) // String!
+        val result = combineInputTypes(type1, type2)
+        assertEquals("String!", GraphQLTypeUtil.simplePrint(result))
+    }
+
+    @Test
+    fun `combineNullabilityRequirements -- fails with incompatible types`() {
+        val type1 = GraphQLList.list(GraphQLNonNull.nonNull(Scalars.GraphQLInt)) // [Int!]
+        val type2 = Scalars.GraphQLString // String
+        assertThrows(IllegalStateException::class.java) { combineInputTypes(type1, type2) }
     }
 
     companion object {
