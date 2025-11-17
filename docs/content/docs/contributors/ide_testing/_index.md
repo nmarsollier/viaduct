@@ -16,7 +16,6 @@ Execute automated IDE compatibility testing for the Viaduct GraphQL code generat
 
 **Setup:**
 
-- Project location: `/Users/walter_phillips/airlab/repos/viaduct`
 - IntelliJ IDEA should be open with viaduct project loaded (not individual demo apps)
 - IntelliJ MCP server should be running at `http://127.0.0.1:64342/sse`
 - Playwright MCP should be available for browser testing
