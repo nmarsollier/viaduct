@@ -60,6 +60,7 @@ mutation {
 - Generates new GlobalIDs for created entities.
 - Supports relationship creation via reference IDs.
 - Returns the full created entity for immediate use.
+- **Validates security access** using request-scoped context (see [Request Context](../requestcontext) for details).
 
 ### Update character name
 
@@ -111,6 +112,12 @@ mutation {
 - Handles cascading relationship cleanup.
 - Maintains data integrity during deletion.
 
+## Using request context
+
+Operations often need access to request-specific data like authentication, authorization, or tenant information. While this example focuses on mutations, **request context is available to all operations** — queries, mutations, and subscriptions may all use request context as needed.
+
+Viaduct fully supports request context management through your framework's dependency injection. For detailed information on different approaches and best practices, see the [Request Context](../requestcontext) documentation.
+
 ## Mutation best practices
 
 1. **Use input types:** structure mutation arguments with dedicated input types for validation and clarity.
@@ -119,6 +126,8 @@ mutation {
 4. **Validate relationships:** ensure referenced entities exist before creating relationships.
 5. **Handle errors gracefully:** provide meaningful error messages for invalid operations.
 6. **Maintain consistency:** update all related data structures atomically.
+7. **Leverage request context:** use framework-provided request scoping for authentication, authorization, and tenant isolation.
+8. **Inject dependencies:** prefer dependency injection over global state or manual context threading.
 
 **Note:** when using mutations, make sure to use properly encoded GlobalIDs.
 
