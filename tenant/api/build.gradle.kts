@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.graphql.java)
     implementation(libs.kotlin.reflect)
     implementation(libs.jackson.databind)
+    implementation(libs.kotlinx.coroutines.core)
 
     /** Test fixtures - Viaduct dependencies **/
     testFixturesImplementation(testFixtures(libs.viaduct.engine.api))

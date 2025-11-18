@@ -21,6 +21,9 @@ import graphql.schema.LightDataFetcher
 import graphql.util.FpKit
 import java.util.concurrent.CompletionStage
 import java.util.function.Supplier
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import viaduct.deferred.asDeferred
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.LazyEngineObjectData
@@ -460,6 +463,7 @@ class FieldResolver(
                         originalSource.resolveData(selections, localExecutionContext)
                         engineResult.resolve()
                     } catch (e: Exception) {
+                        if (e is CancellationException) currentCoroutineContext().ensureActive()
                         engineResult.resolveExceptionally(e)
                     }
                 }

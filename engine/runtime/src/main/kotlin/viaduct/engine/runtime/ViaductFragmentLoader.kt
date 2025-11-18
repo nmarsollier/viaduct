@@ -12,7 +12,10 @@ import graphql.language.SelectionSet
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLSchema
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.toList
 import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.ObjectEngineResult
@@ -248,6 +251,7 @@ class ViaductFragmentLoader
                             log.debug("fetching field '{}' from OER: {}", oerKey, objectEngineResult)
                             objectEngineResult.fetch(oerKey, RAW_VALUE_SLOT)
                         } catch (e: Exception) {
+                            if (e is CancellationException) currentCoroutineContext().ensureActive()
                             errors.add(ResolutionError(e, currentPath))
                             null
                         }

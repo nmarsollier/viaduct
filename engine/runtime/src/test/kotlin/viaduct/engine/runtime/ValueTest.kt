@@ -2,6 +2,7 @@
 
 package viaduct.engine.runtime
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -222,6 +223,19 @@ class ValueTest {
             Value.fromValue(1),
             Value.fromDeferred(completedDeferred(1))
         )
+    }
+
+    @Test
+    fun `fromDeferred -- cancelled completed deferred stays cancelled`() {
+        val cancel = CancellationException("stop")
+        val def = CompletableDeferred<Int>().apply { cancel(cancel) }
+
+        val value = Value.fromDeferred(def)
+
+        val deferred = value.asDeferred()
+        assertTrue(deferred.isCancelled)
+        val thrown = assertThrows<CancellationException> { runBlocking { deferred.await() } }
+        assertEquals("stop", thrown.message)
     }
 
     @Test

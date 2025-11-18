@@ -61,7 +61,7 @@ interface InternalDataLoader<K : Any, V, C : Any> {
                     @Suppress("TooGenericExceptionCaught")
                     return try {
                         baseLoadFn.load(keys.toSet(), env).let { resultMap -> keys.map { resultMap[it] } }.map { Try(it) }
-                    } catch (e: Throwable) {
+                    } catch (e: Exception) {
                         List(keys.size) { Try(error = e) }
                     }
                 }

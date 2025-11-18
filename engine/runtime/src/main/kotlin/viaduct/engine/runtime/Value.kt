@@ -1,7 +1,9 @@
 package viaduct.engine.runtime
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import viaduct.deferred.cancelledDeferred
 import viaduct.deferred.completedDeferred
 import viaduct.deferred.exceptionalDeferred
 import viaduct.deferred.exceptionallyCompose
@@ -195,7 +197,12 @@ sealed interface Value<T> {
         /**
          * Create a [Value] from the provided [Deferred].
          *
-         * This method will return a [SyncValue] if the deferred is completed.
+         * If the deferred is already completed successfully, returns a [SyncValue]; if it is
+         * completed exceptionally, returns a [SyncThrow]. If it is completed with cancellation,
+         * the result is a cancelled Async-backed Value so downstream callers still observe
+         * cancellation semantics (isCancelled=true) instead of a generic exceptional Value.
+         *
+         * @return a Value representing the provided Deferred
          */
         @Suppress("TooGenericExceptionCaught")
         @OptIn(ExperimentalCoroutinesApi::class)
@@ -204,7 +211,11 @@ sealed interface Value<T> {
                 try {
                     fromValue(deferred.getCompleted())
                 } catch (ex: Exception) {
-                    fromThrowable(ex)
+                    if (ex is CancellationException && deferred.isCancelled) {
+                        AsyncDeferred(cancelledDeferred(ex))
+                    } else {
+                        fromThrowable(ex)
+                    }
                 }
             } else {
                 AsyncDeferred(deferred)
