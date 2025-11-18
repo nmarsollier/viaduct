@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import viaduct.api.context.FieldExecutionContext
 import viaduct.api.globalid.GlobalID
@@ -140,7 +141,8 @@ class FieldExecutionObservabilityTest {
     }
 
     @Test
-    fun `test same field is fetched multiple times`() {
+    @DisplayName("test same field is fetched multiple times")
+    fun testSameFieldFetchedMultipleTimes() {
         val instrumentation = TestObservabilityInstrumentation()
         val childPlanExecuted = CountDownLatch(2)
 
@@ -148,8 +150,8 @@ class FieldExecutionObservabilityTest {
         // may run before the child plan executes, potentially canceling the child plan.
         // This instrumentation will ensure the child plans are executed, and resolvers can wait for child plan execution before returning values.
         val countDownInstrumentation = createCountDownInstrumentation(
-            "Query" to "idField",
-            mapOf("RESOLVER:query-string1-resolver" to childPlanExecuted)
+            "Query" to "string1",
+            mapOf("OPERATION:testQuery" to childPlanExecuted)
         )
 
         val instrumentations = ChainedModernGJInstrumentation(
@@ -192,8 +194,8 @@ class FieldExecutionObservabilityTest {
         assertTrue(instrumentation.getFieldRequiredBy("Query", "idField").toSet().contains("RESOLVER:query-string1-resolver")) {
             "Expected 'query-string1-resolver' to be in the required by set for 'idField'"
         }
-        assertTrue((instrumentation.getFieldRequiredBy("Query", "idField").size == 2)) {
-            "Expected 'idField' to be required by the resolver twice, but found: ${instrumentation.getFieldRequiredBy("Query", "idField")}"
+        assertTrue(instrumentation.getFieldRequiredBy("Query", "string1").size == 2) {
+            "Expected 'string1' to be required twice by first & second, but found: ${instrumentation.getFieldRequiredBy("Query", "string1")}"
         }
 
         // verify the beginFieldFetch instrumentation was called with the expected field coordinates and resolvedBy values
