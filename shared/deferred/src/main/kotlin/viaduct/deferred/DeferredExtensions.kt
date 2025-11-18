@@ -5,11 +5,15 @@ package viaduct.deferred
 
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CompletionHandlerException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 
 /**
@@ -399,4 +403,86 @@ fun <T> CompletionStage<T>.asDeferred(): Deferred<T> {
     }
 
     return d
+}
+
+/**
+ * Waits for every Deferred in [deferreds] to finish, failing fast on the first error or cancellation
+ * and cancelling the remaining inputs if that happens.
+ *
+ * @param deferreds inputs to synchronize
+ * @return a Deferred that completes when all inputs finish successfully or propagates the first failure
+ */
+fun waitAllDeferreds(deferreds: Collection<Deferred<*>>): Deferred<Unit> {
+    if (deferreds.isEmpty()) return completedDeferred(Unit)
+
+    if (deferreds.all { it.isCompleted }) {
+        return try {
+            deferreds.forEach { it.getCompleted() }
+            completedDeferred(Unit)
+        } catch (ex: Exception) {
+            ex.maybeRethrowCoroutineException()
+            if (ex is CancellationException) cancelledDeferred(ex) else exceptionalDeferred(ex)
+        }
+    }
+
+    val result = completableDeferred<Unit>()
+    val remaining = AtomicInteger(deferreds.size)
+    val failed = AtomicBoolean(false)
+
+    result.invokeOnCompletion { cause ->
+        if (cause is CancellationException) {
+            deferreds.forEach { d ->
+                if (!d.isCompleted) {
+                    try {
+                        d.cancel(cause)
+                    } catch (ex: Exception) {
+                        ex.maybeRethrowCoroutineException()
+                    }
+                }
+            }
+        }
+    }
+
+    deferreds.forEach { d ->
+        d.invokeOnCompletion { cause ->
+            if (cause == null) {
+                if (!failed.get() && remaining.decrementAndGet() == 0) {
+                    result.complete(Unit)
+                }
+            } else if (failed.compareAndSet(false, true)) {
+                when (cause) {
+                    is CancellationException -> result.cancel(cause)
+                    else -> result.completeExceptionally(cause)
+                }
+                val cancelCause = CancellationException("waitAll fail-fast")
+                deferreds.forEach { other ->
+                    if (other !== d && !other.isCompleted) {
+                        try {
+                            other.cancel(cancelCause)
+                        } catch (ex: Exception) {
+                            ex.maybeRethrowCoroutineException()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return result
+}
+
+/**
+ * Re-throws coroutine-specific exceptions (e.g., CompletionHandlerException) so blanket catch blocks
+ * still respect structured concurrency invariants.
+ *
+ * @receiver the exception to inspect for coroutine-specific types that must be rethrown
+ */
+@OptIn(InternalCoroutinesApi::class)
+fun Exception.maybeRethrowCoroutineException() {
+    when (this) {
+        is CompletionHandlerException -> throw this
+        else -> {
+            // no-op
+        }
+    }
 }

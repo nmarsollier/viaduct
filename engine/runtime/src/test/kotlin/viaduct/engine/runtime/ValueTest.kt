@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import viaduct.deferred.completableDeferred
 import viaduct.deferred.completedDeferred
 
 class ValueTest {
@@ -509,6 +510,63 @@ class ValueTest {
             Value.fromThrowable<Int>(err),
             Value.fromResult(runCatching { throw err })
         )
+    }
+
+    @Test
+    fun `waitAll -- empty`() {
+        assertEquals(
+            Value.fromValue(Unit),
+            Value.waitAll(emptyList<Value<Int>>())
+        )
+    }
+
+    @Test
+    fun `waitAll -- sync values`() {
+        val values = listOf(
+            Value.fromValue(1),
+            Value.fromValue(2)
+        )
+        assertEquals(
+            Value.fromValue(Unit),
+            Value.waitAll(values)
+        )
+    }
+
+    @Test
+    fun `waitAll -- throwable values`() {
+        val err = RuntimeException()
+        val values = listOf(
+            Value.fromValue(1),
+            Value.fromThrowable(err),
+            Value.fromValue(2),
+        )
+        assertEquals(
+            Value.fromThrowable<Unit>(err),
+            Value.waitAll(values)
+        )
+    }
+
+    @Test
+    fun `waitAll -- async values`() {
+        val def1 = completableDeferred<Int>()
+        val def2 = completableDeferred<Int>()
+        val result = Value.waitAll(
+            listOf(
+                Value.fromDeferred(def1),
+                Value.fromDeferred(def2)
+            )
+        )
+
+        // result is not ready yet
+        assertThrows<Exception> { result.getCompleted() }
+
+        def1.complete(1)
+        // result is still not ready yet
+        assertThrows<Exception> { result.getCompleted() }
+
+        def2.complete(2)
+        // result is ready
+        assertSame(Unit, result.getCompleted())
     }
 }
 

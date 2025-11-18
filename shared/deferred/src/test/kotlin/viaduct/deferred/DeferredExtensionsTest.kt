@@ -3,19 +3,24 @@
 package viaduct.deferred
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -1065,6 +1070,98 @@ class DeferredExtensionsTest {
                 }
             }
         }
+    }
+
+    @Nested
+    inner class WaitAllDeferredsTests {
+        @Test
+        fun `waitAllDeferreds FAST exceptional input fails`() =
+            runBlocking {
+                val ok = CompletableDeferred<Unit>().apply { complete(Unit) }
+                val err = CompletableDeferred<Unit>().apply { completeExceptionally(IllegalStateException("boom")) }
+
+                val result = waitAllDeferreds(listOf(ok, err))
+
+                val ex = assertThrows<IllegalStateException> { result.await() }
+                assertEquals("boom", ex.message)
+            }
+
+        @Test
+        fun `waitAllDeferreds FAST cancelled input cancels result`() =
+            runBlocking {
+                val cancel = CancellationException("stop")
+                val cancelled = CompletableDeferred<Unit>().apply { cancel(cancel) }
+                val ok = CompletableDeferred<Unit>().apply { complete(Unit) }
+
+                val result = waitAllDeferreds(listOf(cancelled, ok))
+
+                val ex = assertThrows<CancellationException> { result.await() }
+                assertEquals("stop", ex.message)
+                assertTrue(result.isCancelled)
+            }
+
+        @Test
+        fun `waitAllDeferreds SLOW exception cancels others`() =
+            runBlocking {
+                val first = CompletableDeferred<Unit>()
+                val second = CompletableDeferred<Unit>()
+
+                val result = waitAllDeferreds(listOf(first, second))
+
+                first.completeExceptionally(IllegalStateException("boom"))
+
+                val ex = assertThrows<IllegalStateException> { result.await() }
+                assertEquals("boom", ex.message)
+                val cancel = assertThrows<CancellationException> { second.await() }
+                assertEquals("waitAll fail-fast", cancel.message)
+            }
+
+        @Test
+        fun `waitAllDeferreds SLOW cancellation cancels others`() =
+            runBlocking {
+                val first = CompletableDeferred<Unit>()
+                val second = CompletableDeferred<Unit>()
+
+                val result = waitAllDeferreds(listOf(first, second))
+
+                val cancel = CancellationException("stop")
+                first.cancel(cancel)
+
+                val thrown = assertThrows<CancellationException> { result.await() }
+                assertEquals("stop", thrown.message)
+                val other = assertThrows<CancellationException> { second.await() }
+                assertEquals("stop", other.message)
+            }
+
+        // Regression test for a past implementation that folded over inputs and chained `invokeOnCompletion` callbacks.
+        // That approach created a long completion chain proportional to input size; when thousands of deferreds finished together the nested callbacks
+        // blew the call stack and threw a `StackOverflowError`.
+        // `waitAllDeferreds` now uses a fan-in counter/cancellation approach instead of chaining,
+        // so this stress test with many completions verifies we keep the non-recursive behavior.
+        @RepeatedTest(10)
+        fun `waitAllDeferreds completes successfully and does not fail with StackOverflowError`(): Unit =
+            runBlocking(Dispatchers.Default) {
+                var cehThrowable: Throwable? = null
+                val countdownLatch = CountDownLatch(1)
+                val roots = (0..5000).map { CompletableDeferred<Unit>() }
+                roots.forEach { cd ->
+                    CoroutineScope(Dispatchers.Default).launch(
+                        CoroutineExceptionHandler { _, e ->
+                            cehThrowable = e
+                        }
+                    ) {
+                        delay(1L)
+                        cd.complete(Unit)
+                    }
+                }
+
+                waitAllDeferreds(roots).invokeOnCompletion {
+                    countdownLatch.countDown()
+                }
+
+                countdownLatch.await(2, TimeUnit.SECONDS)
+                cehThrowable?.let { throw it }
+            }
     }
 
     @Nested

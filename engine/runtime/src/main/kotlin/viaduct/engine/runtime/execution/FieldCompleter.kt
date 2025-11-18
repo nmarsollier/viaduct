@@ -119,9 +119,7 @@ class FieldCompleter(
         parentOER: ObjectEngineResultImpl
     ): Value<Map<String, Any?>> {
         val fields = collectFields(parentOER.graphQLObjectType, parameters).selections
-        val initial: Value<Map<String, Any?>> = Value.fromValue(emptyMap())
-
-        return fields.fold(initial) { acc, field ->
+        val fieldValues = fields.map { field ->
             field as QueryPlan.CollectedField
 
             val newParams = parameters.forField(parentOER.graphQLObjectType, field)
@@ -145,13 +143,18 @@ class FieldCompleter(
                     }
             }
 
-            val singleField = completeField(field, newParams, handledFetch)
-
-            // Now complete the field with the fetched result
-            acc.flatMap { values ->
-                singleField.map { values + (field.responseKey to it.value) }
-            }
+            field.responseKey to completeField(field, newParams, handledFetch).map { it.value }
         }
+
+        return Value.waitAll(fieldValues.map { it.second })
+            .thenCompose { _, throwable ->
+                if (throwable != null) {
+                    Value.fromThrowable(throwable)
+                } else {
+                    val resolvedData = fieldValues.associate { (key, value) -> key to value.getCompleted() }
+                    Value.fromValue(resolvedData)
+                }
+            }
     }
 
     /**
@@ -396,29 +399,22 @@ class FieldCompleter(
         )
         completeListCtx.onDispatched()
 
-        // Start with a completed Value containing an empty list.
-        val initial: Value<List<FieldCompletionResult>> = Value.fromValue(emptyList())
-        val allItems = listValues.foldIndexed(initial) { i, acc, item ->
+        val completedValues = listValues.mapIndexed { i, item ->
             val indexedPath = parameters.path.segment(i)
             val execStepInfoForItem =
                 executionStepInfoFactory.newExecutionStepInfoForListElement(parameters.executionStepInfo, indexedPath)
             val newParams = parameters.copy(executionStepInfo = execStepInfoForItem)
-            val completed = completeValue(field, newParams, item, null)
-            acc.flatMap { values ->
-                completed.map { value ->
-                    values + value
-                }
-            }
+            completeValue(field, newParams, item, null)
         }
 
-        // Once all items are collected into a List<FieldCompletionResult>, we transform them into a single FieldCompletionResult.
-        return allItems
-            .thenCompose { fieldValues, throwable ->
+        // Once all items are completed, transform them into a single FieldCompletionResult.
+        return Value.waitAll(completedValues)
+            .thenCompose { _, throwable ->
                 if (throwable != null) {
                     completeListCtx.onCompleted(null, throwable)
                     getFieldCompletionResultForException(throwable)
                 } else {
-                    checkNotNull(fieldValues)
+                    val fieldValues = completedValues.map { it.getCompleted() }
                     val listResults = fieldValues.map { it.value }
                     completeListCtx.onCompleted(listResults, null)
                     Value.fromValue(
