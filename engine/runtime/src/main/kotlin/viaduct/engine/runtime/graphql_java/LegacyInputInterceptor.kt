@@ -1,4 +1,4 @@
-package viaduct.engine
+package viaduct.engine.runtime.graphql_java
 
 import graphql.GraphQLContext
 import graphql.execution.values.InputInterceptor

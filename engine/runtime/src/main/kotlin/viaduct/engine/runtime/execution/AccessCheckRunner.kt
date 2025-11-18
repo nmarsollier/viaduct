@@ -16,9 +16,9 @@ import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.Value
+import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveQueryPlanVariables
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveRSSVariables
-import viaduct.engine.runtime.findLocalContextForType
 
 /**
  * Helper class that holds logic for executing access checks during field resolution

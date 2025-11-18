@@ -24,7 +24,7 @@ import viaduct.engine.api.instrumentation.ChainedModernGJInstrumentation
 import viaduct.engine.api.instrumentation.IViaductInstrumentation
 import viaduct.engine.api.instrumentation.ViaductInstrumentationBase
 import viaduct.engine.api.observability.ExecutionObservabilityContext
-import viaduct.engine.runtime.getLocalContextForType
+import viaduct.engine.runtime.context.getLocalContextForType
 import viaduct.tenant.runtime.featuretests.fixtures.Bar
 import viaduct.tenant.runtime.featuretests.fixtures.Baz
 import viaduct.tenant.runtime.featuretests.fixtures.FeatureTestBuilder

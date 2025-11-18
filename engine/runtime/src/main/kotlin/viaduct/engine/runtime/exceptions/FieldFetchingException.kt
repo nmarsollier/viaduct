@@ -1,4 +1,4 @@
-package viaduct.engine.runtime.execution
+package viaduct.engine.runtime.exceptions
 
 import graphql.ErrorClassification
 import graphql.GraphQLError
@@ -7,7 +7,7 @@ import graphql.language.SourceLocation
 
 /**
  * Wraps exceptions that originate from field fetchers
- * @see InternalEngineException
+ * @see viaduct.engine.runtime.execution.InternalEngineException
  */
 class FieldFetchingException private constructor(
     val path: ResultPath,

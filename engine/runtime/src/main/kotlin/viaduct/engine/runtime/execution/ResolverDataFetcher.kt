@@ -16,8 +16,8 @@ import viaduct.engine.runtime.CheckerProxyEngineObjectData
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ProxyEngineObjectData
+import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveRSSVariables
-import viaduct.engine.runtime.findLocalContextForType
 
 class ResolverDataFetcher(
     internal val typeName: String,

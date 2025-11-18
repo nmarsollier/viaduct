@@ -22,6 +22,7 @@ import viaduct.engine.api.fragment.Fragment
 import viaduct.engine.api.fragment.FragmentFieldEngineResolutionResult
 import viaduct.engine.api.fragment.errors.FragmentFieldEngineResolutionError
 import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.RAW_VALUE_SLOT
+import viaduct.engine.runtime.context.getLocalContextForType
 import viaduct.utils.collections.parallelMap
 import viaduct.utils.slf4j.logger
 

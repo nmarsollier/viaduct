@@ -1,4 +1,4 @@
-package viaduct.engine
+package viaduct.engine.runtime.graphql_java
 
 import graphql.execution.values.InputInterceptor
 import graphql.introspection.Introspection
@@ -54,7 +54,7 @@ data class GraphQLJavaConfig(
              * In v22, graphql-java tightened the builtin coercing rules to match graphql-js, which does not
              * coerce values like "true" to a GraphQL Boolean.
              *
-             * We use a [LegacyInputInterceptor] to transform previously-acceptable inputs into a parseable form.
+             * We use a [viaduct.engine.LegacyInputInterceptor] to transform previously-acceptable inputs into a parseable form.
              * Services that want different behavior should override this to `null` to get the default behavior
              * or provide a different implementation of [InputInterceptor]
              */

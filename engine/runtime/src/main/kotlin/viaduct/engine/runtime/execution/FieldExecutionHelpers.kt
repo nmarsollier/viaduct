@@ -43,7 +43,7 @@ import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
-import viaduct.engine.runtime.findLocalContextForType
+import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.graphql.utils.collectVariableDefinitions
 
 object FieldExecutionHelpers {

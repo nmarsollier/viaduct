@@ -12,7 +12,7 @@ import graphql.language.SourceLocation
  *   - exceptions that originate from instrumentation hooks
  *   - exceptions that originate from completion, such as coercing errors
  *
- * @see FieldFetchingException
+ * @see viaduct.engine.runtime.exceptions.FieldFetchingException
  */
 class InternalEngineException private constructor(
     val path: ResultPath,

@@ -5,6 +5,7 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.ExecutionException
 import kotlin.coroutines.cancellation.CancellationException
 import viaduct.api.ViaductTenantResolverException
+import viaduct.engine.runtime.exceptions.FieldFetchingException
 
 object UnwrapExceptionUtil {
     fun unwrapExceptionForError(exception: Throwable): Throwable {

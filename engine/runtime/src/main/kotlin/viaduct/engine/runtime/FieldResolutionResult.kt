@@ -2,6 +2,7 @@ package viaduct.engine.runtime
 
 import graphql.GraphQLError
 import graphql.execution.FetchedValue
+import viaduct.engine.runtime.context.CompositeLocalContext
 
 /**
  * Data class to hold the engine result along with the fetched value.

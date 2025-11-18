@@ -40,12 +40,12 @@ import viaduct.engine.api.TypeCheckerDispatcherRegistry
 import viaduct.engine.api.instrumentation.ViaductModernInstrumentation
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
 import viaduct.engine.runtime.EngineResultLocalContext
+import viaduct.engine.runtime.context.getLocalContextForType
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createSchema
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createViaductGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeQuery
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.executeViaductModernGraphQL
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.runExecutionTest
-import viaduct.engine.runtime.getLocalContextForType
 import viaduct.service.api.spi.FlagManager
 import viaduct.utils.slf4j.logger
 
