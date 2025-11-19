@@ -12,6 +12,7 @@ import viaduct.engine.api.FragmentLoader
 import viaduct.engine.api.NodeResolverExecutor
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RawSelectionsLoader
+import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.service.api.spi.FlagManager
@@ -87,6 +88,7 @@ class EngineExecutionContextImpl(
     data class FieldExecutionScopeImpl(
         override val fragments: Map<String, FragmentDefinition> = emptyMap(),
         override val variables: Map<String, Any?> = emptyMap(),
+        override val resolutionPolicy: ResolutionPolicy = ResolutionPolicy.STANDARD,
     ) : EngineExecutionContext.FieldExecutionScope
 
     override fun createNodeReference(

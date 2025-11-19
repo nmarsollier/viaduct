@@ -26,7 +26,6 @@ import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.ACCESS_CHECK_SLOT
 import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.RAW_VALUE_SLOT
 import viaduct.engine.runtime.Value
-import viaduct.engine.runtime.context.CompositeLocalContext
 import viaduct.engine.runtime.execution.CompletionErrors.FieldCompletionException
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.buildDataFetchingEnvironment
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.buildOERKeyForField
@@ -139,7 +138,7 @@ class FieldCompleter(
                 // Handle fetch errors gracefully
                 handleFetchingException(dataFetchingEnvironmentProvider, throwable)
                     .map {
-                        FieldResolutionResult(null, it.errors, CompositeLocalContext.empty, emptyMap(), null)
+                        FieldResolutionResult.fromErrors(it.errors)
                     }
             }
 

@@ -26,6 +26,7 @@ import viaduct.engine.api.FieldCheckerDispatcherRegistry
 import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
+import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.TypeCheckerDispatcherRegistry
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
@@ -58,6 +59,7 @@ import viaduct.utils.slf4j.logger
  * @property parent Parent parameters in the traversal chain, if any
  * @property field Field currently being executed, if any
  * @property bypassChecksDuringCompletion If execution is in the context of an access check
+ * @property resolutionPolicy The resolution policy to use for this execution step
  */
 data class ExecutionParameters(
     val constants: Constants,
@@ -71,7 +73,8 @@ data class ExecutionParameters(
     val errorAccumulator: ErrorAccumulator,
     val parent: ExecutionParameters? = null,
     val field: QueryPlan.CollectedField? = null,
-    val bypassChecksDuringCompletion: Boolean = false
+    val bypassChecksDuringCompletion: Boolean = false,
+    val resolutionPolicy: ResolutionPolicy = ResolutionPolicy.STANDARD,
 ) {
     // Computed properties
     /** The ResultPath for the current level of execution */
@@ -145,6 +148,7 @@ data class ExecutionParameters(
             field = field,
             executionStepInfo = executionStepInfo,
             parent = this,
+            resolutionPolicy = resolutionPolicy,
         )
     }
 
@@ -343,6 +347,7 @@ data class ExecutionParameters(
             parentEngineResult = newParentOER,
             localContext = localContext,
             source = source,
+            resolutionPolicy = resolutionPolicy,
         )
     }
 
@@ -360,6 +365,7 @@ data class ExecutionParameters(
         engineResult: ObjectEngineResultImpl,
         localContext: CompositeLocalContext,
         source: Any?,
+        resolutionPolicy: ResolutionPolicy = this.resolutionPolicy,
     ): ExecutionParameters {
         return copy(
             parentEngineResult = engineResult, // Update parent to be the current object we're traversing into
@@ -370,6 +376,7 @@ data class ExecutionParameters(
             localContext = localContext,
             source = source,
             selectionSet = checkNotNull(field.selectionSet) { "Expected selection set to be non-null." },
+            resolutionPolicy = resolutionPolicy,
         )
     }
 

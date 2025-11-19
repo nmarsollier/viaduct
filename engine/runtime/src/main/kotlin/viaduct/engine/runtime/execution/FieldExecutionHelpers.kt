@@ -152,7 +152,8 @@ object FieldExecutionHelpers {
         val engineExecCtx = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         val fieldScope = EngineExecutionContextImpl.FieldExecutionScopeImpl(
             fragments = parameters.queryPlan.fragments.map.mapValues { it.value.gjDef },
-            variables = parameters.coercedVariables.toMap()
+            variables = parameters.coercedVariables.toMap(),
+            resolutionPolicy = parameters.resolutionPolicy
         )
         val updatedEngineExecCtx = engineExecCtx.copy(fieldScope = fieldScope)
 

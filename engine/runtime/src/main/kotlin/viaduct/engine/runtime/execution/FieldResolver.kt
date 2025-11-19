@@ -28,6 +28,8 @@ import viaduct.deferred.asDeferred
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.LazyEngineObjectData
 import viaduct.engine.api.ObjectEngineResult
+import viaduct.engine.api.ParentManagedValue
+import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.engineExecutionContext
 import viaduct.engine.runtime.Cell
 import viaduct.engine.runtime.EngineExecutionContextImpl
@@ -270,7 +272,7 @@ class FieldResolver(
             val (dataFetcherValue, fieldCheckerResultValue) = fetchField(field, parameters, dataFetchingEnvironmentProvider)
             val result = dataFetcherValue
                 .map { fv ->
-                    buildFieldResolutionResult(parameters, fieldType, fv)
+                    buildFieldResolutionResult(parameters, fieldType, fv, parameters.resolutionPolicy)
                 }.recover { e ->
                     // handle any errors that occurred during building FieldResolutionResult
                     val wrappedException = when (e) {
@@ -347,20 +349,34 @@ class FieldResolver(
         parameters: ExecutionParameters,
         fieldType: GraphQLOutputType,
         fetchedValue: FetchedValue,
+        resolutionPolicy: ResolutionPolicy,
     ): FieldResolutionResult {
         val field = checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
-        val data = fetchedValue.fetchedValue ?: return FieldResolutionResult.fromFetchedValue(null, fetchedValue)
+        val data = fetchedValue.fetchedValue ?: return FieldResolutionResult.fromFetchedValue(null, fetchedValue, resolutionPolicy)
+
+        // Unwrap data from "ParentManagedValue" if necessary, and set the effective resolution policy
+        var effectiveResolutionPolicy = resolutionPolicy
+        val effectiveData = if (data is ParentManagedValue) {
+            effectiveResolutionPolicy = ResolutionPolicy.PARENT_MANAGED
+            data.value
+        } else {
+            data
+        }
+
+        if (effectiveData == null) {
+            return FieldResolutionResult.fromFetchedValue(null, fetchedValue, effectiveResolutionPolicy)
+        }
 
         // if the type has a non-null wrapper, unwrap one level and recurse
         if (GraphQLTypeUtil.isNonNull(fieldType)) {
-            return buildFieldResolutionResult(parameters, GraphQLTypeUtil.unwrapNonNullAs(fieldType), fetchedValue)
+            return buildFieldResolutionResult(parameters, GraphQLTypeUtil.unwrapNonNullAs(fieldType), fetchedValue, effectiveResolutionPolicy)
         }
 
         // When it's a list, wrap each item in the list
         if (GraphQLTypeUtil.isList(fieldType)) {
             val newFieldType = GraphQLTypeUtil.unwrapOneAs<GraphQLOutputType>(fieldType)
-            val resultIterable = checkNotNull(data as? Iterable<*>) {
-                "Expected data to be an Iterable, was ${data.javaClass}."
+            val resultIterable = checkNotNull(effectiveData as? Iterable<*>) {
+                "Expected data to be an Iterable, was ${effectiveData.javaClass}."
             }
             return FieldResolutionResult.fromFetchedValue(
                 resultIterable.mapIndexed { index, it ->
@@ -370,7 +386,8 @@ class FieldResolver(
                         val itemFieldResolutionResult = buildFieldResolutionResult(
                             parameters,
                             newFieldType,
-                            itemFV
+                            itemFV,
+                            effectiveResolutionPolicy
                         )
                         slotSetter.setRawValue(Value.fromValue(itemFieldResolutionResult))
 
@@ -386,25 +403,27 @@ class FieldResolver(
                         slotSetter.setCheckerValue(typeCheckerResult)
                     }
                 },
-                fetchedValue
+                fetchedValue,
+                effectiveResolutionPolicy,
+                originalSource = effectiveData,
             )
         }
 
         // When it's a leaf value, it doesn't need wrapping
         if (GraphQLTypeUtil.isLeaf(fieldType)) {
-            return FieldResolutionResult.fromFetchedValue(data, fetchedValue)
+            return FieldResolutionResult.fromFetchedValue(effectiveData, fetchedValue, effectiveResolutionPolicy, originalSource = effectiveData)
         }
         // Interface or union type, resolve the type and wrap it
         if (GraphQLTypeUtil.isInterfaceOrUnion(fieldType)) {
             val resolvedType = typeResolver.resolveType(
                 parameters.executionContext,
                 field.mergedField,
-                data,
+                effectiveData,
                 parameters.executionStepInfo,
                 fieldType,
                 fetchedValue.localContext
             )
-            return buildFieldResolutionResult(parameters, resolvedType, fetchedValue)
+            return buildFieldResolutionResult(parameters, resolvedType, fetchedValue, effectiveResolutionPolicy)
         }
         // When it's an object, wrap the whole thing
         if (GraphQLTypeUtil.isObjectType(fieldType)) {
@@ -413,7 +432,7 @@ class FieldResolver(
             } else {
                 ObjectEngineResultImpl.newForType(fieldType as GraphQLObjectType)
             }
-            return FieldResolutionResult.fromFetchedValue(oer, fetchedValue)
+            return FieldResolutionResult.fromFetchedValue(oer, fetchedValue, effectiveResolutionPolicy, originalSource = effectiveData)
         }
         throw IllegalStateException("ObjectEngineResult must wrap a GraphQLObjectType.")
     }
@@ -522,7 +541,7 @@ class FieldResolver(
                 val oer = fieldResolutionResult.engineResult as? ObjectEngineResultImpl ?: return
                 fetchObject(
                     oer.graphQLObjectType,
-                    parameters.forObjectTraversal(field, oer, fieldResolutionResult.localContext, fieldResolutionResult.originalSource)
+                    parameters.forObjectTraversal(field, oer, fieldResolutionResult.localContext, fieldResolutionResult.originalSource, fieldResolutionResult.resolutionPolicy)
                 )
             }
         }
