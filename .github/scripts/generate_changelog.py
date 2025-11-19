@@ -29,6 +29,19 @@ def main():
 
   print(changelog)
 
+def clean_commit_message(message: str) -> str:
+  # Remove internal metadata patterns but keep "Closes #123", "Fixes #456", etc.
+  patterns = [
+    r'\s+Github-Change-Id:\s+\w+',
+    r'\s+GitOrigin-RevId:\s+[a-f0-9]+',
+  ]
+
+  cleaned = message
+  for pattern in patterns:
+    cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+
+  return cleaned.strip()
+
 def format_entry(entry):
   # Extract commit author
   author_start_idx = entry.find('AUTHOR_START') + 'AUTHOR_START'.__len__()
@@ -54,8 +67,9 @@ def format_entry(entry):
     co_author_usernames = [extract_username(author_str) for author_str in co_authors if author_str.strip()]
     usernames.extend([u for u in co_author_usernames if u])
 
-  # Get commit message part
+  # Get commit message part and clean metadata
   commit_info = entry[:entry.find(' by AUTHOR_START')].strip()
+  commit_info = clean_commit_message(commit_info)
 
   # Format output
   if usernames:
