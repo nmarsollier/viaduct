@@ -71,11 +71,15 @@ signing {
     val signingKeyId: String? by project
     val signingKey: String? by project
     val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    setRequired {
-        gradle.taskGraph.allTasks.any { it is PublishToMavenRepository }
+
+    // Only configure signing if credentials are present
+    if (signingKeyId != null && signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign(publishing.publications["mavenJava"])
     }
-    sign(publishing.publications["mavenJava"])
+
+    // Signing is optional - only required when publishing to remote repositories with credentials
+    isRequired = false
 }
 
 // Apply copybara tasks from separate script
