@@ -212,15 +212,17 @@ class ViaductExecutionStrategy internal constructor(
                 //    relying on the query plan and the object engine result
                 launch {
                     supervisorScope {
-                        val (_, duration) = measureTimedValue {
+                        val (value, duration) = measureTimedValue {
                             if (isSerial) {
                                 fieldResolver.fetchObjectSerially(objType, parameters)
                             } else {
                                 fieldResolver.fetchObject(objType, parameters)
                             }
                         }
+                        // ensure we bubble any fatal errors and thus cause this job to fail
+                        value.await()
                         log.ifDebug {
-                            debug("Took $duration to resolve query: ${executionContext.operationDefinition.operation.name}.")
+                            debug("Took $duration to resolve query: ${executionContext.operationDefinition.name}.")
                         }
                     }
                 }

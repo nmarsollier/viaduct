@@ -3,6 +3,7 @@
 package viaduct.engine.api.mocks
 
 import graphql.ExecutionResult
+import graphql.execution.instrumentation.Instrumentation
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import viaduct.engine.EngineConfiguration
@@ -63,10 +64,11 @@ import viaduct.service.runtime.noderesolvers.ViaductNodeResolverAPIBootstrapper
 fun MockTenantModuleBootstrapper.runFeatureTest(
     withoutDefaultQueryNodeResolvers: Boolean = false,
     schema: ViaductSchema? = null,
+    additionalInstrumentation: Instrumentation? = null,
     block: FeatureTest.() -> Unit
 ) {
     val executableSchema = schema ?: fullSchema
-    val engine = toEngineFactory(withoutDefaultQueryNodeResolvers).create(executableSchema, fullSchema = fullSchema)
+    val engine = toEngineFactory(withoutDefaultQueryNodeResolvers, additionalInstrumentation).create(executableSchema, fullSchema = fullSchema)
     FeatureTest(engine).block()
 }
 
@@ -80,7 +82,10 @@ fun MockTenantModuleBootstrapper.runFeatureTest(
  *
  * and an [EngineConfiguration] constructed with MockFlagManager.Enabled.
  */
-private fun MockTenantModuleBootstrapper.toEngineFactory(withoutDefaultQueryNodeResolvers: Boolean): EngineFactory {
+private fun MockTenantModuleBootstrapper.toEngineFactory(
+    withoutDefaultQueryNodeResolvers: Boolean,
+    additionalInstrumentation: Instrumentation? = null
+): EngineFactory {
     val mods = listOf(this)
     val tenantAPIBootstrapper = buildList {
         add(MockTenantAPIBootstrapperBuilder(MockTenantAPIBootstrapper(mods)))
@@ -101,6 +106,8 @@ private fun MockTenantModuleBootstrapper.toEngineFactory(withoutDefaultQueryNode
     ).create(fullSchema)
     val config = EngineConfiguration.default.copy(
         flagManager = MockFlagManager.Enabled,
+        chainInstrumentationWithDefaults = true,
+        additionalInstrumentation = additionalInstrumentation
     )
     return EngineFactory(config, dispatcherRegistry)
 }

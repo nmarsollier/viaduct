@@ -169,14 +169,14 @@ interface IViaductInstrumentation {
         fun beginFetchObject(
             parameters: InstrumentationExecutionStrategyParameters,
             state: InstrumentationState?
-        ): InstrumentationContext<Map<String, Any?>>?
+        ): InstrumentationContext<Unit>
     }
 
     interface WithBeginCompleteObject : IViaductInstrumentation {
         fun beginCompleteObject(
             parameters: InstrumentationExecutionStrategyParameters,
             state: InstrumentationState?
-        ): InstrumentationContext<Any>?
+        ): InstrumentationContext<Any>
     }
 
     interface WithInstrumentAccessCheck : IViaductInstrumentation {

@@ -40,7 +40,7 @@ class ViaductInstrumentationAdapterTest {
         override fun beginFetchObject(
             parameters: InstrumentationExecutionStrategyParameters,
             state: InstrumentationState?
-        ): InstrumentationContext<Map<String, Any?>>? {
+        ): InstrumentationContext<Unit> {
             beginFetchObjectCalled = true
             return noOp()
         }
@@ -48,7 +48,7 @@ class ViaductInstrumentationAdapterTest {
         override fun beginCompleteObject(
             parameters: InstrumentationExecutionStrategyParameters,
             state: InstrumentationState?
-        ): InstrumentationContext<Any>? {
+        ): InstrumentationContext<Any> {
             beginCompleteObjectCalled = true
             return noOp()
         }
