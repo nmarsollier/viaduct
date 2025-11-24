@@ -512,6 +512,12 @@ data class ExecutionParameters(
         val fieldResolverDispatcherRegistry: FieldResolverDispatcherRegistry,
     ) {
         /**
+         * Cache for collected fields during execution (shared between [FieldResolver] and [FieldCompleter])
+         * to avoid redundant work.
+         */
+        internal val collectCache: CollectCache = CollectCache()
+
+        /**
          * Launches a coroutine on the root execution scope.
          * This ensures all async operations are properly scoped to the execution lifetime.
          *
@@ -526,8 +532,8 @@ data class ExecutionParameters(
          * The instrumentation instance from the execution context.
          * Automatically wraps standard instrumentation in ViaductModernGJInstrumentation if needed.
          */
-        val instrumentation: ViaductModernGJInstrumentation
-            get() = if (executionContext.instrumentation !is ViaductModernGJInstrumentation) {
+        val instrumentation: ViaductModernGJInstrumentation =
+            if (executionContext.instrumentation !is ViaductModernGJInstrumentation) {
                 ViaductModernGJInstrumentation.fromStandardInstrumentation(executionContext.instrumentation)
             } else {
                 executionContext.instrumentation as ViaductModernGJInstrumentation

@@ -150,12 +150,14 @@ object FieldExecutionHelpers {
         // Get the EngineExecutionContext from local context and update it with
         // context-sensitive field scope (fragments/variables)
         val engineExecCtx = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
-        val fieldScope = EngineExecutionContextImpl.FieldExecutionScopeImpl(
-            fragments = parameters.queryPlan.fragments.map.mapValues { it.value.gjDef },
-            variables = parameters.coercedVariables.toMap(),
-            resolutionPolicy = parameters.resolutionPolicy
-        )
-        val updatedEngineExecCtx = engineExecCtx.copy(fieldScope = fieldScope)
+        val fieldScope = FpKit.intraThreadMemoize {
+            EngineExecutionContextImpl.FieldExecutionScopeImpl(
+                fragments = parameters.queryPlan.fragments.map.mapValues { it.value.gjDef },
+                variables = parameters.coercedVariables.toMap(),
+                resolutionPolicy = parameters.resolutionPolicy
+            )
+        }
+        val updatedEngineExecCtx = engineExecCtx.copy(fieldScopeSupplier = fieldScope)
 
         return ViaductDataFetchingEnvironmentImpl(dfe, updatedEngineExecCtx)
     }
@@ -223,7 +225,7 @@ object FieldExecutionHelpers {
         executionStepInfo: Supplier<ExecutionStepInfo>
     ): Supplier<ExecutableNormalizedField> {
         val normalizedQuery = executionContext.normalizedQueryTree
-        return Supplier {
+        return FpKit.intraThreadMemoize {
             normalizedQuery.get().getNormalizedField(
                 parameters.field,
                 executionStepInfo.get().objectType,
@@ -242,7 +244,7 @@ object FieldExecutionHelpers {
         objectType: GraphQLObjectType,
         parameters: ExecutionParameters
     ): QueryPlan.SelectionSet =
-        CollectFields.shallowStrictCollect(
+        parameters.constants.collectCache.collect(
             parameters.graphQLSchema,
             parameters.selectionSet,
             parameters.coercedVariables,

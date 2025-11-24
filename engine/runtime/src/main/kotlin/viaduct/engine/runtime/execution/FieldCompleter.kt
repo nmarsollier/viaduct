@@ -18,6 +18,7 @@ import graphql.schema.GraphQLTypeUtil
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import viaduct.deferred.asDeferred
+import viaduct.deferred.waitAllDeferreds
 import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.runtime.Cell
@@ -90,7 +91,16 @@ class FieldCompleter(
             parameters.instrumentation.beginCompleteObject(instrumentationParams, parameters.executionContext.instrumentationState)
         )
         val parentOER = parameters.parentEngineResult
-        return Value.fromDeferred(parentOER.state)
+
+        val barrier = Value.fromDeferred(
+            waitAllDeferreds(
+                listOf(
+                    parentOER.fieldResolutionState, // Ensure all fields are resolved
+                    parentOER.lazyResolutionState, // If the OER is lazy, ensure it's been resolved
+                )
+            )
+        )
+        return barrier
             .thenCompose { _, throwable ->
                 ctxCompleteObject.onDispatched()
                 if (throwable != null) {
@@ -501,6 +511,7 @@ class FieldCompleter(
                     return Value.fromThrowable(err)
                 }
             }
+
             is Enum<*> -> {
                 // Java enum instance - extract name and validate
                 val enumName = result.name
@@ -516,6 +527,7 @@ class FieldCompleter(
                     return Value.fromThrowable(err)
                 }
             }
+
             else -> {
                 // Unexpected type - try GraphQL Java's serialize as fallback
                 try {
