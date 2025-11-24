@@ -25,6 +25,7 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.mapping.graphql.Conv
 import viaduct.mapping.graphql.ConvMemo
 import viaduct.mapping.graphql.IR
+import viaduct.utils.api.InternalApi
 
 /**
  * Factory methods for [Conv]s that map between [viaduct.api.types.GRT] and
@@ -32,6 +33,7 @@ import viaduct.mapping.graphql.IR
  *
  * @see invoke
  */
+@InternalApi
 object GRTConv {
     /**
      * Create a [Conv] for [viaduct.api.types.GRT] values backed by [graphQLType].

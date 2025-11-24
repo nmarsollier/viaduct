@@ -1,10 +1,12 @@
 package viaduct.api.globalid
 
 import viaduct.api.types.NodeCompositeOutput
+import viaduct.utils.api.StableApi
 
 /**
  * GlobalIDCodec provides a way to serialize and deserialize GlobalIDs.
  */
+@StableApi
 interface GlobalIDCodec {
     /**
      * Serialize a GlobalID to a string.

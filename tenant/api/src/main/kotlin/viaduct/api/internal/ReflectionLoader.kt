@@ -2,7 +2,9 @@ package viaduct.api.internal
 
 import kotlin.reflect.KClass
 import viaduct.api.reflect.Type
+import viaduct.utils.api.InternalApi
 
+@InternalApi
 interface ReflectionLoader {
     /**
      * Return a Type describing the reflected type information for the type with the provided name.
@@ -20,6 +22,7 @@ interface ReflectionLoader {
     fun getGRTKClassFor(name: String): KClass<*>
 }
 
+@InternalApi
 class MissingReflection(val name: String, val reason: String, cause: Throwable? = null) : Exception(cause) {
     override val message = "Missing reflection for type $name: $reason"
 }

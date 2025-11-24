@@ -15,9 +15,11 @@ import viaduct.api.types.Object
 import viaduct.engine.api.EngineObject
 import viaduct.mapping.graphql.Conv
 import viaduct.mapping.graphql.IR
+import viaduct.utils.api.InternalApi
 
 /** wrap the provided value, which may be a string or already-wrapped enum value, in an GRT enum facade */
 @Suppress("UNCHECKED_CAST")
+@InternalApi
 fun wrapEnum(
     ctx: InternalContext,
     type: GraphQLEnumType,

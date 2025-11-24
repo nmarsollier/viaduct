@@ -4,15 +4,17 @@ import viaduct.api.select.SelectionSet
 import viaduct.api.types.Arguments
 import viaduct.api.types.CompositeOutput
 import viaduct.api.types.Query
+import viaduct.utils.api.StableApi
 
 /**
  * Base [ExecutionContext] interface for mutation and non-mutation field resolvers
  */
+@StableApi
 interface BaseFieldExecutionContext<
     Q : Query,
     A : Arguments,
     O : CompositeOutput
-> : ResolverExecutionContext {
+    > : ResolverExecutionContext {
     /**
      * A value of [Q], with any (and only) selections from [viaduct.api.Resolver.queryValueFragment]
      * populated.
