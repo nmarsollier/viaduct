@@ -81,7 +81,11 @@ data class ExecutionParameters(
     val path: ResultPath = executionStepInfo.path
 
     /** The ExecutionContext with the current local context applied */
-    val executionContext: ExecutionContext = constants.executionContext.transform { it.localContext(localContext) }
+    val executionContextWithLocalContext: ExecutionContext by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        constants.executionContext.transform { it.localContext(localContext) }
+    }
+
+    val executionContext: ExecutionContext = constants.executionContext
 
     /** Convenient access to the GraphQL schema from constants */
     val graphQLSchema: GraphQLSchema = constants.executionContext.graphQLSchema
@@ -449,7 +453,7 @@ data class ExecutionParameters(
 
                 // Create the execution scope with all execution-wide dependencies
                 val constants = Constants(
-                    executionContext = executionContext,
+                    executionContext = executionContext.transform { it.localContext(localContext) },
                     rootEngineResult = rootEngineResult,
                     queryEngineResult = queryEngineResult,
                     supervisorScopeFactory = supervisorScopeFactory,

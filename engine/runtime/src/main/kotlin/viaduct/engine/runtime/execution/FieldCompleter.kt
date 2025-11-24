@@ -86,7 +86,7 @@ class FieldCompleter(
      * @return A [Deferred] of [FieldCompletionResult] representing the completed fields.
      */
     fun completeObject(parameters: ExecutionParameters): Value<FieldCompletionResult> {
-        val instrumentationParams = InstrumentationExecutionStrategyParameters(parameters.executionContext, parameters.gjParameters)
+        val instrumentationParams = InstrumentationExecutionStrategyParameters(parameters.executionContextWithLocalContext, parameters.gjParameters)
         val ctxCompleteObject = nonNullCtx(
             parameters.instrumentation.beginCompleteObject(instrumentationParams, parameters.executionContext.instrumentationState)
         )
@@ -257,7 +257,7 @@ class FieldCompleter(
         )
 
         val instParams = InstrumentationFieldCompleteParameters(
-            parameters.executionContext,
+            parameters.executionContextWithLocalContext,
             parameters.gjParameters,
             { executionStepInfo },
             fieldResolutionResult,
@@ -404,7 +404,7 @@ class FieldCompleter(
             combineValues(it.getValue(RAW_VALUE_SLOT), it.getValue(ACCESS_CHECK_SLOT), bypassCheck)
         }
         val instrumentationParams = InstrumentationFieldCompleteParameters(
-            parameters.executionContext,
+            parameters.executionContextWithLocalContext,
             parameters.gjParameters,
             { parameters.executionStepInfo },
             listValues

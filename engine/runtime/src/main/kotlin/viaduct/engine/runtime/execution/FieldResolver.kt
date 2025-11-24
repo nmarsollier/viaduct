@@ -40,7 +40,6 @@ import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.RAW_VALUE_SLOT
 import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.setCheckerValue
 import viaduct.engine.runtime.ObjectEngineResultImpl.Companion.setRawValue
 import viaduct.engine.runtime.Value
-import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.engine.runtime.exceptions.FieldFetchingException
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.buildDataFetchingEnvironment
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.buildOERKeyForField
@@ -108,7 +107,7 @@ class FieldResolver(
         parameters: ExecutionParameters
     ): Value<Unit> {
         val instrumentationParameters =
-            InstrumentationExecutionStrategyParameters(parameters.executionContext, parameters.gjParameters)
+            InstrumentationExecutionStrategyParameters(parameters.executionContextWithLocalContext, parameters.gjParameters)
         val resolveObjectCtx = nonNullCtx(
             parameters.instrumentation.beginFetchObject(
                 instrumentationParameters,
@@ -176,7 +175,7 @@ class FieldResolver(
         parameters: ExecutionParameters
     ): Value<Unit> {
         val instrumentationParameters =
-            InstrumentationExecutionStrategyParameters(parameters.executionContext, parameters.gjParameters)
+            InstrumentationExecutionStrategyParameters(parameters.executionContextWithLocalContext, parameters.gjParameters)
         val resolveObjectCtx = nonNullCtx(
             parameters.instrumentation.beginFetchObject(
                 instrumentationParameters,
@@ -263,8 +262,8 @@ class FieldResolver(
 
         // Produce the object data and field arguments for the current field and make them available to child
         // plan VariablesResolver.
-        val engineExecCtx =
-            parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+        val engineExecCtx = parameters.localContext.get<EngineExecutionContextImpl>()
+            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context.")
 
         parameters.launchOnRootScope {
             val variables = FieldExecutionHelpers.resolveQueryPlanVariables(
@@ -304,7 +303,7 @@ class FieldResolver(
         val executionStepInfoForField = parameters.executionStepInfo
 
         val fieldInstrumentationCtx = parameters.instrumentation.beginFieldExecution(
-            InstrumentationFieldParameters(parameters.executionContext) { executionStepInfoForField },
+            InstrumentationFieldParameters(parameters.executionContextWithLocalContext) { executionStepInfoForField },
             parameters.executionContext.instrumentationState
         ) ?: FieldFetchingInstrumentationContext.NOOP
 
@@ -649,7 +648,7 @@ class FieldResolver(
             )
 
             val instrumentationFieldFetchParams = InstrumentationFieldFetchParameters(
-                parameters.executionContext,
+                parameters.executionContextWithLocalContext,
                 dataFetchingEnvironmentProvider,
                 parameters.gjParameters,
                 dataFetcher is TrivialDataFetcher<*>

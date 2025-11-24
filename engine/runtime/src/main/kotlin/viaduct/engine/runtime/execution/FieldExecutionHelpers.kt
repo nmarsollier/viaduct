@@ -43,7 +43,6 @@ import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
-import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.graphql.utils.collectVariableDefinitions
 
 object FieldExecutionHelpers {
@@ -149,7 +148,9 @@ object FieldExecutionHelpers {
 
         // Get the EngineExecutionContext from local context and update it with
         // context-sensitive field scope (fragments/variables)
-        val engineExecCtx = parameters.executionContext.findLocalContextForType<EngineExecutionContextImpl>()
+        val engineExecCtx = parameters.localContext.get<EngineExecutionContextImpl>()
+            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context")
+
         val fieldScope = FpKit.intraThreadMemoize {
             EngineExecutionContextImpl.FieldExecutionScopeImpl(
                 fragments = parameters.queryPlan.fragments.map.mapValues { it.value.gjDef },
