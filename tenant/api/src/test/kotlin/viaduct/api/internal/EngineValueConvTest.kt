@@ -204,9 +204,8 @@ class EngineValueConvTest : KotestPropertyBase() {
 
         assertRoundtrip(conv, "A", IR.Value.String("A"))
 
-        // conving invalid values throws
-        assertThrows<IllegalArgumentException> { conv("Missing") }
-        assertThrows<IllegalArgumentException> { conv.invert(IR.Value.String("Missing")) }
+        // can conv unknown values
+        assertRoundtrip(conv, "Unknown", IR.Value.String("Unknown"))
     }
 
     @Test

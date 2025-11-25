@@ -224,16 +224,8 @@ object EngineValueConv {
         values: Set<String>
     ): Conv<Any?, IR.Value> =
         Conv(
-            forward = {
-                it as String
-                require(it in values)
-                IR.Value.String(it)
-            },
-            inverse = {
-                it as IR.Value.String
-                require(it.value in values)
-                it.value
-            },
+            forward = { IR.Value.String(it as String) },
+            inverse = { (it as IR.Value.String).value },
             "enum-$typeName"
         )
 
