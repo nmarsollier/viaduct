@@ -90,6 +90,11 @@ public final class viaduct/service/api/spi/Flags : java/lang/Enum, viaduct/servi
 	public static fun values ()[Lviaduct/service/api/spi/Flags;
 }
 
+public abstract interface class viaduct/service/api/spi/GlobalIDCodec {
+	public abstract fun deserialize (Ljava/lang/String;)Lkotlin/Pair;
+	public abstract fun serialize (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class viaduct/service/api/spi/NaiveTenantCodeInjector : viaduct/service/api/spi/TenantCodeInjector {
 	public fun <init> ()V
 	public final fun getConstructorCache ()Ljava/util/concurrent/ConcurrentHashMap;
@@ -154,5 +159,11 @@ public abstract interface class viaduct/service/api/spi/TenantCodeInjector {
 
 public final class viaduct/service/api/spi/TenantCodeInjector$Companion {
 	public final fun getNaive ()Lviaduct/service/api/spi/TenantCodeInjector;
+}
+
+public final class viaduct/service/api/spi/globalid/GlobalIDCodecDefaults : viaduct/service/api/spi/GlobalIDCodec {
+	public static final field INSTANCE Lviaduct/service/api/spi/globalid/GlobalIDCodecDefaults;
+	public fun deserialize (Ljava/lang/String;)Lkotlin/Pair;
+	public fun serialize (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
