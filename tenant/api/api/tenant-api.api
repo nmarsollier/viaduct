@@ -147,9 +147,11 @@ public abstract interface class viaduct/api/globalid/GlobalIDCodec {
 }
 
 public final class viaduct/api/internal/CompositeFieldImpl : viaduct/api/reflect/CompositeField {
-	public fun <init> (Ljava/lang/String;Lviaduct/api/reflect/Type;Lviaduct/api/reflect/Type;)V
+	public fun <init> (Ljava/lang/String;Lviaduct/api/reflect/Type;Lviaduct/api/reflect/Type;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lviaduct/api/reflect/Type;Lviaduct/api/reflect/Type;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getContainingType ()Lviaduct/api/reflect/Type;
 	public fun getName ()Ljava/lang/String;
+	public final fun getStr ()Ljava/lang/String;
 	public fun getType ()Lviaduct/api/reflect/Type;
 }
 
