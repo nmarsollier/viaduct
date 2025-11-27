@@ -16,4 +16,5 @@ open class FieldError(
     override val message: String,
     val extensions: Map<String, Any>? = null,
     cause: Throwable? = null,
+    text: String? = null,
 ) : Exception(message, cause)
