@@ -17,12 +17,14 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.mapping.graphql.Conv
 import viaduct.mapping.graphql.ConvMemo
 import viaduct.mapping.graphql.IR
+import viaduct.utils.api.InternalApi
 
 /**
  * Factory methods for [Conv]s that map between Viaduct engine and [IR] representations.
  *
  * @see invoke
  */
+@InternalApi
 object EngineValueConv {
     private val objectMapper = ObjectMapper()
 

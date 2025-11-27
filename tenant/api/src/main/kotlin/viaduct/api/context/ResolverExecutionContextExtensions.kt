@@ -6,10 +6,12 @@ import java.util.concurrent.ConcurrentHashMap
 import viaduct.api.globalid.GlobalID
 import viaduct.api.reflect.Type
 import viaduct.api.types.NodeObject
+import viaduct.utils.api.StableApi
 
 /**
  * Internal cache of NodeObject to avoid repeated reflection lookups.
  */
+@StableApi
 private object GeneratedTypesCache {
     private val cache = ConcurrentHashMap<Class<*>, Type<NodeObject>>()
 

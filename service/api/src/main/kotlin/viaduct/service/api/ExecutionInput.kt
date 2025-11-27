@@ -1,10 +1,12 @@
 package viaduct.service.api
 
 import java.util.UUID
+import viaduct.utils.api.StableApi
 
 /**
  * Encapsulates the parameters necessary to execute a GraphQL operation.
  */
+@StableApi
 interface ExecutionInput {
     /**
      * Text of an executable document as defined in
