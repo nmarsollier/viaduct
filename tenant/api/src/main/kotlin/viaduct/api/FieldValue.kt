@@ -1,10 +1,12 @@
 package viaduct.api
 
 import viaduct.api.exception.FieldError
+import viaduct.utils.api.StableApi
 
 /**
  * Represents the value of a resolved GraphQL object field
  */
+@StableApi
 sealed interface FieldValue<out T> {
     /**
      * Returns the value on success, or throws an exception for an error value
@@ -34,6 +36,7 @@ sealed interface FieldValue<out T> {
     }
 }
 
+@StableApi
 private class FieldValueImpl<T>(
     private val value: T
 ) : FieldValue<T> {
@@ -42,6 +45,7 @@ private class FieldValueImpl<T>(
     override val isError = false
 }
 
+@StableApi
 private class FieldErrorValueImpl<T>(
     private val error: Exception
 ) : FieldValue<T> {

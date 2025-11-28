@@ -1,8 +1,10 @@
 package viaduct.api.reflect
 
 import viaduct.api.types.GRT
+import viaduct.utils.api.StableApi
 
 /** A Field describes static properties of a GraphQL field */
+@StableApi
 interface Field<Parent : GRT> {
     /** the GraphQL name of this field */
     val name: String

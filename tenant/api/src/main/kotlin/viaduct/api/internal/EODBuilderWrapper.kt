@@ -14,6 +14,7 @@ import viaduct.api.globalid.GlobalIDCodec
 import viaduct.engine.api.EngineObject
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.EngineObjectDataBuilder
+import viaduct.utils.api.InternalApi
 
 /**
  * A wrapper around EngineObjectDataBuilder that allows for setting fields by name for a given GraphQLObjectType.
@@ -21,6 +22,7 @@ import viaduct.engine.api.EngineObjectDataBuilder
  * When setting a field, the value is unwrapped to the appropriate type, e.g.,
  * unwrapping from the GRT to the EngineObjectData for GraphQLCompositeType fields.
  */
+@InternalApi
 internal class EODBuilderWrapper(
     private val graphQLObjectType: GraphQLObjectType,
     private val globalIDCodec: GlobalIDCodec

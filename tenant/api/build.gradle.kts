@@ -6,6 +6,7 @@ plugins {
     id("conventions.kotlin-static-analysis")
     id("conventions.dokka")
     id("jacoco-integration-base")
+    id("conventions.bcv-api")
 }
 
 viaductPublishing {

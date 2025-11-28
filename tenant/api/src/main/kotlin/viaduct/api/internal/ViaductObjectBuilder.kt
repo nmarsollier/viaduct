@@ -9,7 +9,7 @@ import viaduct.api.ViaductTenantUsageException
 import viaduct.api.context.ExecutionContext
 import viaduct.api.handleTenantAPIErrors
 import viaduct.api.types.GRT
-import viaduct.api.types.Object
+import viaduct.utils.api.InternalApi
 
 /**
  * Used to dynamically create a Viaduct object without having a GRT class.
@@ -18,6 +18,7 @@ import viaduct.api.types.Object
  * This class is not meant to be instantiated directly.
  * Use [dynamicBuilderFor] instead.
  */
+@InternalApi
 class ViaductObjectBuilder<T : GRT> private constructor(
     val context: InternalContext,
     val graphqlType: GraphQLObjectType,

@@ -31,10 +31,12 @@ import viaduct.engine.api.EngineObject
 import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.NodeReference
 import viaduct.engine.api.UnsetSelectionException
+import viaduct.utils.api.InternalApi
 
 /**
  * Base class for object type GRTs
  */
+@InternalApi
 abstract class ObjectBase(
     protected val context: InternalContext,
     val engineObject: EngineObject,

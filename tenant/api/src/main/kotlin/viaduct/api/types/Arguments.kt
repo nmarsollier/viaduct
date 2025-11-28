@@ -5,11 +5,13 @@ import graphql.schema.GraphQLInputObjectField
 import graphql.schema.GraphQLInputObjectType
 import graphql.schema.GraphQLObjectType
 import viaduct.engine.api.ViaductSchema
+import viaduct.utils.api.StableApi
 import viaduct.utils.string.decapitalize
 
 /**
  * Tagging interface for virtual input types that wrap field arguments
  */
+@StableApi
 interface Arguments : InputLike {
     /** A marker object indicating the lack of schematic arguments */
     object NoArguments : Arguments

@@ -9,10 +9,12 @@ import viaduct.api.handleTenantAPIErrors
 import viaduct.api.types.InputLike
 import viaduct.mapping.graphql.GJValueConv
 import viaduct.mapping.graphql.IR
+import viaduct.utils.api.InternalApi
 
 /**
  * Base class for input & field argument GRTs
  */
+@InternalApi
 @Suppress("UNCHECKED_CAST")
 abstract class InputLikeBase : InputLike {
     protected abstract val context: InternalContext

@@ -15,9 +15,11 @@ import viaduct.api.types.Object
 import viaduct.engine.api.EngineObject
 import viaduct.mapping.graphql.Conv
 import viaduct.mapping.graphql.IR
+import viaduct.utils.api.InternalApi
 
 /** wrap the provided value, which may be a string or already-wrapped enum value, in an GRT enum facade */
 @Suppress("UNCHECKED_CAST")
+@InternalApi
 fun wrapEnum(
     ctx: InternalContext,
     type: GraphQLEnumType,
@@ -40,18 +42,22 @@ fun wrapEnum(
 }
 
 /** return true if the provided field should have a GlobalID GRT type */
+@InternalApi
 fun isGlobalID(
     field: GraphQLFieldDefinition,
     parentType: GraphQLObjectType,
 ): Boolean = field.name == "id" && parentType.interfaces.any { it.name == "Node" } || field.hasIdOfDirective
 
 /** return true if the provided field should have a GlobalID GRT type */
+@InternalApi
 fun isGlobalID(field: GraphQLInputObjectField): Boolean = field.hasIdOfDirective
 
+@InternalApi
 private val GraphQLDirectiveContainer.hasIdOfDirective: Boolean get() =
     appliedDirectives.any { it.name == "idOf" }
 
 /** wrap a map of unwrapped engine data in a GRT facade with type [T] */
+@InternalApi
 fun <T : Input> wrapInputObject(
     ctx: InternalContext,
     type: Type<T>,
@@ -74,6 +80,7 @@ fun <T : Input> wrapInputObject(
 }
 
 /** wrap the provided [value] in a GRT facade with type [T] */
+@InternalApi
 fun <T : Object> wrapOutputObject(
     ctx: InternalContext,
     type: Type<T>,
@@ -92,5 +99,6 @@ fun <T : Object> wrapOutputObject(
 }
 
 @Suppress("UNCHECKED_CAST")
+@InternalApi
 val Conv<*, *>.asAnyConv: Conv<Any?, IR.Value> get() =
     this as Conv<Any?, IR.Value>

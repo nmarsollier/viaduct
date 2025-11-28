@@ -16,11 +16,13 @@ import viaduct.mapping.graphql.Conv
 import viaduct.mapping.graphql.Domain
 import viaduct.mapping.graphql.IR
 import viaduct.mapping.graphql.JsonConv
+import viaduct.utils.api.InternalApi
 
 /**
  * A mapping [Domain] that converts between json-formatted Strings
  * describing object values and [IR.Value.Object]s
  */
+@InternalApi
 object JsonDomain {
     private class Impl(val internal: InternalContext, val resolveTypeName: ResolveTypeName) : Domain<String> {
         override val conv: Conv<String, IR.Value.Object> = Conv(
