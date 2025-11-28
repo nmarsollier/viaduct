@@ -14,8 +14,8 @@ dependencies {
     implementation(libs.viaduct.service.api)
     implementation(libs.graphql.java)
 
+
     implementation(libs.viaduct.engine.api)
-    implementation(libs.viaduct.shared.utils)
     implementation(libs.viaduct.tenant.wiring)
 
     implementation(libs.viaduct.service.runtime)
