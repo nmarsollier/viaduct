@@ -97,7 +97,6 @@ abstract class InputLikeBase : InputLike {
     }
 }
 
-@InternalApi
 private fun validateInputData(
     graphQLInputObjectType: GraphQLInputObjectType,
     inputData: Map<String, Any?>

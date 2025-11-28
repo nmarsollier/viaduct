@@ -36,6 +36,7 @@ sealed interface FieldValue<out T> {
     }
 }
 
+@StableApi
 private class FieldValueImpl<T>(
     private val value: T
 ) : FieldValue<T> {
@@ -44,6 +45,7 @@ private class FieldValueImpl<T>(
     override val isError = false
 }
 
+@StableApi
 private class FieldErrorValueImpl<T>(
     private val error: Exception
 ) : FieldValue<T> {

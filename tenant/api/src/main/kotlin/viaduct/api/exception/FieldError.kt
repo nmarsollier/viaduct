@@ -1,6 +1,6 @@
 package viaduct.api.exception
 
-import viaduct.utils.api.StableApi
+import viaduct.utils.api.ExperimentalApi
 
 /**
  * An exception class that represents a GraphQL field error. Use this if you want to customize
@@ -11,9 +11,9 @@ import viaduct.utils.api.StableApi
  *
  * TODO(https://app.asana.com/1/150975571430/task/1210755595661886?focus=true): update the engine to extract extensions into GraphQLError
  */
-@StableApi
+@ExperimentalApi
 open class FieldError(
     override val message: String,
     val extensions: Map<String, Any>? = null,
-    cause: Throwable? = null,
+    cause: Throwable? = null
 ) : Exception(message, cause)

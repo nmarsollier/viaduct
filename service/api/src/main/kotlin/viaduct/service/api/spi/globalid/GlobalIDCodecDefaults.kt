@@ -5,10 +5,12 @@ import com.google.common.net.UrlEscapers
 import java.net.URLDecoder
 import java.util.Base64
 import viaduct.service.api.spi.GlobalIDCodec
+import viaduct.utils.api.InternalApi
 
 /**
  * This object provides the canonical Base64-encoded format used by Viaduct for GlobalIDs.
  */
+@InternalApi
 object GlobalIDCodecDefaults : GlobalIDCodec {
     private val enc = Base64.getEncoder()
     private val dec = Base64.getDecoder()

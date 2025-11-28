@@ -9,4 +9,4 @@ import viaduct.utils.api.StableApi
  */
 @StableApi
 @Suppress("unused")
-class ValueMapperException(message: String) : Exception(message)
+class ValueMapperException(message: String, cause: Throwable? = null) : Exception(message, cause)

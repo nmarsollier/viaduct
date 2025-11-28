@@ -13,7 +13,7 @@ interface MutationFieldExecutionContext<
     Q : Query,
     A : Arguments,
     O : CompositeOutput
-    > : BaseFieldExecutionContext<Q, A, O> {
+> : BaseFieldExecutionContext<Q, A, O> {
     /** load the provided [SelectionSet] and return the response */
     suspend fun <T : Mutation> mutation(selections: SelectionSet<T>): T
 }

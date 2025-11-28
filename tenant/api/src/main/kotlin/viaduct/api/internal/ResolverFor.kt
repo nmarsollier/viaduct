@@ -1,10 +1,10 @@
 package viaduct.api.internal
 
-import viaduct.utils.api.InternalApi
+import viaduct.utils.api.StableApi
 
 /** Used to annotate generated resolver base classes */
 @Target(AnnotationTarget.CLASS)
-@InternalApi
+@StableApi
 annotation class ResolverFor(
     val typeName: String,
     val fieldName: String,

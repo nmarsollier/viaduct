@@ -133,7 +133,8 @@ public class viaduct/api/exception/FieldError : java/lang/Exception {
 }
 
 public final class viaduct/api/exception/ValueMapperException : java/lang/Exception {
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public abstract interface class viaduct/api/globalid/GlobalID {

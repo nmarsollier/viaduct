@@ -1,11 +1,11 @@
 package viaduct.service.api.spi
 
-import viaduct.utils.api.InternalApi
+import viaduct.utils.api.StableApi
 
 /**
  * Represents a feature flag with a name
  */
-@InternalApi
+@StableApi
 interface Flag {
     val flagName: String
 }
