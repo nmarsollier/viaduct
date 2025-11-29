@@ -2,12 +2,14 @@ package viaduct.service.api.spi
 
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
+import viaduct.utils.api.StableApi
 
 /**
  * Interface for reporting errors that occur during GraphQL resolver execution.
  *
  * This interface allows for custom error reporting strategies, such as logging or sending errors to an external service.
  */
+@StableApi
 fun interface ResolverErrorReporter {
     /**
      * Reports an error that occurred during resolver execution.

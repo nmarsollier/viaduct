@@ -1,0 +1,57 @@
+# .github/workflows/api_compatibility.yaml
+name: API Compatibility
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+        paths:
+            - 'core/tenant/tenant-api/**'
+            - 'core/service/service-api/**'
+            - 'core/**/api/**'
+            - '.github/scripts/**'
+            - '.github/workflows/api_compatibility.yaml'
+
+jobs:
+    api-compatibility:
+        runs-on: ubuntu-latest
+        name: Binary API compatibility
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Set up Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: '21'
+                  cache: gradle
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.x'
+
+            - name: Run binary API check (apiCheck)
+              run: |
+                  set -euo pipefail
+                  
+                  echo "[api-check] Running binary API compatibility check..."
+                  if python3 .github/scripts/bcv_api_check.py --no-daemon --no-build-cache; then
+                    echo "[api-check] OK"
+                  else
+                    echo " "
+                    echo "[api-check] Binary API check failed."
+                    echo " "
+                    echo "If you intentionally changed the public API of the BCV modules, you must:"
+                    echo " "
+                    echo "  1) Run the API dump generation locally:"
+                    echo "       python3 .github/scripts/bcv_api_dump.py --no-daemon --no-build-cache"
+                    echo " "
+                    echo "  2) Commit the updated .api files"
+                    echo " "
+                    echo " "
+                    exit 1
+                  fi

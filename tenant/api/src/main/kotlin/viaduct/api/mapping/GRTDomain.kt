@@ -9,8 +9,10 @@ import viaduct.api.types.GRT
 import viaduct.mapping.graphql.Conv
 import viaduct.mapping.graphql.Domain
 import viaduct.mapping.graphql.IR
+import viaduct.utils.api.InternalApi
 
 /** A [Domain] that models [GRT] values */
+@InternalApi
 class GRTDomain(val ctx: ExecutionContext) : Domain<GRT> {
     private val internalCtx = ctx.internal
 

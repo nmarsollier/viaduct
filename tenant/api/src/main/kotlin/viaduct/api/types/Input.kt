@@ -2,10 +2,12 @@ package viaduct.api.types
 
 import graphql.schema.GraphQLInputObjectType
 import viaduct.engine.api.ViaductSchema
+import viaduct.utils.api.StableApi
 
 /**
  * Tagging interface for input types
  */
+@StableApi
 interface Input : InputLike {
     companion object {
         /**
