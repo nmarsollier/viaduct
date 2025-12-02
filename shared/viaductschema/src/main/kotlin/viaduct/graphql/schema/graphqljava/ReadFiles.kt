@@ -43,7 +43,6 @@ private fun <T> readTypes(
     return SchemaParser().parse(reader)
 }
 
-/** For testing. */
 fun readTypes(input: String): TypeDefinitionRegistry {
     val result = TypeDefinitionRegistry()
     val doc = Parser.parse(input)

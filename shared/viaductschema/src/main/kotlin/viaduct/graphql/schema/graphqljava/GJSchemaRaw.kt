@@ -135,6 +135,25 @@ class GJSchemaRaw private constructor(
             )
         }
 
+        fun fromSDL(
+            sdl: String,
+            timer: Timer = Timer(),
+            valueConverter: ValueConverter = ValueConverter.default,
+            queryTypeName: String? = null,
+            mutationTypeName: String? = null,
+            subscriptionTypeName: String? = null,
+        ): GJSchemaRaw {
+            val typeDefRegistry = timer.time("readTypes") { readTypes(sdl) }
+            return fromRegistry(
+                typeDefRegistry,
+                timer,
+                valueConverter,
+                queryTypeName,
+                mutationTypeName,
+                subscriptionTypeName,
+            )
+        }
+
         /** Convert a graphql-java TypeDefinitionRegistry into
          *  a schema sketch. */
         fun fromRegistry(
