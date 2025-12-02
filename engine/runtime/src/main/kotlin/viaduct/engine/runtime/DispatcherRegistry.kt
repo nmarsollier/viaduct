@@ -3,14 +3,8 @@ package viaduct.engine.runtime
 import javax.inject.Singleton
 import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.Coordinate
-import viaduct.engine.api.FieldCheckerDispatcherRegistry
-import viaduct.engine.api.FieldResolverDispatcher
-import viaduct.engine.api.FieldResolverDispatcherRegistry
-import viaduct.engine.api.NodeResolverDispatcher
-import viaduct.engine.api.NodeResolverDispatcherRegistry
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
-import viaduct.engine.api.TypeCheckerDispatcherRegistry
 
 @Singleton
 class DispatcherRegistry(

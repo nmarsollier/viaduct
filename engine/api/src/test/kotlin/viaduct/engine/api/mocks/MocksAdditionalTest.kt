@@ -12,6 +12,7 @@ import viaduct.engine.api.Coordinate
 import viaduct.engine.api.ResolverMetadata
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.runtime.FieldResolverDispatcherImpl
+import viaduct.engine.runtime.mocks.mkDispatcherRegistry
 
 class MocksAdditionalTest {
     @Test

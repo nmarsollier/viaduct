@@ -22,8 +22,8 @@ import viaduct.api.mocks.MockInternalContext
 import viaduct.api.mocks.MockType
 import viaduct.api.types.NodeObject
 import viaduct.engine.api.NodeReference
-import viaduct.engine.api.NodeResolverDispatcherRegistry
-import viaduct.engine.api.TypeCheckerDispatcherRegistry
+import viaduct.engine.runtime.NodeResolverDispatcherRegistry
+import viaduct.engine.runtime.TypeCheckerDispatcherRegistry
 import viaduct.tenant.runtime.globalid.GlobalIDCodecImpl
 import viaduct.tenant.runtime.globalid.GlobalIDImpl
 import viaduct.tenant.runtime.globalid.GlobalIdFeatureAppTest

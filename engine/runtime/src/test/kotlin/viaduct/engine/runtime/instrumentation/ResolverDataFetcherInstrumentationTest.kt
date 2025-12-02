@@ -14,10 +14,10 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import viaduct.engine.api.EngineExecutionContext
-import viaduct.engine.api.FieldCheckerDispatcherRegistry
-import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.ViaductDataFetchingEnvironment
 import viaduct.engine.runtime.EngineExecutionContextImpl
+import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
+import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 
 internal class ResolverDataFetcherInstrumentationTest {
     private val mockDispathcerRegistry: FieldResolverDispatcherRegistry = mockk()

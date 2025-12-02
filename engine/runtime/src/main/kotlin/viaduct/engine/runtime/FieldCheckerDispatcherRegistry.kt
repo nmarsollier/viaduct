@@ -1,4 +1,6 @@
-package viaduct.engine.api
+package viaduct.engine.runtime
+
+import viaduct.engine.api.CheckerDispatcher
 
 interface FieldCheckerDispatcherRegistry {
     /**

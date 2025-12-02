@@ -8,13 +8,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import viaduct.engine.api.CheckerDispatcher
 import viaduct.engine.api.CheckerExecutor
-import viaduct.engine.api.FieldResolverDispatcher
 import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.engineExecutionContext
 import viaduct.engine.runtime.CheckerProxyEngineObjectData
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
+import viaduct.engine.runtime.FieldResolverDispatcher
 import viaduct.engine.runtime.ProxyEngineObjectData
 import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.engine.runtime.execution.FieldExecutionHelpers.resolveRSSVariables

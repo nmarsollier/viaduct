@@ -23,7 +23,6 @@ import kotlin.jvm.optionals.getOrNull
 import kotlinx.coroutines.future.await
 import viaduct.engine.api.Coordinate
 import viaduct.engine.api.ExecutionAttribution
-import viaduct.engine.api.FieldResolverDispatcherRegistry
 import viaduct.engine.api.QueryPlanExecutionCondition
 import viaduct.engine.api.QueryPlanExecutionCondition.Companion.ALWAYS_EXECUTE
 import viaduct.engine.api.RequiredSelectionSet
@@ -32,6 +31,7 @@ import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.runtime.DispatcherRegistry
+import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.execution.QueryPlan.Field
 import viaduct.graphql.utils.asNamedElement
 import viaduct.graphql.utils.collectVariableDefinitions

@@ -1,4 +1,4 @@
-package viaduct.engine.api
+package viaduct.engine.runtime
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
