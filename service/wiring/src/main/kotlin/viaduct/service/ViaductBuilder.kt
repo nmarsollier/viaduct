@@ -3,6 +3,7 @@ package viaduct.service
 import graphql.execution.DataFetcherExceptionHandler
 import io.micrometer.core.instrument.MeterRegistry
 import viaduct.service.api.spi.FlagManager
+import viaduct.service.api.spi.GlobalIDCodec
 import viaduct.service.api.spi.ResolverErrorBuilder
 import viaduct.service.api.spi.ResolverErrorReporter
 import viaduct.service.api.spi.TenantAPIBootstrapperBuilder
@@ -109,6 +110,19 @@ class ViaductBuilder {
     fun withDataFetcherExceptionHandler(dataFetcherExceptionHandler: DataFetcherExceptionHandler) =
         apply {
             builder.withDataFetcherExceptionHandler(dataFetcherExceptionHandler)
+        }
+
+    /**
+     * Configures the GlobalIDCodec for serializing and deserializing GlobalIDs.
+     * All tenant-API implementations within this Viaduct instance will share this codec
+     * to ensure interoperability.
+     *
+     * @param globalIDCodec The GlobalIDCodec instance to use
+     * @return This Builder instance for method chaining
+     */
+    fun withGlobalIDCodec(globalIDCodec: GlobalIDCodec) =
+        apply {
+            builder.withGlobalIDCodec(globalIDCodec)
         }
 
     /**

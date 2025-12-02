@@ -129,6 +129,7 @@ class EngineImpl(
         resolverDataFetcherInstrumentation,
         flagManager,
         this,
+        config.globalIDCodec,
     )
 
     @Deprecated("Airbnb use only")

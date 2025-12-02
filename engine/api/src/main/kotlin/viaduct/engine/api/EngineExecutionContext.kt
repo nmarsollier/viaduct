@@ -21,6 +21,16 @@ interface EngineExecutionContext {
     val rawSelectionSetFactory: RawSelectionSet.Factory
     val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory
 
+    /**
+     * The GlobalIDCodec shared across all tenant-API implementations in this Viaduct instance.
+     * This ensures that GlobalIDs serialized by one tenant module can be correctly deserialized
+     * by another tenant module.
+     *
+     * Type: viaduct.service.api.spi.GlobalIDCodec
+     * (Untyped here to avoid circular dependency between engine.api and service.api)
+     */
+    val globalIDCodec: Any
+
     // Request-scoped: Per-request context set by Viaduct Service Engineers
     val requestContext: Any?
 

@@ -15,8 +15,10 @@ import viaduct.engine.runtime.ViaductFragmentLoader
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.execution.ViaductDataFetcherExceptionHandler
 import viaduct.service.api.spi.FlagManager
+import viaduct.service.api.spi.GlobalIDCodec
 import viaduct.service.api.spi.ResolverErrorBuilder
 import viaduct.service.api.spi.ResolverErrorReporter
+import viaduct.service.api.spi.globalid.GlobalIDCodecDefault
 
 /**
  * Aggregates the parent-scoped collaborators and tuning knobs used to build [Engine] instances.
@@ -40,7 +42,8 @@ data class EngineConfiguration(
     val meterRegistry: MeterRegistry? = null,
     val additionalInstrumentation: Instrumentation? = null,
     val chainInstrumentationWithDefaults: Boolean = false,
-    val resolverInstrumentation: ViaductResolverInstrumentation = ViaductResolverInstrumentation.DEFAULT
+    val resolverInstrumentation: ViaductResolverInstrumentation = ViaductResolverInstrumentation.DEFAULT,
+    val globalIDCodec: GlobalIDCodec = GlobalIDCodecDefault
 ) {
     companion object {
         val default = EngineConfiguration()

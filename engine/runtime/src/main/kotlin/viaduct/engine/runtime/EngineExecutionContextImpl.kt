@@ -19,6 +19,7 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.runtime.select.RawSelectionSetFactoryImpl
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.Flags
+import viaduct.service.api.spi.GlobalIDCodec
 
 /**
  * Factory for creating an engine-execution context.
@@ -37,6 +38,7 @@ class EngineExecutionContextFactory(
     private val resolverInstrumentation: Instrumentation,
     private val flagManager: FlagManager,
     private val engine: Engine,
+    private val globalIDCodec: GlobalIDCodec,
 ) {
     // Constructing this is expensive, so do it just once per schema-version
     private val rawSelectionSetFactory: RawSelectionSet.Factory = RawSelectionSetFactoryImpl(fullSchema)
@@ -61,6 +63,7 @@ class EngineExecutionContextFactory(
             ConcurrentHashMap<String, NodeDataLoader>(),
             flagManager.isEnabled(Flags.EXECUTE_ACCESS_CHECKS_IN_MODERN_EXECUTION_STRATEGY),
             engine,
+            globalIDCodec,
         )
     }
 }
@@ -77,6 +80,7 @@ class EngineExecutionContextImpl(
     private val nodeDataLoaders: ConcurrentHashMap<String, NodeDataLoader>,
     val executeAccessChecksInModstrat: Boolean,
     override val engine: Engine,
+    override val globalIDCodec: GlobalIDCodec,
     val dataFetchingEnvironment: DataFetchingEnvironment? = null,
     override val activeSchema: ViaductSchema = fullSchema,
     private val fieldScopeSupplier: Supplier<out EngineExecutionContext.FieldExecutionScope> = FpKit.intraThreadMemoize { FieldExecutionScopeImpl() }
@@ -155,6 +159,7 @@ class EngineExecutionContextImpl(
         nodeDataLoaders = this.nodeDataLoaders,
         executeAccessChecksInModstrat = executeAccessCheckInModstrat,
         engine = this.engine,
+        globalIDCodec = this.globalIDCodec,
         dataFetchingEnvironment = dataFetchingEnvironment,
         fieldScopeSupplier = fieldScopeSupplier,
     )

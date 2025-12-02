@@ -7,10 +7,6 @@ package viaduct.service.api.spi
  * to ensure interoperability between modules from different tenant-APIs. All tenant
  * modules in a single Viaduct instance must use the same codec so that GlobalIDs
  * serialized by one module can be correctly deserialized by another module.
- *
- * ⚠️ IMPLEMENTATION NOTE: All implementations should delegate to
- * viaduct.service.api.spi.globalid.GlobalIDCodecDefaults to ensure consistency.
- * Do not implement serialization/deserialization logic directly.
  */
 interface GlobalIDCodec {
     /**

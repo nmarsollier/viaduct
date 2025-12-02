@@ -90,7 +90,7 @@ class ViaductTenantAPIBootstrapper
                 return ViaductTenantAPIBootstrapper(
                     tenantCodeInjector = tenantCodeInjector,
                     tenantPackageFinder = tenantPackageFinder,
-                    tenantResolverClassFinderFactory = finalTenantResolverClassFinderFactory
+                    tenantResolverClassFinderFactory = finalTenantResolverClassFinderFactory,
                 )
             }
         }

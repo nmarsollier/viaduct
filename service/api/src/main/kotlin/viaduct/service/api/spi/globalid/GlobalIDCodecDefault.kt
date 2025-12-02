@@ -9,7 +9,7 @@ import viaduct.service.api.spi.GlobalIDCodec
 /**
  * This object provides the canonical Base64-encoded format used by Viaduct for GlobalIDs.
  */
-object GlobalIDCodecDefaults : GlobalIDCodec {
+object GlobalIDCodecDefault : GlobalIDCodec {
     private val enc = Base64.getEncoder()
     private val dec = Base64.getDecoder()
     private val escaper: Escaper by lazy { UrlEscapers.urlFormParameterEscaper() }
