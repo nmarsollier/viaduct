@@ -47,17 +47,6 @@ class ViaductBuilder {
             builder.withFlagManager(flagManager)
         }
 
-    /**
-     * By default, Viaduct instances implement `Query.node` and `Query.nodes`
-     * resolvers automatically.  Calling this function with false turns off that default behavior.
-     * (If your schema does not have the `Query.node/s` field(s), you do
-     * _not_ have to explicitly turn off the default behavior.)
-     */
-    fun standardNodeBehavior(standardNodeBehavior: Boolean) =
-        apply {
-            builder.withoutDefaultQueryNodeResolvers(standardNodeBehavior)
-        }
-
     fun withSchemaConfiguration(schemaConfiguration: SchemaConfiguration) =
         apply {
             builder.withSchemaConfiguration(schemaConfiguration)

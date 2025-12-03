@@ -72,6 +72,7 @@ class ViaductTenantAPIBootstrapper
                     this.tenantPackageFinder = tenantPackageFinder
                 }
 
+            @Deprecated("For advance test uses, Airbnb only use.", level = DeprecationLevel.WARNING)
             fun tenantResolverClassFinderFactory(tenantResolverClassFinderFactory: TenantResolverClassFinderFactory) =
                 apply {
                     this.tenantResolverClassFinderFactory = tenantResolverClassFinderFactory
