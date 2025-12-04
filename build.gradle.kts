@@ -48,6 +48,28 @@ reporting {
     }
 }
 
+// Coverage verification with reasonable thresholds
+tasks.register<JacocoCoverageVerification>("testCodeCoverageVerification") {
+    dependsOn("testCodeCoverageReport")
+
+    violationRules {
+        rule {
+            limit {
+                counter = "INSTRUCTION"
+                value = "COVEREDRATIO"
+                minimum = "0.10".toBigDecimal() // 10% minimum instruction coverage
+            }
+        }
+        rule {
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.05".toBigDecimal() // 5% minimum branch coverage
+            }
+        }
+    }
+}
+
 // GitHub Actions-friendly task to run tests and generate coverage
 tasks.register("testAndCoverage") {
     description = "Runs tests and generates coverage reports"
