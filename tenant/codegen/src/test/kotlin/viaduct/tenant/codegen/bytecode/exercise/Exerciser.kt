@@ -21,6 +21,7 @@ class Exerciser(
     internal val classResolver: ClassResolver,
     val schema: ViaductSchema,
     private val graphqlSchema: ViaductGraphQLSchema,
+    internal val classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
 ) {
     // limit checks to 500 failures
     private val InvariantChecker.full: Boolean get() = this.size > 500

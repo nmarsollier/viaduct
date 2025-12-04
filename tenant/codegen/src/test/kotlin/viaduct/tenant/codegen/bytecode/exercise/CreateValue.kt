@@ -37,7 +37,8 @@ fun ViaductGraphQLSchema.HasDefaultValue.createValueV2(
     schema: ViaductSchema,
     value2: Boolean = false,
     baseTypeMapper: BaseTypeMapper = ViaductBaseTypeMapper(GJSchema.fromSchema(schema.schema)),
-): Any? = this.valueV2FromGenericValue(classResolver, schema, this.createGenericValue(value2, if (value2) 2 else 1, emptyList(), baseTypeMapper))
+    classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
+): Any? = this.valueV2FromGenericValue(classResolver, schema, this.createGenericValue(value2, if (value2) 2 else 1, emptyList(), baseTypeMapper), classLoader = classLoader)
 
 fun ViaductGraphQLSchema.HasDefaultValue.createGenericValue(
     value2: Boolean,
@@ -216,6 +217,7 @@ internal fun ViaductGraphQLSchema.HasDefaultValue.valueV2FromGenericValue(
     schema: ViaductSchema,
     genericValue: Any?,
     asEngineObjectData: Boolean = false,
+    classLoader: ClassLoader = ClassLoader.getSystemClassLoader(),
 ): Any? {
     var baseValue = genericValue
     var actualListDepth = 0
@@ -231,7 +233,7 @@ internal fun ViaductGraphQLSchema.HasDefaultValue.valueV2FromGenericValue(
                 null
             } else {
                 baseValue as RecordValue
-                val context = MockExecutionContext.mk(schema)
+                val context = MockExecutionContext.mk(schema, classLoader)
                 val data = genericValueToEngineObjectData(classResolver, schema, baseValue)
                 if (asEngineObjectData) {
                     data
@@ -247,7 +249,7 @@ internal fun ViaductGraphQLSchema.HasDefaultValue.valueV2FromGenericValue(
             val concreteTypeDef = recordValue.concreteTypeDef
             val graphqlInputType = schema.schema.getTypeAs<GraphQLInputObjectType>(concreteTypeDef.name)
             val clazz = classResolver.mainClassFor(concreteTypeDef.name)
-            val context = MockExecutionContext.mk(schema)
+            val context = MockExecutionContext.mk(schema, classLoader)
             clazz.constructors[0].newInstance(context, recordValue.asGenericMap, graphqlInputType)
         }
 

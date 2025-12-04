@@ -88,7 +88,7 @@ private fun Exerciser.exerciseBuilderRoundtrip(
     check.isNotNull(buildFunc, "INPUT_BUILDER_BUILD_EXISTS")
     buildFunc ?: return
 
-    val context = MockExecutionContext.mk(schema)
+    val context = MockExecutionContext.mk(schema, classLoader)
 
     // 1. get builder
     val builder = builderCtor.newInstance(context, graphQLInputObjectType, java.util.LinkedHashMap<String, Any?>())
@@ -99,7 +99,7 @@ private fun Exerciser.exerciseBuilderRoundtrip(
         val setter = builderClazz.declaredMethods.firstOrNull { it.name == fName && it.parameterCount == 1 }
         check.isNotNull(setter, "INPUT_BUILDER_SETTER_EXISTS:$fName")
 
-        val value = field.createValueV2(classResolver, schema)
+        val value = field.createValueV2(classResolver, schema, classLoader = classLoader)
         setter?.let {
             setter.invoke(builder, value)
             fName to value
