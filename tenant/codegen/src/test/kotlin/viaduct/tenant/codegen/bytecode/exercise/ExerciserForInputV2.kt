@@ -5,9 +5,9 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.full.declaredMemberProperties
 import viaduct.api.ViaductTenantUsageException
 import viaduct.api.context.ExecutionContext
+import viaduct.api.internal.InputTypeFactory
 import viaduct.api.internal.InternalContext
 import viaduct.api.mocks.MockExecutionContext
-import viaduct.api.types.Arguments
 import viaduct.engine.api.ViaductSchema as ViaductGraphQLSchema
 import viaduct.graphql.schema.ViaductSchema
 import viaduct.tenant.codegen.bytecode.config.cfg
@@ -156,7 +156,7 @@ private fun buildGraphqlInputObjectType(
     field: ViaductSchema.Field,
     schema: ViaductGraphQLSchema
 ): GraphQLInputObjectType =
-    Arguments.inputType(
+    InputTypeFactory.argumentsInputType(
         cfg.argumentTypeName(field.containingDef.name, field.name),
         schema
     )
