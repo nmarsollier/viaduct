@@ -14,6 +14,7 @@ import viaduct.engine.api.EngineObjectData
 import viaduct.engine.api.NodeEngineObjectData
 import viaduct.engine.api.NodeReference
 import viaduct.engine.api.RawSelectionSet
+import viaduct.engine.runtime.EngineExecutionContextExtensions.executeAccessChecksInModstrat
 
 class NodeEngineObjectDataImpl(
     override val id: String,
@@ -59,7 +60,7 @@ class NodeEngineObjectDataImpl(
             val nodeResolver = resolverRegistry.getNodeResolverDispatcher(graphQLObjectType.name)
                 ?: throw IllegalStateException("No node resolver found for type ${graphQLObjectType.name}")
 
-            if (!(context as EngineExecutionContextImpl).executeAccessChecksInModstrat) {
+            if (!context.executeAccessChecksInModstrat) {
                 val nodeChecker = checkerRegistry.getTypeCheckerDispatcher(graphQLObjectType.name)
                 if (nodeChecker == null) {
                     resolvedEngineObjectData = nodeResolver.resolve(id, selections, context)

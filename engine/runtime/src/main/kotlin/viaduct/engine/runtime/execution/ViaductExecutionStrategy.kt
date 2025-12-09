@@ -28,7 +28,9 @@ import kotlinx.coroutines.withContext
 import viaduct.engine.api.RequestScopeCancellationException
 import viaduct.engine.api.TemporaryBypassAccessCheck
 import viaduct.engine.api.coroutines.CoroutineInterop
+import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.ObjectEngineResultImpl
+import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.engine.runtime.execution.CompletionErrors.FieldCompletionException
 import viaduct.engine.runtime.execution.CompletionErrors.NonNullableFieldWithErrorException
 import viaduct.logging.ifDebug
@@ -253,7 +255,9 @@ class ViaductExecutionStrategy internal constructor(
     ): ExecutionParameters {
         val rootOER = createRootObjectEngineResult(executionContext)
         val queryOER = createQueryEngineResult(executionContext, rootOER)
+        val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
         return executionParametersFactory.fromExecutionStrategyContextAndParameters(
+            engineExecutionContext,
             executionContext,
             gjParameters,
             rootOER,

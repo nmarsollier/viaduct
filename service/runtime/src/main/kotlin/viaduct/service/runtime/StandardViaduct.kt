@@ -394,7 +394,7 @@ class StandardViaduct
                 return mkSchemaNotFoundError(schemaId)
             }
             return coroutineInterop.enterThreadLocalCoroutineContext(coroutineContext) {
-                val executionResult = engine.execute(executionInput.toEngineExecutionInput()).awaitExecutionResult()
+                val executionResult = engine.execute(executionInput.toEngineExecutionInput())
                 sortExecutionResult(executionResult)
             }
         }

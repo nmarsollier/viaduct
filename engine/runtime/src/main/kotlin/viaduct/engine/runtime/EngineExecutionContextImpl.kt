@@ -24,12 +24,6 @@ import viaduct.service.api.spi.GlobalIDCodec
 /**
  * Factory for creating an engine-execution context.
  * Basically holds version-scoped state.
- *
- * TODO: This is the kind of class we'll want to put in the `viaduct.engine.bindings`
- * package, which is why it's not nested.
- *
- * TODO: At some point this will construct the DispatcherRegistry
- * from modules.
  */
 class EngineExecutionContextFactory(
     private val fullSchema: ViaductSchema,
@@ -68,6 +62,28 @@ class EngineExecutionContextFactory(
     }
 }
 
+/**
+ * Runtime implementation of [EngineExecutionContext].
+ *
+ * This class holds all execution state and is copied as we traverse the execution tree.
+ * Each copy maintains references to shared request-scoped state (like [fieldDataLoaders])
+ * while allowing field-scoped state (like [fieldScopeSupplier]) to vary.
+ *
+ * ## Copying
+ *
+ * Use [EngineExecutionContextExtensions.copy] to create copies with modified field scope or DFE.
+ * Copies automatically preserve the [executionHandle], so there is no need to manually set it.
+ *
+ * ## Execution Handle
+ *
+ * The [_executionHandle] backing field is mutable internally but exposed as read-only
+ * via the [executionHandle] property. The handle is set eagerly when an
+ * [viaduct.engine.runtime.execution.ExecutionParameters] is created, ensuring that any subsequent
+ * copies preserve the correct handle.
+ *
+ * @see EngineExecutionContextFactory for creation
+ * @see EngineExecutionContextExtensions for extension functions
+ */
 class EngineExecutionContextImpl(
     override val fullSchema: ViaductSchema,
     override val scopedSchema: ViaductSchema,
@@ -76,15 +92,22 @@ class EngineExecutionContextImpl(
     override val rawSelectionsLoaderFactory: RawSelectionsLoader.Factory,
     val dispatcherRegistry: DispatcherRegistry,
     val resolverInstrumentation: Instrumentation,
-    private val fieldDataLoaders: ConcurrentHashMap<String, FieldDataLoader>,
-    private val nodeDataLoaders: ConcurrentHashMap<String, NodeDataLoader>,
+    internal val fieldDataLoaders: ConcurrentHashMap<String, FieldDataLoader>,
+    internal val nodeDataLoaders: ConcurrentHashMap<String, NodeDataLoader>,
     val executeAccessChecksInModstrat: Boolean,
     override val engine: Engine,
     override val globalIDCodec: GlobalIDCodec,
-    val dataFetchingEnvironment: DataFetchingEnvironment? = null,
+    var dataFetchingEnvironment: DataFetchingEnvironment? = null,
     override val activeSchema: ViaductSchema = fullSchema,
-    private val fieldScopeSupplier: Supplier<out EngineExecutionContext.FieldExecutionScope> = FpKit.intraThreadMemoize { FieldExecutionScopeImpl() }
+    internal val fieldScopeSupplier: Supplier<out EngineExecutionContext.FieldExecutionScope> = FpKit.intraThreadMemoize { FieldExecutionScopeImpl() },
+    executionHandle: EngineExecutionContext.ExecutionHandle? = null,
 ) : EngineExecutionContext {
+    // Backing field for executionHandle - mutable internally, but exposed as val on interface
+    @Suppress("PropertyName")
+    internal var _executionHandle: EngineExecutionContext.ExecutionHandle? = executionHandle
+    override val executionHandle: EngineExecutionContext.ExecutionHandle?
+        get() = _executionHandle
+
     override val fieldScope: EngineExecutionContext.FieldExecutionScope by lazy { fieldScopeSupplier.get() }
 
     /**
@@ -139,28 +162,35 @@ class EngineExecutionContextImpl(
     }
 
     /**
-     * Creates a copy of the current execution context
+     * Internal copy with full control over all parameters.
+     * This is the single source of truth for copying.
+     *
+     * **Do not call directly** - use [EngineExecutionContextExtensions.copy] extension instead.
+     * This method is internal only because the extension needs access; it should be treated as private.
      */
-    fun copy(
-        dataFetchingEnvironment: DataFetchingEnvironment? = this.dataFetchingEnvironment,
-        executeAccessCheckInModstrat: Boolean = this.executeAccessChecksInModstrat,
+    internal fun copy(
         activeSchema: ViaductSchema = this.activeSchema,
         fieldScopeSupplier: Supplier<out EngineExecutionContext.FieldExecutionScope> = this.fieldScopeSupplier,
-    ) = EngineExecutionContextImpl(
-        fullSchema = this.fullSchema,
-        scopedSchema = this.scopedSchema,
-        requestContext = this.requestContext,
-        activeSchema = activeSchema,
-        rawSelectionSetFactory = this.rawSelectionSetFactory,
-        rawSelectionsLoaderFactory = rawSelectionsLoaderFactory,
-        dispatcherRegistry = this.dispatcherRegistry,
-        resolverInstrumentation = this.resolverInstrumentation,
-        fieldDataLoaders = this.fieldDataLoaders,
-        nodeDataLoaders = this.nodeDataLoaders,
-        executeAccessChecksInModstrat = executeAccessCheckInModstrat,
-        engine = this.engine,
-        globalIDCodec = this.globalIDCodec,
-        dataFetchingEnvironment = dataFetchingEnvironment,
-        fieldScopeSupplier = fieldScopeSupplier,
-    )
+        dataFetchingEnvironment: DataFetchingEnvironment? = this.dataFetchingEnvironment,
+        executeAccessChecksInModstrat: Boolean = this.executeAccessChecksInModstrat,
+    ): EngineExecutionContextImpl {
+        return EngineExecutionContextImpl(
+            fullSchema = this.fullSchema,
+            scopedSchema = this.scopedSchema,
+            requestContext = this.requestContext,
+            activeSchema = activeSchema,
+            rawSelectionSetFactory = this.rawSelectionSetFactory,
+            rawSelectionsLoaderFactory = this.rawSelectionsLoaderFactory,
+            dispatcherRegistry = this.dispatcherRegistry,
+            resolverInstrumentation = this.resolverInstrumentation,
+            fieldDataLoaders = this.fieldDataLoaders,
+            nodeDataLoaders = this.nodeDataLoaders,
+            executeAccessChecksInModstrat = executeAccessChecksInModstrat,
+            engine = this.engine,
+            globalIDCodec = this.globalIDCodec,
+            dataFetchingEnvironment = dataFetchingEnvironment,
+            fieldScopeSupplier = fieldScopeSupplier,
+            executionHandle = this._executionHandle,
+        )
+    }
 }

@@ -12,7 +12,9 @@ import viaduct.engine.api.CheckerResult
 import viaduct.engine.api.combine
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.runtime.CheckerProxyEngineObjectData
-import viaduct.engine.runtime.EngineExecutionContextImpl
+import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
+import viaduct.engine.runtime.EngineExecutionContextExtensions.dispatcherRegistry
+import viaduct.engine.runtime.EngineExecutionContextExtensions.executeAccessChecksInModstrat
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.Value
@@ -35,8 +37,7 @@ class AccessCheckRunner(
         parameters: ExecutionParameters,
         dataFetchingEnvironmentSupplier: Supplier<DataFetchingEnvironment>
     ): Value<out CheckerResult?> {
-        val engineExecutionContext = parameters.localContext.get<EngineExecutionContextImpl>()
-            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context")
+        val engineExecutionContext = parameters.engineExecutionContext
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
 
         val field = checkNotNull(parameters.field) { "Expected field to be non-null." }
@@ -63,8 +64,7 @@ class AccessCheckRunner(
         fieldResolver: FieldResolver
     ): Value<out CheckerResult?> {
         val field = checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
-        val engineExecutionContext = parameters.localContext.get<EngineExecutionContextImpl>()
-            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context")
+        val engineExecutionContext = parameters.engineExecutionContext
         if (!engineExecutionContext.executeAccessChecksInModstrat) return Value.nullValue
 
         val typeName = objectEngineResult.graphQLObjectType.name
@@ -115,11 +115,9 @@ class AccessCheckRunner(
         fieldResolver: FieldResolver
     ): Value<out CheckerResult?> {
         checkNotNull(parameters.field) { "Expected parameters.field to be non-null." }
-        val engineExecutionContext = parameters.localContext.get<EngineExecutionContextImpl>()
-            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context")
         // Exit early if there is definitely no type check
         if (fieldType !is GraphQLCompositeType ||
-            (fieldType is GraphQLObjectType && engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(fieldType.name) == null)
+            (fieldType is GraphQLObjectType && parameters.engineExecutionContext.dispatcherRegistry.getTypeCheckerDispatcher(fieldType.name) == null)
         ) {
             return fieldCheckerResultValue
         }
@@ -159,11 +157,9 @@ class AccessCheckRunner(
         arguments: Map<String, Any?>,
         checkerType: CheckerExecutor.CheckerType
     ): Value<out CheckerResult?> {
-        val engineExecutionContext = parameters.localContext.get<EngineExecutionContextImpl>()
-            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context")
         // Temporary hack to enable shimmed checkers to work on modern engine.
         // See: https://git.musta.ch/airbnb/treehouse/pull/879484 for more details
-        val localExecutionContext = engineExecutionContext.copy(
+        val localExecutionContext = parameters.engineExecutionContext.copy(
             dataFetchingEnvironment = dataFetchingEnvironmentSupplier.get()
         )
         val instrumentedDispatcher = parameters.instrumentation.instrumentAccessCheck(

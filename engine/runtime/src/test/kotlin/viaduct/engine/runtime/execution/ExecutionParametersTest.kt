@@ -39,6 +39,7 @@ import viaduct.engine.api.QueryPlanExecutionCondition
 import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 import viaduct.engine.api.observability.ExecutionObservabilityContext
+import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.FieldResolverDispatcherRegistry
@@ -412,6 +413,7 @@ class ExecutionParametersTest {
             fieldResolverDispatcherRegistry = FieldResolverDispatcherRegistry.Empty,
         )
         return ExecutionParameters(
+            _engineExecutionContext = mockk<EngineExecutionContextImpl>(relaxed = true),
             constants = constants,
             parentEngineResult = parentEngineResult,
             coercedVariables = emptyVariables,

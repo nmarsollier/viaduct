@@ -16,11 +16,12 @@ import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLTypeUtil
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
+import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.RawSelectionSet
 import viaduct.engine.api.RequiredSelectionSetRegistry
@@ -28,13 +29,14 @@ import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 import viaduct.engine.api.observability.ExecutionObservabilityContext
+import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
+import viaduct.engine.runtime.EngineExecutionContextExtensions.setExecutionHandle
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
 import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.TypeCheckerDispatcherRegistry
 import viaduct.engine.runtime.context.CompositeLocalContext
-import viaduct.engine.runtime.context.findLocalContextForType
 import viaduct.engine.runtime.context.updateCompositeLocalContext
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.Flags
@@ -46,6 +48,19 @@ import viaduct.utils.slf4j.logger
  * This class represents a position in the GraphQL execution tree, containing both
  * the immutable execution scope and the traversal-specific state that changes
  * as we navigate through the query.
+ *
+ * ## EngineExecutionContext Handling
+ *
+ * Each `ExecutionParameters` instance owns its own [EngineExecutionContext] copy, created in `init`.
+ * This ensures that modifications to one parameters instance don't affect others.
+ *
+ * The [EngineExecutionContext.executionHandle] property creates a bidirectional link between
+ * the EEC and its owning ExecutionParameters. This is set eagerly in `init`, ensuring that
+ * any subsequent [EngineExecutionContext.copy] calls preserve the correct handle.
+ *
+ * To create a derived EEC with modified field scope or DFE, use
+ * [viaduct.engine.runtime.EngineExecutionContextExtensions.copy] on [engineExecutionContext].
+ * The copy will automatically preserve the handle pointing to this ExecutionParameters.
  *
  * @property constants Immutable execution-wide constants shared across the entire execution
  * @property parentEngineResult Parent ObjectEngineResult for field execution (changes during traversal)
@@ -62,6 +77,8 @@ import viaduct.utils.slf4j.logger
  * @property resolutionPolicy The resolution policy to use for this execution step
  */
 data class ExecutionParameters(
+    @Suppress("ConstructorParameterNaming")
+    private var _engineExecutionContext: EngineExecutionContext,
     val constants: Constants,
     val parentEngineResult: ObjectEngineResultImpl,
     val coercedVariables: CoercedVariables,
@@ -75,8 +92,15 @@ data class ExecutionParameters(
     val field: QueryPlan.CollectedField? = null,
     val bypassChecksDuringCompletion: Boolean = false,
     val resolutionPolicy: ResolutionPolicy = ResolutionPolicy.STANDARD,
-) {
-    // Computed properties
+) : EngineExecutionContext.ExecutionHandle {
+    // Each ExecutionParameters gets its own EEC copy to prevent cross-contamination
+    // between different execution contexts (e.g., parent vs child field resolution).
+    // The handle is set eagerly to ensure eec.copy() always preserves the correct handle.
+    init {
+        _engineExecutionContext = _engineExecutionContext.copy()
+        _engineExecutionContext.setExecutionHandle(this)
+    }
+
     /** The ResultPath for the current level of execution */
     val path: ResultPath = executionStepInfo.path
 
@@ -113,6 +137,14 @@ data class ExecutionParameters(
         .parent(parent?.gjParameters)
         .field(this.field?.mergedField)
         .build()
+
+    /**
+     * Returns the [EngineExecutionContext] for this execution parameters instance.
+     *
+     * The handle is set eagerly in the init block, so this is a simple accessor.
+     */
+    val engineExecutionContext: EngineExecutionContext
+        get() = _engineExecutionContext
 
     /**
      * Delegates to scope for launching coroutines on the root execution scope.
@@ -415,13 +447,13 @@ data class ExecutionParameters(
              */
             @OptIn(ExperimentalTime::class)
             internal suspend fun fromExecutionStrategyContextAndParameters(
+                engineExecutionContext: EngineExecutionContextImpl,
                 executionContext: ExecutionContext,
                 parameters: ExecutionStrategyParameters,
                 rootEngineResult: ObjectEngineResultImpl,
                 queryEngineResult: ObjectEngineResultImpl,
                 supervisorScopeFactory: (CoroutineContext) -> CoroutineScope,
             ): ExecutionParameters {
-                val engineExecutionContext = executionContext.findLocalContextForType<EngineExecutionContextImpl>()
                 val planAttribution = ExecutionAttribution.fromOperation(executionContext.operationDefinition.name)
 
                 // Build the query plan
@@ -444,7 +476,7 @@ data class ExecutionParameters(
                 }
                 log.debug("Built QueryPlan in $duration")
 
-                // Add the execution context with observability context for this query
+                val currentCoroutineContext = currentCoroutineContext()
                 val localContext = executionContext.updateCompositeLocalContext<ExecutionObservabilityContext> {
                     ExecutionObservabilityContext(
                         attribution = planAttribution
@@ -457,7 +489,7 @@ data class ExecutionParameters(
                     rootEngineResult = rootEngineResult,
                     queryEngineResult = queryEngineResult,
                     supervisorScopeFactory = supervisorScopeFactory,
-                    rootCoroutineContext = coroutineContext,
+                    rootCoroutineContext = currentCoroutineContext,
                     requiredSelectionSetRegistry = requiredSelectionSetRegistry,
                     rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory,
                     fieldCheckerDispatcherRegistry = fieldCheckerDispatcherRegistry,
@@ -465,8 +497,8 @@ data class ExecutionParameters(
                     fieldResolverDispatcherRegistry = engineExecutionContext.dispatcherRegistry,
                 )
 
-                // Create and return root ExecutionParameters
                 return ExecutionParameters(
+                    _engineExecutionContext = engineExecutionContext,
                     constants = constants,
                     parentEngineResult = rootEngineResult, // Initially, parent is the same as root
                     coercedVariables = executionContext.coercedVariables,

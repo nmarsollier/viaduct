@@ -32,7 +32,6 @@ import viaduct.engine.api.ParentManagedValue
 import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.engineExecutionContext
 import viaduct.engine.runtime.Cell
-import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.FetchedValueWithExtensions
 import viaduct.engine.runtime.FieldResolutionResult
 import viaduct.engine.runtime.ObjectEngineResultImpl
@@ -262,18 +261,15 @@ class FieldResolver(
 
         // Produce the object data and field arguments for the current field and make them available to child
         // plan VariablesResolver.
-        val engineExecCtx = parameters.localContext.get<EngineExecutionContextImpl>()
-            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context.")
-
         parameters.launchOnRootScope {
             val variables = FieldExecutionHelpers.resolveQueryPlanVariables(
                 plan,
                 parameters.executionStepInfo.arguments,
                 parameters.parentEngineResult,
                 parameters.queryEngineResult,
-                engineExecCtx,
+                parameters.engineExecutionContext,
                 parameters.executionContext.graphQLContext,
-                parameters.executionContext.locale
+                parameters.executionContext.locale,
             )
             val planParameters = parameters.forChildPlan(plan, variables)
             fetchObject(plan.parentType as GraphQLObjectType, planParameters)
@@ -425,7 +421,7 @@ class FieldResolver(
                         } else {
                             val newParams = updateListItemParameters(parameters, index)
                             val itemDfeSupplier: () -> DataFetchingEnvironment = { buildDataFetchingEnvironment(newParams, field, parameters.parentEngineResult) }
-                            accessCheckRunner.typeCheck(parameters, itemDfeSupplier, oer, itemFieldResolutionResult, this)
+                            accessCheckRunner.typeCheck(newParams, itemDfeSupplier, oer, itemFieldResolutionResult, this)
                         }
                         slotSetter.setCheckerValue(typeCheckerResult)
                     }
@@ -501,12 +497,7 @@ class FieldResolver(
                             ?: throw IllegalStateException(
                                 "Attempting to resolve LazyEngineObjectData but no selection set found"
                             )
-                        val engineExecutionContext = dataFetchingEnvironment.engineExecutionContext as EngineExecutionContextImpl
-                        val localExecutionContext = engineExecutionContext.copy(
-                            dataFetchingEnvironment = dataFetchingEnvironment,
-                        )
-
-                        originalSource.resolveData(selections, localExecutionContext)
+                        originalSource.resolveData(selections, dataFetchingEnvironment.engineExecutionContext)
                         engineResult.resolve()
                     } catch (e: Exception) {
                         if (e is CancellationException) currentCoroutineContext().ensureActive()

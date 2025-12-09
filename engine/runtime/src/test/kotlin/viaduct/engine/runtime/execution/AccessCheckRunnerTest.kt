@@ -208,7 +208,10 @@ class AccessCheckRunnerTest {
         val engineExecutionContext = mockk<EngineExecutionContextImpl> {
             every { dispatcherRegistry } returns registry
             every { rawSelectionSetFactory.rawSelectionSet(any(), any()) } returns RawSelectionSet.empty("Foo")
-            every { copy(any(), any()) } returns this
+            every { activeSchema } returns mockk()
+            every { fieldScopeSupplier } returns mockk()
+            every { dataFetchingEnvironment } returns null
+            every { copy(any(), any(), any(), any()) } returns this
             every { executeAccessChecksInModstrat } returns isEnabled
         }
         val oer = objectEngineResult {
@@ -236,7 +239,10 @@ class AccessCheckRunnerTest {
             myEngineExecutionContext = mockk<EngineExecutionContextImpl> {
                 every { dispatcherRegistry } returns registry
                 every { rawSelectionSetFactory.rawSelectionSet(any(), any()) } returns RawSelectionSet.empty("Foo")
-                every { copy(any(), any()) } returns this
+                every { activeSchema } returns mockk()
+                every { fieldScopeSupplier } returns mockk()
+                every { dataFetchingEnvironment } returns null
+                every { copy(any(), any(), any(), any()) } returns this
                 every { executeAccessChecksInModstrat } returns isEnabled
             }
         ).engineExecutionContext as? EngineExecutionContextImpl
@@ -257,6 +263,7 @@ class AccessCheckRunnerTest {
 
     private fun createMockExecutionParameters(engineExecutionContext: EngineExecutionContextImpl?): ExecutionParameters {
         return mockk<ExecutionParameters> {
+            engineExecutionContext?.let { every { this@mockk.engineExecutionContext } returns it }
             every { instrumentation } returns mockk {
                 every { instrumentAccessCheck(any(), any(), any()) } answers { firstArg() }
             }
@@ -269,6 +276,7 @@ class AccessCheckRunnerTest {
             }
             every { localContext } returns mockk {
                 engineExecutionContext?.let { every { get<EngineExecutionContextImpl>() } returns it }
+                engineExecutionContext?.let { every { get<EngineExecutionContext>() } returns it }
             }
             every { gjParameters } returns mockk()
             every { field } returns mockk {

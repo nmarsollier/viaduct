@@ -39,6 +39,25 @@ interface EngineExecutionContext {
      */
     val engine: Engine
 
+    /**
+     * An opaque handle to the ongoing execution that enables subquery execution.
+     *
+     * This handle is set automatically by the engine when execution begins. It allows
+     * the engine to associate this context with the correct execution state when
+     * [query] or [mutation] is called.
+     *
+     * ## Lifecycle
+     *
+     * - **Before execution**: `null` ([EngineExecutionContext] exists but execution hasn't started)
+     * - **During execution**: Set to an opaque handle representing the current execution
+     * - **Propagated on copy**: Derived [EngineExecutionContext]s maintain the handle to their owning execution
+     *
+     * Tenant runtime code should treat this as read-only; the setter is internal to the runtime module.
+     *
+     * @see ExecutionHandle
+     */
+    val executionHandle: ExecutionHandle?
+
     // Field-scoped: Changes during execution tree traversal
     /**
      * Field-level execution scope that changes as we traverse the execution tree.
@@ -105,6 +124,19 @@ interface EngineExecutionContext {
          */
         val resolutionPolicy: ResolutionPolicy
     }
+
+    /**
+     * Interface representing an opaque handle representing an ongoing execution.
+     *
+     * This handle enables subquery execution (e.g., [query], [mutation]) without tenant runtime
+     * code needing to understand execution internals. The engine uses this handle to:
+     * - Access the current execution's coroutine scope and error accumulator
+     * - Maintain parent-child relationships for error attribution
+     * - Continue execution within the same request lifecycle
+     *
+     * @see executionHandle
+     */
+    interface ExecutionHandle
 
     /**
      * For now, a wrapper around [rawSelectionsLoaderFactory].  Eventually will

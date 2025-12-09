@@ -39,6 +39,7 @@ import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.gj
 import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.CheckerProxyEngineObjectData
+import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
@@ -148,9 +149,6 @@ object FieldExecutionHelpers {
 
         // Get the EngineExecutionContext from local context and update it with
         // context-sensitive field scope (fragments/variables)
-        val engineExecCtx = parameters.localContext.get<EngineExecutionContextImpl>()
-            ?: throw IllegalStateException("Expected EngineExecutionContextImpl in local context")
-
         val fieldScope = FpKit.intraThreadMemoize {
             EngineExecutionContextImpl.FieldExecutionScopeImpl(
                 fragments = parameters.queryPlan.fragments.map.mapValues { it.value.gjDef },
@@ -158,8 +156,7 @@ object FieldExecutionHelpers {
                 resolutionPolicy = parameters.resolutionPolicy
             )
         }
-        val updatedEngineExecCtx = engineExecCtx.copy(fieldScopeSupplier = fieldScope)
-
+        val updatedEngineExecCtx = parameters.engineExecutionContext.copy(fieldScopeSupplier = fieldScope)
         return ViaductDataFetchingEnvironmentImpl(dfe, updatedEngineExecCtx)
     }
 
