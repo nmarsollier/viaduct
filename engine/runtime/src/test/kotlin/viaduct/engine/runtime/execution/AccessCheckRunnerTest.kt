@@ -127,7 +127,7 @@ class AccessCheckRunnerTest {
     @Test
     fun `combineWithTypeCheck - no type check`() {
         val engineExecutionContext = ContextMocks(
-            myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), emptyMap())
+            myDispatcherRegistry = DispatcherRegistry.Impl(emptyMap(), emptyMap(), emptyMap(), emptyMap())
         ).engineExecutionContext as EngineExecutionContextImpl
         val result = runner.combineWithTypeCheck(
             createMockExecutionParameters(engineExecutionContext),
@@ -156,7 +156,7 @@ class AccessCheckRunnerTest {
                 )
                 val typeChecks = mapOf("Foo" to CheckerDispatcherImpl(errorCheckerExecutor))
                 val engineExecutionContext = ContextMocks(
-                    myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), typeChecks)
+                    myDispatcherRegistry = DispatcherRegistry.Impl(emptyMap(), emptyMap(), emptyMap(), typeChecks)
                 ).engineExecutionContext as EngineExecutionContextImpl
                 val result = runner.combineWithTypeCheck(
                     createMockExecutionParameters(engineExecutionContext),
@@ -185,7 +185,7 @@ class AccessCheckRunnerTest {
                 )
                 val typeChecks = mapOf("Foo" to CheckerDispatcherImpl(errorCheckerExecutor))
                 val engineExecutionContext = ContextMocks(
-                    myDispatcherRegistry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), typeChecks)
+                    myDispatcherRegistry = DispatcherRegistry.Impl(emptyMap(), emptyMap(), emptyMap(), typeChecks)
                 ).engineExecutionContext as EngineExecutionContextImpl
                 val result = runner.combineWithTypeCheck(
                     createMockExecutionParameters(engineExecutionContext),
@@ -204,7 +204,7 @@ class AccessCheckRunnerTest {
         checker: CheckerExecutor? = null
     ): Value<out CheckerResult?> {
         val checkerDispatchers = if (checker != null) mapOf("Foo" to CheckerDispatcherImpl(checker)) else emptyMap()
-        val registry = DispatcherRegistry(emptyMap(), emptyMap(), emptyMap(), checkerDispatchers)
+        val registry = DispatcherRegistry.Impl(emptyMap(), emptyMap(), emptyMap(), checkerDispatchers)
         val engineExecutionContext = mockk<EngineExecutionContextImpl> {
             every { dispatcherRegistry } returns registry
             every { rawSelectionSetFactory.rawSelectionSet(any(), any()) } returns RawSelectionSet.empty("Foo")
@@ -234,7 +234,7 @@ class AccessCheckRunnerTest {
     ): Value<out CheckerResult?> {
         val exec = AccessCheckRunner(DefaultCoroutineInterop)
         val checkerDispatchers = if (checker != null) mapOf("Foo" to "bar" to CheckerDispatcherImpl(checker)) else emptyMap()
-        val registry = DispatcherRegistry(emptyMap(), emptyMap(), checkerDispatchers, emptyMap())
+        val registry = DispatcherRegistry.Impl(emptyMap(), emptyMap(), checkerDispatchers, emptyMap())
         val context = ContextMocks(
             myEngineExecutionContext = mockk<EngineExecutionContextImpl> {
                 every { dispatcherRegistry } returns registry
@@ -249,9 +249,9 @@ class AccessCheckRunnerTest {
         val params = createMockExecutionParameters(context)
 
         // Override field-check specific properties
-        every { params.executionStepInfo } returns mockk {
+        every { params.executionStepInfo } returns mockk(relaxed = true) {
             every { objectType.name } returns "Foo"
-            every { arguments } returns mapOf()
+            every { arguments } returns emptyMap()
         }
         every { params.field?.fieldName } returns "bar"
         every { params.parentEngineResult } returns mockk<ObjectEngineResultImpl>()
@@ -276,7 +276,6 @@ class AccessCheckRunnerTest {
             }
             every { localContext } returns mockk {
                 engineExecutionContext?.let { every { get<EngineExecutionContextImpl>() } returns it }
-                engineExecutionContext?.let { every { get<EngineExecutionContext>() } returns it }
             }
             every { gjParameters } returns mockk()
             every { field } returns mockk {

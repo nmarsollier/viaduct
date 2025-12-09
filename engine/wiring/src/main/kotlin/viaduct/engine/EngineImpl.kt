@@ -86,9 +86,6 @@ class EngineImpl(
         ViaductExecutionStrategy.Factory.Impl(
             dataFetcherExceptionHandler,
             ExecutionParameters.Factory(
-                dispatcherRegistry,
-                dispatcherRegistry,
-                dispatcherRegistry,
                 flagManager
             ),
             AccessCheckRunner(coroutineInterop),

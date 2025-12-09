@@ -23,8 +23,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import viaduct.engine.api.EngineExecutionContext
 import viaduct.engine.api.ExecutionAttribution
-import viaduct.engine.api.RawSelectionSet
-import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
@@ -32,10 +30,7 @@ import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
 import viaduct.engine.runtime.EngineExecutionContextExtensions.setExecutionHandle
 import viaduct.engine.runtime.EngineExecutionContextImpl
-import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
-import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.ObjectEngineResultImpl
-import viaduct.engine.runtime.TypeCheckerDispatcherRegistry
 import viaduct.engine.runtime.context.CompositeLocalContext
 import viaduct.engine.runtime.context.updateCompositeLocalContext
 import viaduct.service.api.spi.FlagManager
@@ -427,9 +422,6 @@ data class ExecutionParameters(
     class Factory
         @Inject
         constructor(
-            private val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
-            private val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
-            private val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
             private val flagManager: FlagManager,
         ) {
             companion object {
@@ -462,7 +454,7 @@ data class ExecutionParameters(
                         QueryPlan.Parameters(
                             executionContext.executionInput.query,
                             engineExecutionContext.activeSchema,
-                            requiredSelectionSetRegistry,
+                            engineExecutionContext.dispatcherRegistry,
                             engineExecutionContext.executeAccessChecksInModstrat,
                             fieldResolverDispatcherRegistry = engineExecutionContext.dispatcherRegistry
                         ),
@@ -490,11 +482,6 @@ data class ExecutionParameters(
                     queryEngineResult = queryEngineResult,
                     supervisorScopeFactory = supervisorScopeFactory,
                     rootCoroutineContext = currentCoroutineContext,
-                    requiredSelectionSetRegistry = requiredSelectionSetRegistry,
-                    rawSelectionSetFactory = engineExecutionContext.rawSelectionSetFactory,
-                    fieldCheckerDispatcherRegistry = fieldCheckerDispatcherRegistry,
-                    typeCheckerDispatcherRegistry = typeCheckerDispatcherRegistry,
-                    fieldResolverDispatcherRegistry = engineExecutionContext.dispatcherRegistry,
                 )
 
                 return ExecutionParameters(
@@ -529,11 +516,6 @@ data class ExecutionParameters(
      * @property queryEngineResult Query ObjectEngineResult for query selections
      * @property supervisorScopeFactory Coroutine scope factory for the entire execution. Creates a CoroutineScope supervised by the execution.
      * @property rootCoroutineContext Root coroutine context for async operations
-     * @property requiredSelectionSetRegistry Registry for loading field data dependencies
-     * @property rawSelectionSetFactory Factory for creating raw selection sets
-     * @property fieldCheckerDispatcherRegistry Registry for field-level access checks
-     * @property typeCheckerDispatcherRegistry Registry for type-level access checks
-     * @property fieldResolverDispatcherRegistry Registry for field resolver dispatchers
      */
     data class Constants(
         val executionContext: ExecutionContext,
@@ -541,11 +523,6 @@ data class ExecutionParameters(
         val queryEngineResult: ObjectEngineResultImpl,
         val supervisorScopeFactory: (CoroutineContext) -> CoroutineScope,
         val rootCoroutineContext: CoroutineContext,
-        val requiredSelectionSetRegistry: RequiredSelectionSetRegistry,
-        val rawSelectionSetFactory: RawSelectionSet.Factory,
-        val fieldCheckerDispatcherRegistry: FieldCheckerDispatcherRegistry,
-        val typeCheckerDispatcherRegistry: TypeCheckerDispatcherRegistry,
-        val fieldResolverDispatcherRegistry: FieldResolverDispatcherRegistry,
     ) {
         /**
          * Cache for collected fields during execution (shared between [FieldResolver] and [FieldCompleter])

@@ -36,15 +36,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.QueryPlanExecutionCondition
-import viaduct.engine.api.RequiredSelectionSetRegistry
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
 import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.EngineExecutionContextImpl
-import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
 import viaduct.engine.runtime.FieldResolutionResult
-import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.ObjectEngineResultImpl
-import viaduct.engine.runtime.TypeCheckerDispatcherRegistry
 import viaduct.engine.runtime.context.CompositeLocalContext
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createLocalContext
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createSchema
@@ -406,11 +402,6 @@ class ExecutionParametersTest {
             queryEngineResult = queryEngineResult,
             supervisorScopeFactory = { CoroutineScope(coroutineContext + rootExecutionJob) },
             rootCoroutineContext = coroutineContext,
-            requiredSelectionSetRegistry = RequiredSelectionSetRegistry.Empty,
-            rawSelectionSetFactory = mockk(relaxed = true),
-            fieldCheckerDispatcherRegistry = FieldCheckerDispatcherRegistry.Empty,
-            typeCheckerDispatcherRegistry = TypeCheckerDispatcherRegistry.Empty,
-            fieldResolverDispatcherRegistry = FieldResolverDispatcherRegistry.Empty,
         )
         return ExecutionParameters(
             _engineExecutionContext = mockk<EngineExecutionContextImpl>(relaxed = true),

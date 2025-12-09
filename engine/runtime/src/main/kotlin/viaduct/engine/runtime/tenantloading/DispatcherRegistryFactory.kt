@@ -108,7 +108,7 @@ class DispatcherRegistryFactory(
                 }
             }
         }
-        val dispatcherRegistry = DispatcherRegistry(fieldResolverDispatchers.toMap(), nodeResolverDispatchers.toMap(), fieldCheckerDispatchers.toMap(), typeCheckerDispatchers.toMap())
+        val dispatcherRegistry = DispatcherRegistry.Impl(fieldResolverDispatchers.toMap(), nodeResolverDispatchers.toMap(), fieldCheckerDispatchers.toMap(), typeCheckerDispatchers.toMap())
         if (dispatcherRegistry.isEmpty() && nonContributingModernBootstrappersPresent) {
             log().warn("Empty executor registry for {}.", tenantModuleBootstrappers)
         }

@@ -54,7 +54,7 @@ class EngineExecutionContextExtensionsTest {
 
     @Test
     fun `dispatcherRegistry delegates to impl`() {
-        val testDispatcherRegistry = DispatcherRegistry(
+        val testDispatcherRegistry = DispatcherRegistry.Impl(
             fieldResolverDispatchers = emptyMap(),
             nodeResolverDispatchers = emptyMap(),
             fieldCheckerDispatchers = emptyMap(),
@@ -197,7 +197,7 @@ class EngineExecutionContextExtensionsTest {
     @Test
     fun `hasResolver returns true when resolver is registered`() {
         val mockResolver = mockk<FieldResolverDispatcher>(relaxed = true)
-        val registry = DispatcherRegistry(
+        val registry = DispatcherRegistry.Impl(
             fieldResolverDispatchers = mapOf(
                 viaduct.engine.api.Coordinate("Query", "foo") to mockResolver
             ),

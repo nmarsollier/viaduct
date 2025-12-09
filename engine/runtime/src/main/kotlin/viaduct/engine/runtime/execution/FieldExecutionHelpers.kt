@@ -40,6 +40,7 @@ import viaduct.engine.api.gj
 import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.CheckerProxyEngineObjectData
 import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
+import viaduct.engine.runtime.EngineExecutionContextExtensions.dispatcherRegistry
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
@@ -110,7 +111,7 @@ object FieldExecutionHelpers {
             parameters.executionContext.locale
         )
         val fieldResolverMetadata = field.collectedFieldMetadata?.resolverCoordinate?.let {
-            parameters.constants.fieldResolverDispatcherRegistry.getFieldResolverDispatcher(it.first, it.second)?.resolverMetadata
+            parameters.engineExecutionContext.dispatcherRegistry.getFieldResolverDispatcher(it.first, it.second)?.resolverMetadata
         }
         val localContext = parameters.localContext.let { ctx ->
             // update the context with either a new EngineResultLocalContext or update the existing one

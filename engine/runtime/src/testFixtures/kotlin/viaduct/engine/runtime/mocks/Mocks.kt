@@ -15,7 +15,7 @@ fun mkDispatcherRegistry(
     fieldCheckerExecutors: Map<Coordinate, CheckerExecutor> = emptyMap(),
     typeCheckerExecutors: Map<String, CheckerExecutor> = emptyMap(),
 ): DispatcherRegistry {
-    return DispatcherRegistry(
+    return DispatcherRegistry.Impl(
         fieldResolverDispatchers = fieldResolverExecutors.map { (k, v) -> k to FieldResolverDispatcherImpl(v) }.toMap(),
         nodeResolverDispatchers = nodeResolverExecutors.map { (k, v) -> k to NodeResolverDispatcherImpl(v) }.toMap(),
         fieldCheckerDispatchers = fieldCheckerExecutors.map { (k, v) -> k to CheckerDispatcherImpl(v) }.toMap(),
