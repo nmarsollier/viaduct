@@ -71,6 +71,61 @@ enum ReservedKeywordEnum {
   NULL
 }
 
+# Kotlin-only reserved words (not reserved in Java)
+# Java reserved words excluded: class, if, else, for, while, do, break, continue, return, throw, try
+enum ReservedKeywordLowercaseEnum {
+  as
+  fun
+  object
+  val
+  var
+  when
+  in
+  is
+  typealias
+}
+
+# Type with Kotlin-only reserved words as field names (not Java reserved)
+type TypeWithKotlinOnlyReservedFieldNames {
+  as: String
+  fun: Int
+  object: Boolean
+  val: String
+  var: Int
+  when: String
+  in: Boolean
+  is: String
+  typealias: Int
+}
+
+# Input with Kotlin-only reserved words as field names (not Java reserved)
+input InputWithKotlinOnlyReservedFieldNames {
+  as: String
+  fun: Int!
+  object: Boolean
+  val: String!
+  var: Int
+  when: String
+  in: Boolean
+  is: String
+  typealias: Int
+}
+
+# Type using Kotlin-only reserved keywords as argument names (not Java reserved)
+type TypeWithKotlinOnlyReservedArgNames {
+  fieldWithKotlinOnlyReservedArgs(
+    as: String
+    fun: Int
+    object: Boolean
+    val: String
+    var: Int
+    when: String
+    in: Boolean
+    is: String
+    typealias: Int
+  ): String
+}
+
 # Type using reserved keywords in arguments
 type TypeWithReservedArgNames {
   fieldWithReservedArgs(
@@ -81,6 +136,7 @@ type TypeWithReservedArgNames {
     val: Float
     var: Int
     when: ReservedKeywordEnum
+    lowercase: ReservedKeywordLowercaseEnum
   ): String
 }
 

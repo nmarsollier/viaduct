@@ -33,12 +33,13 @@ class ParameterizedSchemaDrivenTests {
     companion object {
         private val SUCCESS_SCHEMA_CONFIGS = listOf(
             "default" to listOf("graphql/bytecode_test_schema.graphqls", "graphql/classic.graphqls"),
-            "simple" to listOf("graphql/simple_test_schema.graphqls"),
-            "kotlin-reserved-names" to listOf("graphql/kotlin_reserved_names_schema.graphqls"),
-            "recursion-and-edge-cases" to listOf("graphql/recursion_and_edge_cases_schema.graphqls"),
+            "simple" to listOf("graphql/edge-cases/simple_test_schema.graphqls"),
+            "kotlin-reserved-names" to listOf("graphql/edge-cases/kotlin_reserved_names_schema.graphqls"),
+            "recursion" to listOf("graphql/edge-cases/recursion_schema.graphqls"),
+            "edge-cases" to listOf("graphql/edge-cases/edge_cases_schema.graphqls"),
         )
         private val INVALID_SCHEMA_CONFIGS: List<Pair<String, List<String>>> = listOf(
-            "invalid-undefined-type" to listOf("graphql/invalid_undefined_type_schema.graphqls"),
+            "invalid-undefined-type" to listOf("graphql/edge-cases/invalid_undefined_type_schema.graphqls"),
         )
 
         @JvmStatic
