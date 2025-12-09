@@ -69,6 +69,7 @@ viaduct-service-api = { module = "com.airbnb.viaduct:service-api", version.ref =
 viaduct-service-runtime = { module = "com.airbnb.viaduct:service-runtime", version.ref = "project" }
 viaduct-service-wiring = { module = "com.airbnb.viaduct:service-wiring", version.ref = "project" }
 
+viaduct-shared-apiannotations = { module = "com.airbnb.viaduct:shared-apiannotations", version.ref = "project" }
 viaduct-shared-arbitrary = { module = "com.airbnb.viaduct:shared-arbitrary", version.ref = "project" }
 viaduct-shared-codegen = { module = "com.airbnb.viaduct:shared-codegen", version.ref = "project" }
 viaduct-shared-dataloader = { module = "com.airbnb.viaduct:shared-dataloader", version.ref = "project" }

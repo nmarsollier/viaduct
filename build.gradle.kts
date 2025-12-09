@@ -20,6 +20,7 @@ jacoco {
 // Dependencies for jacoco aggregation - all Java subprojects with jacoco
 dependencies {
     jacocoAggregation(libs.viaduct.engine.api)
+    jacocoAggregation(libs.viaduct.shared.apiannotations)
     jacocoAggregation(libs.viaduct.engine.runtime)
     jacocoAggregation(libs.viaduct.service.api)
     jacocoAggregation(libs.viaduct.service.runtime)
