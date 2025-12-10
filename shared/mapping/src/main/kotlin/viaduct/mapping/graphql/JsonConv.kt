@@ -69,10 +69,12 @@ object JsonConv {
     ): Conv<Map<String, Any?>, IR.Value.Object> =
         Conv(
             forward = {
-                val irFieldValues = it.toList().mapNotNull { (k, v) ->
-                    val conv = fieldConvs[k] ?: return@mapNotNull null
-                    k to conv(v)
-                }.toMap()
+                val irFieldValues = it
+                    .toList()
+                    .mapNotNull { (k, v) ->
+                        val conv = fieldConvs[k] ?: return@mapNotNull null
+                        k to conv(v)
+                    }.toMap()
                 IR.Value.Object(name, irFieldValues)
             },
             inverse = {
@@ -233,7 +235,10 @@ object JsonConv {
         )
 
     /** A builder that can recursively build a single conv */
-    private class Builder(val schema: ViaductSchema, val addJsonTypenameField: AddJsonTypenameField) {
+    private class Builder(
+        val schema: ViaductSchema,
+        val addJsonTypenameField: AddJsonTypenameField
+    ) {
         private val convMemo = ConvMemo()
 
         fun build(type: GraphQLType): Conv<String, IR.Value> =

@@ -516,8 +516,8 @@ inline fun <T> Throwable.handleLocalCancellation(
     job: Job,
     onCancellation: (CancellationException) -> T,
     onNonCancellation: (Exception) -> T
-): T {
-    return when (this) {
+): T =
+    when (this) {
         is CancellationException -> {
             if (job.isCancelled) {
                 onCancellation(this)
@@ -533,7 +533,6 @@ inline fun <T> Throwable.handleLocalCancellation(
 
         else -> throw this // Errors should propagate immediately
     }
-}
 
 /**
  * Finish this deferred with an exception that was thrown inside its own coroutine context.

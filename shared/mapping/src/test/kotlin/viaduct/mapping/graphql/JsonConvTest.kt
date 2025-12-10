@@ -507,16 +507,18 @@ class JsonConvTest : KotestPropertyBase() {
                 (TypenameValueWeight to 1.0)
 
             // Arb<Triple(schema, type, ir)>
-            val arb = Arb.graphQLSchema(cfg).map { schema ->
-                Arb.of(schema.allTypesAsList)
-                    .flatMap { type ->
-                        Arb.ir(schema, type, cfg).map { ir ->
-                            Triple(schema, type, ir)
-                        }
-                    }
-                    .take(100, randomSource)
-                    .toList()
-            }.flatten()
+            val arb = Arb
+                .graphQLSchema(cfg)
+                .map { schema ->
+                    Arb
+                        .of(schema.allTypesAsList)
+                        .flatMap { type ->
+                            Arb.ir(schema, type, cfg).map { ir ->
+                                Triple(schema, type, ir)
+                            }
+                        }.take(100, randomSource)
+                        .toList()
+                }.flatten()
 
             arb.forAll { (schema, type, ir) ->
                 val roundtripper = JsonConv(ViaductSchema(schema), type)

@@ -40,10 +40,9 @@ fun loadGraphQLSchema(schemaResourcePath: String? = null): ViaductSchema {
                     ClasspathHelper.forPackage(
                         packageWithSchema,
                         ClasspathHelper.contextClassLoader(),
-                        ClasspathHelper.staticClassLoader()
-                    )
-                )
-                .addScanners(Scanners.Resources)
+                        ClasspathHelper.staticClassLoader(),
+                    ),
+                ).addScanners(Scanners.Resources),
         )
         val graphqlsResources = Scanners.Resources.with(".*\\.graphqls")
 
@@ -51,9 +50,12 @@ fun loadGraphQLSchema(schemaResourcePath: String? = null): ViaductSchema {
         // For the list of excluded modules, vist the link below
         // https://sourcegraph.a.musta.ch/airbnb/treehouse@8c0a0ea334b1556a40a40bcf725ff154668c2299/-/blob/tools/viaduct/src/main/kotlin/com/airbnb/viaduct/schema/modules/SchemaModule.kt?L106
         val excludedSchemaModules = setOf("testfixtures", "data/codelab", "presentation/codelab")
-        reflections.get(graphqlsResources)
+        reflections
+            .get(graphqlsResources)
             .filter { resourcePath ->
-                excludedSchemaModules.none { schemaModuleDirectoryPath -> resourcePath.contains("graphql/$schemaModuleDirectoryPath") }
+                excludedSchemaModules.none { schemaModuleDirectoryPath ->
+                    resourcePath.contains("graphql/$schemaModuleDirectoryPath")
+                }
             }.map { Resources.getResource(it) }
     }
 

@@ -67,15 +67,16 @@ class ValueExtensionsTest {
     fun `rawValue -- ArrayValue`() {
         assertEquals(
             listOf(1.34f, 1234, "string_value"),
-            ArrayValue.newArrayValue()
+            ArrayValue
+                .newArrayValue()
                 .values(
                     listOf(
                         FloatValue.newFloatValue(BigDecimal.valueOf(1.34)).build(),
                         IntValue.newIntValue(BigInteger.valueOf(1234)).build(),
                         StringValue.newStringValue("string_value").build()
                     )
-                )
-                .build().rawValue()
+                ).build()
+                .rawValue()
         )
     }
 
@@ -84,22 +85,32 @@ class ValueExtensionsTest {
         val variables = mapOf("var1" to 42)
 
         val objVal =
-            ObjectValue.newObjectValue().objectFields(
-                listOf(
-                    ObjectField.newObjectField().name("floatVal")
-                        .value(FloatValue.newFloatValue(BigDecimal.valueOf(1.34)).build())
-                        .build(),
-                    ObjectField.newObjectField().name("intVal")
-                        .value(IntValue.newIntValue(BigInteger.valueOf(1234)).build())
-                        .build(),
-                    ObjectField.newObjectField().name("stringVal")
-                        .value(StringValue.newStringValue("string_value").build())
-                        .build(),
-                    ObjectField.newObjectField().name("refVal")
-                        .value(VariableReference.newVariableReference().name("var1").build())
-                        .build()
-                )
-            ).build()
+            ObjectValue
+                .newObjectValue()
+                .objectFields(
+                    listOf(
+                        ObjectField
+                            .newObjectField()
+                            .name("floatVal")
+                            .value(FloatValue.newFloatValue(BigDecimal.valueOf(1.34)).build())
+                            .build(),
+                        ObjectField
+                            .newObjectField()
+                            .name("intVal")
+                            .value(IntValue.newIntValue(BigInteger.valueOf(1234)).build())
+                            .build(),
+                        ObjectField
+                            .newObjectField()
+                            .name("stringVal")
+                            .value(StringValue.newStringValue("string_value").build())
+                            .build(),
+                        ObjectField
+                            .newObjectField()
+                            .name("refVal")
+                            .value(VariableReference.newVariableReference().name("var1").build())
+                            .build()
+                    )
+                ).build()
 
         assertEquals(
             mapOf("floatVal" to 1.34f, "intVal" to 1234, "stringVal" to "string_value", "refVal" to 42),
@@ -115,7 +126,14 @@ class ValueExtensionsTest {
     @Test
     fun `rawValue -- VariableReference`() {
         val variables = mapOf("var1" to 42)
-        assertEquals(42, VariableReference.newVariableReference().name("var1").build().rawValue(variables))
+        assertEquals(
+            42,
+            VariableReference
+                .newVariableReference()
+                .name("var1")
+                .build()
+                .rawValue(variables)
+        )
     }
 
     @Test

@@ -179,7 +179,8 @@ class IRTest : KotestPropertyBase() {
         runBlocking {
             val arbFieldValue = Arb.pair(Arb.graphQLFieldName(), Arb.int().map(IR.Value::Number))
             val arbFieldMap = Arb.map(arbFieldValue)
-            Arb.pair(Arb.graphQLName(), arbFieldMap)
+            Arb
+                .pair(Arb.graphQLName(), arbFieldMap)
                 .forAll { (name, fields) ->
                     val obj = IR.Value.Object(name, fields)
                     obj.name == name && obj.fields == fields
