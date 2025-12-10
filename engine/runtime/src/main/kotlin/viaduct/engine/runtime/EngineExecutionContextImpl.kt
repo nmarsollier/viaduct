@@ -125,7 +125,7 @@ class EngineExecutionContextImpl(
     override fun createNodeReference(
         id: String,
         graphQLObjectType: GraphQLObjectType
-    ) = NodeEngineObjectDataImpl(id, graphQLObjectType, dispatcherRegistry, dispatcherRegistry)
+    ) = NodeEngineObjectDataImpl(id, graphQLObjectType, dispatcherRegistry)
 
     override fun hasModernNodeResolver(typeName: String): Boolean {
         return dispatcherRegistry.getNodeResolverDispatcher(typeName) != null

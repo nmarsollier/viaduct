@@ -7,9 +7,8 @@ import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.ViaductDataFetchingEnvironment
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
-import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
+import viaduct.engine.runtime.DispatcherRegistry
 import viaduct.engine.runtime.FieldResolverDispatcher
-import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.execution.ResolverDataFetcher
 import viaduct.graphql.utils.asNamedElement
@@ -18,8 +17,7 @@ import viaduct.graphql.utils.asNamedElement
  * Instrumentation that executes @Resolver classes for Viaduct Modern
  */
 class ResolverDataFetcherInstrumentation(
-    private val dispatcherRegistry: FieldResolverDispatcherRegistry, // Modern resolvers
-    private val checkerRegistry: FieldCheckerDispatcherRegistry,
+    private val dispatcherRegistry: DispatcherRegistry, // Modern resolvers
     private val coroutineInterop: CoroutineInterop = DefaultCoroutineInterop
 ) : ViaductModernGJInstrumentation {
     override fun instrumentDataFetcher(
@@ -38,7 +36,7 @@ class ResolverDataFetcherInstrumentation(
         val fieldName = dfEnv.fieldDefinition.name
 
         val resolverDispatcher = resolverDispatcher(typeName, fieldName) ?: return dataFetcher
-        val checkerDispatcher = checkerRegistry.getFieldCheckerDispatcher(typeName, fieldName)
+        val checkerDispatcher = dispatcherRegistry.getFieldCheckerDispatcher(typeName, fieldName)
         return ResolverDataFetcher(
             typeName = typeName,
             fieldName = fieldName,

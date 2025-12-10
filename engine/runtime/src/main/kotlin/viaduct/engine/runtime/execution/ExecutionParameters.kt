@@ -456,7 +456,7 @@ data class ExecutionParameters(
                             engineExecutionContext.activeSchema,
                             engineExecutionContext.dispatcherRegistry,
                             engineExecutionContext.executeAccessChecksInModstrat,
-                            fieldResolverDispatcherRegistry = engineExecutionContext.dispatcherRegistry
+                            engineExecutionContext.dispatcherRegistry
                         ),
                         executionContext.document,
                         executionContext.executionInput.operationName

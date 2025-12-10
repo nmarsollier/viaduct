@@ -56,7 +56,6 @@ class EngineImpl(
 
     private val resolverDataFetcherInstrumentation = ResolverDataFetcherInstrumentation(
         dispatcherRegistry,
-        dispatcherRegistry,
         coroutineInterop
     )
 

@@ -51,7 +51,7 @@ class NodeEngineObjectDataImplTest {
         nodeResolver = mockk<NodeResolverDispatcher>()
         nodeChecker = mockk<CheckerDispatcher>()
         engineObjectData = mockk<EngineObjectData>()
-        nodeReference = NodeEngineObjectDataImpl("testID", testType, dispatcherRegistry, dispatcherRegistry)
+        nodeReference = NodeEngineObjectDataImpl("testID", testType, dispatcherRegistry)
     }
 
     @Test

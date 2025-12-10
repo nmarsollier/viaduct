@@ -43,8 +43,6 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.select.SelectionsParser
 import viaduct.engine.runtime.DispatcherRegistry
-import viaduct.engine.runtime.FieldResolverDispatcher
-import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.execution.DefaultCoroutineInterop
 import viaduct.engine.runtime.mocks.ContextMocks
 import viaduct.engine.runtime.mocks.mkDispatcherRegistry
@@ -148,15 +146,6 @@ object MockSchema {
     val minimal: ViaductSchema = mkSchema("extend type Query { empty: Int }")
 
     fun mk(sdl: String) = mkSchema(sdl)
-}
-
-class MockFieldResolverDispatcherRegistry(vararg bindings: Pair<Coordinate, FieldResolverDispatcher>) : FieldResolverDispatcherRegistry {
-    private val bindingsMap = bindings.toMap()
-
-    override fun getFieldResolverDispatcher(
-        typeName: String,
-        fieldName: String
-    ): FieldResolverDispatcher? = bindingsMap[typeName to fieldName]
 }
 
 open class MockFieldUnbatchedResolverExecutor(

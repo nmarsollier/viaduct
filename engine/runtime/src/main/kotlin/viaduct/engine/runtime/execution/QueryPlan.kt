@@ -31,7 +31,6 @@ import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.gj
 import viaduct.engine.runtime.DispatcherRegistry
-import viaduct.engine.runtime.FieldResolverDispatcherRegistry
 import viaduct.engine.runtime.execution.QueryPlan.Field
 import viaduct.graphql.utils.asNamedElement
 import viaduct.graphql.utils.collectVariableDefinitions
@@ -68,7 +67,7 @@ data class QueryPlan(
         val schema: ViaductSchema,
         val registry: RequiredSelectionSetRegistry,
         val executeAccessChecksInModstrat: Boolean,
-        val fieldResolverDispatcherRegistry: FieldResolverDispatcherRegistry = DispatcherRegistry.Empty,
+        val dispatcherRegistry: DispatcherRegistry = DispatcherRegistry.Empty,
         val executionCondition: QueryPlanExecutionCondition = ALWAYS_EXECUTE
     )
 
@@ -509,7 +508,7 @@ private class QueryPlanBuilder(
             val planChildPlans = buildVariablesPlans(sel, state)
             val fieldTypeChildPlans = buildFieldTypeChildPlans(fieldType, state)
 
-            val resolverCoordinate = if (parameters.fieldResolverDispatcherRegistry.getFieldResolverDispatcher(parentType.name, sel.name) != null) {
+            val resolverCoordinate = if (parameters.dispatcherRegistry.getFieldResolverDispatcher(parentType.name, sel.name) != null) {
                 coord
             } else {
                 state.resolverCoordinate

@@ -49,10 +49,6 @@ import viaduct.engine.api.ViaductSchema
 import viaduct.engine.api.coroutines.CoroutineInterop
 import viaduct.engine.api.instrumentation.ViaductModernInstrumentation
 import viaduct.engine.runtime.DispatcherRegistry
-import viaduct.engine.runtime.FieldCheckerDispatcherRegistry
-import viaduct.engine.runtime.FieldResolverDispatcherRegistry
-import viaduct.engine.runtime.NodeResolverDispatcherRegistry
-import viaduct.engine.runtime.TypeCheckerDispatcherRegistry
 import viaduct.engine.runtime.context.CompositeLocalContext
 import viaduct.engine.runtime.instrumentation.ChainedViaductModernInstrumentation
 import viaduct.engine.runtime.mocks.ContextMocks
@@ -101,11 +97,7 @@ object ExecutionTestHelpers {
     private class TestDispatcherRegistryWithRSS(
         private val delegate: DispatcherRegistry,
         private val rssDelegate: RequiredSelectionSetRegistry
-    ) : DispatcherRegistry,
-        NodeResolverDispatcherRegistry by delegate,
-        TypeCheckerDispatcherRegistry by delegate,
-        FieldResolverDispatcherRegistry by delegate,
-        FieldCheckerDispatcherRegistry by delegate {
+    ) : DispatcherRegistry by delegate {
         override fun getFieldResolverRequiredSelectionSets(
             typeName: String,
             fieldName: String
@@ -188,6 +180,7 @@ object ExecutionTestHelpers {
             flagManager
         )
         val accessCheckRunner = AccessCheckRunner(coroutineInterop)
+
         @Suppress("DEPRECATION")
         val executionStrategyFactory = ViaductExecutionStrategy.Factory.Impl(
             dataFetcherExceptionHandler = ExceptionHandlerWithFuture(),

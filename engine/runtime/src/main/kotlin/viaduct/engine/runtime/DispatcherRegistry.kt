@@ -19,16 +19,25 @@ import viaduct.engine.api.RequiredSelectionSetRegistry
  *
  * @see Impl for the standard implementation
  */
-interface DispatcherRegistry :
-    RequiredSelectionSetRegistry,
-    NodeResolverDispatcherRegistry,
-    TypeCheckerDispatcherRegistry,
-    FieldResolverDispatcherRegistry,
-    FieldCheckerDispatcherRegistry {
+interface DispatcherRegistry : RequiredSelectionSetRegistry {
     companion object {
         /** A [DispatcherRegistry] that returns null/empty for every request. */
         val Empty: DispatcherRegistry = Impl(emptyMap(), emptyMap(), emptyMap(), emptyMap())
     }
+
+    fun getFieldResolverDispatcher(
+        typeName: String,
+        fieldName: String
+    ): FieldResolverDispatcher?
+
+    fun getFieldCheckerDispatcher(
+        typeName: String,
+        fieldName: String
+    ): CheckerDispatcher?
+
+    fun getNodeResolverDispatcher(typeName: String): NodeResolverDispatcher?
+
+    fun getTypeCheckerDispatcher(typeName: String): CheckerDispatcher?
 
     /**
      * Standard implementation of [DispatcherRegistry].
@@ -47,6 +56,15 @@ interface DispatcherRegistry :
             typeName: String,
             fieldName: String
         ) = fieldResolverDispatchers[Pair(typeName, fieldName)]
+
+        override fun getFieldCheckerDispatcher(
+            typeName: String,
+            fieldName: String
+        ) = fieldCheckerDispatchers[Pair(typeName, fieldName)]
+
+        override fun getNodeResolverDispatcher(typeName: String): NodeResolverDispatcher? = nodeResolverDispatchers[typeName]
+
+        override fun getTypeCheckerDispatcher(typeName: String): CheckerDispatcher? = typeCheckerDispatchers[typeName]
 
         override fun getFieldCheckerRequiredSelectionSets(
             typeName: String,
@@ -86,15 +104,6 @@ interface DispatcherRegistry :
                     getTypeCheckerDispatcher(typeName)?.requiredSelectionSets?.values?.filterNotNull()?.let { addAll(it) }
                 }
             }
-
-        override fun getFieldCheckerDispatcher(
-            typeName: String,
-            fieldName: String
-        ) = fieldCheckerDispatchers[Pair(typeName, fieldName)]
-
-        override fun getNodeResolverDispatcher(typeName: String): NodeResolverDispatcher? = nodeResolverDispatchers[typeName]
-
-        override fun getTypeCheckerDispatcher(typeName: String): CheckerDispatcher? = typeCheckerDispatchers[typeName]
 
         internal fun isEmpty() = fieldResolverDispatchers.isEmpty() && nodeResolverDispatchers.isEmpty() && fieldCheckerDispatchers.isEmpty() && typeCheckerDispatchers.isEmpty()
     }
