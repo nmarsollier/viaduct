@@ -37,7 +37,6 @@ import viaduct.engine.api.ObjectEngineResult
 import viaduct.engine.api.RequiredSelectionSet
 import viaduct.engine.api.VariablesResolver
 import viaduct.engine.api.gj
-import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.CheckerProxyEngineObjectData
 import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
 import viaduct.engine.runtime.EngineExecutionContextExtensions.dispatcherRegistry
@@ -45,6 +44,7 @@ import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.EngineResultLocalContext
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.ProxyEngineObjectData
+import viaduct.engine.runtime.observability.ExecutionObservabilityContext
 import viaduct.graphql.utils.collectVariableDefinitions
 
 object FieldExecutionHelpers {

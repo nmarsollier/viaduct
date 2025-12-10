@@ -1,7 +1,12 @@
-package viaduct.engine.api.instrumentation.resolver
+package viaduct.engine.runtime.instrumentation.resolver
+
+import viaduct.engine.api.instrumentation.resolver.CheckerFunction
+import viaduct.engine.api.instrumentation.resolver.FetchFunction
+import viaduct.engine.api.instrumentation.resolver.ResolverFunction
+import viaduct.engine.api.instrumentation.resolver.ViaductResolverInstrumentation
 
 /**
- * Composite instrumentation that chains multiple [ViaductResolverInstrumentation] implementations.
+ * Composite instrumentation that chains multiple [viaduct.engine.api.instrumentation.resolver.ViaductResolverInstrumentation] implementations.
  *
  * Invokes all instrumentations in the list sequentially for each lifecycle event. Each instrumentation
  * maintains its own state and wraps the execution of the next instrumentation in the chain.

@@ -1,4 +1,4 @@
-package viaduct.engine.api.observability
+package viaduct.engine.runtime.observability
 
 import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.ResolverMetadata

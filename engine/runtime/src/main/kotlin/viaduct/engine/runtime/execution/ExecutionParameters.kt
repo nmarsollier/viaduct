@@ -26,13 +26,13 @@ import viaduct.engine.api.ExecutionAttribution
 import viaduct.engine.api.ResolutionPolicy
 import viaduct.engine.api.gj
 import viaduct.engine.api.instrumentation.ViaductModernGJInstrumentation
-import viaduct.engine.api.observability.ExecutionObservabilityContext
 import viaduct.engine.runtime.EngineExecutionContextExtensions.copy
 import viaduct.engine.runtime.EngineExecutionContextExtensions.setExecutionHandle
 import viaduct.engine.runtime.EngineExecutionContextImpl
 import viaduct.engine.runtime.ObjectEngineResultImpl
 import viaduct.engine.runtime.context.CompositeLocalContext
 import viaduct.engine.runtime.context.updateCompositeLocalContext
+import viaduct.engine.runtime.observability.ExecutionObservabilityContext
 import viaduct.service.api.spi.FlagManager
 import viaduct.service.api.spi.Flags
 import viaduct.utils.slf4j.logger

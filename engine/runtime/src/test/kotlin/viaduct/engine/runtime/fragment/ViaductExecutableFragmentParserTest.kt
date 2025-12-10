@@ -1,10 +1,11 @@
-package viaduct.engine.api.fragment
+package viaduct.engine.runtime.fragment
 
 import graphql.language.AstPrinter
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import viaduct.engine.api.fragment.Fragment
 import viaduct.engine.api.parse.CachedDocumentParser
 
 class ViaductExecutableFragmentParserTest {

@@ -33,10 +33,10 @@ import viaduct.dataloader.BatchLoaderEnvironment
 import viaduct.dataloader.InternalDataLoader
 import viaduct.dataloader.MappedBatchLoadFn
 import viaduct.dataloader.NextTickDispatcher
-import viaduct.engine.api.RequestScopeCancellationException
 import viaduct.engine.api.instrumentation.ViaductModernInstrumentation
 import viaduct.engine.api.mocks.MockRequiredSelectionSetRegistry
 import viaduct.engine.runtime.EngineResultLocalContext
+import viaduct.engine.runtime.RequestScopeCancellationException
 import viaduct.engine.runtime.context.getLocalContextForType
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createSchema
 import viaduct.engine.runtime.execution.ExecutionTestHelpers.createViaductGraphQL
