@@ -2,10 +2,12 @@ package viaduct.service.api.spi
 
 import graphql.GraphQLError
 import graphql.schema.DataFetchingEnvironment
+import viaduct.apiannotations.StableApi
 
 /**
  * Interface for building GraphQL errors from exceptions that occur during data fetching.q
  */
+@StableApi
 interface ResolverErrorBuilder {
     /**
      * Converts an exception to a list of GraphQL errors.
